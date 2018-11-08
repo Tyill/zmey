@@ -34,20 +34,16 @@ class Stream{
   
 public:
 
-    Stream() = default;
+    Stream(ZM_BASE::zmStatusCBack cb, ZM_BASE::zmUData ud);
 
     ~Stream() = default;
-
-    void getLastErrorStr(char* outErr);
         
     bool pushFrame(ZM_BASE::zmFrame frame);
         
-    bool getStreamPiece(ZM_BASE::zmStreamPiece* piece);
+    size_t getStreamPiece(size_t pieceSz, char* outPiece);
 
 private:
-
-    std::string lastError_ = "";
-
+       
     std::vector<ZM_BASE::zmFrame> frames_;
 
 };

@@ -24,8 +24,7 @@
 //
 
 
-#include "client.h"
-
+#include "zmClient/zmClient.h"
 
 namespace ZM_CLNT{
 
@@ -39,4 +38,10 @@ namespace ZM_CLNT{
 
    //     clientObj.disconnect();
     }   
+
+    // set frame
+    void zmSetFrame(ZM_FRAME::zmFrame frm){
+
+
+    }
 }

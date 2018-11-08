@@ -23,17 +23,17 @@
 // THE SOFTWARE.
 //
 
-#ifndef ZMSTREAM_API_C_API_H_
-#define ZMSTREAM_API_C_API_H_
+#ifndef ZM_STREAM_API_C_API_H_
+#define ZM_STREAM_API_C_API_H_
 
 #ifdef _WIN32
 #ifdef ZMSTREAM_DLL_EXPORTS
-#define ZMSTREAM_API __declspec(dllexport)
+#define ZM_STREAM_API __declspec(dllexport)
 #else
-#define ZMSTREAM_API __declspec(dllimport)
+#define ZM_STREAM_API __declspec(dllimport)
 #endif
 #else
-#define ZMSTREAM_API
+#define ZM_STREAM_API
 #endif
 
 #include "zmBase/zmBase.h"
@@ -44,39 +44,30 @@ extern "C" {
 #endif /* __cplusplus */
 
         /// object stream
-        typedef void* zmStream;
-        
-        /// version lib
-        /// @param[out] outVersion The memory is allocated by the user
-        ZMSTREAM_API void zmVersionLibStrm(char* outVersion /*sz 32*/);
-
+        typedef void* zmStream;        
+       
         /// create stream       
         /// @return object stream
-        ZMSTREAM_API zmStream zmCreateStream();
-
-        /// get last error
-        /// @param[in] zmStream - object stream
-        /// @param[out] outErr - "" - ok. The memory is allocated by the user
-        ZMSTREAM_API void zmGetLastErrorStrm(zmStream, char* outErr);
+        ZM_STREAM_API zmStream zmCreateStream(ZM_BASE::zmStatusCBack = nullptr, ZM_BASE::zmUData = nullptr);
         
         /// add new frame to stream
         /// @param[in] zmStream - object stream
         /// @param[in] frame - frame       
         /// @return true ok
-        ZMSTREAM_API bool zmPushFrame(zmStream, ZM_BASE::zmFrame frame);
+        ZM_STREAM_API bool zmPushFrame(zmStream, ZM_BASE::zmFrame frame);
 
         /// get stream piece
         /// @param[in] zmStream - object stream
-        /// @param[in] outPiece - out stream piece
-        /// @return true ok
-        ZMSTREAM_API bool zmGetStreamPiece(zmStream, ZM_BASE::zmStreamPiece* outPiece);
+        /// @param[out] outPiece - out stream piece. The memory is allocated by the user
+        /// @return >=0 size out piece 
+        ZM_STREAM_API size_t zmGetStreamPiece(zmStream, size_t pieceSz, char* outPiece);
 
         /// free object stream
         /// @param[in] zmStream - object stream
-        ZMSTREAM_API void zmFreeStrm(zmStream);
+        ZM_STREAM_API void zmFreeStrm(zmStream);
 
 #if defined(__cplusplus)
     }}
 #endif /* __cplusplus */
 
-#endif /* ZMEY_C_API_H_ */
+#endif /* ZM_STREAM_API_C_API_H_ */

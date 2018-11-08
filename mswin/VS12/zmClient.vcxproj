@@ -12,10 +12,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\zmClient\src\client.h" />
+    <ClInclude Include="..\..\src\zmClient\src\clientTCP.h" />
     <ClInclude Include="..\..\src\zmClient\zmClient.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\zmClient\src\client.cpp" />
+    <ClCompile Include="..\..\src\zmClient\src\clientTCP.cpp" />
     <ClCompile Include="..\..\src\zmClient\src\dllmain.cpp" />
     <ClCompile Include="..\..\src\zmClient\src\zmClient.cpp" />
   </ItemGroup>

@@ -32,34 +32,16 @@
 #define ZM_FRAME_VERSION "1.0.1"
 
 namespace ZM_FRAME{
-
-    /// version lib
-    /// @param[out] outVersion The memory is allocated by the user
-    void zmVersionLibFrame(char* outVersion /*sz 32*/){
-
-        if (outVersion)
-            strcpy(outVersion, ZM_FRAME_VERSION);
-    }
-
+        
     /// create frame
     /// @return object frame
-    zmFrame zmCreateFrame(){
+    zmFrame zmCreateFrame(ZM_BASE::zmStatusCBack cb, ZM_BASE::zmUData ud){
       
-        auto strm = new Frame();
+        auto frm = new Frame(cb, ud);
                
-        return strm;
+        return frm;
     }
-        
-    /// get last error
-    /// @param[in] zmFrame - object stream
-    /// @param[out] outErr - "" - ok. The memory is allocated by the user
-    void zmStrmGetLastErrorStr(zmFrame frm, char* outErr){
-
-        if (!frm || !outErr) return;
-
-        static_cast<Frame*>(frm)->getLastErrorStr(outErr);
-    }
-
+       
     /// add new frame to stream
     /// @param[in] zmStream - object stream
     /// @param[in] frame - frame       

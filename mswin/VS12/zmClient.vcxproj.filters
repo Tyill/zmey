@@ -15,21 +15,27 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\zmNetworkClient\zmNetworkClient.h">
+    <ClInclude Include="..\..\src\zmClient\src\client.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\zmNetworkClient\src\client.h">
+    <ClInclude Include="..\..\src\zmClient\zmClient.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\zmClient\src\clientTCP.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\zmNetworkClient\src\client.cpp">
+    <ClCompile Include="..\..\src\zmClient\src\client.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\zmNetworkClient\src\dllmain.cpp">
+    <ClCompile Include="..\..\src\zmClient\src\dllmain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\zmNetworkClient\src\zmNetworkClient.cpp">
+    <ClCompile Include="..\..\src\zmClient\src\zmClient.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\zmClient\src\clientTCP.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -35,6 +35,8 @@
   #define ZM_CLNT_API extern "C"
 #endif
 
+#include "zmFrame/zmFrame.h"
+
 namespace ZM_CLNT{
 
     // connect of server
@@ -44,5 +46,8 @@ namespace ZM_CLNT{
 
     // disconnect of server
     ZM_CLNT_API void zmDisconnect();
+
+    // set frame
+    ZM_CLNT_API void zmSetFrame(ZM_FRAME::zmFrame);
        
 }

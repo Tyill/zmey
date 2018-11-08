@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.40629.0
+VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zmFrame", "zmFrame.vcxproj", "{49759723-AE0C-40D9-8367-1F911DCF27E5}"
 EndProject
@@ -14,6 +14,10 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zmClient", "zmClient.vcxproj", "{302D252A-F235-4E85-BC10-752CB1296703}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zmServer", "zmServer.vcxproj", "{A4A8422F-CF64-4FD3-B6E3-4FB11AA90B85}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zmReceiverExample", "zmReceiverExample.vcxproj", "{A280DB37-97B4-431A-AE2F-2F557329A814}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zmSenderExample", "zmSenderExample.vcxproj", "{981E553B-6E24-46F2-A804-F0383C370DE8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +49,14 @@ Global
 		{A4A8422F-CF64-4FD3-B6E3-4FB11AA90B85}.Debug|x64.Build.0 = Debug|x64
 		{A4A8422F-CF64-4FD3-B6E3-4FB11AA90B85}.Release|x64.ActiveCfg = Release|x64
 		{A4A8422F-CF64-4FD3-B6E3-4FB11AA90B85}.Release|x64.Build.0 = Release|x64
+		{A280DB37-97B4-431A-AE2F-2F557329A814}.Debug|x64.ActiveCfg = Debug|x64
+		{A280DB37-97B4-431A-AE2F-2F557329A814}.Debug|x64.Build.0 = Debug|x64
+		{A280DB37-97B4-431A-AE2F-2F557329A814}.Release|x64.ActiveCfg = Release|x64
+		{A280DB37-97B4-431A-AE2F-2F557329A814}.Release|x64.Build.0 = Release|x64
+		{981E553B-6E24-46F2-A804-F0383C370DE8}.Debug|x64.ActiveCfg = Debug|x64
+		{981E553B-6E24-46F2-A804-F0383C370DE8}.Debug|x64.Build.0 = Debug|x64
+		{981E553B-6E24-46F2-A804-F0383C370DE8}.Release|x64.ActiveCfg = Release|x64
+		{981E553B-6E24-46F2-A804-F0383C370DE8}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

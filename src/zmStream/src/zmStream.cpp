@@ -32,33 +32,16 @@
 
 namespace ZM_STREAM{
 
-    /// version lib
-    /// @param[out] outVersion The memory is allocated by the user
-    void zmVersionLibStrm(char* outVersion /*sz 32*/){
-
-        if (outVersion)
-            strcpy(outVersion, ZM_STRM_VERSION);
-    }
-
+  
     /// create stream    
     /// @return object stream
-    zmStream zmCreateStream(){
+    zmStream zmCreateStream(ZM_BASE::zmStatusCBack cb, ZM_BASE::zmUData ud){
       
-        auto strm = new Stream();
+        auto strm = new Stream(cb, ud);
                
         return strm;
     }
-
-    /// get last error
-    /// @param[in] zmStream - object stream
-    /// @param[out] outErr - "" - ok. The memory is allocated by the user
-    void zmGetLastErrorStrm(zmStream strm, char* outErr){
-
-        if (!strm || !outErr) return;
-
-        static_cast<Stream*>(strm)->getLastErrorStr(outErr);
-    }
-
+        
     /// add new frame to stream
     /// @param[in] zmStream - object stream
     /// @param[in] frame - frame       
@@ -72,13 +55,13 @@ namespace ZM_STREAM{
 
     /// get stream piece
     /// @param[in] zmStream - object stream
-    /// @param[in] outPiece - out stream piece
-    /// @return true ok
-    bool zmGetStreamPiece(zmStream strm, ZM_BASE::zmStreamPiece* outPiece){
+    /// @param[out] outPiece - out stream piece. The memory is allocated by the user
+    /// @return >=0 size out piece 
+    size_t zmGetStreamPiece(zmStream strm, size_t pieceSz, char* outPiece){
 
         if (!strm) return false;
 
-        return static_cast<Stream*>(strm)->getStreamPiece(outPiece);
+        return static_cast<Stream*>(strm)->getStreamPiece(pieceSz, outPiece);
     }
 
     /// free object stream

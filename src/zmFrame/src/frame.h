@@ -34,7 +34,7 @@ class Frame{
   
 public:
 
-    Frame() = default;
+    Frame(ZM_BASE::zmStatusCBack, ZM_BASE::zmUData);
 
     ~Frame() = default;
 

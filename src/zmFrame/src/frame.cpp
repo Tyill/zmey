@@ -25,6 +25,11 @@
 
 #include "frame.h"
 
+Frame::Frame(ZM_BASE::zmStatusCBack cb, ZM_BASE::zmUData ud){
+
+
+}
+
 void Frame::getLastErrorStr(char* outErr){
 
     if (outErr){

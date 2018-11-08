@@ -24,13 +24,11 @@
 //
 
 #include "stream.h"
+#include <algorithm>
 
-void Stream::getLastErrorStr(char* outErr){
+Stream::Stream(ZM_BASE::zmStatusCBack cb, ZM_BASE::zmUData ud){
 
-    if (outErr){
-        outErr = '\0';
-        strcpy(outErr, lastError_.c_str());
-    }
+
 }
 
 bool Stream::pushFrame(ZM_BASE::zmFrame frame){
@@ -40,19 +38,16 @@ bool Stream::pushFrame(ZM_BASE::zmFrame frame){
     return true;
 }
 
-bool Stream::getStreamPiece(ZM_BASE::zmStreamPiece* piece){
+size_t Stream::getStreamPiece(size_t pieceSz, char* outPiece){
 
     if (frames_.empty()) return false;
 
     auto frame = frames_.back();
-
-    piece->data = (char*)realloc(piece->data, frame.size);
-
-    memcpy(piece->data, frame.data, frame.size);
-
-    piece->size = frame.size;
-
+       
+    size_t sz = std::min(pieceSz, frame.size);
+    memcpy(outPiece, frame.data, sz);
+        
     frames_.pop_back();
 
-    return true;
+    return sz;
 }

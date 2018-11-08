@@ -23,26 +23,43 @@
 // THE SOFTWARE.
 //
 
-#pragma once
+#ifndef ZMSRV_API_C_API_H_
+#define ZMSRV_API_C_API_H_
 
 #ifdef _WIN32
-  #ifdef ZMNWCLNT_DLL_EXPORTS
-    #define ZM_NW_CLNT_API extern "C" __declspec(dllexport)
-  #else
-    #define ZM_NW_CLNT_API extern "C" __declspec(dllimport)
-  #endif
+ #ifdef ZMSRV_DLL_EXPORTS
+  #define ZM_SRV_API __declspec(dllexport)
+ #else
+  #define ZM_SRV_API __declspec(dllimport)
+ #endif
 #else
-  #define ZM_NW_CLNT_API extern "C"
+  #define ZM_SRV_API 
 #endif
 
-namespace ZM_CLNT{
+#include "zmBase/zmBase.h"
+#include "zmStream/zmStream.h"
 
-    // connect of server
-    // clientName - client (leng max 24)
-    // ipAddrServ - ip
-    ZM_NW_CLNT_API bool zmConnect(const char *clientName, const char *ipAddrServ, int portServ);
+#if defined(__cplusplus)
+extern "C" {
+    namespace ZM_SRV{
+#endif /* __cplusplus */ 
+    
+// start server
+// addr - ip
+// port - port
+ZM_SRV_API bool zmStartServer(const char* addr,
+                                int port, 
+                                ZM_BASE::zmStatusCBack = nullptr, 
+                                ZM_BASE::zmUData = nullptr);
 
-    // disconnect of server
-    ZM_NW_CLNT_API void zmDisconnect();
+// stop server
+ZM_SRV_API void zmStopServer();
+
+// set stream
+ZM_SRV_API void zmSetStream(ZM_STREAM::zmStream);
        
-}
+#if defined(__cplusplus)
+}}
+#endif /* __cplusplus */
+
+#endif /* ZMSRV_API_C_API_H_ */

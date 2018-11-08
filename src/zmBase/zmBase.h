@@ -23,11 +23,16 @@
 // THE SOFTWARE.
 //
 
+#pragma once
+
 #include <cstdint>
 #include <cstdlib>
 
 namespace ZM_BASE{
 
+    typedef void* zmUData;                                      ///< user data    
+    typedef void(*zmStatusCBack)(const char* mess, zmUData);    ///< status callback
+    
     struct zmFrame{
 
         size_t size = 0;
@@ -40,14 +45,26 @@ namespace ZM_BASE{
             if (data) free(data);
         }
     };
-
+    
     struct zmStreamPiece{
 
         size_t size = 0;
-        
+
         char* data = nullptr;
 
         ~zmStreamPiece(){
+
+            if (data) free(data);
+        }
+    };
+
+    struct zmNetPacket{
+
+        size_t size = 0;
+
+        char* data = nullptr;
+
+        ~zmNetPacket(){
 
             if (data) free(data);
         }

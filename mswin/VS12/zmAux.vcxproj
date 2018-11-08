@@ -10,6 +10,14 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\zmAux\auxFunc.h" />
+    <ClInclude Include="..\..\src\zmAux\front.h" />
+    <ClInclude Include="..\..\src\zmAux\timerDelay.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\zmAux\src\auxFunc.cpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C6974869-5FF9-45FB-B8E1-280EE58B9505}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>

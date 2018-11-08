@@ -45,20 +45,11 @@ extern "C" {
 
         /// object stream
         typedef void* zmFrame;
-        
-        /// version lib
-        /// @param[out] outVersion The memory is allocated by the user
-        ZMFRAME_API void zmVersionLibFrame(char* outVersion /*sz 32*/);
-
+       
         /// create frame       
         /// @return object frame
-        ZMFRAME_API zmFrame zmCreateFrame();
-
-        /// get last error
-        /// @param[in] zmStream - object stream
-        /// @param[out] outErr - "" - ok. The memory is allocated by the user
-        ZMFRAME_API void zmGetLastErrorFrame(zmFrame, char* outErr);
-        
+        ZMFRAME_API zmFrame zmCreateFrame(ZM_BASE::zmStatusCBack = nullptr, ZM_BASE::zmUData = nullptr);
+            
         /// add new frame to stream
         /// @param[in] zmStream - object stream
         /// @param[in] frame - frame       
