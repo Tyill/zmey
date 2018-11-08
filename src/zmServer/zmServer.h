@@ -23,33 +23,26 @@
 // THE SOFTWARE.
 //
 
-#include <cstdint>
-#include <cstdlib>
+#pragma once
 
-namespace ZM_BASE{
+#ifdef _WIN32
+  #ifdef ZMNWCLNT_DLL_EXPORTS
+    #define ZM_NW_CLNT_API extern "C" __declspec(dllexport)
+  #else
+    #define ZM_NW_CLNT_API extern "C" __declspec(dllimport)
+  #endif
+#else
+  #define ZM_NW_CLNT_API extern "C"
+#endif
 
-    struct zmFrame{
+namespace ZM_CLNT{
 
-        size_t size = 0;
-        uint32_t channels = 0;
-        uint32_t depth = 0;
-        char* data = nullptr;
+    // connect of server
+    // clientName - client (leng max 24)
+    // ipAddrServ - ip
+    ZM_NW_CLNT_API bool zmConnect(const char *clientName, const char *ipAddrServ, int portServ);
 
-        ~zmFrame(){
-
-            if (data) free(data);
-        }
-    };
-
-    struct zmStreamPiece{
-
-        size_t size = 0;
-        
-        char* data = nullptr;
-
-        ~zmStreamPiece(){
-
-            if (data) free(data);
-        }
-    };
+    // disconnect of server
+    ZM_NW_CLNT_API void zmDisconnect();
+       
 }

@@ -23,33 +23,25 @@
 // THE SOFTWARE.
 //
 
-#include <cstdint>
-#include <cstdlib>
+#ifdef _WIN32
 
-namespace ZM_BASE{
+// dllmain.cpp : Defines the entry point for the DLL application.
+#include <windows.h>
 
-    struct zmFrame{
-
-        size_t size = 0;
-        uint32_t channels = 0;
-        uint32_t depth = 0;
-        char* data = nullptr;
-
-        ~zmFrame(){
-
-            if (data) free(data);
-        }
-    };
-
-    struct zmStreamPiece{
-
-        size_t size = 0;
-        
-        char* data = nullptr;
-
-        ~zmStreamPiece(){
-
-            if (data) free(data);
-        }
-    };
+BOOL APIENTRY DllMain( HMODULE hModule,
+                       DWORD  ul_reason_for_call,
+                       LPVOID lpReserved
+					 )
+{
+	switch (ul_reason_for_call)
+	{
+	case DLL_PROCESS_ATTACH:
+	case DLL_THREAD_ATTACH:
+	case DLL_THREAD_DETACH:
+	case DLL_PROCESS_DETACH:
+		break;
+	}
+	return TRUE;
 }
+
+#endif

@@ -22,34 +22,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+#pragma once
 
-#include <cstdint>
-#include <cstdlib>
+#include <mutex>
+#include <thread>
 
-namespace ZM_BASE{
+class client
+{
+public:
 
-    struct zmFrame{
-
-        size_t size = 0;
-        uint32_t channels = 0;
-        uint32_t depth = 0;
-        char* data = nullptr;
-
-        ~zmFrame(){
-
-            if (data) free(data);
-        }
-    };
-
-    struct zmStreamPiece{
-
-        size_t size = 0;
-        
-        char* data = nullptr;
-
-        ~zmStreamPiece(){
-
-            if (data) free(data);
-        }
-    };
-}
+};

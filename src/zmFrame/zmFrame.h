@@ -23,57 +23,57 @@
 // THE SOFTWARE.
 //
 
-#ifndef ZMSTREAM_API_C_API_H_
-#define ZMSTREAM_API_C_API_H_
+#ifndef ZMFRAME_API_C_API_H_
+#define ZMFRAME_API_C_API_H_
 
 #ifdef _WIN32
-#ifdef ZMSTREAM_DLL_EXPORTS
-#define ZMSTREAM_API __declspec(dllexport)
+#ifdef ZMFRAME_DLL_EXPORTS
+#define ZMFRAME_API __declspec(dllexport)
 #else
-#define ZMSTREAM_API __declspec(dllimport)
+#define ZMFRAME_API __declspec(dllimport)
 #endif
 #else
-#define ZMSTREAM_API
+#define ZMFRAME_API
 #endif
 
 #include "zmBase/zmBase.h"
 
 #if defined(__cplusplus)
 extern "C" {
-    namespace ZM_STREAM{
+    namespace ZM_FRAME{
 #endif /* __cplusplus */
 
         /// object stream
-        typedef void* zmStream;
+        typedef void* zmFrame;
         
         /// version lib
         /// @param[out] outVersion The memory is allocated by the user
-        ZMSTREAM_API void zmVersionLibStrm(char* outVersion /*sz 32*/);
+        ZMFRAME_API void zmVersionLibFrame(char* outVersion /*sz 32*/);
 
-        /// create stream       
-        /// @return object stream
-        ZMSTREAM_API zmStream zmCreateStream();
+        /// create frame       
+        /// @return object frame
+        ZMFRAME_API zmFrame zmCreateFrame();
 
         /// get last error
         /// @param[in] zmStream - object stream
         /// @param[out] outErr - "" - ok. The memory is allocated by the user
-        ZMSTREAM_API void zmGetLastErrorStrm(zmStream, char* outErr);
+        ZMFRAME_API void zmGetLastErrorFrame(zmFrame, char* outErr);
         
         /// add new frame to stream
         /// @param[in] zmStream - object stream
         /// @param[in] frame - frame       
         /// @return true ok
-        ZMSTREAM_API bool zmPushFrame(zmStream, ZM_BASE::zmFrame frame);
+        ZMFRAME_API bool zmPushStream(zmFrame, ZM_BASE::zmStreamPiece piece);
 
         /// get stream piece
         /// @param[in] zmStream - object stream
         /// @param[in] outPiece - out stream piece
         /// @return true ok
-        ZMSTREAM_API bool zmGetStreamPiece(zmStream, ZM_BASE::zmStreamPiece* outPiece);
+        ZMFRAME_API bool zmGetFrame(zmFrame, ZM_BASE::zmFrame* outFrame);
 
         /// free object stream
         /// @param[in] zmStream - object stream
-        ZMSTREAM_API void zmFreeStrm(zmStream);
+        ZMFRAME_API void zmFreeFrame(zmFrame);
 
 #if defined(__cplusplus)
     }}

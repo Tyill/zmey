@@ -25,71 +25,71 @@
 
 #include <vector>
 #include <string>
-#include "zmStream.h"
-#include "stream.h"
+#include "zmBase/zmBase.h"
+#include "zmFrame/zmFrame.h"
+#include "frame.h"
 
-#define ZM_STRM_VERSION "1.0.1"
+#define ZM_FRAME_VERSION "1.0.1"
 
-namespace ZM_STREAM{
+namespace ZM_FRAME{
 
     /// version lib
     /// @param[out] outVersion The memory is allocated by the user
-    void zmStrmVersionLib(char* outVersion /*sz 32*/){
+    void zmVersionLibFrame(char* outVersion /*sz 32*/){
 
         if (outVersion)
-            strcpy(outVersion, ZM_STRM_VERSION);
+            strcpy(outVersion, ZM_FRAME_VERSION);
     }
 
-    /// create stream
-    /// @param[in] statusCBack - callback state. Not necessary
-    /// @param[in] udata - user data. Not necessary
-    /// @return object net
-    zmStream zmStrmCreateStream(){
+    /// create frame
+    /// @return object frame
+    zmFrame zmCreateFrame(){
       
-        auto strm = new Stream();
+        auto strm = new Frame();
                
         return strm;
     }
-
+        
     /// get last error
-    /// @param[in] zmStream - object stream
+    /// @param[in] zmFrame - object stream
     /// @param[out] outErr - "" - ok. The memory is allocated by the user
-    void zmStrmGetLastErrorStr(zmStream strm, char* outErr){
+    void zmStrmGetLastErrorStr(zmFrame frm, char* outErr){
 
-        if (!strm || !outErr) return;
+        if (!frm || !outErr) return;
 
-        static_cast<Stream*>(strm)->getLastErrorStr(outErr);
+        static_cast<Frame*>(frm)->getLastErrorStr(outErr);
     }
 
     /// add new frame to stream
     /// @param[in] zmStream - object stream
     /// @param[in] frame - frame       
     /// @return true ok
-    bool zmStrmPushFrame(zmStream strm, ZM_BASE::zmFrame frame){
+    bool zmPushStream(zmFrame frm, ZM_BASE::zmStreamPiece piece){
+        
+        if (!frm) return;
 
-        if (!strm) return false;
-
-        return static_cast<Stream*>(strm)->pushFrame(frame);
+        static_cast<Frame*>(frm)->pushStream(piece);
     }
 
     /// get stream piece
     /// @param[in] zmStream - object stream
     /// @param[in] outPiece - out stream piece
     /// @return true ok
-    bool zmStrmGetStreamPiece(zmStream strm, ZM_BASE::zmStreamPiece* outPiece){
+    bool zmGetFrame(zmFrame frm, ZM_BASE::zmFrame* outFrame){
 
-        if (!strm) return false;
+        if (!frm) return;
 
-        return static_cast<Stream*>(strm)->getStreamPiece(outPiece);
+        static_cast<Frame*>(frm)->getFrame(outFrame);
     }
 
     /// free object stream
     /// @param[in] zmStream - object stream
-    void zmStrmFree(zmStream strm){
+    void zmFreeFrame(zmFrame frm){
 
-        if (!strm) return;
+        if (!frm) return;
 
-        delete static_cast<Stream*>(strm);
+        delete static_cast<Frame*>(frm);
     }
 
+   
 }

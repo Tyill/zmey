@@ -23,33 +23,36 @@
 // THE SOFTWARE.
 //
 
-#include <cstdint>
-#include <cstdlib>
+#include "stream.h"
 
-namespace ZM_BASE{
+void Stream::getLastErrorStr(char* outErr){
 
-    struct zmFrame{
+    if (outErr){
+        outErr = '\0';
+        strcpy(outErr, lastError_.c_str());
+    }
+}
 
-        size_t size = 0;
-        uint32_t channels = 0;
-        uint32_t depth = 0;
-        char* data = nullptr;
+bool Stream::pushFrame(ZM_BASE::zmFrame frame){
 
-        ~zmFrame(){
+    frames_.push_back(frame);
 
-            if (data) free(data);
-        }
-    };
+    return true;
+}
 
-    struct zmStreamPiece{
+bool Stream::getStreamPiece(ZM_BASE::zmStreamPiece* piece){
 
-        size_t size = 0;
-        
-        char* data = nullptr;
+    if (frames_.empty()) return false;
 
-        ~zmStreamPiece(){
+    auto frame = frames_.back();
 
-            if (data) free(data);
-        }
-    };
+    piece->data = (char*)realloc(piece->data, frame.size);
+
+    memcpy(piece->data, frame.data, frame.size);
+
+    piece->size = frame.size;
+
+    frames_.pop_back();
+
+    return true;
 }

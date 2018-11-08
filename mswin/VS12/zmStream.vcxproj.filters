@@ -15,21 +15,21 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\zmStream\stream.h">
+    <ClInclude Include="..\..\src\zmStream\zmStream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\zmStream\zmStream.h">
+    <ClInclude Include="..\..\src\zmStream\src\stream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\zmStream\dllmain.cpp">
+    <ClCompile Include="..\..\src\zmStream\src\dllmain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\zmStream\stream.cpp">
+    <ClCompile Include="..\..\src\zmStream\src\stream.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\zmStream\zmStream.cpp">
+    <ClCompile Include="..\..\src\zmStream\src\zmStream.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

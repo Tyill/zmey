@@ -23,33 +23,31 @@
 // THE SOFTWARE.
 //
 
-#include <cstdint>
-#include <cstdlib>
+#pragma once
 
-namespace ZM_BASE{
+#include <string>
+#include <vector>
+#include "zmBase/zmBase.h"
 
-    struct zmFrame{
+class Frame{
+   
+  
+public:
 
-        size_t size = 0;
-        uint32_t channels = 0;
-        uint32_t depth = 0;
-        char* data = nullptr;
+    Frame() = default;
 
-        ~zmFrame(){
+    ~Frame() = default;
 
-            if (data) free(data);
-        }
-    };
-
-    struct zmStreamPiece{
-
-        size_t size = 0;
+    void getLastErrorStr(char* outErr);
         
-        char* data = nullptr;
+    bool pushStream(ZM_BASE::zmStreamPiece);
+        
+    bool getFrame(ZM_BASE::zmFrame*);
 
-        ~zmStreamPiece(){
+private:
 
-            if (data) free(data);
-        }
-    };
-}
+    std::string lastError_ = "";
+
+    std::vector<ZM_BASE::zmStreamPiece> strPiece_;
+
+};

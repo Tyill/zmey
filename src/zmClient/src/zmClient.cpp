@@ -23,33 +23,20 @@
 // THE SOFTWARE.
 //
 
-#include <cstdint>
-#include <cstdlib>
 
-namespace ZM_BASE{
+#include "client.h"
 
-    struct zmFrame{
 
-        size_t size = 0;
-        uint32_t channels = 0;
-        uint32_t depth = 0;
-        char* data = nullptr;
+namespace ZM_CLNT{
 
-        ~zmFrame(){
+    bool zmConnect(const char *moduleName, const char *ipAddr, int port) {
 
-            if (data) free(data);
-        }
-    };
+   //     return clientObj.connect(moduleName, ipAddr, port);
+        return true;
+    }
 
-    struct zmStreamPiece{
+    void zmDisconnect() {
 
-        size_t size = 0;
-        
-        char* data = nullptr;
-
-        ~zmStreamPiece(){
-
-            if (data) free(data);
-        }
-    };
+   //     clientObj.disconnect();
+    }   
 }

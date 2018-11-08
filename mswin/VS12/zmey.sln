@@ -7,11 +7,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zmFrame", "zmFrame.vcxproj"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zmBase", "zmBase.vcxproj", "{A058880B-90DF-4B88-830D-EDE1E110903B}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zmNetworkClient", "zmNetworkClient.vcxproj", "{302D252A-F235-4E85-BC10-752CB1296703}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zmNetworkServer", "zmNetworkServer.vcxproj", "{A4A8422F-CF64-4FD3-B6E3-4FB11AA90B85}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zmStream", "zmStream.vcxproj", "{F7331328-9E0E-4D1A-854F-83280F6DA8B3}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zmAux", "zmAux.vcxproj", "{C6974869-5FF9-45FB-B8E1-280EE58B9505}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zmClient", "zmClient.vcxproj", "{302D252A-F235-4E85-BC10-752CB1296703}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zmServer", "zmServer.vcxproj", "{A4A8422F-CF64-4FD3-B6E3-4FB11AA90B85}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,14 @@ Global
 		{A058880B-90DF-4B88-830D-EDE1E110903B}.Debug|x64.Build.0 = Debug|x64
 		{A058880B-90DF-4B88-830D-EDE1E110903B}.Release|x64.ActiveCfg = Release|x64
 		{A058880B-90DF-4B88-830D-EDE1E110903B}.Release|x64.Build.0 = Release|x64
+		{F7331328-9E0E-4D1A-854F-83280F6DA8B3}.Debug|x64.ActiveCfg = Debug|x64
+		{F7331328-9E0E-4D1A-854F-83280F6DA8B3}.Debug|x64.Build.0 = Debug|x64
+		{F7331328-9E0E-4D1A-854F-83280F6DA8B3}.Release|x64.ActiveCfg = Release|x64
+		{F7331328-9E0E-4D1A-854F-83280F6DA8B3}.Release|x64.Build.0 = Release|x64
+		{C6974869-5FF9-45FB-B8E1-280EE58B9505}.Debug|x64.ActiveCfg = Debug|x64
+		{C6974869-5FF9-45FB-B8E1-280EE58B9505}.Debug|x64.Build.0 = Debug|x64
+		{C6974869-5FF9-45FB-B8E1-280EE58B9505}.Release|x64.ActiveCfg = Release|x64
+		{C6974869-5FF9-45FB-B8E1-280EE58B9505}.Release|x64.Build.0 = Release|x64
 		{302D252A-F235-4E85-BC10-752CB1296703}.Debug|x64.ActiveCfg = Debug|x64
 		{302D252A-F235-4E85-BC10-752CB1296703}.Debug|x64.Build.0 = Debug|x64
 		{302D252A-F235-4E85-BC10-752CB1296703}.Release|x64.ActiveCfg = Release|x64
@@ -35,10 +45,6 @@ Global
 		{A4A8422F-CF64-4FD3-B6E3-4FB11AA90B85}.Debug|x64.Build.0 = Debug|x64
 		{A4A8422F-CF64-4FD3-B6E3-4FB11AA90B85}.Release|x64.ActiveCfg = Release|x64
 		{A4A8422F-CF64-4FD3-B6E3-4FB11AA90B85}.Release|x64.Build.0 = Release|x64
-		{F7331328-9E0E-4D1A-854F-83280F6DA8B3}.Debug|x64.ActiveCfg = Debug|x64
-		{F7331328-9E0E-4D1A-854F-83280F6DA8B3}.Debug|x64.Build.0 = Debug|x64
-		{F7331328-9E0E-4D1A-854F-83280F6DA8B3}.Release|x64.ActiveCfg = Release|x64
-		{F7331328-9E0E-4D1A-854F-83280F6DA8B3}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

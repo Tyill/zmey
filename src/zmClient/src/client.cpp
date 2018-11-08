@@ -23,33 +23,12 @@
 // THE SOFTWARE.
 //
 
-#include <cstdint>
-#include <cstdlib>
+#include "client.h"
+#include <thread>
 
-namespace ZM_BASE{
 
-    struct zmFrame{
+using namespace std;
 
-        size_t size = 0;
-        uint32_t channels = 0;
-        uint32_t depth = 0;
-        char* data = nullptr;
 
-        ~zmFrame(){
 
-            if (data) free(data);
-        }
-    };
 
-    struct zmStreamPiece{
-
-        size_t size = 0;
-        
-        char* data = nullptr;
-
-        ~zmStreamPiece(){
-
-            if (data) free(data);
-        }
-    };
-}

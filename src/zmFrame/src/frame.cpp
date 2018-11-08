@@ -23,9 +23,9 @@
 // THE SOFTWARE.
 //
 
-#include "stream.h"
+#include "frame.h"
 
-void Stream::getLastErrorStr(char* outErr){
+void Frame::getLastErrorStr(char* outErr){
 
     if (outErr){
         outErr = '\0';
@@ -33,24 +33,26 @@ void Stream::getLastErrorStr(char* outErr){
     }
 }
 
-bool Stream::pushFrame(ZM_BASE::zmFrame frame){
+bool Frame::pushStream(ZM_BASE::zmStreamPiece piece){
 
-    frames_.push_back(frame);
+    strPiece_.push_back(piece);
 
     return true;
 }
 
-bool Stream::getStreamPiece(ZM_BASE::zmStreamPiece* piece){
+bool Frame::getFrame(ZM_BASE::zmFrame* outFrame){
 
-    if (frames_.empty()) return false;
+    if (strPiece_.empty()) return false;
 
-    auto frame = frames_.back();
+    auto piece = strPiece_.back();
 
-    piece->data = (char*)realloc(piece->data, frame.size);
+    outFrame->data = (char*)realloc(outFrame->data, piece.size);
 
-    memcpy(piece->data, frame.data, frame.size);
+    memcpy(outFrame->data, piece.data, piece.size);
 
-    piece->size = frame.size;
+    outFrame->size = piece.size;
+
+    strPiece_.pop_back();
 
     return true;
 }
