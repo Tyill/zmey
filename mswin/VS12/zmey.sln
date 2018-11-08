@@ -1,0 +1,46 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.40629.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zmFrame", "zmFrame.vcxproj", "{49759723-AE0C-40D9-8367-1F911DCF27E5}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zmBase", "zmBase.vcxproj", "{A058880B-90DF-4B88-830D-EDE1E110903B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zmNetworkClient", "zmNetworkClient.vcxproj", "{302D252A-F235-4E85-BC10-752CB1296703}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zmNetworkServer", "zmNetworkServer.vcxproj", "{A4A8422F-CF64-4FD3-B6E3-4FB11AA90B85}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zmStream", "zmStream.vcxproj", "{F7331328-9E0E-4D1A-854F-83280F6DA8B3}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{49759723-AE0C-40D9-8367-1F911DCF27E5}.Debug|x64.ActiveCfg = Debug|x64
+		{49759723-AE0C-40D9-8367-1F911DCF27E5}.Debug|x64.Build.0 = Debug|x64
+		{49759723-AE0C-40D9-8367-1F911DCF27E5}.Release|x64.ActiveCfg = Release|x64
+		{49759723-AE0C-40D9-8367-1F911DCF27E5}.Release|x64.Build.0 = Release|x64
+		{A058880B-90DF-4B88-830D-EDE1E110903B}.Debug|x64.ActiveCfg = Debug|x64
+		{A058880B-90DF-4B88-830D-EDE1E110903B}.Debug|x64.Build.0 = Debug|x64
+		{A058880B-90DF-4B88-830D-EDE1E110903B}.Release|x64.ActiveCfg = Release|x64
+		{A058880B-90DF-4B88-830D-EDE1E110903B}.Release|x64.Build.0 = Release|x64
+		{302D252A-F235-4E85-BC10-752CB1296703}.Debug|x64.ActiveCfg = Debug|x64
+		{302D252A-F235-4E85-BC10-752CB1296703}.Debug|x64.Build.0 = Debug|x64
+		{302D252A-F235-4E85-BC10-752CB1296703}.Release|x64.ActiveCfg = Release|x64
+		{302D252A-F235-4E85-BC10-752CB1296703}.Release|x64.Build.0 = Release|x64
+		{A4A8422F-CF64-4FD3-B6E3-4FB11AA90B85}.Debug|x64.ActiveCfg = Debug|x64
+		{A4A8422F-CF64-4FD3-B6E3-4FB11AA90B85}.Debug|x64.Build.0 = Debug|x64
+		{A4A8422F-CF64-4FD3-B6E3-4FB11AA90B85}.Release|x64.ActiveCfg = Release|x64
+		{A4A8422F-CF64-4FD3-B6E3-4FB11AA90B85}.Release|x64.Build.0 = Release|x64
+		{F7331328-9E0E-4D1A-854F-83280F6DA8B3}.Debug|x64.ActiveCfg = Debug|x64
+		{F7331328-9E0E-4D1A-854F-83280F6DA8B3}.Debug|x64.Build.0 = Debug|x64
+		{F7331328-9E0E-4D1A-854F-83280F6DA8B3}.Release|x64.ActiveCfg = Release|x64
+		{F7331328-9E0E-4D1A-854F-83280F6DA8B3}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
