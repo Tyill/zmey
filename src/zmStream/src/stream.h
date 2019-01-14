@@ -34,16 +34,22 @@ class Stream{
   
 public:
 
-    Stream(ZM_BASE::zmStatusCBack cb, ZM_BASE::zmUData ud);
+    Stream(ZM::zmStatusCBack cb, ZM::zmUData ud);
 
-    ~Stream() = default;
-        
-    bool pushFrame(ZM_BASE::zmFrame frame);
-        
-    size_t getStreamPiece(size_t pieceSz, char* outPiece);
+    ~Stream() = default;        
+    
+    bool pushFrame(ZM::zmFrame frame);
+
+    ZM::zmFrame getFrame();
+
+    bool addStreamPiece(ZM::zmStreamPiece);
+
+    ZM::zmStreamPiece zmGetStreamPiece();
 
 private:
        
-    std::vector<ZM_BASE::zmFrame> frames_;
+    std::vector<ZM::zmFrame> frames_;
+
+    std::vector<ZM::zmStreamPiece> strPieces_;
 
 };

@@ -29,6 +29,12 @@
 
 using namespace std;
 
+// add frame
+bool Client::pushFrame(ZM::zmFrame frame){
 
+    frames_.push_back(frame);
+
+    return true;
+}
 
 

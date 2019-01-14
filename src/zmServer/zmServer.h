@@ -28,9 +28,9 @@
 
 #ifdef _WIN32
  #ifdef ZMSRV_DLL_EXPORTS
-  #define ZM_SRV_API __declspec(dllexport)
+  #define ZM_API __declspec(dllexport)
  #else
-  #define ZM_SRV_API __declspec(dllimport)
+  #define ZM_API __declspec(dllimport)
  #endif
 #else
   #define ZM_SRV_API 
@@ -41,22 +41,22 @@
 
 #if defined(__cplusplus)
 extern "C" {
-    namespace ZM_SRV{
+    namespace ZM{
 #endif /* __cplusplus */ 
     
 // start server
 // addr - ip
 // port - port
-ZM_SRV_API bool zmStartServer(const char* addr,
+ZM_API bool zmStartServer(const char* addr,
                                 int port, 
                                 ZM_BASE::zmStatusCBack = nullptr, 
                                 ZM_BASE::zmUData = nullptr);
 
 // stop server
-ZM_SRV_API void zmStopServer();
+ZM_API void zmStopServer();
 
 // set stream
-ZM_SRV_API void zmSetStream(ZM_STREAM::zmStream);
+ZM_API void zmSetStream(ZM_STM::zmStream);
        
 #if defined(__cplusplus)
 }}

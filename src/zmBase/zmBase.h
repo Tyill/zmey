@@ -28,7 +28,7 @@
 #include <cstdint>
 #include <cstdlib>
 
-namespace ZM_BASE{
+namespace ZM{
 
     typedef void* zmUData;                                      ///< user data    
     typedef void(*zmStatusCBack)(const char* mess, zmUData);    ///< status callback

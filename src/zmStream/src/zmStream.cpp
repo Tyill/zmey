@@ -28,45 +28,62 @@
 #include "zmStream/zmStream.h"
 #include "stream.h"
 
-#define ZM_STRM_VERSION "1.0.1"
+#define ZM_STM_VERSION "1.0.1"
 
-namespace ZM_STREAM{
-
+namespace ZM{
   
     /// create stream    
     /// @return object stream
-    zmStream zmCreateStream(ZM_BASE::zmStatusCBack cb, ZM_BASE::zmUData ud){
-      
-        auto strm = new Stream(cb, ud);
-               
-        return strm;
+    zmStream zmCreateStream(ZM::zmStatusCBack cb, ZM::zmUData ud){
+                     
+        return new Stream(cb, ud);
     }
         
     /// add new frame to stream
     /// @param[in] zmStream - object stream
     /// @param[in] frame - frame       
     /// @return true ok
-    bool zmPushFrame(zmStream strm, ZM_BASE::zmFrame frame){
+    bool zmPushFrame(zmStream strm, ZM::zmFrame frame){
 
         if (!strm) return false;
 
         return static_cast<Stream*>(strm)->pushFrame(frame);
     }
 
-    /// get stream piece
+    /// get frame from stream
+    /// @param[in] zmStream - object stream       
+    /// @return out frame 
+    ZM::zmFrame zmGetFrame(zmStream strm){
+
+        if (!strm) return zmFrame();
+
+        return static_cast<Stream*>(strm)->getFrame();
+    }
+
+    /// add stream piece
     /// @param[in] zmStream - object stream
-    /// @param[out] outPiece - out stream piece. The memory is allocated by the user
-    /// @return >=0 size out piece 
-    size_t zmGetStreamPiece(zmStream strm, size_t pieceSz, char* outPiece){
+    /// @param[in] zmStreamPiece - stream piece        
+    /// @return true ok
+    bool zmAddStreamPiece(zmStream strm, zmStreamPiece pc){
 
         if (!strm) return false;
 
-        return static_cast<Stream*>(strm)->getStreamPiece(pieceSz, outPiece);
+        return static_cast<Stream*>(strm)->addStreamPiece(pc);
+    }
+
+    /// get stream piece
+    /// @param[in] zmStream - object stream
+    /// @return out stream piece 
+    zmStreamPiece zmGetStreamPiece(zmStream strm){
+
+        if (!strm) return zmStreamPiece();
+
+        return static_cast<Stream*>(strm)->zmGetStreamPiece();
     }
 
     /// free object stream
     /// @param[in] zmStream - object stream
-    void zmFreeStrm(zmStream strm){
+    void zmFreeStream(zmStream strm){
 
         if (!strm) return;
 

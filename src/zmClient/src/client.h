@@ -24,11 +24,22 @@
 //
 #pragma once
 
-#include <mutex>
-#include <thread>
+#include <string>
+#include <vector>
+#include "zmBase/zmBase.h"
 
-class client
+class Client
 {
 public:
+    Client(ZM::zmStatusCBack cb, ZM::zmUData ud);
+
+    ~Client() = default;
+
+    // set frame
+    bool pushFrame(ZM::zmFrame frame);
+
+private:
+
+    std::vector<ZM::zmFrame> frames_;
 
 };

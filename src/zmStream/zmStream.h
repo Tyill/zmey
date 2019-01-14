@@ -28,19 +28,19 @@
 
 #ifdef _WIN32
 #ifdef ZMSTREAM_DLL_EXPORTS
-#define ZM_STREAM_API __declspec(dllexport)
+#define ZM_API __declspec(dllexport)
 #else
-#define ZM_STREAM_API __declspec(dllimport)
+#define ZM_API __declspec(dllimport)
 #endif
 #else
-#define ZM_STREAM_API
+#define ZM_API
 #endif
 
 #include "zmBase/zmBase.h"
 
 #if defined(__cplusplus)
 extern "C" {
-    namespace ZM_STREAM{
+    namespace ZM{
 #endif /* __cplusplus */
 
         /// object stream
@@ -48,23 +48,33 @@ extern "C" {
        
         /// create stream       
         /// @return object stream
-        ZM_STREAM_API zmStream zmCreateStream(ZM_BASE::zmStatusCBack = nullptr, ZM_BASE::zmUData = nullptr);
+        ZM_API zmStream zmCreateStream(ZM::zmStatusCBack = nullptr, ZM::zmUData = nullptr);
         
         /// add new frame to stream
         /// @param[in] zmStream - object stream
         /// @param[in] frame - frame       
         /// @return true ok
-        ZM_STREAM_API bool zmPushFrame(zmStream, ZM_BASE::zmFrame frame);
+        ZM_API bool zmPushFrame(zmStream, ZM::zmFrame frame);
+       
+        /// get frame from stream
+        /// @param[in] zmStream - object stream       
+        /// @return out frame 
+        ZM_API ZM::zmFrame zmGetFrame(zmStream);
+
+        /// add stream piece
+        /// @param[in] zmStream - object stream
+        /// @param[in] zmStreamPiece - stream piece        
+        /// @return true ok
+        ZM_API bool zmAddStreamPiece(zmStream, zmStreamPiece);
 
         /// get stream piece
         /// @param[in] zmStream - object stream
-        /// @param[out] outPiece - out stream piece. The memory is allocated by the user
-        /// @return >=0 size out piece 
-        ZM_STREAM_API size_t zmGetStreamPiece(zmStream, size_t pieceSz, char* outPiece);
-
+        /// @return out stream piece 
+        ZM_API zmStreamPiece zmGetStreamPiece(zmStream);
+        
         /// free object stream
         /// @param[in] zmStream - object stream
-        ZM_STREAM_API void zmFreeStrm(zmStream);
+        ZM_API void zmFreeStream(zmStream);
 
 #if defined(__cplusplus)
     }}

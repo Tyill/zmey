@@ -25,23 +25,26 @@
 
 
 #include "zmClient/zmClient.h"
+#include "zmClient/src/client.h"
 
-namespace ZM_CLNT{
+namespace ZM{
 
-    bool zmConnect(const char *moduleName, const char *ipAddr, int port) {
+    /// create client       
+    /// @return object client
+    zmClient zmCreateClient(const char *clientName,
+                                   const char *ipAddrServ,
+                                   int portServ,
+                                   ZM::zmStatusCBack scb,
+                                   ZM::zmUData ud){
 
-   //     return clientObj.connect(moduleName, ipAddr, port);
-        return true;
+        return new Client(scb, ud);
     }
 
-    void zmDisconnect() {
-
-   //     clientObj.disconnect();
-    }   
-
     // set frame
-    void zmSetFrame(ZM_FRAME::zmFrame frm){
+    bool zmPushFrame(zmClient clt, ZM::zmFrame frame){
+        
+        if (!clt) return false;
 
-
+        return static_cast<Client*>(clt)->pushFrame(frame);
     }
 }

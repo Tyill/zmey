@@ -37,17 +37,20 @@
 
 #include "zmFrame/zmFrame.h"
 
-namespace ZM_CLNT{
+namespace ZM{
 
-    // connect of server
-    // clientName - client (leng max 24)
-    // ipAddrServ - ip
-    ZM_CLNT_API bool zmConnect(const char *clientName, const char *ipAddrServ, int portServ);
+    /// object client
+    typedef void* zmClient;
 
-    // disconnect of server
-    ZM_CLNT_API void zmDisconnect();
-
+    /// create client       
+    /// @return object client
+    ZM_API zmClient zmCreateClient(const char *clientName,
+                                   const char *ipAddrServ,
+                                   int portServ,
+                                   ZM::zmStatusCBack = nullptr,
+                                   ZM::zmUData = nullptr);
+    
     // set frame
-    ZM_CLNT_API void zmSetFrame(ZM_FRAME::zmFrame);
+    ZM_API bool zmPushFrame(zmClient, ZM::zmFrame);
        
 }

@@ -28,19 +28,19 @@
 
 #ifdef _WIN32
 #ifdef ZMFRAME_DLL_EXPORTS
-#define ZMFRAME_API __declspec(dllexport)
+#define ZM_API __declspec(dllexport)
 #else
-#define ZMFRAME_API __declspec(dllimport)
+#define ZM_API __declspec(dllimport)
 #endif
 #else
-#define ZMFRAME_API
+#define ZM_API
 #endif
 
 #include "zmBase/zmBase.h"
 
 #if defined(__cplusplus)
 extern "C" {
-    namespace ZM_FRAME{
+    namespace ZM{
 #endif /* __cplusplus */
 
         /// object stream
@@ -48,23 +48,23 @@ extern "C" {
        
         /// create frame       
         /// @return object frame
-        ZMFRAME_API zmFrame zmCreateFrame(ZM_BASE::zmStatusCBack = nullptr, ZM_BASE::zmUData = nullptr);
+        ZM_API zmFrame zmCreateFrame(ZM::zmStatusCBack = nullptr, ZM::zmUData = nullptr);
             
         /// add new frame to stream
         /// @param[in] zmStream - object stream
         /// @param[in] frame - frame       
         /// @return true ok
-        ZMFRAME_API bool zmPushStream(zmFrame, ZM_BASE::zmStreamPiece piece);
+        ZM_API bool zmPushStream(zmFrame, ZM::zmStreamPiece piece);
 
         /// get stream piece
         /// @param[in] zmStream - object stream
         /// @param[in] outPiece - out stream piece
         /// @return true ok
-        ZMFRAME_API bool zmGetFrame(zmFrame, ZM_BASE::zmFrame* outFrame);
+        ZM_API bool zmGetFrame(zmFrame, ZM::zmFrame* outFrame);
 
         /// free object stream
         /// @param[in] zmStream - object stream
-        ZMFRAME_API void zmFreeFrame(zmFrame);
+        ZM_API void zmFreeFrame(zmFrame);
 
 #if defined(__cplusplus)
     }}

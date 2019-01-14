@@ -26,28 +26,31 @@
 #include "stream.h"
 #include <algorithm>
 
-Stream::Stream(ZM_BASE::zmStatusCBack cb, ZM_BASE::zmUData ud){
+Stream::Stream(ZM::zmStatusCBack cb, ZM::zmUData ud){
 
 
 }
 
-bool Stream::pushFrame(ZM_BASE::zmFrame frame){
+bool Stream::pushFrame(ZM::zmFrame frame){
 
     frames_.push_back(frame);
 
     return true;
 }
 
-size_t Stream::getStreamPiece(size_t pieceSz, char* outPiece){
+ZM::zmFrame Stream::getFrame(){
 
-    if (frames_.empty()) return false;
+    return frames_[0];
+}
 
-    auto frame = frames_.back();
-       
-    size_t sz = std::min(pieceSz, frame.size);
-    memcpy(outPiece, frame.data, sz);
-        
-    frames_.pop_back();
+bool Stream::addStreamPiece(ZM::zmStreamPiece pc){
 
-    return sz;
+    strPieces_.push_back(pc);
+
+    return true;
+}
+
+ZM::zmStreamPiece Stream::zmGetStreamPiece(){
+
+    return strPieces_[0];
 }
