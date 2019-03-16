@@ -1,0 +1,6 @@
+mswin/VS12/Debug*
+mswin/VS12/*.sdf
+mswin/VS12/*.suo
+mswin/VS12/Release*
+mswin/VS12/x64*
+
