@@ -31,10 +31,10 @@ namespace ZM_SRV{
         
     bool zmStartServer(const char* addr,
                        int port,
-                       ZM_BASE::zmStatusCBack cb,
-                       ZM_BASE::zmUData ud){
+                       ZM::zmStatusCBack cb,
+                       ZM::zmUData ud){
         
-        setErrorCBack(cb, ud);
+      //  setErrorCBack(cb, ud);
 
         return runServer(addr, port);
     }
@@ -44,8 +44,8 @@ namespace ZM_SRV{
         return stopServer();
     }
 
-    void zmSetStream(ZM_STREAM::zmStream strm){
+    void zmSetStream(ZM::zmStream strm){
         
-        setContent(strm);
+       // setContent(strm);
     }
 }

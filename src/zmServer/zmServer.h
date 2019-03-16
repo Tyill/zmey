@@ -49,14 +49,14 @@ extern "C" {
 // port - port
 ZM_API bool zmStartServer(const char* addr,
                                 int port, 
-                                ZM_BASE::zmStatusCBack = nullptr, 
-                                ZM_BASE::zmUData = nullptr);
+                                ZM::zmStatusCBack = nullptr, 
+                                ZM::zmUData = nullptr);
 
 // stop server
 ZM_API void zmStopServer();
 
 // set stream
-ZM_API void zmSetStream(ZM_STM::zmStream);
+ZM_API void zmSetStream(ZM::zmStream);
        
 #if defined(__cplusplus)
 }}
