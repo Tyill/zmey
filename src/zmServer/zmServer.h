@@ -33,7 +33,7 @@
   #define ZM_API __declspec(dllimport)
  #endif
 #else
-  #define ZM_SRV_API 
+  #define ZM_API 
 #endif
 
 #include "zmBase/zmBase.h"
@@ -43,21 +43,24 @@
 extern "C" {
     namespace ZM{
 #endif /* __cplusplus */ 
-    
-// start server
-// addr - ip
-// port - port
-ZM_API bool zmStartServer(const char* addr,
-                                int port, 
-                                ZM::zmStatusCBack = nullptr, 
-                                ZM::zmUData = nullptr);
 
-// stop server
-ZM_API void zmStopServer();
+typedef void(*ioDataCBack)(size_t isz, const char* inMess, size_t* osz, char** outMess);
 
-// set stream
-ZM_API void zmSetStream(ZM::zmStream);
-       
+ZM_API bool zmStartAVideoServer(const char* addr,
+                                        int port, 
+                                    ZM::zmStream);
+
+
+ZM_API bool zmStartDataServer(const char* addr,
+                                      int port,
+                                   ioDataCBack);
+
+ZM_API void zmStopServers();
+
+
+ZM_API void zmSetStatusCBack(ZM::zmStatusCBack, ZM::zmUData = nullptr);
+
+
 #if defined(__cplusplus)
 }}
 #endif /* __cplusplus */

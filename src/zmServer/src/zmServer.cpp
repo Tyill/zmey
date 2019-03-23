@@ -23,29 +23,33 @@
 // THE SOFTWARE.
 //
 
-#include "zmBase/zmBase.h"
-#include "zmStream/zmStream.h"
-#include "serverTCP.h"
+#include "../zmServer.h"
+#include "serverUDP.h"
 
-namespace ZM_SRV{
+namespace ZM{
         
-    bool zmStartServer(const char* addr,
-                       int port,
-                       ZM::zmStatusCBack cb,
-                       ZM::zmUData ud){
-        
-      //  setErrorCBack(cb, ud);
 
-        return runServer(addr, port);
-    }
-        
-    void zmStopServer(){
+    bool zmStartAVideoServer(const char* addr,
+                                     int port,
+                                 ZM::zmStream){
 
-        return stopServer();
+
     }
 
-    void zmSetStream(ZM::zmStream strm){
-        
-       // setContent(strm);
+
+    bool zmStartDataServer(const char* addr,
+                                   int port,
+                                ioDataCBack){
+
+
+    }
+
+    void zmStopServers(){
+
+    }
+
+
+    void zmSetStatusCBack(ZM::zmStatusCBack, ZM::zmUData){
+
     }
 }

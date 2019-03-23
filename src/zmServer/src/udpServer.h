@@ -27,11 +27,26 @@
 #include <string>
 #include "zmStream/zmStream.h"
 #include "zmBase/zmBase.h"
+#include "asio.hpp"
 
-bool runServer(std::string addr, int port, bool keepAlive = false, int tout = 60);
 
-void stopServer();
+class udpServer
+{
+public:
+    udpServer(asio::io_context& io_context, int port);
 
-void setContent(ZM_STREAM::zmStream strm);
+private:
+    void startReceive();
 
-void setErrorCBack(ZM_BASE::zmStatusCBack cb, ZM_BASE::zmUData ud);
+    void handleReceive(const asio::error_code& error,
+        std::size_t /*bytes_transferred*/);
+
+    void handleSend(boost::shared_ptr<std::string> /*message*/,
+        const asio::error_code& /*error*/,
+        std::size_t /*bytes_transferred*/);
+
+    udp::socket socket_;
+    udp::endpoint remoteEndPoint_;
+    boost::array<char, 1> recvBuffer_;
+};
+

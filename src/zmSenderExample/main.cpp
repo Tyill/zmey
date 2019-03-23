@@ -4,10 +4,15 @@
 
 int main(int argc, char *argv[]){
 
-    ZM::zmStartServer("127.0.0.1", 2144);
-
-    ZM::zmStream strm = ZM::zmStream;
-
-    ZM::zmSetStream();
-
+    try {
+            asio::io_context io_context;
+            udp_server server(io_context);
+            io_context.run();
+    }
+    catch (std::exception& e)
+    {
+        std::cerr << e.what() << std::endl;
+    }
+    
+    return 0;
 }

@@ -11,12 +11,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\zmServer\src\serverTCP.h" />
+    <ClInclude Include="..\..\src\zmServer\src\udpServer.h" />
     <ClInclude Include="..\..\src\zmServer\zmServer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\zmServer\src\dllmain.cpp" />
-    <ClCompile Include="..\..\src\zmServer\src\serverTCP.cpp" />
+    <ClCompile Include="..\..\src\zmServer\src\udpServer.cpp" />
     <ClCompile Include="..\..\src\zmServer\src\zmServer.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -65,7 +65,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;ZMSRV_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)../../src;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)../../src;$(SolutionDir)../../src/Lib/asio-1.12.2/</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -81,7 +81,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;ZMSRV_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)../../src;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)../../src;$(SolutionDir)../../src/Lib/asio-1.12.2/</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

@@ -18,7 +18,7 @@
     <ClInclude Include="..\..\src\zmServer\zmServer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\zmServer\src\serverTCP.h">
+    <ClInclude Include="..\..\src\zmServer\src\udpServer.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -26,10 +26,10 @@
     <ClCompile Include="..\..\src\zmServer\src\dllmain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\zmServer\src\serverTCP.cpp">
+    <ClCompile Include="..\..\src\zmServer\src\zmServer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\zmServer\src\zmServer.cpp">
+    <ClCompile Include="..\..\src\zmServer\src\udpServer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
