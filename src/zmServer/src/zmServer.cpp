@@ -24,16 +24,44 @@
 //
 
 #include "../zmServer.h"
-#include "serverUDP.h"
+#include "udpServer.h"
+
+using namespace std;
+using namespace asio::ip;
 
 namespace ZM{
-        
+      
+    asio::io_context io_context;
+    
+    tcp::socket* pTcpSocket = nullptr;
 
     bool zmStartAVideoServer(const char* addr,
                                      int port,
                                  ZM::zmStream){
+        
+        if (!pUdpSocket){
 
+            pUdpSocket = new udp::socket(io_context,
+                udp::endpoint(address_v4::from_string(addr), port));
 
+        }
+        
+        //try {
+                  
+            udpServer server(io_context, asio::ip::address_v4::from_string(addr), port);
+            
+            
+
+           // asio::thread_pool tPool;
+            
+           // io_context.run();
+        //}
+       /* catch (std::exception& e)
+        {
+            std::cerr << e.what() << std::endl;
+        }*/
+
+        return true;
     }
 
 
@@ -41,7 +69,7 @@ namespace ZM{
                                    int port,
                                 ioDataCBack){
 
-
+        return true;
     }
 
     void zmStopServers(){

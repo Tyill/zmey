@@ -22,10 +22,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#include <ctime>
+
 #include <iostream>
 #include <string>
-#include <condition_variable>
 
 #include "zmBase/zmBase.h"
 #include "zmStream/zmStream.h"
@@ -38,40 +37,40 @@
 // if (fsts != 0){  errorMess(std::string(mess) + " " + std::to_string(fsts)); return; }}
 
 using namespace ZM;
-using asio::ip::udp;
+using namespace asio::ip;
 
+udpServer::udpServer(asio::io_context& io_context, asio::ip::address_v4 addr, int port){
 
-udpServer::udpServer(asio::io_context& io_context, int port)
-    : socket_(io_context, udp::endpoint(udp::v4(), port)){
-        startReceive();
-    }
+    pSocket_ = new udp::socket(io_context, udp::endpoint(addr, port));
 
-udpServer::startReceive(){
+    startReceive();
+}
 
-    socket_.async_receive_from(
-        asio::buffer(recv_buffer_), remote_endpoint_,
-        std::bind(&udp_server::handle_receive, this,
-        asio::placeholders::error,
-        asio::placeholders::bytes_transferred));
+void udpServer::startReceive(){
+
+    pSocket_->async_receive_from(
+        asio::buffer(recvBuffer_), remoteEndPoint_,
+        std::bind(&udpServer::handleReceive, this, std::placeholders::_1,
+                                                   std::placeholders::_2));
 }
 
 void udpServer::handleReceive(const asio::error_code& error, 
                           std::size_t /*bytes_transferred*/){
     if (!error){
 
-        boost::shared_ptr<std::string> message(
-            new std::string(make_daytime_string()));
+       /* boost::shared_ptr<std::string> message(
+            new std::string(make_daytime_string()));*/
 
-        socket_.async_send_to(asio::buffer(*message), remote_endpoint_,
-            boost::bind(&udp_server::handle_send, this, message,
-            asio::placeholders::error,
-            asio::placeholders::bytes_transferred));
+        pSocket_->async_send_to(asio::buffer(""), remoteEndPoint_,
+            std::bind(&udpServer::handleSend, this, "", 
+                                 std::placeholders::_1,
+                                 std::placeholders::_2));
 
-        start_receive();
+        startReceive();
     }
 }
 
-void udpServer::handleSend(boost::shared_ptr<std::string> /*message*/,
+void udpServer::handleSend(std::string /*message*/,
         const asio::error_code& /*error*/,
         std::size_t /*bytes_transferred*/){
 

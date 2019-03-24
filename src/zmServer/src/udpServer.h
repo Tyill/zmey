@@ -33,20 +33,20 @@
 class udpServer
 {
 public:
-    udpServer(asio::io_context& io_context, int port);
-
+    udpServer(asio::io_context& io_context, asio::ip::address_v4, int port);
+      
 private:
     void startReceive();
 
     void handleReceive(const asio::error_code& error,
         std::size_t /*bytes_transferred*/);
 
-    void handleSend(boost::shared_ptr<std::string> /*message*/,
+    void handleSend(std::string /*message*/,
         const asio::error_code& /*error*/,
         std::size_t /*bytes_transferred*/);
 
-    udp::socket socket_;
-    udp::endpoint remoteEndPoint_;
-    boost::array<char, 1> recvBuffer_;
+    asio::ip::udp::socket* pSocket_ = nullptr;
+    asio::ip::udp::endpoint remoteEndPoint_;
+    std::array<char, 1> recvBuffer_;
 };
 
