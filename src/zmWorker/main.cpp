@@ -25,10 +25,8 @@
 
 #include <vector>
 #include <string>
-#include <libpq-fe.h>
 #include <thread>
-#include <iostream>
-#include "zmAuxFunc/tcp.h"
+#include "tcpClient.h"
 
 // static void
 // exit_nicely(PGconn *conn)
@@ -47,18 +45,34 @@ int main(int argc, char* argv[])
     //   return 1;
     // }
 
-    int port = 2033;
+    std::string port = "2033";
 
-    std::string err;
-    ZM_Tcp::startServer(2033, err);
+    asio::io_context ioc;
+    tcp::resolver resolver(ioc);
+    tcp::resolver::query query("localhost", port,tcp::resolver::query::canonical_name);
+    tcp::resolver::results_type endpoints = resolver.resolve(query);
+       
+    for (;;)
+    {
+      tcp::socket socket(ioc);
+      asio::connect(socket, endpoints);
 
-    while (true){
-      /* code */
-    }
+      std::vector<char> buf(12800);
+      asio::error_code error;
+      
+      size_t len = socket.write_some(asio::buffer(buf), error);
+
+      if (error == asio::error::eof)
+        break; // Connection closed cleanly by peer.
+      else if (error)
+        throw asio::system_error(error); // Some other error.
+
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    } 
   }
   catch (std::exception& e)
   {
-    std::cerr << "Exception: " << e.what() << "\n";
+    std::cerr << e.what() << std::endl;
   }
 
   return 0;

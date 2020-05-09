@@ -14,4 +14,4 @@ add_executable(zmScheduler ${SRC_zmSch})
 
 target_include_directories(zmScheduler PRIVATE ${PostgreSQL_INCLUDE_DIRS})
 
-target_link_libraries(zmScheduler PRIVATE ${PostgreSQL_LIBRARIES})
+target_link_libraries(zmScheduler PRIVATE ${PostgreSQL_LIBRARIES} zmAuxFunc)
