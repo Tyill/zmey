@@ -22,40 +22,19 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+
 #pragma once
+        
+#include <string>
+#include <vector>
+#include <cstdint>
 
-#include <asio.hpp>
-#include "../tcp.h"
+namespace ZM_Aux {
 
-extern ZM_Tcp::errSendCBack _errSendCB;
+    //%Y-%m-%d %H:%M:%S
+    std::string currDateTimeSQL();
 
-using namespace asio::ip;
+    std::vector<std::string> split(const std::string& str, const char *sep);
 
-class TcpClient
-  : public std::enable_shared_from_this<TcpClient>{
-public:
-  TcpClient(asio::io_context& ioc, const std::string& addr, int port)
-  : _ioc(ioc), _addr(addr), _port(port), _socket(ioc){}
-
-  void write(const std::string& msg){
-    auto self(shared_from_this());   
-       
-    asio::async_connect(_socket, tcp::resolver(_ioc).resolve(_addr, std::to_string(_port)),
-    [this, self, msg](std::error_code ec, tcp::endpoint ep){
-      if (!ec){
-        asio::async_write(_socket, asio::buffer(msg.data(), msg.size()),
-          [this, self, msg](std::error_code ec, std::size_t /*length*/){
-            if (ec && _errSendCB) _errSendCB(ZM_Tcp::connectPoint(_addr, _port), msg, ec); 
-          });
-      }else{
-        if (_errSendCB) _errSendCB(ZM_Tcp::connectPoint(_addr, _port), msg, ec); 
-      }
-    });
-  }
-  
-private:
-  asio::io_context& _ioc;
-  tcp::socket _socket;
-  std::string _addr;
-  int _port;
-};
+    void sleepMs(uint64_t ms);      
+}

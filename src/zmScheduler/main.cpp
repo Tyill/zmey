@@ -41,8 +41,6 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
-  try
-  {
     // if (argc != 2)
     // {
     //   std::cerr << "Usage: async_tcp_echo_server <port>\n";
@@ -52,22 +50,17 @@ int main(int argc, char* argv[])
     int port = 2033;
 
     std::string err;
-    ZM_Tcp::startServer(2033, err);
+    ZM_Tcp::startServer(ZM_Tcp::connectPoint("localhost", 2033), err);
 
-    ZM_Tcp::setReceiveCBack([](const string& addr, int port, const string& data){
-      if (data.size() != 12800)
-        cout << addr << " " << port << " " << data.size() << endl;
+    ZM_Tcp::setReceiveCBack([](const ZM_Tcp::connectPoint& cp, const string& data){
+     // if (data.size() != 12800)
+        cout << cp.addr << " " << cp.port << " " << data.size() << endl;
     });
 
     while (true){
       /* code */
     }
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Exception: " << e.what() << "\n";
-  }
-
+ 
   return 0;
 }
 

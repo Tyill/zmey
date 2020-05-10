@@ -26,31 +26,53 @@
 
 #include <string>
 #include <functional>
+#include "zmAuxFunc/auxFunc.h"
 
 namespace ZM_Tcp{
 
-bool startServer(int port, std::string& err);
+struct connectPoint{
+
+  /// [in] _addr - IP address or DNS 
+  connectPoint(const std::string& _addr, int _port)
+    : addr(_addr), port(_port){}
+  connectPoint(const std::string& connSrt){
+    auto cp = ZM_Aux::split(connSrt, ":");
+    addr = cp[0];
+    port = stoi(cp[1]);
+  }
+  std::string getConnStr(){
+    return addr + ":" + std::to_string(port);
+  }
+  std::string addr;
+  int port;
+};
+
+/// error send data to receiver 
+/// [in] cp - connection point
+/// [in] err - error
+/// return true - ok 
+bool startServer(const connectPoint&, std::string& err);
 
 void stopServer();
 
 /// send data to receiver 
-/// @param[in] addr - IP address of receiver 
-/// @param[in] port - port of receiver 
-/// @param[in] data - data for send
-void sendData(const std::string& addr, int port, const std::string& data);
+/// [in] cp - connection point
+/// [in] data - data for send
+void sendData(const connectPoint& cp, const std::string& data);
 
 /// error send data to receiver 
-/// @param[in] addr - IP address of receiver 
-/// @param[in] port - port of receiver 
-/// @param[in] data - data for send
-typedef std::function<void(const std::string& addr, int port, const std::string& data)> errSendCBack;
+/// [in] cp - connection point
+/// [in] data - data for send
+/// [in] ec - system error code 
+typedef std::function<void(const connectPoint& cp,                           
+                           const std::string& data,
+                           const std::error_code& ec)> errSendCBack;
 void setErrorSendCBack(errSendCBack);
 
 /// received data from sender
-/// @param[in] addr - IP address of sender 
-/// @param[in] port - port of sender 
-/// @param[in] data - data from sender
-typedef std::function<void(const std::string& addr, int port, const std::string& data)> dataCBack;
+/// [in] cp - connection point
+/// [in] data - data from sender
+typedef std::function<void(const connectPoint& cp, const std::string& data)> dataCBack;
 void setReceiveCBack(dataCBack);
 
 }

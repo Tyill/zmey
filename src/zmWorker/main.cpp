@@ -38,8 +38,6 @@
 
 int main(int argc, char* argv[])
 {
-  try
-  {
     // if (argc != 2)
     // {
     //   std::cerr << "Usage: async_tcp_echo_server <port>\n";
@@ -53,7 +51,7 @@ int main(int argc, char* argv[])
     // tcp::resolver::query query("localhost", port,tcp::resolver::query::canonical_name);
     // tcp::resolver::results_type endpoints = resolver.resolve(query);
     std::string err;
-    ZM_Tcp::startServer(2034, err);
+    ZM_Tcp::startServer(ZM_Tcp::connectPoint("127.0.0.1:2034"), err);
 
     // ZM_Tcp::setErrorSendCBack([](const std::string& addr, int port, const std::string& data){
 
@@ -65,7 +63,7 @@ int main(int argc, char* argv[])
       std::string buf;
       buf.resize(12800);
 
-      ZM_Tcp::sendData("127.0.0.1", 2033, buf);
+      ZM_Tcp::sendData(ZM_Tcp::connectPoint("127.0.0.1:2033"), buf);
 
       // tcp::socket socket(ioc);
       // asio::connect(socket, endpoints);
@@ -82,11 +80,8 @@ int main(int argc, char* argv[])
 
       //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     } 
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << e.what() << std::endl;
-  }
+
+    ZM_Tcp::stopServer(); 
 
   return 0;
 }

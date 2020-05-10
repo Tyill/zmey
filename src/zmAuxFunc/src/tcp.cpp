@@ -34,39 +34,39 @@ namespace ZM_Tcp{
 
 asio::io_context ioc;
 TcpServer* _pSrv = nullptr;
-
 std::vector<std::thread> _threads;
 
-bool startServer(int port, std::string& err){
+bool startServer(const connectPoint& cp, std::string& err){
 
   if (_pSrv) return true;
 
-  _pSrv = new TcpServer(ioc, port);
-
-  if (_threads.empty()){
+  try{
+    _pSrv = new TcpServer(ioc, cp.addr, cp.port);
+  
     int thrCount = std::max<int>(1, std::thread::hardware_concurrency());
     for (int i = 0; i < thrCount; ++i){
       _threads.push_back(std::thread([&]{ ioc.run(); 
                                           ioc.reset();
       }));
     }
-  }  
-
-  // delete pSrv;
-  // pSrv = nullptr;
-
+  }catch (std::exception& e){
+    err = e.what();
+    return false;  
+  }   
   return true;  
 };
 
 void stopServer(){
-  if (_pSrv){
-    delete _pSrv;
-    _pSrv = nullptr;
+  if (_pSrv){   
+    for (auto& t : _threads){  
+      ioc.stop();    
+      t.join();
+    }    
   }
 };
 
-void sendData(const std::string& addr, int port, const std::string& data){
-  std::make_shared<TcpClient>(ioc, addr, port)->write(data);
+void sendData(const connectPoint& cp, const std::string& data){
+  std::make_shared<TcpClient>(ioc, cp.addr, cp.port)->write(data);
 };
 
 void setReceiveCBack(dataCBack cb){

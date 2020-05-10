@@ -1,3 +1,4 @@
+
 //
 // zmey Project
 // Copyright (C) 2018 by Contributors <https://github.com/Tyill/zmey>
@@ -22,40 +23,40 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#pragma once
 
-#include <asio.hpp>
-#include "../tcp.h"
+#include "zmAuxFunc/auxFunc.h"
+#include <cstring>
+#include <thread>
+#include <chrono>
 
-extern ZM_Tcp::errSendCBack _errSendCB;
+using namespace std;
 
-using namespace asio::ip;
+namespace ZM_Aux {
+    
+     // %Y-%m-%d %H:%M:%S
+    string currDateTimeSQL() {
 
-class TcpClient
-  : public std::enable_shared_from_this<TcpClient>{
-public:
-  TcpClient(asio::io_context& ioc, const std::string& addr, int port)
-  : _ioc(ioc), _addr(addr), _port(port), _socket(ioc){}
+        time_t ct = time(nullptr);
+        tm* lct = localtime(&ct);
 
-  void write(const std::string& msg){
-    auto self(shared_from_this());   
-       
-    asio::async_connect(_socket, tcp::resolver(_ioc).resolve(_addr, std::to_string(_port)),
-    [this, self, msg](std::error_code ec, tcp::endpoint ep){
-      if (!ec){
-        asio::async_write(_socket, asio::buffer(msg.data(), msg.size()),
-          [this, self, msg](std::error_code ec, std::size_t /*length*/){
-            if (ec && _errSendCB) _errSendCB(ZM_Tcp::connectPoint(_addr, _port), msg, ec); 
-          });
-      }else{
-        if (_errSendCB) _errSendCB(ZM_Tcp::connectPoint(_addr, _port), msg, ec); 
-      }
-    });
-  }
-  
-private:
-  asio::io_context& _ioc;
-  tcp::socket _socket;
-  std::string _addr;
-  int _port;
-};
+        char curDate[24];
+        strftime(curDate, 24, "%Y-%m-%d %H:%M:%S", (const tm *) &lct);
+
+        return curDate;
+    }
+ 
+    vector<string> split(const string& str, const char *sep) {
+        char *cstr = (char*)str.c_str();
+        vector<string> res;
+        char *pch = strtok(cstr, sep);
+        while (pch != NULL) {
+            res.push_back(string(pch));
+            pch = strtok(NULL, sep);
+        }
+        return res;
+    }
+
+    void sleepMs(uint64_t ms){
+        std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+    }    
+}

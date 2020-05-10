@@ -58,7 +58,7 @@ public:
           }          
           if (ec || (length < MAX_LENGTH)){
             if (_dataCB && !_mess.empty()){ 
-              _dataCB(_addr, _port, _mess);
+              _dataCB(ZM_Tcp::connectPoint(_addr, _port), _mess);
             }
           }
         });
@@ -73,8 +73,8 @@ public:
 
 class TcpServer{
 public:
-  TcpServer(asio::io_context& ioc, short port)
-    : _acceptor(ioc, tcp::endpoint(tcp::v4(), port)){
+  TcpServer(asio::io_context& ioc, const std::string& addr, int port)
+    : _acceptor(ioc, *tcp::resolver(ioc).resolve(addr, std::to_string(port)).begin()){
     accept();
   }
   
