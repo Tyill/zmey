@@ -25,6 +25,7 @@
 #pragma once
 
 #include <string>
+#include <functional>
 
 namespace ZM_Tcp{
 
@@ -32,12 +33,24 @@ bool startServer(int port, std::string& err);
 
 void stopServer();
 
+/// send data to receiver 
+/// @param[in] addr - IP address of receiver 
+/// @param[in] port - port of receiver 
+/// @param[in] data - data for send
 void sendData(const std::string& addr, int port, const std::string& data);
 
-typedef void(*errSendCBack)(const std::string& err);
+/// error send data to receiver 
+/// @param[in] addr - IP address of receiver 
+/// @param[in] port - port of receiver 
+/// @param[in] data - data for send
+typedef std::function<void(const std::string& addr, int port, const std::string& data)> errSendCBack;
 void setErrorSendCBack(errSendCBack);
 
-typedef void(*dataCBack)(const std::string& data);
+/// received data from sender
+/// @param[in] addr - IP address of sender 
+/// @param[in] port - port of sender 
+/// @param[in] data - data from sender
+typedef std::function<void(const std::string& addr, int port, const std::string& data)> dataCBack;
 void setReceiveCBack(dataCBack);
 
 }

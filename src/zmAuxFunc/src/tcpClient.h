@@ -24,41 +24,38 @@
 //
 #pragma once
 
-#include <cstdlib>
-#include <iostream>
-#include <memory>
-#include <utility>
 #include <asio.hpp>
 #include "../tcp.h"
 
 extern ZM_Tcp::errSendCBack _errSendCB;
 
-using asio::ip::tcp;
+using namespace asio::ip;
 
 class TcpClient
   : public std::enable_shared_from_this<TcpClient>{
 public:
-  TcpClient(asio::io_context& ioc, const std::string& addr, int port): _socket(ioc){
-    tcp::resolver resolver(ioc);
-    _endpoints = resolver.resolve(addr, std::to_string(port));
-  }
+  TcpClient(asio::io_context& ioc, const std::string& addr, int port)
+  : _ioc(ioc), _addr(addr), _port(port), _socket(ioc){}
 
   void write(const std::string& msg){
-    auto self(shared_from_this());
-    asio::async_connect(_socket, _endpoints,
+    auto self(shared_from_this());   
+       
+    asio::async_connect(_socket, tcp::resolver(_ioc).resolve(_addr, std::to_string(_port)),
     [this, self, msg](std::error_code ec, tcp::endpoint ep){
       if (!ec){
         asio::async_write(_socket, asio::buffer(msg.data(), msg.size()),
-          [this, self](std::error_code ec, std::size_t /*length*/){
-            if (ec && _errSendCB) _errSendCB(""); 
+          [this, self, msg](std::error_code ec, std::size_t /*length*/){
+            if (ec && _errSendCB) _errSendCB(_addr, _port, msg); 
           });
       }else{
-        if (_errSendCB) _errSendCB(""); 
+        if (_errSendCB) _errSendCB(_addr, _port, msg); 
       }
     });
   }
   
 private:
+  asio::io_context& _ioc;
   tcp::socket _socket;
-  tcp::resolver::results_type _endpoints;
+  std::string _addr;
+  int _port;
 };

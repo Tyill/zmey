@@ -37,6 +37,8 @@
 //     exit(1);
 // }
 
+using namespace std;
+
 int main(int argc, char* argv[])
 {
   try
@@ -51,6 +53,11 @@ int main(int argc, char* argv[])
 
     std::string err;
     ZM_Tcp::startServer(2033, err);
+
+    ZM_Tcp::setReceiveCBack([](const string& addr, int port, const string& data){
+      if (data.size() != 12800)
+        cout << addr << " " << port << " " << data.size() << endl;
+    });
 
     while (true){
       /* code */

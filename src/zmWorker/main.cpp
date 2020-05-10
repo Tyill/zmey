@@ -26,7 +26,8 @@
 #include <vector>
 #include <string>
 #include <thread>
-#include "tcpClient.h"
+#include <iostream>
+#include "zmAuxFunc/tcp.h"
 
 // static void
 // exit_nicely(PGconn *conn)
@@ -45,29 +46,41 @@ int main(int argc, char* argv[])
     //   return 1;
     // }
 
-    std::string port = "2033";
+    //std::string port = "2033";
 
-    asio::io_context ioc;
-    tcp::resolver resolver(ioc);
-    tcp::resolver::query query("localhost", port,tcp::resolver::query::canonical_name);
-    tcp::resolver::results_type endpoints = resolver.resolve(query);
-       
+    // asio::io_context ioc;
+    // tcp::resolver resolver(ioc);
+    // tcp::resolver::query query("localhost", port,tcp::resolver::query::canonical_name);
+    // tcp::resolver::results_type endpoints = resolver.resolve(query);
+    std::string err;
+    ZM_Tcp::startServer(2034, err);
+
+    // ZM_Tcp::setErrorSendCBack([](const std::string& addr, int port, const std::string& data){
+
+    //   std::cout << "err" << std::endl;
+    // });
+
     for (;;)
     {
-      tcp::socket socket(ioc);
-      asio::connect(socket, endpoints);
+      std::string buf;
+      buf.resize(12800);
 
-      std::vector<char> buf(12800);
-      asio::error_code error;
+      ZM_Tcp::sendData("127.0.0.1", 2033, buf);
+
+      // tcp::socket socket(ioc);
+      // asio::connect(socket, endpoints);
+
+      // std::vector<char> buf(12800);
+      // asio::error_code error;
       
-      size_t len = socket.write_some(asio::buffer(buf), error);
+      // size_t len = socket.write_some(asio::buffer(buf), error);
 
-      if (error == asio::error::eof)
-        break; // Connection closed cleanly by peer.
-      else if (error)
-        throw asio::system_error(error); // Some other error.
+      // if (error == asio::error::eof)
+      //   break; // Connection closed cleanly by peer.
+      // else if (error)
+      //   throw asio::system_error(error); // Some other error.
 
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     } 
   }
   catch (std::exception& e)

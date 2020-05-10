@@ -9,3 +9,5 @@ if (UNIX)
 endif(UNIX)
 
 add_executable(zmWorker ${SRC_zmWkr})
+
+target_link_libraries(zmWorker PRIVATE zmAuxFunc)
