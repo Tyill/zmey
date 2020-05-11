@@ -38,12 +38,13 @@ TcpServer* _pSrv = nullptr;
 std::vector<bool> _isThrRun;
 std::vector<std::thread> _threads;
 
-bool startServer(const connectPoint& cp, std::string& err){
+bool startServer(const std::string& connPnt, std::string& err){
 
   if (_pSrv) return true;
 
   try{
-    _pSrv = new TcpServer(ioc, cp.addr, cp.port);
+    auto cp = ZM_Aux::split(connPnt, ":");
+    _pSrv = new TcpServer(ioc, cp[0], stoi(cp[1]));
   
     int thrCount = std::max<int>(1, std::thread::hardware_concurrency());
     _isThrRun.resize(thrCount, true);
@@ -75,8 +76,9 @@ void stopServer(){
   }
 };
 
-void sendData(const connectPoint& cp, const std::string& data){
-  std::make_shared<TcpClient>(ioc, cp.addr, cp.port)->write(data);
+void sendData(const std::string& connPnt, const std::string& data){
+  auto cp = ZM_Aux::split(connPnt, ":");
+  std::make_shared<TcpClient>(ioc, cp[0], stoi(cp[1]))->write(data);
 };
 
 void setReceiveCBack(dataCBack cb){

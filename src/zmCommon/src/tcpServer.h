@@ -58,7 +58,7 @@ public:
           }          
           if (ec || (length < MAX_LENGTH)){
             if (_dataCB && !_mess.empty()){ 
-              _dataCB(ZM_Tcp::connectPoint(_addr, _port), _mess);
+              _dataCB(_addr + ":" + std::to_string(_port), _mess);
             }
           }
         });

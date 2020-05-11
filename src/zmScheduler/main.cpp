@@ -23,156 +23,80 @@
 // THE SOFTWARE.
 //
 
-#include <vector>
-#include <string>
-#include <libpq-fe.h>
-#include <thread>
-#include <iostream>
-#include "zmCommon/tcp.h"
 
-// static void
-// exit_nicely(PGconn *conn)
-// {
-//     PQfinish(conn);
-//     exit(1);
-// }
+#include <iostream>
+#include <thread>
+#include "zmCommon/tcp.h"
+#include "zmCommon/serial.h"
+#include "dbProvider.h"
 
 using namespace std;
 
-void calc();
+void receiveHandler(const string& cp, const string& data){
 
-int main(int argc, char* argv[])
-{
-    // if (argc != 2)
-    // {
-    //   std::cerr << "Usage: async_tcp_echo_server <port>\n";
-    //   return 1;
-    // }
-//    calc();
-    int port = 2033;
 
-    std::string err;
-    ZM_Tcp::startServer(ZM_Tcp::connectPoint("localhost", 2033), err);
+}
 
-    ZM_Tcp::setReceiveCBack([](const ZM_Tcp::connectPoint& cp, const string& data){
-     // if (data.size() != 12800)
-        cout << cp.addr << " " << cp.port << " " << data.size() << endl;
-    });
+void errSendHandler(const string& cp, const string& data, const std::error_code& ec){
 
-    while (true){
-      /* code */
+
+}
+
+vector<ZM_Base::task> getAvailableTask(){
+  return vector<ZM_Base::task>();
+} 
+
+bool getAvailableWorker(ZM_Base::worker&){
+  return true;
+} 
+
+int main(int argc, char* argv[]){   
+
+  ZM_Tcp::setReceiveCBack(receiveHandler);
+  ZM_Tcp::setErrorSendCBack(errSendHandler);
+
+  std::string connPnt = "localhost:4145",
+              err;
+  if (ZM_Tcp::startServer(connPnt, err)){
+    cout << "Tcp server running: " + connPnt;
+  }
+  else{
+    cout << "Tcp server error: " + connPnt + " " + err;
+    return -1;
+  }
+  
+  DbProvider db("localhost", "pgdb");
+
+  // концепт: рабочий наблюдает за задачей:
+  //           если задача вылетела или выполняется больше макс времени - уведомить шедулера об этом
+  //          шедулер наблюдает за рабочим:
+  //           если рабочий откинулся - его задачи надо перекинуть на другого рабочего,
+  //          менеджер наблюдает за шедулером:
+  //           если шедулер откинулся - его задачи надо пометить, что они свободны для выполнения,
+  //           рабочий видит что шедулера нет, бросает все свои задачи на самотек
+
+  // main cycle
+  while (true){
+    
+    vector<ZM_Base::task> task = getAvailableTask();
+
+    map<string, string> prms;
+    for (auto& t : task){
+      
+      ZM_Base::worker wr;
+      while (!getAvailableWorker(wr)){
+        std::this_thread::yield();          // !!!  Надо в отдельном потоке наблюдать за прошлыми рабочими
+      }
+      prms["command"] = "newTask";
+      prms["params"] = t.params; 
+      prms["script"] = t.script;
+      prms["executor"] = to_string(int(t.exrType));
+      prms["meanDuration"] = t.meanDuration; 
+      prms["maxDuration"] = t.maxDuration;          
+    
+      ZM_Tcp::sendData(wr.connectPnt, ZM_Aux::serialn(prms));
     }
+  }
  
   return 0;
 }
-
-
-//   const char *conninfo;
-//     PGconn     *conn;
-//     PGresult   *res;
-//     int         nFields;
-//     int         i,
-//                 j;
-
-//     /*
-//      * If the user supplies a parameter on the command line, use it as the
-//      * conninfo string; otherwise default to setting dbname=postgres and using
-//      * environment variables or defaults for all other connection parameters.
-//      */
-//     if (argc > 1)
-//         conninfo = argv[1];
-//     else
-//         conninfo = "dbname = postgres";
-
-//     /* Make a connection to the database */
-//     conn = PQconnectdb(conninfo);
-
-//     /* Check to see that the backend connection was successfully made */
-//     if (PQstatus(conn) != CONNECTION_OK)
-//     {
-//         fprintf(stderr, "Connection to database failed: %s",
-//                 PQerrorMessage(conn));
-//         exit_nicely(conn);
-//     }
-
-//     /* Set always-secure search path, so malicious users can't take control. */
-//     res = PQexec(conn,
-//                  "SELECT pg_catalog.set_config('search_path', '', false)");
-//     if (PQresultStatus(res) != PGRES_TUPLES_OK)
-//     {
-//         fprintf(stderr, "SET failed: %s", PQerrorMessage(conn));
-//         PQclear(res);
-//         exit_nicely(conn);
-//     }
-
-//     /*
-//      * Should PQclear PGresult whenever it is no longer needed to avoid memory
-//      * leaks
-//      */
-//     PQclear(res);
-
-//     /*
-//      * Our test case here involves using a cursor, for which we must be inside
-//      * a transaction block.  We could do the whole thing with a single
-//      * PQexec() of "select * from pg_database", but that's too trivial to make
-//      * a good example.
-//      */
-
-//     /* Start a transaction block */
-//     res = PQexec(conn, "BEGIN");
-//     if (PQresultStatus(res) != PGRES_COMMAND_OK)
-//     {
-//         fprintf(stderr, "BEGIN command failed: %s", PQerrorMessage(conn));
-//         PQclear(res);
-//         exit_nicely(conn);
-//     }
-//     PQclear(res);
-
-//     /*
-//      * Fetch rows from pg_database, the system catalog of databases
-//      */
-//     res = PQexec(conn, "DECLARE myportal CURSOR FOR select * from pg_database");
-//     if (PQresultStatus(res) != PGRES_COMMAND_OK)
-//     {
-//         fprintf(stderr, "DECLARE CURSOR failed: %s", PQerrorMessage(conn));
-//         PQclear(res);
-//         exit_nicely(conn);
-//     }
-//     PQclear(res);
-
-//     res = PQexec(conn, "FETCH ALL in myportal");
-//     if (PQresultStatus(res) != PGRES_TUPLES_OK)
-//     {
-//         fprintf(stderr, "FETCH ALL failed: %s", PQerrorMessage(conn));
-//         PQclear(res);
-//         exit_nicely(conn);
-//     }
-
-//     /* first, print out the attribute names */
-//     nFields = PQnfields(res);
-//     for (i = 0; i < nFields; i++)
-//         printf("%-15s", PQfname(res, i));
-//     printf("\n\n");
-
-//     /* next, print out the rows */
-//     for (i = 0; i < PQntuples(res); i++)
-//     {
-//         for (j = 0; j < nFields; j++)
-//             printf("%-15s", PQgetvalue(res, i, j));
-//         printf("\n");
-//     }
-
-//     PQclear(res);
-
-//     /* close the portal ... we don't bother to check for errors ... */
-//     res = PQexec(conn, "CLOSE myportal");
-//     PQclear(res);
-
-//     /* end the transaction */
-//     res = PQexec(conn, "END");
-//     PQclear(res);
-
-//     /* close the connection to the database and cleanup */
-//     PQfinish(conn);
-
-//     return 0;

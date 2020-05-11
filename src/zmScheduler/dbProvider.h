@@ -22,40 +22,22 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+
 #pragma once
+        
+#include <string>
+#include <vector>
+#include "zmBase/structurs.h"
 
-#include <functional>
-#include <system_error>
-#include "zmCommon/auxFunc.h"
+class DbProvider{
 
-namespace ZM_Tcp{
+public:
+  DbProvider(const std::string& dbServer, const std::string& dbName);
 
-/// error send data to receiver 
-/// [in] connPnt - connection point: IP or DNS ':' port
-/// [in] err - error
-/// return true - ok 
-bool startServer(const std::string& connPnt, std::string& err);
+  ~DbProvider();
 
-void stopServer();
+  bool isConnect();
 
-/// send data to receiver 
-/// [in] connPnt - connection point: IP or DNS ':' port
-/// [in] data - data for send
-void sendData(const std::string& connPnt, const std::string& data);
+  bool getActiveTask(std::vector<ZM_Base::task>&);
 
-/// error send data to receiver 
-/// [in] connPnt - connection point: IP or DNS ':' port
-/// [in] data - data for send
-/// [in] ec - system error code 
-typedef std::function<void(const std::string& connPnt,                           
-                           const std::string& data,
-                           const std::error_code& ec)> errSendCBack;
-void setErrorSendCBack(errSendCBack);
-
-/// received data from sender
-/// [in] connPnt - connection point: IP or DNS ':' port
-/// [in] data - data from sender
-typedef std::function<void(const std::string& connPnt, const std::string& data)> dataCBack;
-void setReceiveCBack(dataCBack);
-
-}
+};

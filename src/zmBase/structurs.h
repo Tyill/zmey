@@ -26,9 +26,47 @@
 #pragma once
         
 #include <string>
-#include <map>
 
 namespace ZM_Base{
 
-  
+  enum class executorType{
+    cmd = 0,
+    bash = 1,
+    python = 2,
+  };
+
+  enum class state{
+    run = 0,
+    pause = 1,
+    ready = 2,
+    busy = 3,
+    completed = 4,
+    notResponding = 5,
+  };
+
+  struct task{
+    uint64_t id;              // id tblTask in DB
+    executorType exrType;     // executor for task
+    std::string params;       // params for script
+    std::string script;       // script on bash, python or cmd
+    std::string meanDuration; // estimated lead time 
+    std::string maxDuration;  // maximum lead time
+  };
+
+  struct worker{
+    uint64_t id;              // id tblWorker in DB
+    int capasityTask;         // the number of tasks that can be performed simultaneously  
+    int activeTask;           // number of running tasks
+    int rating;               // manager is assigned a rating to the worker[1..10]
+    state ste;
+    std::string connectPnt;   // connection point: IP or DNS ':' port
+  };
+
+  struct scheduler{
+    uint64_t id;              // id tblScheduler in DB
+    int capasityTask;         // the number of tasks that can be performed simultaneously  
+    int activeTask;           // number of running tasks
+    state ste;              
+    std::string connectPnt;   // connection point: IP or DNS ':' port
+  };
 }
