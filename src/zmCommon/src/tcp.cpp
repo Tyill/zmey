@@ -23,6 +23,7 @@
 // THE SOFTWARE.
 //
 
+#include <numeric>
 #include "tcpServer.h"
 #include "tcpClient.h"
 #include "../tcp.h"
@@ -34,6 +35,7 @@ namespace ZM_Tcp{
 
 asio::io_context ioc;
 TcpServer* _pSrv = nullptr;
+std::vector<bool> _isThrRun;
 std::vector<std::thread> _threads;
 
 bool startServer(const connectPoint& cp, std::string& err){
@@ -44,9 +46,11 @@ bool startServer(const connectPoint& cp, std::string& err){
     _pSrv = new TcpServer(ioc, cp.addr, cp.port);
   
     int thrCount = std::max<int>(1, std::thread::hardware_concurrency());
+    _isThrRun.resize(thrCount, true);
     for (int i = 0; i < thrCount; ++i){
-      _threads.push_back(std::thread([&]{ ioc.run(); 
-                                          ioc.reset();
+      _threads.push_back(std::thread([&, i]{ ioc.run(); 
+                                             ioc.reset();
+                                             _isThrRun[i] = false;
       }));
     }
   }catch (std::exception& e){
@@ -57,11 +61,17 @@ bool startServer(const connectPoint& cp, std::string& err){
 };
 
 void stopServer(){
-  if (_pSrv){   
-    for (auto& t : _threads){  
-      ioc.stop();    
+  if (_pSrv){
+    while(true){        
+      if (std::accumulate(_isThrRun.begin(), _isThrRun.end(), false)){
+        ioc.stop();
+        std::this_thread::yield();
+      }
+      else break;
+    }
+    for (auto& t : _threads){
       t.join();
-    }    
+    }
   }
 };
 

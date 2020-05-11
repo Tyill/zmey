@@ -34,18 +34,19 @@ namespace ZM_Aux {
 
   std::string serialn(const std::map<std::string, std::string>& data){
 
+    int vcnt = data.size() * 2;    
     vector<int> dataSz;
-    dataSz.reserve(data.size() * 2); 
+    dataSz.reserve(vcnt); 
     for (auto& v : data){
       dataSz.push_back((int)v.first.size());
       dataSz.push_back((int)v.second.size());
     }
-    int allSz = std::accumulate(dataSz.begin(), dataSz.end(), 0),
+    int vlsSz = std::accumulate(dataSz.begin(), dataSz.end(), 0),        
         intSz = 4,
         offs = 0,
         inx = 0;
     string out;
-    out.resize(intSz + allSz);
+    out.resize(intSz + vlsSz + vcnt * intSz);
     char* pOut = (char*)out.data();
 
     *((int*)pOut) = (int)data.size();                    
@@ -74,11 +75,11 @@ namespace ZM_Aux {
 
     map<string, string> out;    
     while(offs < allSz){
-      int ksz = *((int*)(pData + offs)); offs += intSz;
-      string key(pData + offs, ksz);     offs += ksz;
+      int ksz = *((int*)(pData + offs)); offs += intSz; if (offs + ksz >= allSz) break;
+      string key(pData + offs, ksz);     offs += ksz;   
 
-      int vsz = *((int*)(pData + offs)); offs += intSz;
-      string val(pData + offs, vsz);     offs += vsz;
+      int vsz = *((int*)(pData + offs)); offs += intSz; if (offs + vsz > allSz) break;
+      string val(pData + offs, vsz);     offs += vsz;   
 
       out[key] = val;
     }

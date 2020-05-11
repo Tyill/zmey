@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
 
     map<string, string> vals2 = ZM_Aux::deserialn(data);
 
-    for (;;)
+    //for (;;)
     {
       std::string buf;
       buf.resize(12800);
