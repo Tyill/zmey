@@ -24,14 +24,13 @@
 //
 #pragma once
 
-#include <string>
 #include <functional>
-#include "zmAuxFunc/auxFunc.h"
+#include <system_error>
+#include "zmCommon/auxFunc.h"
 
 namespace ZM_Tcp{
 
 struct connectPoint{
-
   /// [in] _addr - IP address or DNS 
   connectPoint(const std::string& _addr, int _port)
     : addr(_addr), port(_port){}

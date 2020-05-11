@@ -28,7 +28,7 @@
 #include <libpq-fe.h>
 #include <thread>
 #include <iostream>
-#include "zmAuxFunc/tcp.h"
+#include "zmCommon/tcp.h"
 
 // static void
 // exit_nicely(PGconn *conn)
@@ -39,6 +39,8 @@
 
 using namespace std;
 
+void calc();
+
 int main(int argc, char* argv[])
 {
     // if (argc != 2)
@@ -46,7 +48,7 @@ int main(int argc, char* argv[])
     //   std::cerr << "Usage: async_tcp_echo_server <port>\n";
     //   return 1;
     // }
-
+//    calc();
     int port = 2033;
 
     std::string err;

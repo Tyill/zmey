@@ -1,4 +1,3 @@
-
 //
 // zmey Project
 // Copyright (C) 2018 by Contributors <https://github.com/Tyill/zmey>
@@ -24,39 +23,14 @@
 // THE SOFTWARE.
 //
 
-#include "zmAuxFunc/auxFunc.h"
-#include <cstring>
-#include <thread>
-#include <chrono>
+#pragma once
+        
+#include <string>
+#include <map>
 
-using namespace std;
+namespace ZM_Aux{
 
-namespace ZM_Aux {
-    
-     // %Y-%m-%d %H:%M:%S
-    string currDateTimeSQL() {
+  std::string serialn(const std::map<std::string, std::string>& data);
 
-        time_t ct = time(nullptr);
-        tm* lct = localtime(&ct);
-
-        char curDate[24];
-        strftime(curDate, 24, "%Y-%m-%d %H:%M:%S", (const tm *) &lct);
-
-        return curDate;
-    }
- 
-    vector<string> split(const string& str, const char *sep) {
-        char *cstr = (char*)str.c_str();
-        vector<string> res;
-        char *pch = strtok(cstr, sep);
-        while (pch != NULL) {
-            res.push_back(string(pch));
-            pch = strtok(NULL, sep);
-        }
-        return res;
-    }
-
-    void sleepMs(uint64_t ms){
-        std::this_thread::sleep_for(std::chrono::milliseconds(ms));
-    }    
+  std::map<std::string, std::string> deserialn(const std::string& data);
 }

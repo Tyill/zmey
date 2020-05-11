@@ -27,7 +27,8 @@
 #include <string>
 #include <thread>
 #include <iostream>
-#include "zmAuxFunc/tcp.h"
+#include "zmCommon/tcp.h"
+#include "zmCommon/serial.h"
 
 // static void
 // exit_nicely(PGconn *conn)
@@ -35,6 +36,8 @@
 //     PQfinish(conn);
 //     exit(1);
 // }
+
+using namespace std;
 
 int main(int argc, char* argv[])
 {
@@ -57,6 +60,11 @@ int main(int argc, char* argv[])
 
     //   std::cout << "err" << std::endl;
     // });
+
+    map<string, string> vals{make_pair("my", "pool"), make_pair("mydd", "spool")};
+    string data = ZM_Aux::serialn(vals);
+
+    map<string, string> vals2 = ZM_Aux::deserialn(data);
 
     for (;;)
     {

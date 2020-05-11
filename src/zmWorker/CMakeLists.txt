@@ -10,4 +10,4 @@ endif(UNIX)
 
 add_executable(zmWorker ${SRC_zmWkr})
 
-target_link_libraries(zmWorker PRIVATE zmAuxFunc)
+target_link_libraries(zmWorker PRIVATE zmCommon)
