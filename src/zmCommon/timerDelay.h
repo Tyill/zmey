@@ -22,21 +22,37 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-
 #pragma once
-        
-#include <string>
+
+#include <ctime>
 #include <vector>
 #include <cstdint>
 
-namespace ZM_Aux {
+namespace ZM_Aux{
 
-//%Y-%m-%d %H:%M:%S
-std::string currDateTimeSQL();
-
-std::vector<std::string> split(const std::string& str, const char *sep);
-
-uint64_t currDateTimeSinceEpochMs();
-
-void sleepMs(uint64_t ms);      
+class TimerDelay {
+  struct tmBase{
+    int tmCnt;						
+    bool tmActiv;						
+  };
+  std::vector<tmBase> _tmrs;
+  int _tmSz;	
+  uint64_t _prevCycTm;
+  uint64_t _cycleTm;
+  tm _prevTm;
+  bool _secOnc = false, 
+       _minOnc = false,
+       _hourOnc = false;
+public:
+  TimerDelay();
+  void updateCycTime();
+  uint64_t getCTime();
+  bool onDelTmSec(bool start, int delay, int id);
+  bool offDelTmSec(bool start, int delay, int id);
+  bool onDelTmMS(bool start, int delay, int id);
+  bool offDelTmMS(bool start, int delay, int id);
+  bool secOnc();
+  bool minOnc();
+  bool hourOnc();
+};
 }

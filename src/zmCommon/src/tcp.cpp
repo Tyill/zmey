@@ -27,6 +27,7 @@
 #include "tcpServer.h"
 #include "tcpClient.h"
 #include "../tcp.h"
+#include "../auxFunc.h"
 
 ZM_Tcp::dataCBack _dataCB = nullptr;
 ZM_Tcp::errSendCBack _errSendCB = nullptr;

@@ -24,9 +24,9 @@
 //
 #pragma once
 
+#include <string> 
 #include <functional>
 #include <system_error>
-#include "zmCommon/auxFunc.h"
 
 namespace ZM_Tcp{
 

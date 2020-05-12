@@ -56,6 +56,12 @@ namespace ZM_Aux {
         return res;
     }
 
+    uint64_t currDateTimeSinceEpochMs(){
+      auto now = std::chrono::system_clock::now();
+      auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
+      return now_ms.time_since_epoch().count();
+    }
+
     void sleepMs(uint64_t ms){
         std::this_thread::sleep_for(std::chrono::milliseconds(ms));
     }    

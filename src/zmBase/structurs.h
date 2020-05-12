@@ -42,10 +42,14 @@ namespace ZM_Base{
     busy = 3,
     completed = 4,
     notResponding = 5,
+    taskTakeByScheduler = 6,
+    taskSendToWorker = 7,
+    workerSilentLongTime = 8,
   };
 
   struct task{
     uint64_t id;              // id tblTask in DB
+    state ste;
     executorType exrType;     // executor for task
     std::string params;       // params for script
     std::string script;       // script on bash, python or cmd
@@ -55,18 +59,18 @@ namespace ZM_Base{
 
   struct worker{
     uint64_t id;              // id tblWorker in DB
+    state ste;
     int capasityTask;         // the number of tasks that can be performed simultaneously  
     int activeTask;           // number of running tasks
     int rating;               // manager is assigned a rating to the worker[1..10]
-    state ste;
     std::string connectPnt;   // connection point: IP or DNS ':' port
   };
 
   struct scheduler{
     uint64_t id;              // id tblScheduler in DB
+    state ste;
     int capasityTask;         // the number of tasks that can be performed simultaneously  
     int activeTask;           // number of running tasks
-    state ste;              
     std::string connectPnt;   // connection point: IP or DNS ':' port
   };
 }

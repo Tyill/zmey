@@ -23,20 +23,38 @@
 // THE SOFTWARE.
 //
 
-#pragma once
-        
-#include <string>
-#include <vector>
-#include <cstdint>
+#include "../front.h"
 
 namespace ZM_Aux {
 
-//%Y-%m-%d %H:%M:%S
-std::string currDateTimeSQL();
-
-std::vector<std::string> split(const std::string& str, const char *sep);
-
-uint64_t currDateTimeSinceEpochMs();
-
-void sleepMs(uint64_t ms);      
+Front::Front() : _oncSz(0) {
+}
+bool Front::posFront(bool en, int id){
+  if (_oncSz <= id) {
+    _onc.resize(id + 1, false);
+    _oncSz = id + 1;
+  }
+  if (!_onc[id] && en) {
+    _onc[id] = true;
+    return true;
+  } 
+  else if (!en){
+    _onc[id] = false;
+  }
+  return false;
+}
+bool Front::negFront(bool en, int id){
+  if (_oncSz <= id){
+    _onc.resize(id + 1, true);
+    _oncSz = id + 1;
+  }
+  if (!_onc[id] && !en) {
+    _onc[id] = true;
+    return true;
+  } 
+  else if (en){
+    _onc[id] = false;      
+  }
+  return false;
+}
 }

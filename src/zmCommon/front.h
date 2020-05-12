@@ -24,19 +24,17 @@
 //
 
 #pragma once
-        
-#include <string>
+
 #include <vector>
-#include <cstdint>
 
 namespace ZM_Aux {
 
-//%Y-%m-%d %H:%M:%S
-std::string currDateTimeSQL();
-
-std::vector<std::string> split(const std::string& str, const char *sep);
-
-uint64_t currDateTimeSinceEpochMs();
-
-void sleepMs(uint64_t ms);      
+class Front{
+  std::vector<bool> _onc;
+	int _oncSz = 0;
+public:
+	Front();
+  bool posFront(bool en, int id);
+  bool negFront(bool en, int id);
+};
 }

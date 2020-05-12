@@ -22,8 +22,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-
-#pragma once
         
 #include "dbProvider.h"
 
@@ -42,7 +40,5 @@ bool DbProvider::isConnect(){
 
 bool DbProvider::getActiveTask(std::vector<ZM_Base::task>&){
 
-
+return true;
 }
-
-};
