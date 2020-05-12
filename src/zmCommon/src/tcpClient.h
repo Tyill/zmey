@@ -45,10 +45,10 @@ public:
       if (!ec){
         asio::async_write(_socket, asio::buffer(msg.data(), msg.size()),
           [this, self, msg](std::error_code ec, std::size_t /*length*/){
-            if (ec && _errSendCB) _errSendCB(ZM_Tcp::connectPoint(_addr, _port), msg, ec); 
+            if (ec && _errSendCB) _errSendCB(_addr + ":" + std::to_string(_port), msg, ec); 
           });
       }else{
-        if (_errSendCB) _errSendCB(ZM_Tcp::connectPoint(_addr, _port), msg, ec); 
+        if (_errSendCB) _errSendCB(_addr + ":" + std::to_string(_port), msg, ec); 
       }
     });
   }
