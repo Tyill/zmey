@@ -27,7 +27,8 @@
 #include <asio.hpp>
 #include "../tcp.h"
 
-extern ZM_Tcp::errSendCBack _errSendCB;
+extern ZM_Tcp::stsSendCBack _stsSendCBack;
+extern _isStsSendCBackIfError;
 
 using namespace asio::ip;
 
@@ -45,10 +46,12 @@ public:
       if (!ec){
         asio::async_write(_socket, asio::buffer(msg.data(), msg.size()),
           [this, self, msg](std::error_code ec, std::size_t /*length*/){
-            if (ec && _errSendCB) _errSendCB(_addr + ":" + std::to_string(_port), msg, ec); 
+            if (_stsSendCBack && (ec || !_isStsSendCBackIfError))
+              _stsSendCBack(_addr + ":" + std::to_string(_port), msg, ec); 
           });
       }else{
-        if (_errSendCB) _errSendCB(_addr + ":" + std::to_string(_port), msg, ec); 
+        if (_stsSendCBack)
+          _stsSendCBack(_addr + ":" + std::to_string(_port), msg, ec); 
       }
     });
   }

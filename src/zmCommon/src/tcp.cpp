@@ -29,8 +29,9 @@
 #include "../tcp.h"
 #include "../auxFunc.h"
 
-ZM_Tcp::dataCBack _dataCB = nullptr;
-ZM_Tcp::errSendCBack _errSendCB = nullptr;
+ZM_Tcp::receiveDataCBack _receiveDataCBack = nullptr;
+ZM_Tcp::stsSendCBack _stsSendCBack = nullptr;
+bool _isStsSendCBackIfError = false;
 
 namespace ZM_Tcp{
 
@@ -39,7 +40,7 @@ TcpServer* _pSrv = nullptr;
 std::vector<bool> _isThrRun;
 std::vector<std::thread> _threads;
 
-bool startServer(const std::string& connPnt, std::string& err){
+bool startServer(const std::string& connPnt, std::string& err, int innerThreadCnt){
 
   if (_pSrv) return true;
 
@@ -48,6 +49,8 @@ bool startServer(const std::string& connPnt, std::string& err){
     _pSrv = new TcpServer(ioc, cp[0], stoi(cp[1]));
   
     int thrCount = std::max<int>(1, std::thread::hardware_concurrency());
+    if (innerThreadCnt > 0)
+      thrCount = innerThreadCnt;
     _isThrRun.resize(thrCount, true);
     for (int i = 0; i < thrCount; ++i){
       _threads.push_back(std::thread([&, i]{ ioc.run(); 
@@ -72,7 +75,8 @@ void stopServer(){
       else break;
     }
     for (auto& t : _threads){
-      t.join();
+      if (t.joinable())
+        t.join();
     }
   }
 };
@@ -82,11 +86,12 @@ void sendData(const std::string& connPnt, const std::string& data){
   std::make_shared<TcpClient>(ioc, cp[0], stoi(cp[1]))->write(data);
 };
 
-void setReceiveCBack(dataCBack cb){
-  _dataCB = cb;
+void setReceiveCBack(receiveDataCBack cb){
+  _receiveDataCBack = cb;
 };
 
-void setErrorSendCBack(errSendCBack cb){
-  _errSendCB = cb;
+void setStsSendCBack(stsSendCBack cb, bool onlyIfError){
+  _stsSendCBack = cb;
+  _isStsSendCBackIfError = onlyIfError;
 };
 };

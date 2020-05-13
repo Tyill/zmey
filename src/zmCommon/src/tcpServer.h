@@ -25,7 +25,7 @@
 #include <asio.hpp>
 #include "../tcp.h"
 
-extern ZM_Tcp::dataCBack _dataCB;
+extern ZM_Tcp::receiveDataCBack _receiveDataCBack;
 
 using namespace asio::ip;
 
@@ -57,8 +57,8 @@ public:
             }
           }          
           if (ec || (length < MAX_LENGTH)){
-            if (_dataCB && !_mess.empty()){ 
-              _dataCB(_addr + ":" + std::to_string(_port), _mess);
+            if (_receiveDataCBack && !_mess.empty()){ 
+              _receiveDataCBack(_addr + ":" + std::to_string(_port), _mess);
             }
           }
         });

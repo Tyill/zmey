@@ -33,8 +33,9 @@ namespace ZM_Tcp{
 /// error send data to receiver 
 /// [in] connPnt - connection point: IP or DNS ':' port
 /// [in] err - error
+/// [in] innerThreadCnt - the number of internal threads to run, 0 - std::thread::hardware_concurrency()
 /// return true - ok 
-bool startServer(const std::string& connPnt, std::string& err);
+bool startServer(const std::string& connPnt, std::string& err, int innerThreadCnt = 0);
 
 void stopServer();
 
@@ -43,19 +44,20 @@ void stopServer();
 /// [in] data - data for send
 void sendData(const std::string& connPnt, const std::string& data);
 
-/// error send data to receiver 
+/// status send data to receiver 
 /// [in] connPnt - connection point: IP or DNS ':' port
 /// [in] data - data for send
 /// [in] ec - system error code 
+/// [in] onlyIfError - call back only if an error
 typedef std::function<void(const std::string& connPnt,                           
                            const std::string& data,
-                           const std::error_code& ec)> errSendCBack;
-void setErrorSendCBack(errSendCBack);
+                           const std::error_code& ec)> stsSendCBack;
+void setStsSendCBack(stsSendCBack, bool onlyIfError = true);
 
 /// received data from sender
 /// [in] connPnt - connection point: IP or DNS ':' port
 /// [in] data - data from sender
-typedef std::function<void(const std::string& connPnt, const std::string& data)> dataCBack;
-void setReceiveCBack(dataCBack);
+typedef std::function<void(const std::string& connPnt, const std::string& data)> receiveDataCBack;
+void setReceiveCBack(receiveDataCBack);
 
 }
