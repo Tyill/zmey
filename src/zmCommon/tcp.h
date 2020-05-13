@@ -42,17 +42,17 @@ void stopServer();
 /// send data to receiver 
 /// [in] connPnt - connection point: IP or DNS ':' port
 /// [in] data - data for send
-void sendData(const std::string& connPnt, const std::string& data);
+/// [in] isStsCBackIfError - status send call back only if an error
+void sendData(const std::string& connPnt, const std::string& data, bool isStsCBackIfError = true);
 
 /// status send data to receiver 
 /// [in] connPnt - connection point: IP or DNS ':' port
 /// [in] data - data for send
 /// [in] ec - system error code 
-/// [in] onlyIfError - call back only if an error
 typedef std::function<void(const std::string& connPnt,                           
                            const std::string& data,
                            const std::error_code& ec)> stsSendCBack;
-void setStsSendCBack(stsSendCBack, bool onlyIfError = true);
+void setStsSendCBack(stsSendCBack);
 
 /// received data from sender
 /// [in] connPnt - connection point: IP or DNS ':' port

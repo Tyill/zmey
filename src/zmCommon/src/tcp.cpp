@@ -31,7 +31,6 @@
 
 ZM_Tcp::receiveDataCBack _receiveDataCBack = nullptr;
 ZM_Tcp::stsSendCBack _stsSendCBack = nullptr;
-bool _isStsSendCBackIfError = false;
 
 namespace ZM_Tcp{
 
@@ -81,17 +80,16 @@ void stopServer(){
   }
 };
 
-void sendData(const std::string& connPnt, const std::string& data){
+void sendData(const std::string& connPnt, const std::string& data, bool isCBackIfError){
   auto cp = ZM_Aux::split(connPnt, ":");
-  std::make_shared<TcpClient>(ioc, cp[0], stoi(cp[1]))->write(data);
+  std::make_shared<TcpClient>(ioc, cp[0], stoi(cp[1]))->write(data, isCBackIfError);
 };
 
 void setReceiveCBack(receiveDataCBack cb){
   _receiveDataCBack = cb;
 };
 
-void setStsSendCBack(stsSendCBack cb, bool onlyIfError){
+void setStsSendCBack(stsSendCBack cb){
   _stsSendCBack = cb;
-  _isStsSendCBackIfError = onlyIfError;
 };
 };

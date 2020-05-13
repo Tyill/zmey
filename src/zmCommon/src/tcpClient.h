@@ -28,7 +28,6 @@
 #include "../tcp.h"
 
 extern ZM_Tcp::stsSendCBack _stsSendCBack;
-extern _isStsSendCBackIfError;
 
 using namespace asio::ip;
 
@@ -38,15 +37,15 @@ public:
   TcpClient(asio::io_context& ioc, const std::string& addr, int port)
   : _ioc(ioc), _addr(addr), _port(port), _socket(ioc){}
 
-  void write(const std::string& msg){
+  void write(const std::string& msg, bool isCBackIfError){
     auto self(shared_from_this());   
        
     asio::async_connect(_socket, tcp::resolver(_ioc).resolve(_addr, std::to_string(_port)),
-    [this, self, msg](std::error_code ec, tcp::endpoint ep){
+    [this, self, msg, isCBackIfError](std::error_code ec, tcp::endpoint ep){
       if (!ec){
         asio::async_write(_socket, asio::buffer(msg.data(), msg.size()),
-          [this, self, msg](std::error_code ec, std::size_t /*length*/){
-            if (_stsSendCBack && (ec || !_isStsSendCBackIfError))
+          [this, self, msg, isCBackIfError](std::error_code ec, std::size_t /*length*/){
+            if (_stsSendCBack && (ec || !isCBackIfError))
               _stsSendCBack(_addr + ":" + std::to_string(_port), msg, ec); 
           });
       }else{
