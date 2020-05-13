@@ -49,7 +49,7 @@ namespace ZM_Aux {
     out.resize(intSz + vlsSz + vcnt * intSz);
     char* pOut = (char*)out.data();
 
-    *((int*)pOut) = (int)data.size();                    
+    *((int*)pOut) = vcnt / 2;                    
     offs += intSz;   
    
     for (auto& v : data){
