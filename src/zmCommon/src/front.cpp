@@ -31,7 +31,7 @@ Front::Front() : _oncSz(0) {
 }
 bool Front::posFront(bool en, int id){
   if (_oncSz <= id) {
-    _onc.resize(id + 1, false);
+    _onc.resize(id + 1, true);
     _oncSz = id + 1;
   }
   if (!_onc[id] && en) {
