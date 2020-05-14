@@ -25,9 +25,11 @@
 
 
 #include <iostream>
-#include <thread>
+#include <future>
+#include <chrono>
 #include "zmCommon/tcp.h"
 #include "zmCommon/serial.h"
+#include "zmCommon/timerDelay.h"
 #include "dbProvider.h"
 
 using namespace std;
@@ -37,25 +39,26 @@ void receiveHandler(const string& cp, const string& data){
 
 }
 
-void errSendHandler(const string& cp, const string& data, const std::error_code& ec){
+void sendHandler(const string& cp, const string& data, const std::error_code& ec){
 
 
 }
 
-vector<ZM_Base::task> getAvailableTask(){
-  return vector<ZM_Base::task>();
-} 
+void getNewTaskFromDB(DbProvider&& db){
 
-bool getAvailableWorker(ZM_Base::worker&){
-  return true;
-} 
 
-vector<ZM_Base::worker> _workers;
+
+}
+
+void sendAllMessToDB(DbProvider&& db){
+
+
+}
 
 int main(int argc, char* argv[]){   
 
   ZM_Tcp::setReceiveCBack(receiveHandler);
-  ZM_Tcp::setErrorSendCBack(errSendHandler);
+  ZM_Tcp::setStsSendCBack(sendHandler);
 
   std::string connPnt = "localhost:4145",
               err;
@@ -69,42 +72,73 @@ int main(int argc, char* argv[]){
   
   DbProvider db("localhost", "pgdb");
   
+  std::future<void> frGetTaskFromDB,
+                    frSendToDB;
+  ZM_Aux::TimerDelay timer;
 
+  vector<ZM_Base::worker> _workers;
+  
   // main cycle
   while (true){
-    
-    vector<ZM_Base::task> task = getAvailableTask();
+    timer.updateCycTime();
 
-    map<string, string> prms;
-    for (auto& t : task){
-
-      if (t.ste != ZM_Base::state::taskTakeByScheduler) continue;
-      
-      ZM_Base::worker wr;
-      if (getAvailableWorker(wr)){   
-
-        prms["command"] = "newTask";
-        prms["taskId"] = t.id;
-        prms["params"] = t.params; 
-        prms["script"] = t.script;
-        prms["executor"] = to_string(int(t.exrType));
-        prms["meanDuration"] = t.meanDuration; 
-        prms["maxDuration"] = t.maxDuration;          
-      
-        ZM_Tcp::sendData(wr.connectPnt, ZM_Aux::serialn(prms));
-        t.ste = ZM_Base::state::taskSendToWorker;
-      }
-
-      // check of workers
-      for (auto& w : _workers){
-        if (w.ste == ZM_Base::state::workerSilentLongTime){
-
-
-        }
-        w.ste = ZM_Base::state::workerSilentLongTime;
-      }
+    // get new task from DB every ..ms
+    if(timer.onDelTmMS(true, 100, 0) && 
+      (!frGetTaskFromDB.valid() || 
+      (frGetTaskFromDB.wait_for(std::chrono::seconds(0)) == std::future_status::ready))){
+      frGetTaskFromDB = std::async(std::launch::async, getNewTaskFromDB, db);
+      timer.onDelTmSec(false, 100, 0);
     }
-  }
+
+    // send accumulated messages to DB every ..s
+    if(timer.onDelTmSec(true, 1, 1) && 
+      (!frGetTaskFromDB.valid() || 
+      (frSendToDB.wait_for(std::chrono::seconds(0)) == std::future_status::ready))){
+      frSendToDB = std::async(std::launch::async, sendAllMessToDB, db);
+      timer.onDelTmSec(false, 1, 1);
+    }
+    
+  // bool isStart = true; 
+  // if (isStart && (!fut.valid() || (fut.wait_for(0) == std::future_status::ready)){
+    
+    
+  //   fut = std::async(std::launch::async, func);
+  // }
+
+
+    
+  //   vector<ZM_Base::task> task = getAvailableTask();
+  //   map<string, string> prms;
+  //   for (auto& t : task){
+
+  //     if (t.ste != ZM_Base::state::taskTakeByScheduler) continue;
+      
+  //     ZM_Base::worker wr;
+  //     if (getAvailableWorker(wr)){   
+
+  //       prms["command"] = "newTask";
+  //       prms["taskId"] = t.id;
+  //       prms["params"] = t.params; 
+  //       prms["script"] = t.script;
+  //       prms["executor"] = to_string(int(t.exrType));
+  //       prms["meanDuration"] = t.meanDuration; 
+  //       prms["maxDuration"] = t.maxDuration;          
+      
+  //       ZM_Tcp::sendData(wr.connectPnt, ZM_Aux::serialn(prms));
+  //       t.ste = ZM_Base::state::taskSendToWorker;
+  //     }
+
+  //     // check of workers
+  //     for (auto& w : _workers){
+  //       if (w.ste == ZM_Base::state::workerSilentLongTime){
+
+
+  //       }
+  //       w.ste = ZM_Base::state::workerSilentLongTime;
+  //     }
+  //   }
+  // }
  
   return 0;
+}
 }

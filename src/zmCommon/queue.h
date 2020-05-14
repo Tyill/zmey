@@ -31,7 +31,7 @@
 namespace ZM_Aux{
 
 template<typename T>
-class queueThrSave{
+class QueueThrSave{
   struct node{
     std::shared_ptr<T> data;
     std::unique_ptr<node> next;
@@ -55,9 +55,9 @@ class queueThrSave{
     return _tail;
   }
 public:
-  queueThrSave() : _head(new node), _tail(_head.get()){};
-  queueThrSave(const queueThrSave& other) = delete;
-  queueThrSave& operator=(const queueThrSave& other) = delete;
+  QueueThrSave() : _head(new node), _tail(_head.get()){};
+  QueueThrSave(const queueThrSave& other) = delete;
+  QueueThrSave& operator=(const queueThrSave& other) = delete;
 
   void push(T&& newValue){
     std::shared_ptr<T> newData(std::make_shared<T>(std::forward<T>(newValue)));
