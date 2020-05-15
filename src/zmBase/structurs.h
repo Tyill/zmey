@@ -57,12 +57,9 @@ namespace ZM_Base{
     std::string maxDuration;  // maximum lead time
   };
 
-  struct worker{
-    uint64_t id;              // id tblWorker in DB
+  struct manager{
+    uint64_t id;              // id tblManager in DB
     state ste;
-    int capasityTask;         // the number of tasks that can be performed simultaneously  
-    int activeTask;           // number of running tasks
-    int rating;               // manager is assigned a rating to the worker[1..10]
     std::string connectPnt;   // connection point: IP or DNS ':' port
   };
 
@@ -73,4 +70,15 @@ namespace ZM_Base{
     int activeTask;           // number of running tasks
     std::string connectPnt;   // connection point: IP or DNS ':' port
   };
+
+  struct worker{
+    uint64_t id;              // id tblWorker in DB
+    state ste;
+    int capasityTask;         // the number of tasks that can be performed simultaneously  
+    int activeTask;           // number of running tasks
+    int rating;               // manager is assigned a rating to the worker[1..10]
+    std::string connectPnt;   // connection point: IP or DNS ':' port
+  };
+
+ 
 }

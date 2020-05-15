@@ -24,6 +24,7 @@
 //
 #pragma once
 
+#include <vector>
 #include <mutex>
 #include <utility>
 #include <memory>
@@ -79,10 +80,20 @@ public:
   }
   int size(){
     return _sz;
-  } 
+  }
   bool empty(){
     std::lock_guard<std::mutex> lock(_headMtx);
     return (_head.get() == getTail());
+  }
+  std::vector<T> asVector(){
+    std::lock_guard<std::mutex> lock(_headMtx);
+    std::vector<T> res;
+    node* head = _head.get();
+    while(head != getTail()){
+      res.push_back(*head->data);
+      head = head->next;
+    }
+    return res;
   } 
 };   
 }
