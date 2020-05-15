@@ -94,7 +94,8 @@ int main(int argc, char* argv[]){
       FUTURE_RUN(frGetTaskFromDB, getNewTaskFromDB);
     }
     // get workers from DB
-    if (_workers.empty()){      
+    if(timer.onDelTmSec(true, 10, 0) || _workers.empty()){  
+      timer.onDelTmSec(false, 10, 0);    
       FUTURE_RUN(frGetWorkersFromDB, getAvailableWorkers);
     }       
     // send task to worker    
