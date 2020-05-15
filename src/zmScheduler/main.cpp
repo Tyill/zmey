@@ -23,16 +23,101 @@
 // THE SOFTWARE.
 //
 
-
-#include <iostream>
 #include <future>
 #include <chrono>
 #include "zmCommon/tcp.h"
 #include "zmCommon/serial.h"
 #include "zmCommon/timerDelay.h"
+#include "zmCommon/queue.h"
 #include "dbProvider.h"
 
 using namespace std;
+
+void receiveHandler(const string& cp, const string& data);
+void sendHandler(const string& cp, const string& data, const std::error_code& ec);
+void getNewTaskFromDB(DbProvider& db, ZM_Aux::QueueThrSave<ZM_Base::task>&);
+void sendAllMessToDB(DbProvider& db, ZM_Aux::QueueThrSave<messageToDB>&);
+bool getAvailableWorker(DbProvider& db, vector<ZM_Base::worker>& workers, ZM_Base::worker&);
+
+int main(int argc, char* argv[]){   
+
+  ZM_Tcp::setReceiveCBack(receiveHandler);
+  ZM_Tcp::setStsSendCBack(sendHandler);
+
+  std::string connPnt = "localhost:4145",
+              err;
+  if (ZM_Tcp::startServer(connPnt, err)){
+  //  cout << "Tcp server running: " + connPnt;
+  }
+  else{
+  //  cout << "Tcp server error: " + connPnt + " " + err;
+    return -1;
+  }
+    
+  DbProvider db("localhost", "pgdb");
+   
+  future<void> frGetTaskFromDB,
+               frSendToDB;
+  vector<ZM_Base::worker> workers;
+  ZM_Aux::QueueThrSave<ZM_Base::task> tasks;
+  ZM_Aux::QueueThrSave<messageToDB> messToDB;
+  ZM_Aux::TimerDelay timer;
+
+
+  // main cycle
+  while (true){
+    timer.updateCycTime();
+    
+    // get new task from DB
+    if(timer.onDelTmMS(true, 10, 0) && (tasks.size() < 10000)){
+      timer.onDelTmMS(false, 10, 0);
+      if (!frGetTaskFromDB.valid() || (frGetTaskFromDB.wait_for(chrono::seconds(0)) == future_status::ready)){
+        frGetTaskFromDB = async(
+          launch::async, [&db, &tasks]{
+            getNewTaskFromDB(db, tasks);
+          });
+      }
+    }
+
+    // send task to worker
+    map<string, string> prms;
+    ZM_Base::task t;
+    while (tasks.tryPop(t)){
+
+      if (t.ste != ZM_Base::state::taskTakeByScheduler) continue;
+      
+      ZM_Base::worker wr;
+      if (getAvailableWorker(db, workers, wr)){   
+
+        prms["command"] = "newTask";
+        prms["taskId"] = t.id;
+        prms["params"] = t.params; 
+        prms["script"] = t.script;
+        prms["executor"] = to_string(int(t.exrType));
+        prms["meanDuration"] = t.meanDuration; 
+        prms["maxDuration"] = t.maxDuration;          
+      
+        ZM_Tcp::sendData(wr.connectPnt, ZM_Aux::serialn(prms));
+        t.ste = ZM_Base::state::taskSendToWorker;
+      }     
+    }
+
+    // send all mess to DB
+    if(timer.onDelTmMS(true, 1000, 1) && !messToDB.empty()){
+      timer.onDelTmMS(false, 1000, 1);
+      if (!frSendToDB.valid() || (frSendToDB.wait_for(chrono::seconds(0)) == future_status::ready)){
+        frSendToDB = async(
+          launch::async, [&db, &messToDB]{
+            sendAllMessToDB(db, messToDB);
+          });
+      }
+    }     
+  }
+  
+  ZM_Tcp::stopServer();
+  return 0;
+}
+
 
 void receiveHandler(const string& cp, const string& data){
 
@@ -44,101 +129,17 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
 
 }
 
-void getNewTaskFromDB(DbProvider&& db){
-
-
-
-}
-
-void sendAllMessToDB(DbProvider&& db){
-
-
-}
-
-int main(int argc, char* argv[]){   
-
-  ZM_Tcp::setReceiveCBack(receiveHandler);
-  ZM_Tcp::setStsSendCBack(sendHandler);
-
-  std::string connPnt = "localhost:4145",
-              err;
-  if (ZM_Tcp::startServer(connPnt, err)){
-    cout << "Tcp server running: " + connPnt;
-  }
-  else{
-    cout << "Tcp server error: " + connPnt + " " + err;
-    return -1;
-  }
-  
-  DbProvider db("localhost", "pgdb");
-  
-  std::future<void> frGetTaskFromDB,
-                    frSendToDB;
-  ZM_Aux::TimerDelay timer;
-
-  vector<ZM_Base::worker> _workers;
-  
-  // main cycle
-  while (true){
-    timer.updateCycTime();
-
-    // get new task from DB every ..ms
-    if(timer.onDelTmMS(true, 100, 0) && 
-      (!frGetTaskFromDB.valid() || 
-      (frGetTaskFromDB.wait_for(std::chrono::seconds(0)) == std::future_status::ready))){
-      frGetTaskFromDB = std::async(std::launch::async, getNewTaskFromDB, db);
-      timer.onDelTmSec(false, 100, 0);
-    }
-
-    // send accumulated messages to DB every ..s
-    if(timer.onDelTmSec(true, 1, 1) && 
-      (!frGetTaskFromDB.valid() || 
-      (frSendToDB.wait_for(std::chrono::seconds(0)) == std::future_status::ready))){
-      frSendToDB = std::async(std::launch::async, sendAllMessToDB, db);
-      timer.onDelTmSec(false, 1, 1);
-    }
-    
-  // bool isStart = true; 
-  // if (isStart && (!fut.valid() || (fut.wait_for(0) == std::future_status::ready)){
-    
-    
-  //   fut = std::async(std::launch::async, func);
-  // }
-
-
-    
-  //   vector<ZM_Base::task> task = getAvailableTask();
-  //   map<string, string> prms;
-  //   for (auto& t : task){
-
-  //     if (t.ste != ZM_Base::state::taskTakeByScheduler) continue;
-      
-  //     ZM_Base::worker wr;
-  //     if (getAvailableWorker(wr)){   
-
-  //       prms["command"] = "newTask";
-  //       prms["taskId"] = t.id;
-  //       prms["params"] = t.params; 
-  //       prms["script"] = t.script;
-  //       prms["executor"] = to_string(int(t.exrType));
-  //       prms["meanDuration"] = t.meanDuration; 
-  //       prms["maxDuration"] = t.maxDuration;          
-      
-  //       ZM_Tcp::sendData(wr.connectPnt, ZM_Aux::serialn(prms));
-  //       t.ste = ZM_Base::state::taskSendToWorker;
-  //     }
-
-  //     // check of workers
-  //     for (auto& w : _workers){
-  //       if (w.ste == ZM_Base::state::workerSilentLongTime){
-
-
-  //       }
-  //       w.ste = ZM_Base::state::workerSilentLongTime;
-  //     }
-  //   }
-  // }
+void getNewTaskFromDB(DbProvider&, ZM_Aux::QueueThrSave<ZM_Base::task>&){
  
-  return 0;
 }
+
+void sendAllMessToDB(DbProvider& db, ZM_Aux::QueueThrSave<messageToDB>&){
+
+
+}
+
+bool getAvailableWorker(DbProvider& db, vector<ZM_Base::worker>& workers, ZM_Base::worker&){
+
+
+  return true;
 }

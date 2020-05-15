@@ -39,6 +39,7 @@ class QueueThrSave{
   std::mutex _headMtx, _tailMtx;
   std::unique_ptr<node> _head;
   node* _tail;  
+  int _sz = 0;
       
   std::unique_ptr<node> tryPopHead(T& value){
     std::lock_guard<std::mutex> lock(_headMtx);
@@ -47,7 +48,8 @@ class QueueThrSave{
     }
     value = std::move(*_head->data);
     std::unique_ptr<node> oldHead = std::move(_head);
-    _head = std::move(oldHead->next);    
+    _head = std::move(oldHead->next);   
+    --_sz; 
     return oldHead;
   }      
   node* getTail(){
@@ -55,9 +57,9 @@ class QueueThrSave{
     return _tail;
   }
 public:
-  QueueThrSave() : _head(new node), _tail(_head.get()){};
-  QueueThrSave(const queueThrSave& other) = delete;
-  QueueThrSave& operator=(const queueThrSave& other) = delete;
+  QueueThrSave() : _head(new node), _tail(_head.get()), _sz(0){};
+  QueueThrSave(const QueueThrSave& other) = delete;
+  QueueThrSave& operator=(const QueueThrSave& other) = delete;
 
   void push(T&& newValue){
     std::shared_ptr<T> newData(std::make_shared<T>(std::forward<T>(newValue)));
@@ -68,12 +70,16 @@ public:
       node* const newTail = p.get();
       _tail->next = std::move(p);
       _tail = newTail;
+      ++_sz;
     }
   }
   bool tryPop(T& value){
     std::unique_ptr<node> const oldHead = tryPopHead(value);    
-    return oldHead;
+    return oldHead.get() != nullptr;
   }
+  int size(){
+    return _sz;
+  } 
   bool empty(){
     std::lock_guard<std::mutex> lock(_headMtx);
     return (_head.get() == getTail());

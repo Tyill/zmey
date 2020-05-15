@@ -29,6 +29,10 @@
 #include <vector>
 #include "zmBase/structurs.h"
 
+struct messageToDB{
+
+};
+
 class DbProvider{
 
 public:
