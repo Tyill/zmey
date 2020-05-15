@@ -29,6 +29,7 @@
 #include "zmCommon/serial.h"
 #include "zmCommon/timerDelay.h"
 #include "zmCommon/queue.h"
+#include "zmCommon/auxFunc.h"
 #include "dbProvider.h"
 
 using namespace std;
@@ -62,27 +63,27 @@ int main(int argc, char* argv[]){
   ZM_Aux::QueueThrSave<ZM_Base::task> tasks;
   ZM_Aux::QueueThrSave<messageToDB> messToDB;
   ZM_Aux::TimerDelay timer;
-
+  const int minCycleTimeMS = 5;
 
   // main cycle
   while (true){
     timer.updateCycTime();
     
     // get new task from DB
-    if(timer.onDelTmMS(true, 10, 0) && (tasks.size() < 10000)){
-      timer.onDelTmMS(false, 10, 0);
+    if(tasks.size() < 10000){
       if (!frGetTaskFromDB.valid() || (frGetTaskFromDB.wait_for(chrono::seconds(0)) == future_status::ready)){
         frGetTaskFromDB = async(
           launch::async, [&db, &tasks]{
             getNewTaskFromDB(db, tasks);
           });
       }
-    }
+    }     
 
     // send task to worker
     map<string, string> prms;
     ZM_Base::task t;
-    while (tasks.tryPop(t)){
+    while (tasks.tryPop(t)){  // !!! tryPop нельзя использовать, 
+    // потому что рабочий может не выполнить задачу, и придется ее возвращать в очередь
 
       if (t.ste != ZM_Base::state::taskTakeByScheduler) continue;
       
@@ -111,7 +112,11 @@ int main(int argc, char* argv[]){
             sendAllMessToDB(db, messToDB);
           });
       }
-    }     
+    }  
+    
+    if (timer.getCTime() < minCycleTimeMS){
+      ZM_Aux::sleepMs(minCycleTimeMS - timer.getCTime());
+    }
   }
   
   ZM_Tcp::stopServer();
