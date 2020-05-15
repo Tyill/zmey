@@ -115,8 +115,8 @@ int main(int argc, char* argv[]){
       FUTURE_RUN(frGetManagersFromDB, getAvailableManagers);
     }
     // send status to managers
-    if(timer.onDelTmSec(true, 60, 2) && !_managers.empty()){      
-      timer.onDelTmSec(false, 60, 2);
+    if(timer.onDelTmSec(true, 20, 2) && !_managers.empty()){      
+      timer.onDelTmSec(false, 20, 2);
       sendStatusToManagers();
     }
     // check status of workers

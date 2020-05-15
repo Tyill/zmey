@@ -34,14 +34,13 @@ struct messageToDB{
 };
 
 class DbProvider{
+	sqlite3* _db = nullptr;
+  bool init(const std::string& pathDB);
+  bool query(const std::string& query, std::vector<std::vector<std::string>>& result) const;
 
 public:
-  DbProvider(const std::string& dbServer, const std::string& dbName);
-
-  ~DbProvider();
-
-  bool isConnect();
-
-  bool getActiveTask(std::vector<ZM_Base::task>&);
-
+  dbProvider() = default;    
+  ~dbProvider(); 
+  bool connect(const std::string& pathDb);
+  void disconnect();  
 };
