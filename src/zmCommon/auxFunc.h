@@ -32,7 +32,10 @@
 namespace ZM_Aux {
 
 //%Y-%m-%d %H:%M:%S
-std::string currDateTimeSQL();
+std::string currDateTime();
+
+// %Y-%m-%d %H:%M:%S:%MS
+std::string currDateTimeMs();
 
 std::vector<std::string> split(const std::string& str, const char *sep);
 

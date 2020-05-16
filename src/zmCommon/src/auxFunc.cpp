@@ -34,13 +34,31 @@ using namespace std;
 namespace ZM_Aux {
     
      // %Y-%m-%d %H:%M:%S
-    string currDateTimeSQL() {
+    string currDateTime() {
 
         time_t ct = time(nullptr);
         tm* lct = localtime(&ct);
 
         char curDate[24];
         strftime(curDate, 24, "%Y-%m-%d %H:%M:%S", (const tm *) &lct);
+
+        return curDate;
+    }
+
+    // %Y-%m-%d %H:%M:%S:%MS
+    string currDateTimeMs() {
+
+        time_t ct = time(nullptr);
+        tm* lct = localtime(&ct);
+
+        uint64_t ms = chrono::time_point_cast<chrono::milliseconds>(chrono::system_clock::now()).time_since_epoch().count();
+        uint64_t mspr = ms / 1000;
+        ms -= mspr * 1000;
+
+        char curDate[24];
+        strftime(curDate, 24, "%Y-%m-%d %H:%M:%S:", lct);
+
+        (sprintf)(curDate, "%s%03d", curDate, int(ms));
 
         return curDate;
     }

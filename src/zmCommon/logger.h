@@ -22,30 +22,39 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-
 #pragma once
-        
+
 #include <string>
-#include <functional>
+#include <vector>
+#include <condition_variable>
+#include <mutex>
+#include <thread>
 
-namespace ZM_DB{
-
-struct messageToDB{
-
-};
-class DbProvider{  
-public:
-  typedef std::function<void(const std::string& stsMess)> errCBack;
-  DbProvider(errCBack);    
-  ~DbProvider(); 
-  DbProvider(const DbProvider& other) = delete;
-  DbProvider& operator=(const DbProvider& other) = delete;
-  bool createTables();
-  bool connect(const std::string& dbPath);
-  bool connect(const std::string& dbServer, const std::string& dbName);
-  void disconnect();
-private:
-  errCBack _errCBack = nullptr;
-  bool query(const std::string& query, std::vector<std::vector<std::string>>& results) const;
-};
+namespace ZM_Aux {
+	class Logger{
+		const int MAX_CNT_MESS = 1000;
+		std::string _nameFile,
+		            _pathSave;
+		int _readMessCnt = 0,
+		    _writeMessCnt = 0;
+		struct message {
+			bool activ;
+			std::string cTime;
+			std::string mess;
+			message(bool activ_ = false, const std::string& cTime_= "", const std::string& mess_ = ""):
+					activ(activ_), cTime(cTime_), mess(mess_){}
+		};
+		std::vector<message> _deqMess;
+		std::mutex _mtxWr,
+		           _mtxRd;
+		std::thread _thrWriteMess;
+		std::condition_variable _cval;
+		bool _fStop = false;
+		void writeCyc();
+	  
+		public:
+			Logger(const std::string &nameFile, const std::string &pathFile);			
+		  ~Logger();
+			void writeMess(const std::string &mess);
+	};
 }

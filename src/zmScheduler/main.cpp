@@ -25,6 +25,7 @@
 
 #include <future>
 #include <chrono>
+#include <iostream>
 #include "zmCommon/tcp.h"
 #include "zmCommon/serial.h"
 #include "zmCommon/timerDelay.h"
@@ -32,6 +33,7 @@
 #include "zmCommon/auxFunc.h"
 #include "zmDbProvider/dbProvider.h"
 #include "zmBase/structurs.h"
+#include "zmCommon/logger.h"
 
 using namespace std;
 
@@ -52,6 +54,13 @@ vector<ZM_Base::worker> _workers;
 vector<ZM_Base::manager> _managers;
 ZM_Aux::QueueThrSave<ZM_Base::task> _tasks;
 ZM_Aux::QueueThrSave<ZM_DB::messageToDB> _messToDB;
+ZM_Aux::Logger* _pLog = nullptr;
+
+void statusMess(const string& mess){
+  cout << ZM_Aux::currDateTime() << mess << std::endl;
+  if (_pLog)
+    _pLog->writeMess(mess);
+}
 
 int main(int argc, char* argv[]){   
 
@@ -60,14 +69,13 @@ int main(int argc, char* argv[]){
 
   std::string connPnt = "localhost:4145", err;
   if (ZM_Tcp::startServer(connPnt, err)){
-  //  cout << "Tcp server running: " + connPnt;
-  }
-  else{
-  //  cout << "Tcp server error: " + connPnt + " " + err;
+    statusMess("Tcp server running: " + connPnt);
+  }else{
+    statusMess("Tcp server error: " + connPnt + " " + err);
     return -1;
   }
     
-  ZM_DB::DbProvider db(nullptr);
+  ZM_DB::DbProvider db(statusMess);
    
   future<void> frGetTaskFromDB,
                frGetWorkersFromDB,
