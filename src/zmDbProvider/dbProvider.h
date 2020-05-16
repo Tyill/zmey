@@ -26,21 +26,26 @@
 #pragma once
         
 #include <string>
-#include <vector>
-#include "zmBase/structurs.h"
+#include <functional>
+
+namespace ZM_DB{
 
 struct messageToDB{
 
 };
-
-class DbProvider{
-	sqlite3* _db = nullptr;
-  bool init(const std::string& pathDB);
-  bool query(const std::string& query, std::vector<std::vector<std::string>>& result) const;
-
+class DbProvider{  
 public:
-  dbProvider() = default;    
-  ~dbProvider(); 
-  bool connect(const std::string& pathDb);
-  void disconnect();  
+  typedef std::function<void(const std::string& stsMess)> errCBack;
+  DbProvider(errCBack);    
+  ~DbProvider(); 
+  DbProvider(const DbProvider& other) = delete;
+  DbProvider& operator=(const DbProvider& other) = delete;
+  bool createTables();
+  bool connect(const std::string& dbPath);
+  bool connect(const std::string& dbServer, std::string& dbName);
+  void disconnect();
+private:
+  errCBack _errCBack = nullptr;
+  bool query(const std::string& query, std::vector<std::vector<std::string>>& results) const;
 };
+}

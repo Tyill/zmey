@@ -30,18 +30,19 @@
 #include "zmCommon/timerDelay.h"
 #include "zmCommon/queue.h"
 #include "zmCommon/auxFunc.h"
-#include "dbProvider.h"
+#include "zmDbProvider/dbProvider.h"
+#include "zmBase/structurs.h"
 
 using namespace std;
 
 void receiveHandler(const string& cp, const string& data);
 void sendHandler(const string& cp, const string& data, const std::error_code& ec);
-void getNewTaskFromDB(DbProvider& db);
-void getAvailableWorkers(DbProvider& db);
+void getNewTaskFromDB(ZM_DB::DbProvider& db);
+void getAvailableWorkers(ZM_DB::DbProvider& db);
 bool getWorker(ZM_Base::worker&);
 void sendTaskToWorker(const ZM_Base::worker& wr, const ZM_Base::task& t);
-void sendAllMessToDB(DbProvider& db);
-void getAvailableManagers(DbProvider& db);
+void sendAllMessToDB(ZM_DB::DbProvider& db);
+void getAvailableManagers(ZM_DB::DbProvider& db);
 void sendStatusToManagers();
 void checkStatusWorkers();
 void getPrevTaskFromDB(ZM_Aux::QueueThrSave<ZM_Base::task>&);
@@ -50,7 +51,7 @@ void getPrevWorkers(vector<ZM_Base::worker>&);
 vector<ZM_Base::worker> _workers;
 vector<ZM_Base::manager> _managers;
 ZM_Aux::QueueThrSave<ZM_Base::task> _tasks;
-ZM_Aux::QueueThrSave<messageToDB> _messToDB;
+ZM_Aux::QueueThrSave<ZM_DB::messageToDB> _messToDB;
 
 int main(int argc, char* argv[]){   
 
@@ -66,7 +67,7 @@ int main(int argc, char* argv[]){
     return -1;
   }
     
-  DbProvider db("localhost", "pgdb");
+  ZM_DB::DbProvider db(nullptr);
    
   future<void> frGetTaskFromDB,
                frGetWorkersFromDB,
@@ -143,7 +144,7 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
 
 
 }
-void getNewTaskFromDB(DbProvider&){
+void getNewTaskFromDB(ZM_DB::DbProvider&){
  
 }
 void sendTaskToWorker(const ZM_Base::worker& wr, const ZM_Base::task& t){
@@ -158,11 +159,11 @@ void sendTaskToWorker(const ZM_Base::worker& wr, const ZM_Base::task& t){
   };
   ZM_Tcp::sendData(wr.connectPnt, ZM_Aux::serialn(sendData));
 }
-void sendAllMessToDB(DbProvider& db){
+void sendAllMessToDB(ZM_DB::DbProvider& db){
 
 
 }
-void getAvailableWorkers(DbProvider& db){
+void getAvailableWorkers(ZM_DB::DbProvider& db){
 
 
 }
@@ -171,7 +172,7 @@ bool getWorker(ZM_Base::worker&){
 
   return true;
 }
-void getAvailableManagers(DbProvider& db){
+void getAvailableManagers(ZM_DB::DbProvider& db){
 
 
 }
