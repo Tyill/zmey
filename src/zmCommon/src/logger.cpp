@@ -57,7 +57,7 @@ namespace ZM_Aux {
       std::unique_lock<std::mutex> lck(_mtxRd);
       _cval.wait(lck);
 
-      std::ofstream slg(_pathSave + _nameFile + ".log", std::ios::app);
+      std::ofstream slg(_pathSave + _nameFile, std::ios::app);
       while (_deqMess[_readMessCnt].activ) {
         slg << "[" << _deqMess[_readMessCnt].cTime << "] " << _deqMess[_readMessCnt].mess << std::endl;
         _deqMess[_readMessCnt].activ = false;

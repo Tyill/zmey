@@ -38,7 +38,7 @@ DbProvider::DbProvider(errCBack ecb): _errCBack(ecb){
 DbProvider::~DbProvider(){
   disconnect();
 }
-bool DbProvider::connect(const string& dbPath){
+bool DbProvider::connect(const string& dbPath, const string& ){
   if (_db) return true;
   try{          
     if (sqlite3_shutdown() ||
@@ -119,6 +119,7 @@ bool DbProvider::createTables(){
         "'managerId'       INTEGER," // id from tblManager
         "'stateId'         INTEGER," // id from tblState
         "'connectPnt'      TEXT,"    // IP or DNS ':' port
+        "'capacityWorker'  INTEGER," // default [1000]
         "'capacityTask'    INTEGER," // default [10000]
         "'activeTask'      INTEGER," // default [0..10000]
         "FOREIGN KEY(managerId) REFERENCES tblManager(id),"
@@ -152,6 +153,8 @@ bool DbProvider::createTables(){
         "'stateId'         INTEGER," // id from tblState
         "'priority'        INTEGER," // [1..3]
         "'percentCompl'    INTEGER," // [0..100]
+        "'isDependence'    INTEGER," // [0..1] depends on another task
+        "'isInfluence'     INTEGER," // [0..1] affects another task
         "'params'          TEXT,"    // 
         "'createTime'      TEXT,"    // 
         "'beginTime'       TEXT,"    // 
@@ -168,8 +171,9 @@ bool DbProvider::createTables(){
     ss.str("");
     ss << "CREATE TABLE IF NOT EXISTS 'tblPrevTasks' ("
         "'id' INTEGER PRIMARY KEY NOT NULL UNIQUE,"
-        "'taskQueueId'     INTEGER," // id from tblTaskQueue
-        "'prevTaskQueueId' INTEGER," // id from tblTaskQueue
+        "'queueTaskId'     INTEGER," // id from tblTaskQueue
+        "'prevQueueTaskId' INTEGER," // id from tblTaskQueue
+        "'prevTaskSuccess' INTEGER," // [0..1] previous task completed
         "FOREIGN KEY(taskQueueId) REFERENCES tblTaskQueue(id),"
         "FOREIGN KEY(prevTaskQueueId) REFERENCES tblTaskQueue(id));";
     if (sqlite3_exec(_db, ss.str().c_str(), nullptr, 0, nullptr) != SQLITE_OK)
@@ -180,6 +184,9 @@ bool DbProvider::createTables(){
     return false;
   }
   return true;
+}
+std::string DbProvider::getLastError(){
+  return _lastErr;
 }
 bool DbProvider::query(const string& query, vector<vector<string>>& results) const{
   try{
@@ -205,6 +212,21 @@ bool DbProvider::query(const string& query, vector<vector<string>>& results) con
       _errCBack(e.what());
     return false;
   }
+  return true;
+}
+bool DbProvider::addSchedr(ZM_Base::scheduler& ioSchedl){
+  
+  return true;
+}
+bool DbProvider::getSchedr(std::string& connPnt, ZM_Base::scheduler& outSchedl){
+  
+}
+bool DbProvider::getPrevTasksForSchedr(uint64_t schedrId, std::vector<ZM_Base::task>&){
+
+  return true;
+}
+bool DbProvider::getPrevWorkersForSchedr(uint64_t schedrId, std::vector<ZM_Base::worker>&){
+  
   return true;
 }
 }

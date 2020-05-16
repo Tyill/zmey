@@ -41,5 +41,7 @@ std::vector<std::string> split(const std::string& str, const char *sep);
 
 uint64_t currDateTimeSinceEpochMs();
 
+bool isNumber(const std::string& s);
+
 void sleepMs(uint64_t ms);      
 }

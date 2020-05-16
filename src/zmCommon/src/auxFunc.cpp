@@ -28,6 +28,7 @@
 #include <cstring>
 #include <thread>
 #include <chrono>
+#include <algorithm>
 
 using namespace std;
 
@@ -78,6 +79,11 @@ namespace ZM_Aux {
       auto now = std::chrono::system_clock::now();
       auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
       return now_ms.time_since_epoch().count();
+    }
+
+    bool isNumber(const std::string& s){
+	  return !s.empty() && std::find_if(s.begin(),
+		s.end(), [](char c) { return !std::isdigit(c); }) == s.end();
     }
 
     void sleepMs(uint64_t ms){

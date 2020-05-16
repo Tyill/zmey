@@ -26,13 +26,16 @@
 #pragma once
         
 #include <string>
+#include <vector>
 #include <functional>
+#include "zmBase/structurs.h"
 
 namespace ZM_DB{
 
 struct messageToDB{
 
 };
+
 class DbProvider{  
 public:
   typedef std::function<void(const std::string& stsMess)> errCBack;
@@ -40,11 +43,16 @@ public:
   ~DbProvider(); 
   DbProvider(const DbProvider& other) = delete;
   DbProvider& operator=(const DbProvider& other) = delete;
+  std::string getLastError();
   bool createTables();
-  bool connect(const std::string& dbPath);
   bool connect(const std::string& dbServer, const std::string& dbName);
   void disconnect();
+  bool addSchedr(ZM_Base::scheduler& ioSchedl);
+  bool getSchedr(std::string& connPnt, ZM_Base::scheduler& outSchedl);
+  bool getPrevTasksForSchedr(uint64_t schedrId, std::vector<ZM_Base::task>&);
+  bool getPrevWorkersForSchedr(uint64_t schedrId, std::vector<ZM_Base::worker>&);
 private:
+  std::string _lastErr;
   errCBack _errCBack = nullptr;
   bool query(const std::string& query, std::vector<std::vector<std::string>>& results) const;
 };

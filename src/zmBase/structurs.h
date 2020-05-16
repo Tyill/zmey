@@ -48,7 +48,7 @@ namespace ZM_Base{
   };
 
   struct task{
-    uint64_t id;              // id tblTask in DB
+    uint64_t id = 0;          // id tblTask in DB
     state ste;
     executorType exrType;     // executor for task
     std::string params;       // params for script
@@ -58,27 +58,28 @@ namespace ZM_Base{
   };
 
   struct manager{
-    uint64_t id;              // id tblManager in DB
+    uint64_t id = 0;          // id tblManager in DB
     state ste;
     std::string connectPnt;   // connection point: IP or DNS ':' port
   };
 
   struct scheduler{
-    uint64_t id;              // id tblScheduler in DB
+    uint64_t id = 0;          // id tblScheduler in DB
+    uint64_t managerId = 0;   // id tblManager in DB
     state ste;
-    int capasityTask;         // the number of tasks that can be performed simultaneously  
-    int activeTask;           // number of running tasks
+    int capasityWorker = 1000;// the number of worker that can be performed simultaneously  
+    int capasityTask = 10000; // the number of tasks that can be performed simultaneously  
+    int activeTask = 0;       // number of running tasks
     std::string connectPnt;   // connection point: IP or DNS ':' port
   };
 
   struct worker{
-    uint64_t id;              // id tblWorker in DB
+    uint64_t id = 0;          // id tblWorker in DB
+    uint64_t managerId = 0;   // id tblManager in DB
     state ste;
-    int capasityTask;         // the number of tasks that can be performed simultaneously  
-    int activeTask;           // number of running tasks
-    int rating;               // manager is assigned a rating to the worker[1..10]
+    int capasityTask = 10;    // the number of tasks that can be performed simultaneously  
+    int activeTask = 0;       // number of running tasks
+    int rating = 10;          // manager is assigned a rating to the worker[1..10]
     std::string connectPnt;   // connection point: IP or DNS ':' port
-  };
-
- 
+  }; 
 }
