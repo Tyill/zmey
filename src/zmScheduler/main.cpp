@@ -41,20 +41,20 @@ using namespace std;
 void receiveHandler(const string& cp, const string& data);
 void sendHandler(const string& cp, const string& data, const std::error_code& ec);
 void getNewTaskFromDB(ZM_DB::DbProvider& db);
-void getAvailableWorkers(ZM_DB::DbProvider& db);
-bool getWorker(ZM_Base::worker&);
-void sendTaskToWorker(const ZM_Base::worker& wr, const ZM_Base::task& t);
+void getNewWorkersFromDB(ZM_DB::DbProvider& db);
+bool getWorker(const ZM_Base::task& t, ZM_Base::worker*);
+void sendTaskToWorker(const ZM_Base::task& t, const ZM_Base::worker& wr);
 void sendAllMessToDB(ZM_DB::DbProvider& db);
-void getAvailableManagers(ZM_DB::DbProvider& db);
+void getNewManagersFromDB(ZM_DB::DbProvider& db);
 void sendStatusToManagers();
 void checkStatusWorkers();
 void getPrevTaskFromDB(ZM_DB::DbProvider& db, ZM_Aux::QueueThrSave<ZM_Base::task>&);
-void getPrevWorkers(ZM_DB::DbProvider& db, vector<ZM_Base::worker>&);
+void getPrevWorkersFromDB(ZM_DB::DbProvider& db, map<std::string, ZM_Base::worker>&);
 
-vector<ZM_Base::worker> _workers;
-vector<ZM_Base::manager> _managers;
+map<std::string, ZM_Base::worker> _workers;   // key - connectPnt
+map<std::string, ZM_Base::manager> _managers; // key - connectPnt
 ZM_Aux::QueueThrSave<ZM_Base::task> _tasks;
-ZM_Aux::QueueThrSave<ZM_DB::messageToDB> _messToDB;
+ZM_Aux::QueueThrSave<ZM_DB::message> _messToDB;
 unique_ptr<ZM_Aux::Logger> _pLog = nullptr;
 ZM_Base::scheduler _schedr;
 
@@ -83,21 +83,21 @@ void statusMess(const string& mess){
 
 void parseArgs(int argc, char* argv[], params& outPrms){
   
-	string sargs;
-	for (int i = 1; i < argc; ++i){
+  string sargs;
+  for (int i = 1; i < argc; ++i){
     sargs += argv[i];
   }
   map<string, string> sprms;
-	auto argPair = ZM_Aux::split(sargs, "-");
-	size_t asz = argPair.size();
-	for (size_t i = 0; i < asz; ++i){
-		auto pm = ZM_Aux::split(argPair[i], "=");
-		if (pm.size() <= 1){
-			sprms["-" + argPair[i]] = "";
-		}else{
-			sprms["-" + pm[0]] = pm[1];
-		}
-	}
+  auto argPair = ZM_Aux::split(sargs, "-");
+  size_t asz = argPair.size();
+  for (size_t i = 0; i < asz; ++i){
+    auto pm = ZM_Aux::split(argPair[i], "=");
+    if (pm.size() <= 1){
+      sprms["-" + argPair[i]] = "";
+    }else{
+      sprms["-" + pm[0]] = pm[1];
+    }
+  }
   if (sprms.find("-logEna") != sprms.end()){
     outPrms.logEna = true;
   }
@@ -180,11 +180,11 @@ int main(int argc, char* argv[]){
   }
   // prev tasks and workers
   getPrevTaskFromDB(db, _tasks);
-  getPrevWorkers(db, _workers);
+  getPrevWorkersFromDB(db, _workers);
 
- future<void> frGetTaskFromDB,
-              frGetWorkersFromDB,
-              frGetManagersFromDB,
+ future<void> frGetNewTask,
+              frGetNewWorkers,
+              frGetNewManagers,
               frSendAllMessToDB; 
   ZM_Aux::TimerDelay timer;
   const int minCycleTimeMS = 5;
@@ -201,28 +201,28 @@ int main(int argc, char* argv[]){
 
     // get new tasks from DB
     if(_tasks.size() < _schedr.capasityTask){
-      FUTURE_RUN(frGetTaskFromDB, getNewTaskFromDB);
+      FUTURE_RUN(frGetNewTask, getNewTaskFromDB);
     }
-    // get workers from DB
+    // get new workers from DB
     if(timer.onDelTmSec(true, _prms.newWorkerTOutSec, 0) || _workers.empty()){  
       timer.onDelTmSec(false, _prms.newWorkerTOutSec, 0);    
-      FUTURE_RUN(frGetWorkersFromDB, getAvailableWorkers);
+      FUTURE_RUN(frGetNewWorkers, getNewWorkersFromDB);
     }       
     // send task to worker    
-    ZM_Base::worker wr;
+    ZM_Base::worker* wr = nullptr;
     ZM_Base::task t;
-    while (getWorker(wr) && _tasks.tryPop(t)){
-      sendTaskToWorker(wr, t);
+    while (_tasks.tryPop(t) && getWorker(t, wr)){
+      sendTaskToWorker(t, *wr);
     }
     // send all mess to DB
     if(timer.onDelTmMS(true, _prms.sendAllMessTOutMS, 1) && !_messToDB.empty()){
       timer.onDelTmMS(false, _prms.sendAllMessTOutMS, 1);
       FUTURE_RUN(frSendAllMessToDB, sendAllMessToDB);
     }
-    // get managers from DB
+    // get new managers from DB
     if(timer.onDelTmSec(true, _prms.newManagerTOutSec, 2)){
       timer.onDelTmSec(false, _prms.newManagerTOutSec, 2); 
-      FUTURE_RUN(frGetManagersFromDB, getAvailableManagers);
+      FUTURE_RUN(frGetNewManagers, getNewManagersFromDB);
     }
     // send status to managers
     if(timer.onDelTmSec(true, _prms.stsForManagerTOutSec, 3) && !_managers.empty()){      

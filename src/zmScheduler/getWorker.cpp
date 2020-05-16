@@ -1,7 +1,18 @@
+#include <map>
 #include "zmBase/structurs.h"
 
-bool getWorker(ZM_Base::worker&){
+using namespace std;
 
+extern map<string, ZM_Base::worker> _workers;
 
-  return true;
+bool getWorker(const ZM_Base::task& t, ZM_Base::worker* pWorker){
+  
+  for (auto& w : _workers){
+    if (w.second.exrType == t.exrType){
+      pWorker = &w.second;
+      return true;
+    }
+  }
+
+  return false;
 }

@@ -39,7 +39,6 @@ namespace ZM_Base{
     run = 0,
     pause = 1,
     ready = 2,
-    busy = 3,
     completed = 4,
     notResponding = 5,
     taskTakeByScheduler = 6,
@@ -77,6 +76,7 @@ namespace ZM_Base{
     uint64_t id = 0;          // id tblWorker in DB
     uint64_t managerId = 0;   // id tblManager in DB
     state ste;
+    executorType exrType;     // executor for task
     int capasityTask = 10;    // the number of tasks that can be performed simultaneously  
     int activeTask = 0;       // number of running tasks
     int rating = 10;          // manager is assigned a rating to the worker[1..10]

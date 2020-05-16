@@ -8,7 +8,7 @@
 using namespace std;
 
 
-void sendTaskToWorker(const ZM_Base::worker& wr, const ZM_Base::task& t){
+void sendTaskToWorker(const ZM_Base::task& t, const ZM_Base::worker& wr){
   map<string, string> sendData{
     make_pair("command", "newTask"),
     make_pair("taskId", to_string(t.id)),

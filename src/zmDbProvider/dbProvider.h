@@ -27,13 +27,25 @@
         
 #include <string>
 #include <vector>
+#include <map>
 #include <functional>
 #include "zmBase/structurs.h"
 
 namespace ZM_DB{
 
-struct messageToDB{
+enum class messType{
+  workerNotResponding = 0,
+  workerRunning = 1,
+  taskRunning = 2,
+  taskEndSuccess = 3,
+  taskEndWithError = 4,
+  taskPause = 5,
+  taskStop = 6,
+};
 
+struct message{
+  messType type;
+  std::map<std::string, std::string> params;
 };
 
 class DbProvider{  
@@ -51,6 +63,10 @@ public:
   bool getSchedr(std::string& connPnt, ZM_Base::scheduler& outSchedl);
   bool getPrevTasksForSchedr(uint64_t schedrId, std::vector<ZM_Base::task>&);
   bool getPrevWorkersForSchedr(uint64_t schedrId, std::vector<ZM_Base::worker>&);
+  bool getNewTasks(std::vector<ZM_Base::task>&);
+  bool getAllWorkers(std::vector<ZM_Base::worker>&);
+  bool getAllManagers(std::vector<ZM_Base::worker>&);
+  bool sendAllMessFromSchedr(uint64_t schedrId, std::vector<message>&);
 private:
   std::string _lastErr;
   errCBack _errCBack = nullptr;

@@ -229,4 +229,13 @@ bool DbProvider::getPrevWorkersForSchedr(uint64_t schedrId, std::vector<ZM_Base:
   
   return true;
 }
+bool DbProvider::getNewWorkersForSchedr(uint64_t schedrId,std::vector<ZM_Base::worker>&){
+
+  return true;
+}
+bool DbProvider::getNewTasks(std::vector<ZM_Base::task>&){
+
+  return true;
+}
+
 }
