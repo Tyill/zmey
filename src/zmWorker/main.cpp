@@ -27,52 +27,61 @@
 #include <string>
 #include <thread>
 #include <iostream>
+#include <memory>
+#include <future>
 #include "zmCommon/tcp.h"
 #include "zmCommon/serial.h"
-
-// static void
-// exit_nicely(PGconn *conn)
-// {
-//     PQfinish(conn);
-//     exit(1);
-// }
+#include "zmCommon/auxFunc.h"
 
 using namespace std;
 
-int main(int argc, char* argv[])
-{
-    // if (argc != 2)
-    // {
-    //   std::cerr << "Usage: async_tcp_echo_server <port>\n";
-    //   return 1;
-    // }
-
-    //std::string port = "2033";
-
-    // asio::io_context ioc;
-    // tcp::resolver resolver(ioc);
-    // tcp::resolver::query query("localhost", port,tcp::resolver::query::canonical_name);
-    // tcp::resolver::results_type endpoints = resolver.resolve(query);
+int main(int argc, char* argv[]){
+    
     std::string err;
-    ZM_Tcp::startServer(ZM_Tcp::connectPoint("127.0.0.1:2034"), err);
+    ZM_Tcp::startServer("127.0.0.1:4445", err);
 
-    // ZM_Tcp::setErrorSendCBack([](const std::string& addr, int port, const std::string& data){
+    async(launch::async, []{                                        
+       for (;;){
+        std::string buf;
+        buf.resize(12800);
 
-    //   std::cout << "err" << std::endl;
-    // });
+        ZM_Tcp::sendData("127.0.0.1:4444", buf);                                                               
+       }
+    });
 
-    map<string, string> vals{make_pair("my", "pool"), make_pair("mydd", "spool")};
-    string data = ZM_Aux::serialn(vals);
+    async(launch::async, []{                                        
+       for (;;){
+        std::string buf;
+        buf.resize(12800);
 
-    map<string, string> vals2 = ZM_Aux::deserialn(data);
+        ZM_Tcp::sendData("127.0.0.1:4444", buf);                                                               
+       }
+    });
 
-    //for (;;)
-    {
-      std::string buf;
-      buf.resize(12800);
+    async(launch::async, []{                                        
+       for (;;){
+        std::string buf;
+        buf.resize(12800);
 
-      ZM_Tcp::sendData(ZM_Tcp::connectPoint("127.0.0.1:2033"), buf);
+        ZM_Tcp::sendData("127.0.0.1:4444", buf);                                                               
+       }
+    });
 
+    async(launch::async, []{                                        
+       for (;;){
+        std::string buf;
+        buf.resize(12800);
+
+        ZM_Tcp::sendData("127.0.0.1:4444", buf);                                                               
+       }
+    });         
+
+    for (;;){
+      // std::string buf;
+      // buf.resize(12800);
+
+      // ZM_Tcp::sendData("127.0.0.1:4444", buf);
+    ZM_Aux::sleepMs(10);
       // tcp::socket socket(ioc);
       // asio::connect(socket, endpoints);
 

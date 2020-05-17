@@ -46,13 +46,13 @@ void sendTaskToWorker(const ZM_Base::task& t, const ZM_Base::worker& wr);
 void sendAllMessToDB(ZM_DB::DbProvider& db);
 void checkStatusWorkers(const ZM_Base::scheduler&,
                         map<std::string, ZM_Base::worker>&,
-                        ZM_Aux::QueueThrSave<ZM_DB::message>&);
+                        ZM_Aux::QueueThrSave<ZM_DB::messSchedr>&);
 void getPrevTaskFromDB(ZM_DB::DbProvider& db, ZM_Base::scheduler&,  ZM_Aux::QueueThrSave<ZM_Base::task>&);
 void getPrevWorkersFromDB(ZM_DB::DbProvider& db, ZM_Base::scheduler&, map<std::string, ZM_Base::worker>&);
 
 map<std::string, ZM_Base::worker> _workers;   // key - connectPnt
 ZM_Aux::QueueThrSave<ZM_Base::task> _tasks;
-ZM_Aux::QueueThrSave<ZM_DB::message> _messToDB;
+ZM_Aux::QueueThrSave<ZM_DB::messSchedr> _messToDB;
 unique_ptr<ZM_Aux::Logger> _pLog = nullptr;
 ZM_Base::scheduler _schedr;
 

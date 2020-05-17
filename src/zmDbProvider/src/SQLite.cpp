@@ -233,7 +233,7 @@ bool DbProvider::getNewTasks(std::vector<ZM_Base::task>&){
 
   return true;
 }
-bool DbProvider::sendAllMessFromSchedr(uint64_t schedrId, std::vector<message>&){
+bool DbProvider::sendAllMessFromSchedr(uint64_t schedrId, std::vector<messSchedr>&){
 
   return true;
 }

@@ -8,12 +8,12 @@ using namespace std;
 
 void checkStatusWorkers(const ZM_Base::scheduler& schedr,
                         map<std::string, ZM_Base::worker>& workers,
-                        ZM_Aux::QueueThrSave<ZM_DB::message>& messToDB){
+                        ZM_Aux::QueueThrSave<ZM_DB::messSchedr>& messToDB){
    
   for(auto& w : workers){
     if (!w.second.isActive){            
-      messToDB.push(ZM_DB::message{ZM_Base::messType::workerNotResponding,
-                          map<string, string>{make_pair("workerId", to_string(w.second.id))}});
+      messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::workerNotResponding,
+                                      w.second.id});
     }else{
       w.second.isActive = false;
     }

@@ -33,9 +33,9 @@
 
 namespace ZM_DB{
 
-struct message{
+struct messSchedr{
   ZM_Base::messType type;
-  std::map<std::string, std::string> params;  
+  uint64_t workerId;  
 };
 
 class DbProvider{  
@@ -54,7 +54,7 @@ public:
   bool getTasksForSchedr(uint64_t schedrId, std::vector<ZM_Base::task>&);
   bool getWorkersForSchedr(uint64_t schedrId, std::vector<ZM_Base::worker>&);
   bool getNewTasks(std::vector<ZM_Base::task>&);
-  bool sendAllMessFromSchedr(uint64_t schedrId, std::vector<message>&);
+  bool sendAllMessFromSchedr(uint64_t schedrId, std::vector<messSchedr>&);
 private:
   std::string _lastErr;
   errCBack _errCBack = nullptr;

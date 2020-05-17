@@ -42,6 +42,7 @@ namespace ZM_Base{
     taskStop = 8,
     justStartWorker = 9,
     workerNotResponding = 10,
+    freeUpTasksWorker = 11,
   };
 
   enum class executorType{
