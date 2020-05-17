@@ -8,13 +8,11 @@
 
 using namespace std;
 
-extern map<string, ZM_Base::manager> _managers;
-
-void sendStatusToManagers(){
+void sendStatusToManagers(const map<std::string, ZM_Base::manager>& managers){
   map<string, string> sendData{
     make_pair("command", "statusScheduler")
   };      
-  for (auto& m : _managers){
+  for (auto& m : managers){
     if (m.second.ste == ZM_Base::state::run){
       ZM_Tcp::sendData(m.second.connectPnt, ZM_Aux::serialn(sendData));
     }

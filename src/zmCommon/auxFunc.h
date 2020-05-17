@@ -44,4 +44,18 @@ uint64_t currDateTimeSinceEpochMs();
 bool isNumber(const std::string& s);
 
 void sleepMs(uint64_t ms);      
+
+class CounterTick{
+  int _valmem = 0;
+public:
+  bool operator()(int val){
+    if (_valmem >= val){
+        _valmem = 0;
+        return true;
+    }
+    ++_valmem;
+
+    return false;
+  };
+};
 }

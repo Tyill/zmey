@@ -33,7 +33,15 @@ namespace ZM_Base{
     cmd = 0,
     bash = 1,
     python = 2,
-  };
+  };  
+  static std::string getExecutorStr(executorType et){
+    switch (et){
+      case executorType::cmd: return "CMD";
+      case executorType::bash: return "BASH";
+      case executorType::python: return "PYTHON";
+      default: return "";
+    }
+  }
 
   enum class state{
     run = 0,

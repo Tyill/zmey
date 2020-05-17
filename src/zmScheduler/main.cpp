@@ -41,15 +41,16 @@ using namespace std;
 void receiveHandler(const string& cp, const string& data);
 void sendHandler(const string& cp, const string& data, const std::error_code& ec);
 void getNewTaskFromDB(ZM_DB::DbProvider& db);
-void getNewWorkersFromDB(ZM_DB::DbProvider& db);
-bool getWorker(const ZM_Base::task& t, ZM_Base::worker*);
+bool getWorker(const ZM_Base::task& t, const map<std::string, ZM_Base::worker>&, std::string& connPnt);
 void sendTaskToWorker(const ZM_Base::task& t, const ZM_Base::worker& wr);
 void sendAllMessToDB(ZM_DB::DbProvider& db);
-void getNewManagersFromDB(ZM_DB::DbProvider& db);
-void sendStatusToManagers();
-void checkStatusWorkers();
-void getPrevTaskFromDB(ZM_DB::DbProvider& db, ZM_Aux::QueueThrSave<ZM_Base::task>&);
-void getPrevWorkersFromDB(ZM_DB::DbProvider& db, map<std::string, ZM_Base::worker>&);
+void getManagersFromDB(ZM_DB::DbProvider& db);
+void sendStatusToManagers(const map<std::string, ZM_Base::manager>&);
+void checkStatusWorkers(const ZM_Base::scheduler&,
+                        const map<std::string, ZM_Base::worker>&,
+                        ZM_Aux::QueueThrSave<ZM_DB::message>&);
+void getPrevTaskFromDB(ZM_DB::DbProvider& db, ZM_Base::scheduler&,  ZM_Aux::QueueThrSave<ZM_Base::task>&);
+void getPrevWorkersFromDB(ZM_DB::DbProvider& db, ZM_Base::scheduler&, map<std::string, ZM_Base::worker>&);
 
 map<std::string, ZM_Base::worker> _workers;   // key - connectPnt
 map<std::string, ZM_Base::manager> _managers; // key - connectPnt
@@ -60,12 +61,8 @@ ZM_Base::scheduler _schedr;
 
 struct params{
   bool logEna = false;
-  bool createTables = false;
-  bool createYourself = false;
   int capasityTask = 10000;
-  int capasityWorker = 1000;
-  int newManagerTOutSec = 30; 
-  int newWorkerTOutSec = 10;
+  int newManagerTOutSec = 30;
   int sendAllMessTOutMS = 500;
   int stsForManagerTOutSec = 20; 
   int checkWorkerTOutSec = 120; 
@@ -101,12 +98,6 @@ void parseArgs(int argc, char* argv[], params& outPrms){
   if (sprms.find("-logEna") != sprms.end()){
     outPrms.logEna = true;
   }
-  if (sprms.find("-createTables") != sprms.end()){
-    outPrms.createTables = true;
-  }
-  if (sprms.find("-createYourself") != sprms.end()){
-    outPrms.createYourself = true;
-  }
   if (sprms.find("-connectPnt") != sprms.end()){
     outPrms.connectPnt = sprms["-connectPnt"];
   }  
@@ -119,15 +110,9 @@ void parseArgs(int argc, char* argv[], params& outPrms){
   if (sprms.find("-capasityTask") != sprms.end() && ZM_Aux::isNumber(sprms["-capasityTask"])){
     outPrms.capasityTask = stoi(sprms["-capasityTask"]);
   }
-  if (sprms.find("-capasityWorker") != sprms.end() && ZM_Aux::isNumber(sprms["-capasityWorker"])){
-    outPrms.capasityWorker = stoi(sprms["-capasityWorker"]);
-  }
   if (sprms.find("-newManagerTOutSec") != sprms.end() && ZM_Aux::isNumber(sprms["-newManagerTOutSec"])){
     outPrms.newManagerTOutSec = stoi(sprms["-newManagerTOutSec"]);
   }
-  if (sprms.find("-newWorkerTOutSec") != sprms.end() && ZM_Aux::isNumber(sprms["-newWorkerTOutSec"])){
-    outPrms.newWorkerTOutSec = stoi(sprms["-newWorkerTOutSec"]);
-  } 
   if (sprms.find("-sendAllMessTOutMS") != sprms.end() && ZM_Aux::isNumber(sprms["-sendAllMessTOutMS"])){
     outPrms.sendAllMessTOutMS = stoi(sprms["-sendAllMessTOutMS"]);
   } 
@@ -163,28 +148,18 @@ int main(int argc, char* argv[]){
     statusMess("DB connect error: " + _prms.dbServer + " " + _prms.dbName + " " + db.getLastError());
     return -1;
   }
-  // DataBase
-  if (_prms.createTables){
-    db.createTables();
-  }
+  // schedr from DB
   db.getSchedr(_prms.connectPnt, _schedr);
   if (_schedr.id == 0){
-    if (_prms.createYourself){
-      _schedr.capasityTask = _prms.capasityTask;
-      _schedr.connectPnt = _prms.connectPnt;
-      db.addSchedr(_schedr);
-    }else{
-      statusMess("Schedr not found in DB for connPnt " + _prms.connectPnt);
-      return -1;
-    }
+    statusMess("Schedr not found in DB for connPnt " + _prms.connectPnt);
+    return -1;
   }
   // prev tasks and workers
-  getPrevTaskFromDB(db, _tasks);
-  getPrevWorkersFromDB(db, _workers);
+  getPrevTaskFromDB(db, _schedr, _tasks);
+  getPrevWorkersFromDB(db, _schedr, _workers);
 
  future<void> frGetNewTask,
-              frGetNewWorkers,
-              frGetNewManagers,
+              frGetManagers,
               frSendAllMessToDB; 
   ZM_Aux::TimerDelay timer;
   const int minCycleTimeMS = 5;
@@ -202,17 +177,12 @@ int main(int argc, char* argv[]){
     // get new tasks from DB
     if(_tasks.size() < _schedr.capasityTask){
       FUTURE_RUN(frGetNewTask, getNewTaskFromDB);
-    }
-    // get new workers from DB
-    if(timer.onDelTmSec(true, _prms.newWorkerTOutSec, 0) || _workers.empty()){  
-      timer.onDelTmSec(false, _prms.newWorkerTOutSec, 0);    
-      FUTURE_RUN(frGetNewWorkers, getNewWorkersFromDB);
-    }       
+    }        
     // send task to worker    
-    ZM_Base::worker* wr = nullptr;
+    string wcp;
     ZM_Base::task t;
-    while (_tasks.tryPop(t) && getWorker(t, wr)){
-      sendTaskToWorker(t, *wr);
+    while (_tasks.tryPop(t) && getWorker(t, _workers, wcp)){
+      sendTaskToWorker(t, _workers[wcp]);
     }
     // send all mess to DB
     if(timer.onDelTmMS(true, _prms.sendAllMessTOutMS, 1) && !_messToDB.empty()){
@@ -222,17 +192,17 @@ int main(int argc, char* argv[]){
     // get new managers from DB
     if(timer.onDelTmSec(true, _prms.newManagerTOutSec, 2)){
       timer.onDelTmSec(false, _prms.newManagerTOutSec, 2); 
-      FUTURE_RUN(frGetNewManagers, getNewManagersFromDB);
+      FUTURE_RUN(frGetManagers, getManagersFromDB);
     }
     // send status to managers
     if(timer.onDelTmSec(true, _prms.stsForManagerTOutSec, 3) && !_managers.empty()){      
       timer.onDelTmSec(false, _prms.stsForManagerTOutSec, 3);
-      sendStatusToManagers();
+      sendStatusToManagers(_managers);
     }
     // check status of workers
     if(timer.onDelTmSec(true, _prms.checkWorkerTOutSec, 4)){
       timer.onDelTmSec(false, _prms.checkWorkerTOutSec, 4);    
-      checkStatusWorkers();
+      checkStatusWorkers(_schedr, _workers, _messToDB);
     }
     // added delay
     if (timer.getCTime() < minCycleTimeMS){

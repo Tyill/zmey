@@ -61,10 +61,9 @@ public:
   void disconnect();
   bool addSchedr(ZM_Base::scheduler& ioSchedl);
   bool getSchedr(std::string& connPnt, ZM_Base::scheduler& outSchedl);
-  bool getPrevTasksForSchedr(uint64_t schedrId, std::vector<ZM_Base::task>&);
-  bool getPrevWorkersForSchedr(uint64_t schedrId, std::vector<ZM_Base::worker>&);
+  bool getTasksForSchedr(uint64_t schedrId, std::vector<ZM_Base::task>&);
+  bool getWorkersForSchedr(uint64_t schedrId, std::vector<ZM_Base::worker>&);
   bool getNewTasks(std::vector<ZM_Base::task>&);
-  bool getAllWorkers(std::vector<ZM_Base::worker>&);
   bool getAllManagers(std::vector<ZM_Base::worker>&);
   bool sendAllMessFromSchedr(uint64_t schedrId, std::vector<message>&);
 private:

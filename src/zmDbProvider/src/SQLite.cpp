@@ -221,19 +221,23 @@ bool DbProvider::addSchedr(ZM_Base::scheduler& ioSchedl){
 bool DbProvider::getSchedr(std::string& connPnt, ZM_Base::scheduler& outSchedl){
   
 }
-bool DbProvider::getPrevTasksForSchedr(uint64_t schedrId, std::vector<ZM_Base::task>&){
+bool DbProvider::getTasksForSchedr(uint64_t schedrId, std::vector<ZM_Base::task>&){
 
   return true;
 }
-bool DbProvider::getPrevWorkersForSchedr(uint64_t schedrId, std::vector<ZM_Base::worker>&){
+bool DbProvider::getWorkersForSchedr(uint64_t schedrId, std::vector<ZM_Base::worker>&){
   
   return true;
 }
-bool DbProvider::getNewWorkersForSchedr(uint64_t schedrId,std::vector<ZM_Base::worker>&){
+bool DbProvider::getNewTasks(std::vector<ZM_Base::task>&){
 
   return true;
 }
-bool DbProvider::getNewTasks(std::vector<ZM_Base::task>&){
+bool DbProvider::sendAllMessFromSchedr(uint64_t schedrId, std::vector<message>&){
+
+  return true;
+}
+bool DbProvider::getAllManagers(std::vector<ZM_Base::worker>&){
 
   return true;
 }

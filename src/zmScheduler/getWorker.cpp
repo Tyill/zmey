@@ -1,18 +1,25 @@
 #include <map>
 #include "zmBase/structurs.h"
+#include "zmCommon/auxFunc.h"
+#include "shared.h"
 
 using namespace std;
 
-extern map<string, ZM_Base::worker> _workers;
+ZM_Aux::CounterTick ctick;
 
-bool getWorker(const ZM_Base::task& t, ZM_Base::worker* pWorker){
+bool getWorker(const ZM_Base::task& t,
+               const map<std::string, ZM_Base::worker>& workers,
+               std::string& connPnt){
   
-  for (auto& w : _workers){
+  for (auto& w : workers){
     if (w.second.exrType == t.exrType){
-      pWorker = &w.second;
+      connPnt = w.second.connectPnt;
       return true;
     }
+  }  
+  // every 1000 cycle
+  if (ctick(1000)){
+    statusMess("Not found available worker for task executor = " + ZM_Base::getExecutorStr(t.exrType));
   }
-
   return false;
 }
