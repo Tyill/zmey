@@ -30,29 +30,29 @@
 using namespace std;
 
 namespace ZM_Aux {
-	Logger::Logger(const string &nameFile, const string &pathFile)
-    : _nameFile(nameFile),_pathSave(pathFile){			
-			_deqMess.resize(MAX_CNT_MESS);
-			_readMessCnt = 0;
-			_writeMessCnt = 0;            			
-			_thrWriteMess = thread([this]{ writeCyc(); });
-		}
-	Logger::~Logger() {
-			_fStop = true;
-			_cval.notify_one();
-			if (_thrWriteMess.joinable())
-        _thrWriteMess.join();
-		}
+  Logger::Logger(const string &nameFile, const string &pathFile)
+  : _nameFile(nameFile),_pathSave(pathFile){
+    _deqMess.resize(MAX_CNT_MESS);
+    _readMessCnt = 0;
+    _writeMessCnt = 0;            
+    _thrWriteMess = thread([this]{ writeCyc(); });
+  }
+  Logger::~Logger() {
+    _fStop = true;
+    _cval.notify_one();
+    if (_thrWriteMess.joinable())
+      _thrWriteMess.join();
+  }
   void Logger::writeMess(const string &mess){
-    lock_guard<mutex> lock(_mtxWr);			
-		_deqMess[_writeMessCnt] = message(true, currDateTimeMs(), mess);
-		++_writeMessCnt;
-  	if (_writeMessCnt == MAX_CNT_MESS){
+    lock_guard<mutex> lock(_mtxWr);
+    _deqMess[_writeMessCnt] = message(true, currDateTimeMs(), mess);
+    ++_writeMessCnt;
+    if (_writeMessCnt == MAX_CNT_MESS){
       _writeMessCnt = 0;
     }
-  	_cval.notify_one();
-	}
-	void Logger::writeCyc() {
+    _cval.notify_one();
+  }
+  void Logger::writeCyc() {
     while(!_fStop){
       std::unique_lock<std::mutex> lck(_mtxRd);
       _cval.wait(lck);

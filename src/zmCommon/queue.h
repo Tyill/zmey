@@ -63,7 +63,7 @@ public:
   QueueThrSave& operator=(const QueueThrSave& other) = delete;
 
   void push(T&& newValue){
-    std::shared_ptr<T> newData(std::make_shared<T>(std::forward<T>(newValue)));
+    std::shared_ptr<T> newData(std::make_shared<T>(std::move(newValue)));
     std::unique_ptr<node> p(new node);
     {
       std::lock_guard<std::mutex> lock(_tailMtx);
