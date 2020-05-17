@@ -29,20 +29,27 @@
 
 namespace ZM_Base{
 
+  enum class messType{
+    undefined = -1,
+    newTask = 0,
+    pingWorker = 1,
+    pingSchedr = 2,
+    taskRunning = 3,
+    taskError = 4,
+    taskSuccess = 5,
+    taskPause = 6,
+    taskStart = 7,
+    taskStop = 8,
+    justStartWorker = 9,
+    workerNotResponding = 10,
+  };
+
   enum class executorType{
     cmd = 0,
     bash = 1,
     python = 2,
   };  
-  static std::string getExecutorStr(executorType et){
-    switch (et){
-      case executorType::cmd: return "CMD";
-      case executorType::bash: return "BASH";
-      case executorType::python: return "PYTHON";
-      default: return "";
-    }
-  }
-
+  
   enum class state{
     run = 0,
     pause = 1,

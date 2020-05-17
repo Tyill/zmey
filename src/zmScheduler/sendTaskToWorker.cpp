@@ -10,7 +10,7 @@ using namespace std;
 
 void sendTaskToWorker(const ZM_Base::task& t, const ZM_Base::worker& wr){
   map<string, string> sendData{
-    make_pair("command", "newTask"),
+    make_pair("command", to_string((int)ZM_Base::messType::newTask)),
     make_pair("taskId", to_string(t.id)),
     make_pair("params", t.params), 
     make_pair("script", t.script),

@@ -33,18 +33,8 @@
 
 namespace ZM_DB{
 
-enum class messType{
-  workerNotResponding = 0,
-  workerRunning = 1,
-  taskRunning = 2,
-  taskEndSuccess = 3,
-  taskEndWithError = 4,
-  taskPause = 5,
-  taskStop = 6,
-};
-
 struct message{
-  messType type;
+  ZM_Base::messType type;
   std::map<std::string, std::string> params;  
 };
 
@@ -64,7 +54,6 @@ public:
   bool getTasksForSchedr(uint64_t schedrId, std::vector<ZM_Base::task>&);
   bool getWorkersForSchedr(uint64_t schedrId, std::vector<ZM_Base::worker>&);
   bool getNewTasks(std::vector<ZM_Base::task>&);
-  bool getAllManagers(std::vector<ZM_Base::manager>&);
   bool sendAllMessFromSchedr(uint64_t schedrId, std::vector<message>&);
 private:
   std::string _lastErr;

@@ -44,8 +44,6 @@ void getNewTaskFromDB(ZM_DB::DbProvider& db);
 bool getWorker(const ZM_Base::task& t, const map<std::string, ZM_Base::worker>&, std::string& connPnt);
 void sendTaskToWorker(const ZM_Base::task& t, const ZM_Base::worker& wr);
 void sendAllMessToDB(ZM_DB::DbProvider& db);
-void getManagersFromDB(ZM_DB::DbProvider& db);
-void sendStatusToManagers(const map<std::string, ZM_Base::manager>&);
 void checkStatusWorkers(const ZM_Base::scheduler&,
                         map<std::string, ZM_Base::worker>&,
                         ZM_Aux::QueueThrSave<ZM_DB::message>&);
@@ -53,7 +51,6 @@ void getPrevTaskFromDB(ZM_DB::DbProvider& db, ZM_Base::scheduler&,  ZM_Aux::Queu
 void getPrevWorkersFromDB(ZM_DB::DbProvider& db, ZM_Base::scheduler&, map<std::string, ZM_Base::worker>&);
 
 map<std::string, ZM_Base::worker> _workers;   // key - connectPnt
-map<std::string, ZM_Base::manager> _managers; // key - connectPnt
 ZM_Aux::QueueThrSave<ZM_Base::task> _tasks;
 ZM_Aux::QueueThrSave<ZM_DB::message> _messToDB;
 unique_ptr<ZM_Aux::Logger> _pLog = nullptr;
@@ -62,9 +59,7 @@ ZM_Base::scheduler _schedr;
 struct params{
   bool logEna = false;
   int capasityTask = 10000;
-  int newManagerTOutSec = 30;
   int sendAllMessTOutMS = 500;
-  int stsForManagerTOutSec = 20; 
   int checkWorkerTOutSec = 120; 
   string connectPnt = "localhost:4145";
   string dbServer;
@@ -110,14 +105,8 @@ void parseArgs(int argc, char* argv[], params& outPrms){
   if (sprms.find("-capasityTask") != sprms.end() && ZM_Aux::isNumber(sprms["-capasityTask"])){
     outPrms.capasityTask = stoi(sprms["-capasityTask"]);
   }
-  if (sprms.find("-newManagerTOutSec") != sprms.end() && ZM_Aux::isNumber(sprms["-newManagerTOutSec"])){
-    outPrms.newManagerTOutSec = stoi(sprms["-newManagerTOutSec"]);
-  }
   if (sprms.find("-sendAllMessTOutMS") != sprms.end() && ZM_Aux::isNumber(sprms["-sendAllMessTOutMS"])){
     outPrms.sendAllMessTOutMS = stoi(sprms["-sendAllMessTOutMS"]);
-  } 
-  if (sprms.find("-stsForManagerTOutSec") != sprms.end() && ZM_Aux::isNumber(sprms["-stsForManagerTOutSec"])){
-    outPrms.stsForManagerTOutSec = stoi(sprms["-stsForManagerTOutSec"]);
   } 
   if (sprms.find("-checkWorkerTOutSec") != sprms.end() && ZM_Aux::isNumber(sprms["-checkWorkerTOutSec"])){
     outPrms.checkWorkerTOutSec = stoi(sprms["-checkWorkerTOutSec"]);
@@ -138,20 +127,21 @@ int main(int argc, char* argv[]){
     ZM_Tcp::setStsSendCBack(sendHandler);
     statusMess("Tcp server running: " + _prms.connectPnt);
   }else{
-    statusMess("Tcp server error: " + _prms.connectPnt + " " + err);
+    statusMess("Tcp server error, maybe busy -connectPnt: " + _prms.connectPnt + " " + err);
     return -1;
   }
   ZM_DB::DbProvider db(statusMess);
   if (db.connect(_prms.dbServer, _prms.dbName)){
     statusMess("DB connect success: " + _prms.dbServer + " " + _prms.dbName);
   }else{
-    statusMess("DB connect error: " + _prms.dbServer + " " + _prms.dbName + " " + db.getLastError());
+    statusMess("DB connect error, not correct params -dbServer or -dbName: " + 
+      _prms.dbServer + " " + _prms.dbName + " " + db.getLastError());
     return -1;
   }
   // schedr from DB
   db.getSchedr(_prms.connectPnt, _schedr);
   if (_schedr.id == 0){
-    statusMess("Schedr not found in DB for connPnt " + _prms.connectPnt);
+    statusMess("Schedr not found in DB for connectPnt " + _prms.connectPnt);
     return -1;
   }
   // prev tasks and workers
@@ -159,7 +149,6 @@ int main(int argc, char* argv[]){
   getPrevWorkersFromDB(db, _schedr, _workers);
 
  future<void> frGetNewTask,
-              frGetManagers,
               frSendAllMessToDB; 
   ZM_Aux::TimerDelay timer;
   const int minCycleTimeMS = 5;
@@ -188,30 +177,16 @@ int main(int argc, char* argv[]){
     if(timer.onDelTmMS(true, _prms.sendAllMessTOutMS, 1) && !_messToDB.empty()){
       timer.onDelTmMS(false, _prms.sendAllMessTOutMS, 1);
       FUTURE_RUN(frSendAllMessToDB, sendAllMessToDB);
-    }
-    // get new managers from DB
-    if(timer.onDelTmSec(true, _prms.newManagerTOutSec, 2)){
-      timer.onDelTmSec(false, _prms.newManagerTOutSec, 2); 
-      FUTURE_RUN(frGetManagers, getManagersFromDB);
-    }
-    // send status to managers
-    if(timer.onDelTmSec(true, _prms.stsForManagerTOutSec, 3) && !_managers.empty()){      
-      timer.onDelTmSec(false, _prms.stsForManagerTOutSec, 3);
-      sendStatusToManagers(_managers);
-    }
+    }    
     // check status of workers
-    if(timer.onDelTmSec(true, _prms.checkWorkerTOutSec, 4)){
-      timer.onDelTmSec(false, _prms.checkWorkerTOutSec, 4);    
+    if(timer.onDelTmSec(true, _prms.checkWorkerTOutSec, 2)){
+      timer.onDelTmSec(false, _prms.checkWorkerTOutSec, 2);    
       checkStatusWorkers(_schedr, _workers, _messToDB);
     }
     // added delay
     if (timer.getCTime() < minCycleTimeMS){
       ZM_Aux::sleepMs(minCycleTimeMS - timer.getCTime());
     }
-  }
-  // on end
-  sendAllMessToDB(db);
-  
-  ZM_Tcp::stopServer();
+  }  
   return 0;
 }
