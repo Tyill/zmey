@@ -30,19 +30,22 @@
 namespace ZM_Base{
 
   enum class messType{
-    undefined = -1,
     newTask = 0,
-    pingWorker = 1,
-    pingSchedr = 2,
-    taskRunning = 3,
-    taskError = 4,
-    taskSuccess = 5,
-    taskPause = 6,
-    taskStart = 7,
-    taskStop = 8,
-    justStartWorker = 9,
-    workerNotResponding = 10,
-    freeUpTasksWorker = 11,
+    taskRunning = 1,
+    taskError = 2,
+    taskSuccess = 3,
+    taskPause = 4,
+    taskStart = 5,
+    taskStop = 6,
+    progress = 7,
+    pauseWorker = 8,
+    pauseSchedr = 9, 
+    startWorker = 10,
+    startSchedr = 11, 
+    pingWorker = 12,
+    pingSchedr = 13,
+    justStartWorker = 14,
+    workerNotResponding = 15
   };
 
   enum class executorType{
@@ -50,7 +53,7 @@ namespace ZM_Base{
     bash = 1,
     python = 2,
   };  
-  
+   
   enum class state{
     run = 0,
     pause = 1,
@@ -59,7 +62,6 @@ namespace ZM_Base{
     notResponding = 5,
     taskTakeByScheduler = 6,
     taskSendToWorker = 7,
-    workerSilentLongTime = 8,
   };
 
   struct task{

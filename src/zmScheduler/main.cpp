@@ -41,8 +41,8 @@ using namespace std;
 void receiveHandler(const string& cp, const string& data);
 void sendHandler(const string& cp, const string& data, const std::error_code& ec);
 void getNewTaskFromDB(ZM_DB::DbProvider& db);
-bool getWorker(const ZM_Base::task& t, const map<std::string, ZM_Base::worker>&, std::string& connPnt);
-void sendTaskToWorker(const ZM_Base::task& t, const ZM_Base::worker& wr);
+void sendTaskToWorker(const map<string, ZM_Base::worker>&,
+                      ZM_Aux::QueueThrSave<ZM_Base::task>&);
 void sendAllMessToDB(ZM_DB::DbProvider& db);
 void checkStatusWorkers(const ZM_Base::scheduler&,
                         map<std::string, ZM_Base::worker>&,
@@ -127,7 +127,7 @@ int main(int argc, char* argv[]){
     ZM_Tcp::setStsSendCBack(sendHandler);
     statusMess("Tcp server running: " + _prms.connectPnt);
   }else{
-    statusMess("Tcp server error, maybe busy -connectPnt: " + _prms.connectPnt + " " + err);
+    statusMess("Tcp server error, busy -connectPnt: " + _prms.connectPnt + " " + err);
     return -1;
   }
   ZM_DB::DbProvider db(statusMess);
@@ -148,8 +148,8 @@ int main(int argc, char* argv[]){
   getPrevTaskFromDB(db, _schedr, _tasks);
   getPrevWorkersFromDB(db, _schedr, _workers);
 
- future<void> frGetNewTask,
-              frSendAllMessToDB; 
+  future<void> frGetNewTask,
+               frSendAllMessToDB; 
   ZM_Aux::TimerDelay timer;
   const int minCycleTimeMS = 5;
 
@@ -164,23 +164,20 @@ int main(int argc, char* argv[]){
     timer.updateCycTime();   
 
     // get new tasks from DB
-    if(_tasks.size() < _schedr.capasityTask){
+    if((_tasks.size() < _schedr.capasityTask) && (_schedr.ste == ZM_Base::state::run)){
       FUTURE_RUN(frGetNewTask, getNewTaskFromDB);
     }        
     // send task to worker    
-    string wcp;
-    ZM_Base::task t;
-    while (_tasks.tryPop(t) && getWorker(t, _workers, wcp)){
-      sendTaskToWorker(t, _workers[wcp]);
-    }
+    sendTaskToWorker(_workers, _tasks);    
+
     // send all mess to DB
-    if(timer.onDelTmMS(true, _prms.sendAllMessTOutMS, 1) && !_messToDB.empty()){
-      timer.onDelTmMS(false, _prms.sendAllMessTOutMS, 1);
+    if(timer.onDelTmMS(true, _prms.sendAllMessTOutMS, 0) && !_messToDB.empty()){
+      timer.onDelTmMS(false, _prms.sendAllMessTOutMS, 0);
       FUTURE_RUN(frSendAllMessToDB, sendAllMessToDB);
     }    
     // check status of workers
-    if(timer.onDelTmSec(true, _prms.checkWorkerTOutSec, 2)){
-      timer.onDelTmSec(false, _prms.checkWorkerTOutSec, 2);    
+    if(timer.onDelTmSec(true, _prms.checkWorkerTOutSec, 1)){
+      timer.onDelTmSec(false, _prms.checkWorkerTOutSec, 1);    
       checkStatusWorkers(_schedr, _workers, _messToDB);
     }
     // added delay

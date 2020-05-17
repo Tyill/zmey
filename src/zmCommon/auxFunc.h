@@ -54,7 +54,6 @@ public:
         return true;
     }
     ++_valmem;
-
     return false;
   };
 };

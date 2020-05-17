@@ -36,6 +36,7 @@ namespace ZM_DB{
 struct messSchedr{
   ZM_Base::messType type;
   uint64_t workerId;  
+  int progress;
 };
 
 class DbProvider{  
