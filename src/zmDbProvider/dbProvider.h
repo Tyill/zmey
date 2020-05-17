@@ -45,7 +45,7 @@ enum class messType{
 
 struct message{
   messType type;
-  std::map<std::string, std::string> params;
+  std::map<std::string, std::string> params;  
 };
 
 class DbProvider{  
@@ -64,7 +64,7 @@ public:
   bool getTasksForSchedr(uint64_t schedrId, std::vector<ZM_Base::task>&);
   bool getWorkersForSchedr(uint64_t schedrId, std::vector<ZM_Base::worker>&);
   bool getNewTasks(std::vector<ZM_Base::task>&);
-  bool getAllManagers(std::vector<ZM_Base::worker>&);
+  bool getAllManagers(std::vector<ZM_Base::manager>&);
   bool sendAllMessFromSchedr(uint64_t schedrId, std::vector<message>&);
 private:
   std::string _lastErr;

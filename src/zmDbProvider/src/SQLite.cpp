@@ -237,7 +237,7 @@ bool DbProvider::sendAllMessFromSchedr(uint64_t schedrId, std::vector<message>&)
 
   return true;
 }
-bool DbProvider::getAllManagers(std::vector<ZM_Base::worker>&){
+bool DbProvider::getAllManagers(std::vector<ZM_Base::manager>&){
 
   return true;
 }

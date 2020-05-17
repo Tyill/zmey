@@ -58,10 +58,10 @@ namespace ZM_Base{
     uint64_t id = 0;          // id tblTask in DB
     state ste;
     executorType exrType;     // executor for task
+    int averDurationSec;      // estimated lead time 
+    int maxDurationSec;       // maximum lead time
     std::string params;       // params for script
-    std::string script;       // script on bash, python or cmd
-    std::string meanDuration; // estimated lead time 
-    std::string maxDuration;  // maximum lead time
+    std::string script;       // script on bash, python or cmd    
   };
 
   struct manager{
@@ -74,20 +74,22 @@ namespace ZM_Base{
     uint64_t id = 0;          // id tblScheduler in DB
     uint64_t managerId = 0;   // id tblManager in DB
     state ste;
-    int capasityWorker = 1000;// the number of worker that can be performed simultaneously  
     int capasityTask = 10000; // the number of tasks that can be performed simultaneously  
     int activeTask = 0;       // number of running tasks
+    bool isActive;
     std::string connectPnt;   // connection point: IP or DNS ':' port
   };
 
   struct worker{
     uint64_t id = 0;          // id tblWorker in DB
     uint64_t managerId = 0;   // id tblManager in DB
+    uint64_t schedrId = 0;    // id tblScheduler in DB
     state ste;
     executorType exrType;     // executor for task
     int capasityTask = 10;    // the number of tasks that can be performed simultaneously  
     int activeTask = 0;       // number of running tasks
     int rating = 10;          // manager is assigned a rating to the worker[1..10]
+    bool isActive;
     std::string connectPnt;   // connection point: IP or DNS ':' port
   }; 
 }

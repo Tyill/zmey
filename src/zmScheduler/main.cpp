@@ -47,7 +47,7 @@ void sendAllMessToDB(ZM_DB::DbProvider& db);
 void getManagersFromDB(ZM_DB::DbProvider& db);
 void sendStatusToManagers(const map<std::string, ZM_Base::manager>&);
 void checkStatusWorkers(const ZM_Base::scheduler&,
-                        const map<std::string, ZM_Base::worker>&,
+                        map<std::string, ZM_Base::worker>&,
                         ZM_Aux::QueueThrSave<ZM_DB::message>&);
 void getPrevTaskFromDB(ZM_DB::DbProvider& db, ZM_Base::scheduler&,  ZM_Aux::QueueThrSave<ZM_Base::task>&);
 void getPrevWorkersFromDB(ZM_DB::DbProvider& db, ZM_Base::scheduler&, map<std::string, ZM_Base::worker>&);
