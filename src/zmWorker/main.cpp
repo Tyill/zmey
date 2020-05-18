@@ -98,7 +98,7 @@ int main(int argc, char* argv[]){
   }
   // TCP server
   string err;
-  if (ZM_Tcp::startServer(_prms.connectPnt, err)){
+  if (ZM_Tcp::startServer(_prms.connectPnt, err, 1)){
     ZM_Tcp::setReceiveCBack(receiveHandler);
     ZM_Tcp::setStsSendCBack(sendHandler);
     statusMess("Tcp server running: " + _prms.connectPnt);

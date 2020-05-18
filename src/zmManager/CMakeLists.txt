@@ -8,10 +8,6 @@ if (UNIX)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 endif(UNIX)
 
-find_package(PostgreSQL REQUIRED)
+add_library(zmManager ${SRC_zmMnr})
 
-add_executable(zmManager ${SRC_zmMnr})
-
-target_include_directories(zmManager PRIVATE ${PostgreSQL_INCLUDE_DIRS})
-
-target_link_libraries(zmManager PRIVATE ${PostgreSQL_LIBRARIES})
+target_link_libraries(zmManager PRIVATE zmCommon)
