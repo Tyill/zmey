@@ -34,59 +34,59 @@ using namespace std;
 
 namespace ZM_Aux {
     
-     // %Y-%m-%d %H:%M:%S
-    string currDateTime() {
+ // %Y-%m-%d %H:%M:%S
+string currDateTime() {
 
-        time_t ct = time(nullptr);
-        tm* lct = localtime(&ct);
+  time_t ct = time(nullptr);
+  tm* lct = localtime(&ct);
 
-        char curDate[24];
-        strftime(curDate, 24, "%Y-%m-%d %H:%M:%S", (const tm *) &lct);
+  char curDate[24];
+  strftime(curDate, 24, "%Y-%m-%d %H:%M:%S", (const tm *) &lct);
 
-        return curDate;
-    }
+  return curDate;
+}
 
     // %Y-%m-%d %H:%M:%S:%MS
-    string currDateTimeMs() {
+string currDateTimeMs() {
 
-        time_t ct = time(nullptr);
-        tm* lct = localtime(&ct);
+  time_t ct = time(nullptr);
+  tm* lct = localtime(&ct);
 
-        uint64_t ms = chrono::time_point_cast<chrono::milliseconds>(chrono::system_clock::now()).time_since_epoch().count();
-        uint64_t mspr = ms / 1000;
-        ms -= mspr * 1000;
+  uint64_t ms = chrono::time_point_cast<chrono::milliseconds>(chrono::system_clock::now()).time_since_epoch().count();
+  uint64_t mspr = ms / 1000;
+  ms -= mspr * 1000;
 
-        char curDate[24];
-        strftime(curDate, 24, "%Y-%m-%d %H:%M:%S:", lct);
+  char curDate[24];
+  strftime(curDate, 24, "%Y-%m-%d %H:%M:%S:", lct);
 
-        (sprintf)(curDate, "%s%03d", curDate, int(ms));
+  (sprintf)(curDate, "%s%03d", curDate, int(ms));
 
-        return curDate;
-    }
+  return curDate;
+}
  
-    vector<string> split(const string& str, const char *sep) {
-        char *cstr = (char*)str.c_str();
-        vector<string> res;
-        char *pch = strtok(cstr, sep);
-        while (pch != NULL) {
-            res.push_back(string(pch));
-            pch = strtok(NULL, sep);
-        }
-        return res;
-    }
+vector<string> split(const string& str, const char *sep) {
+  char *cstr = (char*)str.c_str();
+  vector<string> res;
+  char *pch = strtok(cstr, sep);
+  while (pch != NULL) {
+    res.push_back(string(pch));
+    pch = strtok(NULL, sep);
+  }
+  return res;
+}
 
-    uint64_t currDateTimeSinceEpochMs(){
-      auto now = std::chrono::system_clock::now();
-      auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
-      return now_ms.time_since_epoch().count();
-    }
+uint64_t currDateTimeSinceEpochMs(){
+  auto now = std::chrono::system_clock::now();
+  auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
+  return now_ms.time_since_epoch().count();
+}
 
-    bool isNumber(const std::string& s){
-	  return !s.empty() && std::find_if(s.begin(),
-		s.end(), [](char c) { return !std::isdigit(c); }) == s.end();
-    }
+bool isNumber(const std::string& s){
+  return !s.empty() && std::find_if(s.begin(),
+  s.end(), [](char c) { return !std::isdigit(c); }) == s.end();
+}
 
-    void sleepMs(uint64_t ms){
-        std::this_thread::sleep_for(std::chrono::milliseconds(ms));
-    }    
+void sleepMs(uint64_t ms){
+  std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+}    
 }
