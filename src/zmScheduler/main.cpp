@@ -42,7 +42,7 @@ using namespace std;
 void receiveHandler(const string& cp, const string& data);
 void sendHandler(const string& cp, const string& data, const std::error_code& ec);
 void getNewTaskFromDB(ZM_DB::DbProvider& db);
-void sendTaskToWorker(const unordered_map<string, ZM_Base::worker>&,
+void sendTaskToWorker(unordered_map<string, ZM_Base::worker>&,
                       ZM_Aux::QueueThrSave<ZM_Base::task>&);
 void sendAllMessToDB(ZM_DB::DbProvider& db);
 void checkStatusWorkers(const ZM_Base::scheduler&,

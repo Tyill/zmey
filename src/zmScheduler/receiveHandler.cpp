@@ -39,19 +39,18 @@ void receiveHandler(const string& cp, const string& data){
     switch (mtype){
       case ZM_Base::messType::taskError:
       case ZM_Base::messType::taskSuccess: 
-        _workers[cp].activeTask = max(0, _workers[cp].activeTask - 1);  
-        break;   
       case ZM_Base::messType::taskRunning:
-        _workers[cp].activeTask = min(_workers[cp].capasityTask, _workers[cp].activeTask + 1);
-        break; 
+        checkFieldNum(activeTask);
+        _workers[cp].activeTask = stoi(mess["activeTask"]);        
       case ZM_Base::messType::taskPause:
       case ZM_Base::messType::taskStart:
       case ZM_Base::messType::taskStop:
         _messToDB.push(ZM_DB::messSchedr{mtype, _workers[cp].id});
         break;
       case ZM_Base::messType::justStartWorker:
-        _messToDB.push(ZM_DB::messSchedr{mtype, _workers[cp].id});
         _workers[cp].ste = ZM_Base::state::run;
+        _workers[cp].activeTask = 0;
+        _messToDB.push(ZM_DB::messSchedr{mtype, _workers[cp].id});
         break;
       case ZM_Base::messType::progress:
         checkFieldNum(progress);

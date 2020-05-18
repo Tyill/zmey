@@ -20,7 +20,7 @@ std::string getExecutorStr(ZM_Base::executorType et){
   }
 }
 
-void sendTaskToWorker(const unordered_map<string, ZM_Base::worker>& workers,
+void sendTaskToWorker(unordered_map<string, ZM_Base::worker>& workers,
                       ZM_Aux::QueueThrSave<ZM_Base::task>& tasks){
   
   vector<ZM_Base::task> buffTask; 
@@ -42,6 +42,7 @@ void sendTaskToWorker(const unordered_map<string, ZM_Base::worker>& workers,
         make_pair("meanDuration", to_string(t.averDurationSec)), 
         make_pair("maxDuration", to_string(t.maxDurationSec))
       };      
+      ++iWkr->second.activeTask;
       ZM_Tcp::sendData(iWkr->first, ZM_Aux::serialn(data));
     }else{
       buffTask.push_back(t);
