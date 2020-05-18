@@ -20,5 +20,6 @@ void getNewTaskFromDB(ZM_DB::DbProvider& db){
       }else
         break;
     }
+    _schedr.activeTask = cSz;
   }
 };

@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <unordered_map>
 #include "zmBase/structurs.h"
 #include "zmCommon/tcp.h"
 #include "zmCommon/serial.h"
@@ -19,7 +20,7 @@ std::string getExecutorStr(ZM_Base::executorType et){
   }
 }
 
-void sendTaskToWorker(const map<string, ZM_Base::worker>& workers,
+void sendTaskToWorker(const unordered_map<string, ZM_Base::worker>& workers,
                       ZM_Aux::QueueThrSave<ZM_Base::task>& tasks){
   
   vector<ZM_Base::task> buffTask; 
@@ -27,7 +28,9 @@ void sendTaskToWorker(const map<string, ZM_Base::worker>& workers,
   while (tasks.tryPop(t)){
     auto iWkr = find_if(workers.begin(), workers.end(),
       [&t](const pair<string, ZM_Base::worker>& w){
-        return (w.second.exrType == t.exrType) && (w.second.ste == ZM_Base::state::run);
+        return (w.second.exrType == t.exrType) && 
+               (w.second.ste == ZM_Base::state::run) && 
+               (w.second.activeTask < w.second.capasityTask);
       }); 
     if(iWkr != workers.end()){
       map<string, string> data{

@@ -1,3 +1,4 @@
+#include <unordered_map>
 #include "zmBase/structurs.h"
 #include "zmCommon/serial.h"
 #include "zmCommon/queue.h"
@@ -9,7 +10,7 @@
 using namespace std;
 
 extern ZM_Aux::QueueThrSave<ZM_DB::messSchedr> _messToDB;
-extern map<std::string, ZM_Base::worker> _workers;
+extern unordered_map<std::string, ZM_Base::worker> _workers;
 extern ZM_Base::scheduler _schedr;
 
 void receiveHandler(const string& cp, const string& data){
@@ -36,9 +37,13 @@ void receiveHandler(const string& cp, const string& data){
   // from worker
   if(_workers.find(cp) != _workers.end()){
     switch (mtype){
-      case ZM_Base::messType::taskRunning:
       case ZM_Base::messType::taskError:
-      case ZM_Base::messType::taskSuccess:      
+      case ZM_Base::messType::taskSuccess: 
+        _workers[cp].activeTask = max(0, _workers[cp].activeTask - 1);  
+        break;   
+      case ZM_Base::messType::taskRunning:
+        _workers[cp].activeTask = min(_workers[cp].capasityTask, _workers[cp].activeTask + 1);
+        break; 
       case ZM_Base::messType::taskPause:
       case ZM_Base::messType::taskStart:
       case ZM_Base::messType::taskStop:

@@ -1,3 +1,4 @@
+#include <unordered_map>
 #include "zmBase/structurs.h"
 #include "zmDbProvider/dbProvider.h"
 #include "zmCommon/queue.h"
@@ -7,7 +8,7 @@
 using namespace std;
 
 void checkStatusWorkers(const ZM_Base::scheduler& schedr,
-                        map<std::string, ZM_Base::worker>& workers,
+                        unordered_map<std::string, ZM_Base::worker>& workers,
                         ZM_Aux::QueueThrSave<ZM_DB::messSchedr>& messToDB){
    
   for(auto& w : workers){
@@ -15,6 +16,7 @@ void checkStatusWorkers(const ZM_Base::scheduler& schedr,
       messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::workerNotResponding,
                                       w.second.id});
       w.second.ste = ZM_Base::state::notResponding;
+      w.second.activeTask = 0;
     }else{
       w.second.isActive = false;
     }
