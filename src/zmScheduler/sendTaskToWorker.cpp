@@ -38,9 +38,9 @@ void sendTaskToWorker(unordered_map<string, ZM_Base::worker>& workers,
         make_pair("taskId", to_string(t.id)),
         make_pair("params", t.params), 
         make_pair("script", t.script),
-        make_pair("executor", to_string(int(t.exrType))),
-        make_pair("meanDuration", to_string(t.averDurationSec)), 
-        make_pair("maxDuration", to_string(t.maxDurationSec))
+        make_pair("exrType", to_string(int(t.exrType))),
+        make_pair("averDurationSec", to_string(t.averDurationSec)), 
+        make_pair("maxDurationSec", to_string(t.maxDurationSec))
       };      
       ++iWkr->second.activeTask;
       ZM_Tcp::sendData(iWkr->first, ZM_Aux::serialn(data));

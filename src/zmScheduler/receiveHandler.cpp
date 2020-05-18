@@ -41,11 +41,12 @@ void receiveHandler(const string& cp, const string& data){
       case ZM_Base::messType::taskSuccess: 
       case ZM_Base::messType::taskRunning:
         checkFieldNum(activeTask);
-        _workers[cp].activeTask = stoi(mess["activeTask"]);        
+        _workers[cp].activeTask = stoi(mess["activeTask"]);   // no 'break' - I know
       case ZM_Base::messType::taskPause:
       case ZM_Base::messType::taskStart:
       case ZM_Base::messType::taskStop:
-        _messToDB.push(ZM_DB::messSchedr{mtype, _workers[cp].id});
+        checkFieldNum(taskId);
+        _messToDB.push(ZM_DB::messSchedr{mtype, _workers[cp].id, stoi(mess["taskId"])});
         break;
       case ZM_Base::messType::justStartWorker:
         _workers[cp].ste = ZM_Base::state::run;
@@ -53,9 +54,11 @@ void receiveHandler(const string& cp, const string& data){
         _messToDB.push(ZM_DB::messSchedr{mtype, _workers[cp].id});
         break;
       case ZM_Base::messType::progress:
+        checkFieldNum(taskId);
         checkFieldNum(progress);
-        _messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::progress,
+        _messToDB.push(ZM_DB::messSchedr{mtype,
                                          _workers[cp].id,
+                                         stoi(mess["taskId"]),
                                          stoi(mess["progress"])});
         break;
       case ZM_Base::messType::pingWorker:
@@ -76,7 +79,8 @@ void receiveHandler(const string& cp, const string& data){
         checkField(workerCP);
         map<string, string> data{
           make_pair("command", to_string((int)mtype)),
-          make_pair("taskId", mess["taskId"])
+          make_pair("taskId", mess["taskId"]),
+          make_pair("managerConnPnt", cp),
         };      
         ZM_Tcp::sendData(mess["workerCP"], ZM_Aux::serialn(data));
         }
