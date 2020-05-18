@@ -1,3 +1,27 @@
+//
+// zmey Project
+// Copyright (C) 2018 by Contributors <https://github.com/Tyill/zmey>
+//
+// This code is licensed under the MIT License.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files(the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions :
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+//
 #include <unordered_map>
 #include "zmBase/structurs.h"
 #include "zmCommon/serial.h"
@@ -46,7 +70,7 @@ void receiveHandler(const string& cp, const string& data){
       case ZM_Base::messType::taskStart:
       case ZM_Base::messType::taskStop:
         checkFieldNum(taskId);
-        _messToDB.push(ZM_DB::messSchedr{mtype, _workers[cp].id, stoi(mess["taskId"])});
+        _messToDB.push(ZM_DB::messSchedr{mtype, _workers[cp].id, stoull(mess["taskId"])});
         break;
       case ZM_Base::messType::justStartWorker:
         _workers[cp].ste = ZM_Base::state::run;
@@ -58,7 +82,7 @@ void receiveHandler(const string& cp, const string& data){
         checkFieldNum(progress);
         _messToDB.push(ZM_DB::messSchedr{mtype,
                                          _workers[cp].id,
-                                         stoi(mess["taskId"]),
+                                         stoull(mess["taskId"]),
                                          stoi(mess["progress"])});
         break;
       case ZM_Base::messType::pingWorker:

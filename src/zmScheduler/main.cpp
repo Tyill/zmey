@@ -24,12 +24,9 @@
 //
 
 #include <future>
-#include <chrono>
 #include <iostream>
-#include <memory>
 #include <unordered_map>
 #include "zmCommon/tcp.h"
-#include "zmCommon/serial.h"
 #include "zmCommon/timerDelay.h"
 #include "zmCommon/queue.h"
 #include "zmCommon/auxFunc.h"

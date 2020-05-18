@@ -23,193 +23,106 @@
 // THE SOFTWARE.
 //
 
-#include <vector>
-#include <string>
-#include <thread>
+#include <map>
 #include <iostream>
-#include <memory>
-#include <future>
 #include "zmCommon/tcp.h"
-#include "zmCommon/serial.h"
+#include "zmCommon/timerDelay.h"
 #include "zmCommon/auxFunc.h"
+#include "zmBase/structurs.h"
+#include "zmCommon/logger.h"
 
 using namespace std;
 
-int main(int argc, char* argv[]){
-    
-    std::string err;
-    ZM_Tcp::startServer("127.0.0.1:4445", err);
+void receiveHandler(const string& cp, const string& data);
+void sendHandler(const string& cp, const string& data, const std::error_code& ec);
+void checkStatusTasks(const ZM_Base::worker&);
 
-    async(launch::async, []{                                        
-       for (;;){
-        std::string buf;
-        buf.resize(12800);
+unique_ptr<ZM_Aux::Logger> _pLog = nullptr;
+ZM_Base::worker _worker;
 
-        ZM_Tcp::sendData("127.0.0.1:4444", buf);                                                               
-       }
-    });
+struct params{
+  bool logEna = false;
+  int capasityTask = 10;
+  int checkTasksTOutSec = 120; 
+  string connectPnt = "localhost:4146";
+  string schedrConnPnt;
+};
+params _prms;
 
-    async(launch::async, []{                                        
-       for (;;){
-        std::string buf;
-        buf.resize(12800);
-
-        ZM_Tcp::sendData("127.0.0.1:4444", buf);                                                               
-       }
-    });
-
-    async(launch::async, []{                                        
-       for (;;){
-        std::string buf;
-        buf.resize(12800);
-
-        ZM_Tcp::sendData("127.0.0.1:4444", buf);                                                               
-       }
-    });
-
-    async(launch::async, []{                                        
-       for (;;){
-        std::string buf;
-        buf.resize(12800);
-
-        ZM_Tcp::sendData("127.0.0.1:4444", buf);                                                               
-       }
-    });         
-
-    for (;;){
-      // std::string buf;
-      // buf.resize(12800);
-
-      // ZM_Tcp::sendData("127.0.0.1:4444", buf);
-    ZM_Aux::sleepMs(10);
-      // tcp::socket socket(ioc);
-      // asio::connect(socket, endpoints);
-
-      // std::vector<char> buf(12800);
-      // asio::error_code error;
-      
-      // size_t len = socket.write_some(asio::buffer(buf), error);
-
-      // if (error == asio::error::eof)
-      //   break; // Connection closed cleanly by peer.
-      // else if (error)
-      //   throw asio::system_error(error); // Some other error.
-
-      //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    } 
-
-    ZM_Tcp::stopServer(); 
-
-  return 0;
+void statusMess(const string& mess){
+  cout << ZM_Aux::currDateTime() << mess << std::endl;
+  if (_pLog)
+    _pLog->writeMess(mess);
 }
 
+void parseArgs(int argc, char* argv[], params& outPrms){
+  
+  string sargs;
+  for (int i = 1; i < argc; ++i){
+    sargs += argv[i];
+  }
+  map<string, string> sprms;
+  auto argPair = ZM_Aux::split(sargs, "-");
+  size_t asz = argPair.size();
+  for (size_t i = 0; i < asz; ++i){
+    auto pm = ZM_Aux::split(argPair[i], "=");
+    if (pm.size() <= 1){
+      sprms["-" + argPair[i]] = "";
+    }else{
+      sprms["-" + pm[0]] = pm[1];
+    }
+  }
+  if (sprms.find("-logEna") != sprms.end()){
+    outPrms.logEna = true;
+  }
+  if (sprms.find("-connectPnt") != sprms.end()){
+    outPrms.connectPnt = sprms["-connectPnt"];
+  }  
+  if (sprms.find("-schedrConnPnt") != sprms.end()){
+    outPrms.schedrConnPnt = sprms["-schedrConnPnt"];
+  }
+  if (sprms.find("-capasityTask") != sprms.end() && ZM_Aux::isNumber(sprms["-capasityTask"])){
+    outPrms.capasityTask = stoi(sprms["-capasityTask"]);
+  }
+  if (sprms.find("-checkTasksTOutSec") != sprms.end() && ZM_Aux::isNumber(sprms["-checkTasksTOutSec"])){
+    outPrms.checkTasksTOutSec = stoi(sprms["-checkTasksTOutSec"]);
+  }    
+}
 
-//   const char *conninfo;
-//     PGconn     *conn;
-//     PGresult   *res;
-//     int         nFields;
-//     int         i,
-//                 j;
+int main(int argc, char* argv[]){
 
-//     /*
-//      * If the user supplies a parameter on the command line, use it as the
-//      * conninfo string; otherwise default to setting dbname=postgres and using
-//      * environment variables or defaults for all other connection parameters.
-//      */
-//     if (argc > 1)
-//         conninfo = argv[1];
-//     else
-//         conninfo = "dbname = postgres";
+  parseArgs(argc, argv, _prms);
+  
+  if (_prms.logEna){
+    _pLog = unique_ptr<ZM_Aux::Logger>(new ZM_Aux::Logger("zmWorker.log", ""));
+  }
+  // TCP server
+  string err;
+  if (ZM_Tcp::startServer(_prms.connectPnt, err)){
+    ZM_Tcp::setReceiveCBack(receiveHandler);
+    ZM_Tcp::setStsSendCBack(sendHandler);
+    statusMess("Tcp server running: " + _prms.connectPnt);
+  }else{
+    statusMess("Tcp server error, busy -connectPnt: " + _prms.connectPnt + " " + err);
+    return -1;
+  }
+  
+  ZM_Aux::TimerDelay timer;
+  const int minCycleTimeMS = 5;
 
-//     /* Make a connection to the database */
-//     conn = PQconnectdb(conninfo);
+  // main cycle
+  while (true){
+    timer.updateCycTime();   
 
-//     /* Check to see that the backend connection was successfully made */
-//     if (PQstatus(conn) != CONNECTION_OK)
-//     {
-//         fprintf(stderr, "Connection to database failed: %s",
-//                 PQerrorMessage(conn));
-//         exit_nicely(conn);
-//     }
-
-//     /* Set always-secure search path, so malicious users can't take control. */
-//     res = PQexec(conn,
-//                  "SELECT pg_catalog.set_config('search_path', '', false)");
-//     if (PQresultStatus(res) != PGRES_TUPLES_OK)
-//     {
-//         fprintf(stderr, "SET failed: %s", PQerrorMessage(conn));
-//         PQclear(res);
-//         exit_nicely(conn);
-//     }
-
-//     /*
-//      * Should PQclear PGresult whenever it is no longer needed to avoid memory
-//      * leaks
-//      */
-//     PQclear(res);
-
-//     /*
-//      * Our test case here involves using a cursor, for which we must be inside
-//      * a transaction block.  We could do the whole thing with a single
-//      * PQexec() of "select * from pg_database", but that's too trivial to make
-//      * a good example.
-//      */
-
-//     /* Start a transaction block */
-//     res = PQexec(conn, "BEGIN");
-//     if (PQresultStatus(res) != PGRES_COMMAND_OK)
-//     {
-//         fprintf(stderr, "BEGIN command failed: %s", PQerrorMessage(conn));
-//         PQclear(res);
-//         exit_nicely(conn);
-//     }
-//     PQclear(res);
-
-//     /*
-//      * Fetch rows from pg_database, the system catalog of databases
-//      */
-//     res = PQexec(conn, "DECLARE myportal CURSOR FOR select * from pg_database");
-//     if (PQresultStatus(res) != PGRES_COMMAND_OK)
-//     {
-//         fprintf(stderr, "DECLARE CURSOR failed: %s", PQerrorMessage(conn));
-//         PQclear(res);
-//         exit_nicely(conn);
-//     }
-//     PQclear(res);
-
-//     res = PQexec(conn, "FETCH ALL in myportal");
-//     if (PQresultStatus(res) != PGRES_TUPLES_OK)
-//     {
-//         fprintf(stderr, "FETCH ALL failed: %s", PQerrorMessage(conn));
-//         PQclear(res);
-//         exit_nicely(conn);
-//     }
-
-//     /* first, print out the attribute names */
-//     nFields = PQnfields(res);
-//     for (i = 0; i < nFields; i++)
-//         printf("%-15s", PQfname(res, i));
-//     printf("\n\n");
-
-//     /* next, print out the rows */
-//     for (i = 0; i < PQntuples(res); i++)
-//     {
-//         for (j = 0; j < nFields; j++)
-//             printf("%-15s", PQgetvalue(res, i, j));
-//         printf("\n");
-//     }
-
-//     PQclear(res);
-
-//     /* close the portal ... we don't bother to check for errors ... */
-//     res = PQexec(conn, "CLOSE myportal");
-//     PQclear(res);
-
-//     /* end the transaction */
-//     res = PQexec(conn, "END");
-//     PQclear(res);
-
-//     /* close the connection to the database and cleanup */
-//     PQfinish(conn);
-
-//     return 0;
+    // check status of tasks
+    if(timer.onDelTmSec(true, _prms.checkTasksTOutSec, 1)){
+      timer.onDelTmSec(false, _prms.checkTasksTOutSec, 1);    
+      checkStatusTasks(_worker);
+    }
+    // added delay
+    if (timer.getCTime() < minCycleTimeMS){
+      ZM_Aux::sleepMs(minCycleTimeMS - timer.getCTime());
+    }
+  }  
+  return 0;
+}
