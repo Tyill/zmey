@@ -70,7 +70,10 @@ void receiveHandler(const string& cp, const string& data){
       case ZM_Base::messType::taskStart:
       case ZM_Base::messType::taskStop:
         checkFieldNum(taskId);
-        _messToDB.push(ZM_DB::messSchedr{mtype, _workers[cp].id, stoull(mess["taskId"])});
+        _messToDB.push(ZM_DB::messSchedr{mtype, _workers[cp].id,
+                                                stoull(mess["taskId"]),
+                                                _workers[cp].activeTask,
+                                                _schedr.activeTask});
         break;
       case ZM_Base::messType::justStartWorker:
         _workers[cp].ste = ZM_Base::state::run;
@@ -80,9 +83,10 @@ void receiveHandler(const string& cp, const string& data){
       case ZM_Base::messType::progress:
         checkFieldNum(taskId);
         checkFieldNum(progress);
-        _messToDB.push(ZM_DB::messSchedr{mtype,
-                                         _workers[cp].id,
+        _messToDB.push(ZM_DB::messSchedr{mtype, _workers[cp].id,
                                          stoull(mess["taskId"]),
+                                         _workers[cp].activeTask,
+                                         _schedr.activeTask,
                                          stoi(mess["progress"])});
         break;
       case ZM_Base::messType::pingWorker:
@@ -100,13 +104,13 @@ void receiveHandler(const string& cp, const string& data){
       case ZM_Base::messType::taskStart:
       case ZM_Base::messType::taskStop:{
         checkFieldNum(taskId);
-        checkField(workerCP);
+        checkField(workerConnPnt);
         map<string, string> data{
           make_pair("command", to_string((int)mtype)),
           make_pair("taskId", mess["taskId"]),
           make_pair("managerConnPnt", cp),
         };      
-        ZM_Tcp::sendData(mess["workerCP"], ZM_Aux::serialn(data));
+        ZM_Tcp::sendData(mess["workerConnPnt"], ZM_Aux::serialn(data));
         }
         break;
       case ZM_Base::messType::pingSchedr:{
@@ -122,15 +126,15 @@ void receiveHandler(const string& cp, const string& data){
         _schedr.ste = ZM_Base::state::pause;
         break;
       case ZM_Base::messType::pauseWorker:
-        checkField(workerCP);
-        _workers[mess["workerCP"]].ste = ZM_Base::state::pause;
+        checkField(workerConnPnt);
+        _workers[mess["workerConnPnt"]].ste = ZM_Base::state::pause;
         break;
       case ZM_Base::messType::startSchedr:
         _schedr.ste = ZM_Base::state::run;
         break;
       case ZM_Base::messType::startWorker:
-        checkField(workerCP);
-        _workers[mess["workerCP"]].ste = ZM_Base::state::run;  
+        checkField(workerConnPnt);
+        _workers[mess["workerConnPnt"]].ste = ZM_Base::state::run;  
         break;
       default: statusMess("receiveHandler unknown command: " + mess["command"]);
         break;
