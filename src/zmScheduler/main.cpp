@@ -83,31 +83,31 @@ void parseArgs(int argc, char* argv[], params& outPrms){
   for (size_t i = 0; i < asz; ++i){
     auto pm = ZM_Aux::split(argPair[i], "=");
     if (pm.size() <= 1){
-      sprms["-" + argPair[i]] = "";
+      sprms[argPair[i]] = "";
     }else{
-      sprms["-" + pm[0]] = pm[1];
+      sprms[pm[0]] = pm[1];
     }
   }
-  if (sprms.find("-logEna") != sprms.end()){
+  if (sprms.find("logEna") != sprms.end()){
     outPrms.logEna = true;
   }
-  if (sprms.find("-connectPnt") != sprms.end()){
-    outPrms.connectPnt = sprms["-connectPnt"];
+  if (sprms.find("connectPnt") != sprms.end()){
+    outPrms.connectPnt = sprms["connectPnt"];
   }  
-  if (sprms.find("-dbServer") != sprms.end()){
-    outPrms.dbServer = sprms["-dbServer"];
+  if (sprms.find("dbServer") != sprms.end()){
+    outPrms.dbServer = sprms["dbServer"];
   }
-  if (sprms.find("-dbName") != sprms.end()){
-    outPrms.dbName = sprms["-dbName"];
+  if (sprms.find("dbName") != sprms.end()){
+    outPrms.dbName = sprms["dbName"];
   }
-  if (sprms.find("-capasityTask") != sprms.end() && ZM_Aux::isNumber(sprms["-capasityTask"])){
-    outPrms.capasityTask = stoi(sprms["-capasityTask"]);
+  if (sprms.find("capasityTask") != sprms.end() && ZM_Aux::isNumber(sprms["capasityTask"])){
+    outPrms.capasityTask = stoi(sprms["capasityTask"]);
   }
-  if (sprms.find("-sendAllMessTOutMS") != sprms.end() && ZM_Aux::isNumber(sprms["-sendAllMessTOutMS"])){
-    outPrms.sendAllMessTOutMS = stoi(sprms["-sendAllMessTOutMS"]);
+  if (sprms.find("sendAllMessTOutMS") != sprms.end() && ZM_Aux::isNumber(sprms["sendAllMessTOutMS"])){
+    outPrms.sendAllMessTOutMS = stoi(sprms["sendAllMessTOutMS"]);
   } 
-  if (sprms.find("-checkWorkerTOutSec") != sprms.end() && ZM_Aux::isNumber(sprms["-checkWorkerTOutSec"])){
-    outPrms.checkWorkerTOutSec = stoi(sprms["-checkWorkerTOutSec"]);
+  if (sprms.find("checkWorkerTOutSec") != sprms.end() && ZM_Aux::isNumber(sprms["checkWorkerTOutSec"])){
+    outPrms.checkWorkerTOutSec = stoi(sprms["checkWorkerTOutSec"]);
   }    
 }
 

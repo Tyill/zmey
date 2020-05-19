@@ -37,8 +37,8 @@ struct messSchedr{
   ZM_Base::messType type;
   uint64_t workerId;
   uint64_t taskId;
-  int workerActiveTask;  
-  int schedrActiveTask;
+  int workerActiveTaskCnt;  
+  int schedrActiveTaskCnt;
   int progress;
 };
 

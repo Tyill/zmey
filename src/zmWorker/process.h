@@ -33,12 +33,11 @@ class Process{
     bool _waited = false;
     int _status = 0;
   public:
-    Process(const std::string& applicationWithArgs);
-    void exec();
+    Process(const std::string& app, const std::string& args);
     Process(Process&&) = default;
     Process(const Process&) = delete;
+    Process& operator=(Process&) = delete;
     ~Process();
-    pid_t id() const;
     void wait();    
     bool waited() const;   
     bool running() const;   

@@ -67,25 +67,25 @@ void parseArgs(int argc, char* argv[], params& outPrms){
   for (size_t i = 0; i < asz; ++i){
     auto pm = ZM_Aux::split(argPair[i], "=");
     if (pm.size() <= 1){
-      sprms["-" + argPair[i]] = "";
+      sprms[argPair[i]] = "";
     }else{
-      sprms["-" + pm[0]] = pm[1];
+      sprms[pm[0]] = pm[1];
     }
   }
-  if (sprms.find("-logEna") != sprms.end()){
+  if (sprms.find("logEna") != sprms.end()){
     outPrms.logEna = true;
   }
-  if (sprms.find("-connectPnt") != sprms.end()){
-    outPrms.connectPnt = sprms["-connectPnt"];
+  if (sprms.find("connectPnt") != sprms.end()){
+    outPrms.connectPnt = sprms["connectPnt"];
   }  
-  if (sprms.find("-schedrConnPnt") != sprms.end()){
-    outPrms.schedrConnPnt = sprms["-schedrConnPnt"];
+  if (sprms.find("schedrConnPnt") != sprms.end()){
+    outPrms.schedrConnPnt = sprms["schedrConnPnt"];
   }
-  if (sprms.find("-capasityTask") != sprms.end() && ZM_Aux::isNumber(sprms["-capasityTask"])){
-    outPrms.capasityTask = stoi(sprms["-capasityTask"]);
+  if (sprms.find("capasityTask") != sprms.end() && ZM_Aux::isNumber(sprms["capasityTask"])){
+    outPrms.capasityTask = stoi(sprms["capasityTask"]);
   }
-  if (sprms.find("-checkTasksTOutSec") != sprms.end() && ZM_Aux::isNumber(sprms["-checkTasksTOutSec"])){
-    outPrms.checkTasksTOutSec = stoi(sprms["-checkTasksTOutSec"]);
+  if (sprms.find("checkTasksTOutSec") != sprms.end() && ZM_Aux::isNumber(sprms["checkTasksTOutSec"])){
+    outPrms.checkTasksTOutSec = stoi(sprms["checkTasksTOutSec"]);
   }    
 }
 
