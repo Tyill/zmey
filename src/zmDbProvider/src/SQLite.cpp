@@ -229,7 +229,7 @@ bool DbProvider::getWorkersForSchedr(uint64_t schedrId, std::vector<ZM_Base::wor
   
   return true;
 }
-bool DbProvider::getNewTasks(std::vector<ZM_Base::task>&){
+bool DbProvider::getNewTasks(std::vector<ZM_Base::task>&, int capacityTask){
 
   return true;
 }

@@ -32,25 +32,25 @@
 using namespace std;
 
 void checkStatusWorkers(const ZM_Base::scheduler& schedr,
-                        vector<ZM_Base::worker>& workers,
+                        unordered_map<std::string, ZM_Base::worker>& workers,
                         ZM_Aux::QueueThrSave<ZM_DB::messSchedr>& messToDB){
    
   for(auto& w : workers){
-    if (!w.isActive){            
+    if (!w.second.isActive && (w.second.ste == ZM_Base::state::run)){            
       messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::workerNotResponding,
-                                      w.id});
-      w.ste = ZM_Base::state::notResponding;
-      w.activeTask = 0;
+                                      w.second.id});
+      w.second.ste = ZM_Base::state::notResponding;
+      w.second.activeTask = 0;
     }else{
-      w.isActive = false;
+      w.second.isActive = false;
     }
   }
 
   // all inactive
   vector<ZM_Base::worker> wkrNotResp;
   for(auto& w : workers){
-    if (w.ste == ZM_Base::state::notResponding){
-      wkrNotResp.push_back(w);
+    if (w.second.ste == ZM_Base::state::notResponding){
+      wkrNotResp.push_back(w.second);
     }
   }
   if (wkrNotResp.empty())

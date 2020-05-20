@@ -34,6 +34,7 @@
 using namespace std;
 
 ZM_Aux::CounterTick ctick;
+vector<ZM_Base::worker*> refWorkers;
 
 std::string getExecutorStr(ZM_Base::executorType et){
   switch (et){
@@ -43,22 +44,20 @@ std::string getExecutorStr(ZM_Base::executorType et){
     default: return "";
   }
 }
-
-void sendTaskToWorker(vector<ZM_Base::worker>& workers,
-                      ZM_Aux::QueueThrSave<ZM_Base::task>& tasks){
+void sendTaskToWorker(unordered_map<std::string, ZM_Base::worker>& workers,
+                      ZM_Aux::QueueThrSave<ZM_Base::task>& tasks){  
   
-  vector<ZM_Base::worker*> refWorkers;
-  refWorkers.reserve(workers.size());
-  for (auto& w : workers){
-    refWorkers.push_back(&w);
+  if (refWorkers.empty()){
+    for (auto& w : workers){
+      refWorkers.push_back(&w.second);
+    }
   }
-  sort(refWorkers.begin(), refWorkers.end(), [](ZM_Base::worker* l, ZM_Base::worker* r){
-    return (float)l->activeTask/max(1, l->rating) < (float)r->activeTask/max(1, r->rating);
-  });
-
   vector<ZM_Base::task> buffTask; 
   ZM_Base::task t;
   while (tasks.tryPop(t)){
+    sort(refWorkers.begin(), refWorkers.end(), [](ZM_Base::worker* l, ZM_Base::worker* r){
+      return (float)l->activeTask/max(1, l->rating) < (float)r->activeTask/max(1, r->rating);
+    });
     auto iWr = find_if(refWorkers.begin(), refWorkers.end(),
       [&t](const ZM_Base::worker* w){
         return (w->exrType == t.exrType) && 
