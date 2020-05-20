@@ -57,7 +57,7 @@ public:
   bool getSchedr(std::string& connPnt, ZM_Base::scheduler& outSchedl);
   bool getTasksForSchedr(uint64_t schedrId, std::vector<ZM_Base::task>&);
   bool getWorkersForSchedr(uint64_t schedrId, std::vector<ZM_Base::worker>&);
-  bool getNewTasks(std::vector<ZM_Base::task>&);
+  bool getNewTasks(std::vector<ZM_Base::task>&, int maxTaskCnt);
   bool sendAllMessFromSchedr(uint64_t schedrId, std::vector<messSchedr>&);
 private:
   std::string _lastErr;

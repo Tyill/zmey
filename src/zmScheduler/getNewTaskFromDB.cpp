@@ -36,14 +36,10 @@ void getNewTaskFromDB(ZM_DB::DbProvider& db){
   size_t cSz = _tasks.size(),
          capSz = _schedr.capasityTask;
   vector<ZM_Base::task> tasks;
-  if (db.getNewTasks(tasks)){
+  if (db.getNewTasks(tasks, capSz - cSz)){
     for(auto& t : tasks){
-      if (cSz < capSz){
-        _tasks.push(move(t));
-        ++cSz;      
-      }else
-        break;
+      _tasks.push(move(t));
     }
-    _schedr.activeTask = cSz;
+    _schedr.activeTask = _tasks.size();
   }
 };
