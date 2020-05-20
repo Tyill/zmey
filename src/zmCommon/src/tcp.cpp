@@ -82,7 +82,7 @@ void stopServer(){
 
 void sendData(const std::string& connPnt, const std::string& data, bool isCBackIfError){
   auto cp = ZM_Aux::split(connPnt, ":");
-  std::make_shared<TcpClient>(ioc, cp[0], stoi(cp[1]))->write(data, isCBackIfError);
+  std::make_shared<TcpClient>(ioc, cp[0], cp[1])->write(data, isCBackIfError);
 };
 
 void setReceiveCBack(receiveDataCBack cb){

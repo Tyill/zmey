@@ -39,16 +39,17 @@ using namespace std;
 void receiveHandler(const string& cp, const string& data);
 void sendHandler(const string& cp, const string& data, const std::error_code& ec);
 void getNewTaskFromDB(ZM_DB::DbProvider& db);
-void sendTaskToWorker(unordered_map<string, ZM_Base::worker>&,
+void sendTaskToWorker(vector<ZM_Base::worker>&,
                       ZM_Aux::QueueThrSave<ZM_Base::task>&);
 void sendAllMessToDB(ZM_DB::DbProvider& db);
 void checkStatusWorkers(const ZM_Base::scheduler&,
-                        unordered_map<std::string, ZM_Base::worker>&,
+                        vector<ZM_Base::worker>&,
                         ZM_Aux::QueueThrSave<ZM_DB::messSchedr>&);
 void getPrevTaskFromDB(ZM_DB::DbProvider& db, ZM_Base::scheduler&,  ZM_Aux::QueueThrSave<ZM_Base::task>&);
-void getPrevWorkersFromDB(ZM_DB::DbProvider& db, ZM_Base::scheduler&, unordered_map<std::string, ZM_Base::worker>&);
+void getPrevWorkersFromDB(ZM_DB::DbProvider& db, ZM_Base::scheduler&, vector<ZM_Base::worker>&);
 
-unordered_map<std::string, ZM_Base::worker> _workers;   // key - connectPnt
+vector<ZM_Base::worker> _workers;
+unordered_map<std::string, ZM_Base::worker*> _refWorkers;   // key - connectPnt
 ZM_Aux::QueueThrSave<ZM_Base::task> _tasks;
 ZM_Aux::QueueThrSave<ZM_DB::messSchedr> _messToDB;
 unique_ptr<ZM_Aux::Logger> _pLog = nullptr;
@@ -145,6 +146,9 @@ int main(int argc, char* argv[]){
   // prev tasks and workers
   getPrevTaskFromDB(db, _schedr, _tasks);
   getPrevWorkersFromDB(db, _schedr, _workers);
+  for (auto& w : _workers){
+    _refWorkers[w.connectPnt] = &w;
+  }
 
   future<void> frGetNewTask,
                frSendAllMessToDB; 

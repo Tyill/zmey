@@ -44,19 +44,28 @@ std::string getExecutorStr(ZM_Base::executorType et){
   }
 }
 
-void sendTaskToWorker(unordered_map<string, ZM_Base::worker>& workers,
+void sendTaskToWorker(vector<ZM_Base::worker>& workers,
                       ZM_Aux::QueueThrSave<ZM_Base::task>& tasks){
   
+  vector<ZM_Base::worker*> refWorkers;
+  refWorkers.reserve(workers.size());
+  for (auto& w : workers){
+    refWorkers.push_back(&w);
+  }
+  sort(refWorkers.begin(), refWorkers.end(), [](ZM_Base::worker* l, ZM_Base::worker* r){
+    return (float)l->activeTask/max(1, l->rating) < (float)r->activeTask/max(1, r->rating);
+  });
+
   vector<ZM_Base::task> buffTask; 
   ZM_Base::task t;
   while (tasks.tryPop(t)){
-    auto iWkr = find_if(workers.begin(), workers.end(),
-      [&t](const pair<string, ZM_Base::worker>& w){
-        return (w.second.exrType == t.exrType) && 
-               (w.second.ste == ZM_Base::state::run) && 
-               (w.second.activeTask < w.second.capasityTask);
+    auto iWr = find_if(refWorkers.begin(), refWorkers.end(),
+      [&t](const ZM_Base::worker* w){
+        return (w->exrType == t.exrType) && 
+               (w->ste == ZM_Base::state::run) && 
+               (w->activeTask < w->capasityTask);
       }); 
-    if(iWkr != workers.end()){
+    if(iWr != refWorkers.end()){
       map<string, string> data{
         make_pair("command", to_string((int)ZM_Base::messType::newTask)),
         make_pair("taskId", to_string(t.id)),
@@ -66,8 +75,8 @@ void sendTaskToWorker(unordered_map<string, ZM_Base::worker>& workers,
         make_pair("averDurationSec", to_string(t.averDurationSec)), 
         make_pair("maxDurationSec", to_string(t.maxDurationSec))
       };      
-      ++iWkr->second.activeTask;
-      ZM_Tcp::sendData(iWkr->first, ZM_Aux::serialn(data));
+      ++(*iWr)->activeTask;
+      ZM_Tcp::sendData((*iWr)->connectPnt, ZM_Aux::serialn(data));
     }else{
       buffTask.push_back(t);
     }

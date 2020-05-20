@@ -34,7 +34,7 @@
 using namespace std;
 
 extern ZM_Aux::QueueThrSave<ZM_DB::messSchedr> _messToDB;
-extern unordered_map<std::string, ZM_Base::worker> _workers;
+extern unordered_map<std::string, ZM_Base::worker*> _refWorkers;
 extern ZM_Base::scheduler _schedr;
 
 void receiveHandler(const string& cp, const string& data){
@@ -59,43 +59,43 @@ void receiveHandler(const string& cp, const string& data){
   checkFieldNum(command);
   ZM_Base::messType mtype = ZM_Base::messType(stoi(mess["command"]));
   // from worker
-  if(_workers.find(cp) != _workers.end()){
+  if(_refWorkers.find(cp) != _refWorkers.end()){
     switch (mtype){
       case ZM_Base::messType::taskError:
       case ZM_Base::messType::taskSuccess: 
       case ZM_Base::messType::taskRunning:
         checkFieldNum(activeTask);
-        _workers[cp].activeTask = stoi(mess["activeTask"]);   // no 'break' - I know
+        _refWorkers[cp]->activeTask = stoi(mess["activeTask"]);   // no 'break' - I know
       case ZM_Base::messType::taskPause:
       case ZM_Base::messType::taskStart:
       case ZM_Base::messType::taskStop:
         checkFieldNum(taskId);
-        _messToDB.push(ZM_DB::messSchedr{mtype, _workers[cp].id,
+        _messToDB.push(ZM_DB::messSchedr{mtype, _refWorkers[cp]->id,
                                                 stoull(mess["taskId"]),
-                                                _workers[cp].activeTask,
+                                                _refWorkers[cp]->activeTask,
                                                 _schedr.activeTask});
         break;
       case ZM_Base::messType::justStartWorker:
-        _workers[cp].ste = ZM_Base::state::run;
-        _workers[cp].activeTask = 0;
-        _messToDB.push(ZM_DB::messSchedr{mtype, _workers[cp].id});
+        _refWorkers[cp]->ste = ZM_Base::state::run;
+        _refWorkers[cp]->activeTask = 0;
+        _messToDB.push(ZM_DB::messSchedr{mtype, _refWorkers[cp]->id});
         break;
       case ZM_Base::messType::progress:
         checkFieldNum(taskId);
         checkFieldNum(progress);
-        _messToDB.push(ZM_DB::messSchedr{mtype, _workers[cp].id,
+        _messToDB.push(ZM_DB::messSchedr{mtype, _refWorkers[cp]->id,
                                          stoull(mess["taskId"]),
-                                         _workers[cp].activeTask,
+                                         _refWorkers[cp]->activeTask,
                                          _schedr.activeTask,
                                          stoi(mess["progress"])});
         break;
       case ZM_Base::messType::pingWorker:
-        _workers[cp].isActive = true;
+        _refWorkers[cp]->isActive = true;
         break;
       default: statusMess("receiveHandler unknown command: " + mess["command"]);
         break;
     }    
-    _workers[cp].isActive = true;
+    _refWorkers[cp]->isActive = true;
   }
   // from manager
   else{
@@ -127,14 +127,14 @@ void receiveHandler(const string& cp, const string& data){
         break;
       case ZM_Base::messType::pauseWorker:
         checkField(workerConnPnt);
-        _workers[mess["workerConnPnt"]].ste = ZM_Base::state::pause;
+        _refWorkers[mess["workerConnPnt"]]->ste = ZM_Base::state::pause;
         break;
       case ZM_Base::messType::startSchedr:
         _schedr.ste = ZM_Base::state::run;
         break;
       case ZM_Base::messType::startWorker:
         checkField(workerConnPnt);
-        _workers[mess["workerConnPnt"]].ste = ZM_Base::state::run;  
+        _refWorkers[mess["workerConnPnt"]]->ste = ZM_Base::state::run;  
         break;
       default: statusMess("receiveHandler unknown command: " + mess["command"]);
         break;
