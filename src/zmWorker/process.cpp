@@ -23,63 +23,57 @@
 // THE SOFTWARE.
 //
 
+#include <unistd.h>
+#include <signal.h>
+#include <sys/wait.h>
+#include <sys/types.h>
+#include <errno.h>
 #include "process.h"
 
 namespace ZM_Aux{
 
-Process::Process(const std::string& application, const std::string& args){
-  auto pid = fork();
-  if (pid == -1){
-      perror("fork()");
-  }
-  else if (pid == 0){
+Process::Process(const std::string& application, const std::string& args, std::string& err){
+  
+  sigset_t blockMask, origMask;
+  struct sigaction saIgnore, saOrigQuit, saOrigInt, saDefault;
+      
+  sigemptyset(&blockMask);          /* block SIGCHLD */
+  sigaddset(&blockMask, SIGCHLD);
+  sigprocmask(SIG_BLOCK, &blockMask, &origMask);
+
+  saIgnore.sa_handler = SIG_IGN;    /* ignor SIGINT и SIGQUIT */
+  saIgnore.sa_flags = 0;
+  sigemptyset(&saIgnore.sa_mask);
+  sigaction(SIGINT, &saIgnore, &saOrigInt);
+  sigaction(SIGQUIT, &saIgnore, &saOrigQuit);
     
-    execvp(application, args.data());
-
-  }else{
-    // pid_ = pid;
-
-    // char err[sizeof(int)];
-    // auto bytes = err_pipe.read(err, sizeof(int));
-    // if (bytes == sizeof(int)){
-    // int ec = 0;
-    // std::memcpy(&ec, err, sizeof(int));
-    // throw exception{"Failed to exec process: "
-    //                 + std::system_category().message(ec)};
-    // }else{
-    // err_pipe.close();
-    // }
-  }
+  int savedErrno;
+  switch (_pid = fork()) {
+    case -1:                        
+      _status = -1;
+      break;                        
+    case 0:                        
+      saDefault.sa_handler = SIG_DFL;
+      saDefault.sa_flags = 0;
+      sigemptyset(&saDefault.sa_mask);
+      if (saOrigInt.sa_handler != SIG_IGN)
+        sigaction(SIGINT, &saDefault, NULL);
+      if (saOrigQuit.sa_handler != SIG_IGN)
+        sigaction(SIGQUIT, &saDefault, NULL);
+      sigprocmask(SIG_SETMASK, &origMask, NULL);
+      execl(application.c_str(), args.c_str(), (char *) NULL);
+      _exit(127);                  
+    default:
+      break;
+ }
+ savedErrno = errno; 
+ sigprocmask(SIG_SETMASK, &origMask, NULL);
+ sigaction(SIGINT, &saOrigInt, NULL);
+ sigaction(SIGQUIT, &saOrigQuit, NULL);
+ errno = savedErrno;
 }
-Process::~Process(){
-  //  wait();
-}
-void Process::wait(){
-  // if (!waited_){
-  //   waitpid(pid_, &status_, 0);
-  //   pid_ = -1;
-  //   waited_ = true;
-  // }
-}
-bool Process::running() const{
-  //return ::procxx::running(*this);
-}
-bool Process::exited() const{
-  // if (!waited_)
-  //     throw exception{"process::wait() not yet called"};
-  // return WIFEXITED(status_);
-}
-bool Process::killed() const{
-  // if (!waited_)
-  //     throw exception{"process::wait() not yet called"};
-  // return WIFSIGNALED(status_);
-}
-bool Process::stopped() const{
-  // if (!waited_)
-  //     throw exception{"process::wait() not yet called"};
-  // return WIFSTOPPED(status_);
-}
-int Process::code() const{
+Process::~Process(){}
+void checkState(){
   // if (!waited_)
   //     throw exception{"process::wait() not yet called"};
   // if (exited())
@@ -88,6 +82,6 @@ int Process::code() const{
   //     return WTERMSIG(status_);
   // if (stopped())
   //     return WSTOPSIG(status_);
-  return -1;
+  return;
 }
 };

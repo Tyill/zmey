@@ -33,18 +33,11 @@ class Process{
     bool _waited = false;
     int _status = 0;
   public:
-    Process(const std::string& app, const std::string& args);
+    Process(const std::string& app, const std::string& args, std::string& err);
     Process(Process&&) = default;
     Process(const Process&) = delete;
     Process& operator=(Process&) = delete;
-    ~Process();
-    void wait();    
-    bool waited() const;   
-    bool running() const;   
-    bool exited() const;    
-    bool killed() const;  
-    bool stopped() const;    
-    int code() const;   
-    void close();
+    ~Process();  
+    void checkState();
 };
 }

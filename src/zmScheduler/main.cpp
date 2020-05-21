@@ -23,6 +23,7 @@
 // THE SOFTWARE.
 //
 
+#include <signal.h>
 #include <future>
 #include <iostream>
 #include <unordered_map>
@@ -53,6 +54,7 @@ ZM_Aux::QueueThrSave<ZM_Base::task> _tasks;
 ZM_Aux::QueueThrSave<ZM_DB::messSchedr> _messToDB;
 unique_ptr<ZM_Aux::Logger> _pLog = nullptr;
 ZM_Base::scheduler _schedr;
+bool _fClose = false;
 
 struct params{
   bool logEna = false;
@@ -66,7 +68,7 @@ struct params{
 params _prms;
 
 void statusMess(const string& mess){
-  cout << ZM_Aux::currDateTime() << mess << std::endl;
+  cout << ZM_Aux::currDateTime() << " " << mess << std::endl;
   if (_pLog)
     _pLog->writeMess(mess);
 }
@@ -111,13 +113,21 @@ void parseArgs(int argc, char* argv[], params& outPrms){
   }    
 }
 
+void closeHandler(int sig){
+  _fClose = true;
+}
+
 int main(int argc, char* argv[]){
 
   parseArgs(argc, argv, _prms);
   
   if (_prms.logEna){
     _pLog = unique_ptr<ZM_Aux::Logger>(new ZM_Aux::Logger("zmSchedr.log", ""));
-  }
+  }    
+ // signal(SIGHUP, initHandler);
+  signal(SIGINT, closeHandler);
+  signal(SIGTERM, closeHandler);
+
   // TCP server
   string err;
   if (ZM_Tcp::startServer(_prms.connectPnt, err)){
@@ -134,12 +144,14 @@ int main(int argc, char* argv[]){
   }else{
     statusMess("DB connect error, not correct params -dbServer or -dbName: " + 
       _prms.dbServer + " " + _prms.dbName + " " + db.getLastError());
+    ZM_Tcp::stopServer();
     return -1;
   }
   // schedr from DB
   db.getSchedr(_prms.connectPnt, _schedr);
   if (_schedr.id == 0){
     statusMess("Schedr not found in DB for connectPnt " + _prms.connectPnt);
+    ZM_Tcp::stopServer();
     return -1;
   }
   // prev tasks and workers
@@ -158,7 +170,7 @@ int main(int argc, char* argv[]){
     });                                                                           \
   }
   // main cycle
-  while (true){
+  while (!_fClose){
     timer.updateCycTime();   
 
     // get new tasks from DB
@@ -182,6 +194,8 @@ int main(int argc, char* argv[]){
     if (timer.getCTime() < minCycleTimeMS){
       ZM_Aux::sleepMs(minCycleTimeMS - timer.getCTime());
     }
-  }  
+  }
+  ZM_Tcp::stopServer();
+
   return 0;
 }
