@@ -26,18 +26,17 @@
 
 #include <string>
 
-namespace ZM_Aux{
-
 class Process{
-    pid_t _pid = -1;  
-    bool _waited = false;
-    int _status = 0;
+    pid_t _pid = -1; 
   public:
-    Process(const std::string& app, const std::string& args, std::string& err);
+    Process(const std::string& app, const std::string& args);
     Process(Process&&) = default;
     Process(const Process&) = delete;
     Process& operator=(Process&) = delete;
     ~Process();  
-    void checkState();
+    std::string getErrorStr();
+    pid_t getPidId();
+    void pause();
+    void start();
+    void stop();
 };
-}

@@ -25,5 +25,11 @@
 #pragma once
 
 #include <string>
+#include "zmBase/structurs.h"
 
-void statusMess(const std::string& mess);
+struct message{
+  int id;
+  uint64_t taskId;
+  ZM_Base::messType messType;
+  bool isErrorSend;
+};

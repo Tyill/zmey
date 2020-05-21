@@ -78,6 +78,10 @@ public:
     std::unique_ptr<node> const oldHead = tryPopHead(value);    
     return oldHead.get() != nullptr;
   }
+  T front(){
+    std::lock_guard<std::mutex> lock(_headMtx);
+    return *_head->data;
+  }
   int size(){
     return _sz;
   }

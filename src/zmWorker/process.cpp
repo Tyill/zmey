@@ -30,9 +30,7 @@
 #include <errno.h>
 #include "process.h"
 
-namespace ZM_Aux{
-
-Process::Process(const std::string& application, const std::string& args, std::string& err){
+Process::Process(const std::string& application, const std::string& args){
   
   sigset_t blockMask, origMask;
   struct sigaction saIgnore, saOrigQuit, saOrigInt, saDefault;
@@ -46,11 +44,9 @@ Process::Process(const std::string& application, const std::string& args, std::s
   sigemptyset(&saIgnore.sa_mask);
   sigaction(SIGINT, &saIgnore, &saOrigInt);
   sigaction(SIGQUIT, &saIgnore, &saOrigQuit);
-    
-  int savedErrno;
+  
   switch (_pid = fork()) {
-    case -1:                        
-      _status = -1;
+    case -1:    
       break;                        
     case 0:                        
       saDefault.sa_handler = SIG_DFL;
@@ -66,22 +62,30 @@ Process::Process(const std::string& application, const std::string& args, std::s
     default:
       break;
  }
- savedErrno = errno; 
+ int savedErrno = errno; 
  sigprocmask(SIG_SETMASK, &origMask, NULL);
  sigaction(SIGINT, &saOrigInt, NULL);
  sigaction(SIGQUIT, &saOrigQuit, NULL);
  errno = savedErrno;
 }
-Process::~Process(){}
-void checkState(){
-  // if (!waited_)
-  //     throw exception{"process::wait() not yet called"};
-  // if (exited())
-  //     return WEXITSTATUS(status_);
-  // if (killed())
-  //     return WTERMSIG(status_);
-  // if (stopped())
-  //     return WSTOPSIG(status_);
-  return;
+Process::~Process(){
+
 }
-};
+std::string Process::getErrorStr(){
+
+  return ""; 
+}
+pid_t Process::getPidId(){
+
+  return _pid;
+}
+
+void Process::pause(){
+
+}
+void Process::start(){
+
+}
+void Process::stop(){
+  
+}

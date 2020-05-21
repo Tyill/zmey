@@ -22,23 +22,29 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-
+#include <signal.h>
 #include <map>
+#include <queue>
 #include <iostream>
 #include "zmCommon/tcp.h"
 #include "zmCommon/timerDelay.h"
 #include "zmCommon/auxFunc.h"
 #include "zmBase/structurs.h"
 #include "zmCommon/logger.h"
+#include "zmCommon/queue.h"
+#include "structurs.h"
 
 using namespace std;
 
 void receiveHandler(const string& cp, const string& data);
 void sendHandler(const string& cp, const string& data, const std::error_code& ec);
+void sendMessToSchedr(const message&);
 void checkStatusTasks(const ZM_Base::worker&);
 
 unique_ptr<ZM_Aux::Logger> _pLog = nullptr;
+ZM_Aux::QueueThrSave<message> _messToSchedr;
 ZM_Base::worker _worker;
+bool _fClose = false;
 
 struct params{
   bool logEna = false;
@@ -89,6 +95,10 @@ void parseArgs(int argc, char* argv[], params& outPrms){
   }    
 }
 
+void closeHandler(int sig){
+  _fClose = true;
+}
+
 int main(int argc, char* argv[]){
 
   parseArgs(argc, argv, _prms);
@@ -96,6 +106,10 @@ int main(int argc, char* argv[]){
   if (_prms.logEna){
     _pLog = unique_ptr<ZM_Aux::Logger>(new ZM_Aux::Logger("zmWorker.log", ""));
   }
+  // signal(SIGHUP, initHandler);
+  signal(SIGINT, closeHandler);
+  signal(SIGTERM, closeHandler);
+
   // TCP server
   string err;
   if (ZM_Tcp::startServer(_prms.connectPnt, err, 1)){
@@ -111,14 +125,20 @@ int main(int argc, char* argv[]){
   const int minCycleTimeMS = 5;
 
   // main cycle
-  while (true){
+  int messIdMem = -1;
+  while (!_fClose){
     timer.updateCycTime();   
 
     // check status of tasks
-    if(timer.onDelTmSec(true, _prms.checkTasksTOutSec, 1)){
-      timer.onDelTmSec(false, _prms.checkTasksTOutSec, 1);    
-      checkStatusTasks(_worker);
+    checkStatusTasks(_worker);
+    
+    // send first mess to schedr (transfer constantly until it receives)
+    auto firstMess = !_messToSchedr.empty() ? _messToSchedr.front() : message{messIdMem};
+    if ((firstMess.id != messIdMem) || firstMess.isErrorSend){ 
+      messIdMem = firstMess.id; 
+      sendMessToSchedr(firstMess);
     }
+   
     // added delay
     if (timer.getCTime() < minCycleTimeMS){
       ZM_Aux::sleepMs(minCycleTimeMS - timer.getCTime());
