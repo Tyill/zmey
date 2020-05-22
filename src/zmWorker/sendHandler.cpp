@@ -24,10 +24,25 @@
 //
 #include <string>
 #include <system_error>
+#include "zmCommon/queue.h" 
+#include "zmCommon/serial.h"
+#include "structurs.h"
 
 using namespace std;
 
+extern bool _isSendMess;
+extern ZM_Aux::QueueThrSave<message> _messToSchedr;
+
 void sendHandler(const string& cp, const string& data, const std::error_code& ec){
 
-
+  auto mess = ZM_Aux::deserialn(data);
+  ZM_Base::messType mtype = ZM_Base::messType(stoi(mess["command"]));
+  if (mtype == ZM_Base::messType::progress || mtype == ZM_Base::messType::pingWorker){
+    return;
+  }
+  if (!ec){
+    message mess;
+    _messToSchedr.tryPop(mess);    
+  }
+  _isSendMess = true;
 }

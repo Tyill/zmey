@@ -75,7 +75,7 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
     } 
   }
   // error from manager
-  else{
+  else if (ec){
     statusMess("sendHandler manager not response, cp: " + cp);
   }  
 }

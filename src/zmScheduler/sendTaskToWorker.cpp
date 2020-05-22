@@ -66,13 +66,13 @@ void sendTaskToWorker(unordered_map<std::string, ZM_Base::worker>& workers,
       }); 
     if(iWr != refWorkers.end()){
       map<string, string> data{
-        make_pair("command", to_string((int)ZM_Base::messType::newTask)),
-        make_pair("taskId", to_string(t.id)),
-        make_pair("params", t.params), 
-        make_pair("script", t.script),
-        make_pair("exrType", to_string(int(t.exrType))),
+        make_pair("command",         to_string((int)ZM_Base::messType::newTask)),
+        make_pair("taskId",          to_string(t.id)),
+        make_pair("params",          t.params), 
+        make_pair("script",          t.script),
+        make_pair("exrType",         to_string(int(t.exrType))),
         make_pair("averDurationSec", to_string(t.averDurationSec)), 
-        make_pair("maxDurationSec", to_string(t.maxDurationSec))
+        make_pair("maxDurationSec",  to_string(t.maxDurationSec))
       };      
       ++(*iWr)->activeTask;
       ZM_Tcp::sendData((*iWr)->connectPnt, ZM_Aux::serialn(data));

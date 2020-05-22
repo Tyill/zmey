@@ -82,7 +82,6 @@ namespace ZM_Base{
 
   struct scheduler{
     uint64_t id = 0;          // id tblScheduler in DB
-    uint64_t managerId = 0;   // id tblManager in DB
     state ste;
     int capasityTask = 10000; // the number of tasks that can be performed simultaneously  
     int activeTask = 0;       // number of running tasks
@@ -92,8 +91,6 @@ namespace ZM_Base{
 
   struct worker{
     uint64_t id = 0;          // id tblWorker in DB
-    uint64_t managerId = 0;   // id tblManager in DB
-    uint64_t schedrId = 0;    // id tblScheduler in DB
     state ste;
     executorType exrType;     // executor for task
     int capasityTask = 10;    // the number of tasks that can be performed simultaneously  

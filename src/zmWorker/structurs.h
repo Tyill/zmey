@@ -28,8 +28,8 @@
 #include "zmBase/structurs.h"
 
 struct message{
-  int id;
   uint64_t taskId;
   ZM_Base::messType messType;
-  bool isErrorSend;
+  int activeTask;
+  int progress;
 };

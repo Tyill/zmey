@@ -38,18 +38,23 @@ using namespace std;
 
 void receiveHandler(const string& cp, const string& data);
 void sendHandler(const string& cp, const string& data, const std::error_code& ec);
-void sendMessToSchedr(const message&);
+void sendMessToSchedr(const std::string& schedrConnPnt, const message&);
+void progressToSchedr(const std::string& schedrConnPnt);
+void pingToSchedr(const std::string& schedrConnPnt);
 void checkStatusTasks(const ZM_Base::worker&);
 
 unique_ptr<ZM_Aux::Logger> _pLog = nullptr;
 ZM_Aux::QueueThrSave<message> _messToSchedr;
 ZM_Base::worker _worker;
-bool _fClose = false;
+bool _fClose = false,
+     _isSendMess = false;
 
 struct params{
   bool logEna = false;
   int capasityTask = 10;
-  int checkTasksTOutSec = 120; 
+  int checkTasksTOutSec = 120;
+  int progressTasksTOutSec = 30;
+  int pingSchedrTOutSec = 20; 
   string connectPnt = "localhost:4146";
   string schedrConnPnt;
 };
@@ -87,12 +92,16 @@ void parseArgs(int argc, char* argv[], params& outPrms){
   if (sprms.find("schedrConnPnt") != sprms.end()){
     outPrms.schedrConnPnt = sprms["schedrConnPnt"];
   }
-  if (sprms.find("capasityTask") != sprms.end() && ZM_Aux::isNumber(sprms["capasityTask"])){
-    outPrms.capasityTask = stoi(sprms["capasityTask"]);
-  }
-  if (sprms.find("checkTasksTOutSec") != sprms.end() && ZM_Aux::isNumber(sprms["checkTasksTOutSec"])){
-    outPrms.checkTasksTOutSec = stoi(sprms["checkTasksTOutSec"]);
-  }    
+#define SET_PARAM_NUM(nm) \
+  if (sprms.find("nm") != sprms.end() && ZM_Aux::isNumber(sprms["nm"])){ \
+    outPrms.nm = stoi(sprms["nm"]); \
+  }  
+  SET_PARAM_NUM(capasityTask);
+  SET_PARAM_NUM(checkTasksTOutSec);
+  SET_PARAM_NUM(progressTasksTOutSec);
+  SET_PARAM_NUM(pingSchedrTOutSec);
+
+#undef SET_PARAM_NUM
 }
 
 void closeHandler(int sig){
@@ -133,12 +142,20 @@ int main(int argc, char* argv[]){
     checkStatusTasks(_worker);
     
     // send first mess to schedr (transfer constantly until it receives)
-    auto firstMess = !_messToSchedr.empty() ? _messToSchedr.front() : message{messIdMem};
-    if ((firstMess.id != messIdMem) || firstMess.isErrorSend){ 
-      messIdMem = firstMess.id; 
-      sendMessToSchedr(firstMess);
+    if (_isSendMess && !_messToSchedr.empty()){ 
+      _isSendMess = false;
+      sendMessToSchedr(_prms.schedrConnPnt, _messToSchedr.front());
     }
-   
+    // ping to schedr
+    if(timer.onDelTmMS(true, _prms.pingSchedrTOutSec, 0)){
+      timer.onDelTmMS(false, _prms.pingSchedrTOutSec, 0);
+      pingToSchedr(_prms.schedrConnPnt);
+    }
+    // progress of tasks
+    if(timer.onDelTmMS(true, _prms.progressTasksTOutSec, 1)){
+      timer.onDelTmMS(false, _prms.progressTasksTOutSec, 1);
+      progressToSchedr(_prms.schedrConnPnt);
+    }
     // added delay
     if (timer.getCTime() < minCycleTimeMS){
       ZM_Aux::sleepMs(minCycleTimeMS - timer.getCTime());
