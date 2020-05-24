@@ -30,7 +30,7 @@
 
 using namespace std;
 
-extern bool _isSendMess;
+extern bool _isSendAck;
 extern ZM_Aux::QueueThrSave<message> _messToSchedr;
 
 void sendHandler(const string& cp, const string& data, const std::error_code& ec){
@@ -44,5 +44,5 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
     message mess;
     _messToSchedr.tryPop(mess);    
   }
-  _isSendMess = true;
+  _isSendAck = true;
 }

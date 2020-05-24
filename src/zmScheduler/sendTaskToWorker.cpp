@@ -36,14 +36,6 @@ using namespace std;
 ZM_Aux::CounterTick ctick;
 vector<ZM_Base::worker*> refWorkers;
 
-std::string getExecutorStr(ZM_Base::executorType et){
-  switch (et){
-    case ZM_Base::executorType::cmd: return "CMD";
-    case ZM_Base::executorType::bash: return "BASH";
-    case ZM_Base::executorType::python: return "PYTHON";
-    default: return "";
-  }
-}
 void sendTaskToWorker(unordered_map<std::string, ZM_Base::worker>& workers,
                       ZM_Aux::QueueThrSave<ZM_Base::task>& tasks){  
   
@@ -83,8 +75,11 @@ void sendTaskToWorker(unordered_map<std::string, ZM_Base::worker>& workers,
   if (!buffTask.empty()){ 
     // every 1000 cycle
     if (ctick(1000)){
-      statusMess("Not found available worker for task executor = " + 
-        getExecutorStr(buffTask[0].exrType));
+      string sTskId;
+      for(auto& t : buffTask){
+        sTskId += to_string(t.id) + " ";
+      }
+      statusMess("Not found available worker for tasks: " + sTskId);
     }
     for(auto& t : buffTask){
       tasks.push(move(t));

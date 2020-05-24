@@ -33,21 +33,23 @@
 #include "zmCommon/logger.h"
 #include "zmCommon/queue.h"
 #include "structurs.h"
+#include "process.h"
 
 using namespace std;
 
 void receiveHandler(const string& cp, const string& data);
 void sendHandler(const string& cp, const string& data, const std::error_code& ec);
 void sendMessToSchedr(const std::string& schedrConnPnt, const message&);
-void progressToSchedr(const std::string& schedrConnPnt);
+void progressToSchedr(const std::string& schedrConnPnt, const vector<Process>&);
 void pingToSchedr(const std::string& schedrConnPnt);
-void checkStatusTasks(const ZM_Base::worker&);
+void checkStatusTasks(const ZM_Base::worker&, vector<Process>&);
 
 unique_ptr<ZM_Aux::Logger> _pLog = nullptr;
 ZM_Aux::QueueThrSave<message> _messToSchedr;
+vector<Process> _procs;
 ZM_Base::worker _worker;
 bool _fClose = false,
-     _isSendMess = false;
+     _isSendAck = false;
 
 struct params{
   bool logEna = false;
@@ -139,11 +141,11 @@ int main(int argc, char* argv[]){
     timer.updateCycTime();   
 
     // check status of tasks
-    checkStatusTasks(_worker);
+    checkStatusTasks(_worker, _procs);
     
     // send first mess to schedr (transfer constantly until it receives)
-    if (_isSendMess && !_messToSchedr.empty()){ 
-      _isSendMess = false;
+    if (_isSendAck && !_messToSchedr.empty()){ 
+      _isSendAck = false;
       sendMessToSchedr(_prms.schedrConnPnt, _messToSchedr.front());
     }
     // ping to schedr
@@ -154,7 +156,7 @@ int main(int argc, char* argv[]){
     // progress of tasks
     if(timer.onDelTmMS(true, _prms.progressTasksTOutSec, 1)){
       timer.onDelTmMS(false, _prms.progressTasksTOutSec, 1);
-      progressToSchedr(_prms.schedrConnPnt);
+      progressToSchedr(_prms.schedrConnPnt, _procs);
     }
     // added delay
     if (timer.getCTime() < minCycleTimeMS){
