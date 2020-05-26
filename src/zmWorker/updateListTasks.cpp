@@ -26,6 +26,6 @@
 
 using namespace std;
 
-void checkStatusTasks(const ZM_Base::worker& worker){
+void updateListTasks(ZM_Aux::QueueThrSave<ZM_Base::task>&, vector<Process>&){
   
 }

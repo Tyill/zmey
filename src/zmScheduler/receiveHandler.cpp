@@ -80,14 +80,17 @@ void receiveHandler(const string& cp, const string& data){
         _workers[cp].activeTask = 0;
         _messToDB.push(ZM_DB::messSchedr{mtype, _workers[cp].id});
         break;
-      case ZM_Base::messType::progress:
-        checkFieldNum(taskId);
-        checkFieldNum(progress);
-        _messToDB.push(ZM_DB::messSchedr{mtype, _workers[cp].id,
-                                         stoull(mess["taskId"]),
-                                         _workers[cp].activeTask,
-                                         _schedr.activeTask,
-                                         stoi(mess["progress"])});
+      case ZM_Base::messType::progress:{
+        int tCnt = 0;
+        while(mess.find("taskId" + to_string(tCnt)) != mess.end()){
+          _messToDB.push(ZM_DB::messSchedr{mtype, _workers[cp].id,
+                                           stoull(mess["taskId" + to_string(tCnt)]),
+                                           _workers[cp].activeTask,
+                                           _schedr.activeTask,
+                                           stoi(mess["progress" + to_string(tCnt)])});
+          ++tCnt;
+        }
+        }
         break;
       case ZM_Base::messType::pingWorker:
         _workers[cp].isActive = true;

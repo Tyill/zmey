@@ -23,10 +23,53 @@
 // THE SOFTWARE.
 //
 #include <string>
+#include "zmCommon/serial.h"
+#include "zmCommon/auxFunc.h"
+#include "zmCommon/queue.h"
+#include "zmBase/structurs.h"
+#include "stdafx.h"
+#include "process.h" 
 
 using namespace std;
 
+extern vector<Process> _procs;
+extern ZM_Aux::QueueThrSave<ZM_Base::task> _newTasks;
+
 void receiveHandler(const string& cp, const string& data){
-
-
+    
+  auto mess = ZM_Aux::deserialn(data);
+  if (mess.empty()){
+    statusMess("receiveHandler Error deserialn data from: " + cp);
+    return;
+  }
+#define checkFieldNum(field) \
+  if ((mess.find("field") == mess.end()) || !ZM_Aux::isNumber(mess["field"])){  \
+    statusMess("receiveHandler Error mess.find(field) == mess.end()) || !ZM_Aux::isNumber(mess[field]) from: " + cp);  \
+    return;  \
+  } 
+#define checkField(field) \
+  if (mess.find("field") == mess.end()){  \
+    statusMess("receiveHandler Error mess.find(field) == mess.end() from: " + cp);  \
+    return;  \
+  }
+  checkFieldNum(command);
+  ZM_Base::messType mtype = ZM_Base::messType(stoi(mess["command"]));  
+  switch (mtype){
+    case ZM_Base::messType::newTask:
+      checkFieldNum(taskId);
+      checkField(params);
+      checkField(script);
+      checkFieldNum(averDurationSec);
+      checkFieldNum(maxDurationSec);
+      _newTasks.push(ZM_Base::task{stoll(mess["taskId"]),
+                                   ZM_Base::state::ready,
+                                   (ZM_Base::executorType)stoi(mess["exrType"]),
+                                   stoi(mess["averDurationSec"]),
+                                   stoi(mess["maxDurationSec"]),
+                                   mess["params"],
+                                   mess["script"]});
+      break;
+    case ZM_Base::messType::taskPause:
+    case ZM_Base::messType::taskStart:
+    case ZM_Base::messType::taskStop:
 }

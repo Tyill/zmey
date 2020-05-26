@@ -42,12 +42,12 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
 void sendMessToSchedr(const std::string& schedrConnPnt, const message&);
 void progressToSchedr(const std::string& schedrConnPnt, const vector<Process>&);
 void pingToSchedr(const std::string& schedrConnPnt);
-void checkStatusTasks(const ZM_Base::worker&, vector<Process>&);
+void updateListTasks(ZM_Aux::QueueThrSave<ZM_Base::task>&, vector<Process>&);
 
 unique_ptr<ZM_Aux::Logger> _pLog = nullptr;
 ZM_Aux::QueueThrSave<message> _messToSchedr;
+ZM_Aux::QueueThrSave<ZM_Base::task> _newTasks;
 vector<Process> _procs;
-ZM_Base::worker _worker;
 bool _fClose = false,
      _isSendAck = false;
 
@@ -121,6 +121,9 @@ int main(int argc, char* argv[]){
   signal(SIGINT, closeHandler);
   signal(SIGTERM, closeHandler);
 
+  // on start
+  _messToSchedr.push(message{0, ZM_Base::messType::justStartWorker});
+
   // TCP server
   string err;
   if (ZM_Tcp::startServer(_prms.connectPnt, err, 1)){
@@ -134,29 +137,28 @@ int main(int argc, char* argv[]){
   
   ZM_Aux::TimerDelay timer;
   const int minCycleTimeMS = 5;
-
+  
   // main cycle
-  int messIdMem = -1;
   while (!_fClose){
     timer.updateCycTime();   
 
-    // check status of tasks
-    checkStatusTasks(_worker, _procs);
-    
     // send first mess to schedr (transfer constantly until it receives)
     if (_isSendAck && !_messToSchedr.empty()){ 
       _isSendAck = false;
       sendMessToSchedr(_prms.schedrConnPnt, _messToSchedr.front());
     }
-    // ping to schedr
-    if(timer.onDelTmMS(true, _prms.pingSchedrTOutSec, 0)){
-      timer.onDelTmMS(false, _prms.pingSchedrTOutSec, 0);
-      pingToSchedr(_prms.schedrConnPnt);
-    }
+    // update list of tasks
+    updateListTasks(_newTasks, _procs);
+        
     // progress of tasks
-    if(timer.onDelTmMS(true, _prms.progressTasksTOutSec, 1)){
-      timer.onDelTmMS(false, _prms.progressTasksTOutSec, 1);
+    if(timer.onDelTmSec(true, _prms.progressTasksTOutSec, 0)){
+      timer.onDelTmSec(false, _prms.progressTasksTOutSec, 0);
       progressToSchedr(_prms.schedrConnPnt, _procs);
+    }
+    // ping to schedr
+    if(timer.onDelTmSec(true, _prms.pingSchedrTOutSec, 1)){
+      timer.onDelTmSec(false, _prms.pingSchedrTOutSec, 1);
+      pingToSchedr(_prms.schedrConnPnt);
     }
     // added delay
     if (timer.getCTime() < minCycleTimeMS){

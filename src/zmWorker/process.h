@@ -25,17 +25,20 @@
 #pragma once
 
 #include <string>
+#include "zmBase/structurs.h"
 
 class Process{
     pid_t _pid = -1; 
+    ZM_Base::task _task;
   public:
-    Process(const std::string& app, const std::string& args);
+    Process(const ZM_Base::task&);
     Process(Process&&) = default;
     Process(const Process&) = delete;
     Process& operator=(Process&) = delete;
     ~Process();  
     std::string getErrorStr();
-    pid_t getPidId();
+    int getProgress() const;
+    ZM_Base::task getTask() const;
     void pause();
     void start();
     void stop();
