@@ -28,7 +28,7 @@
 
 using namespace std;
 
-void taskStateChangeCBack(uint64_t taskdId, ZM_Base::state newState, const std::string& result);
+void taskStateChangeCBack(uint64_t taskdId, ZM_Base::stateType newState, const std::string& result);
 
 void updateListTasks(ZM_Aux::QueueThrSave<ZM_Base::task>& newTasks, vector<Process>& procs){
   
@@ -38,10 +38,10 @@ void updateListTasks(ZM_Aux::QueueThrSave<ZM_Base::task>& newTasks, vector<Proce
   }
   
   for (size_t i = 0; i < procs.size(); ++i){
-    ZM_Base::state tskState = procs[i].getTask().ste;
-    if ((tskState == ZM_Base::state::completed) ||
-        (tskState == ZM_Base::state::error) || 
-        (tskState == ZM_Base::state::stop)){
+    ZM_Base::stateType tskState = procs[i].getTask().state;
+    if ((tskState == ZM_Base::stateType::completed) ||
+        (tskState == ZM_Base::stateType::error) || 
+        (tskState == ZM_Base::stateType::stop)){
       procs.erase(procs.begin() + i);
       --i;
     }

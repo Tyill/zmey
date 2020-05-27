@@ -56,7 +56,7 @@ unique_ptr<ZM_Aux::Logger> _pLog = nullptr;
 ZM_Base::scheduler _schedr;
 bool _fClose = false;
 
-struct params{
+struct config{
   bool logEna = false;
   int capasityTask = 10000;
   int sendAllMessTOutMS = 500;
@@ -65,7 +65,7 @@ struct params{
   string dbServer;
   string dbName;  
 };
-params _prms;
+config _cng;
 
 void statusMess(const string& mess){
   cout << ZM_Aux::currDateTime() << " " << mess << std::endl;
@@ -73,7 +73,7 @@ void statusMess(const string& mess){
     _pLog->writeMess(mess);
 }
 
-void parseArgs(int argc, char* argv[], params& outPrms){ 
+void parseArgs(int argc, char* argv[], config& outCng){ 
    
   string sargs;
   for (int i = 1; i < argc; ++i){
@@ -91,11 +91,11 @@ void parseArgs(int argc, char* argv[], params& outPrms){
     }
   }
   if (sprms.find("log") != sprms.end()){
-    outPrms.logEna = true;
+    outCng.logEna = true;
   }
 #define SET_PARAM(nm, prm) \
   if (sprms.find("nm") != sprms.end()){ \
-    outPrms.prm = sprms["nm"]; \
+    outCng.prm = sprms["nm"]; \
   }
   SET_PARAM(cp, connectPnt);
   SET_PARAM(dbs, dbServer);
@@ -103,7 +103,7 @@ void parseArgs(int argc, char* argv[], params& outPrms){
  
 #define SET_PARAM_NUM(nm, prm) \
   if (sprms.find("nm") != sprms.end() && ZM_Aux::isNumber(sprms["nm"])){ \
-    outPrms.prm = stoi(sprms["nm"]); \
+    outCng.prm = stoi(sprms["nm"]); \
   }  
   SET_PARAM_NUM(ctk, capasityTask);
   SET_PARAM_NUM(sdt, sendAllMessTOutMS);
@@ -119,9 +119,9 @@ void closeHandler(int sig){
 
 int main(int argc, char* argv[]){
 
-  parseArgs(argc, argv, _prms);
+  parseArgs(argc, argv, _cng);
   
-  if (_prms.logEna){
+  if (_cng.logEna){
     _pLog = unique_ptr<ZM_Aux::Logger>(new ZM_Aux::Logger("zmSchedr.log", ""));
   }    
  // signal(SIGHUP, initHandler);
@@ -130,27 +130,27 @@ int main(int argc, char* argv[]){
 
   // TCP server
   string err;
-  if (ZM_Tcp::startServer(_prms.connectPnt, err)){
+  if (ZM_Tcp::startServer(_cng.connectPnt, err)){
     ZM_Tcp::setReceiveCBack(receiveHandler);
     ZM_Tcp::setStsSendCBack(sendHandler);
-    statusMess("Tcp server running: " + _prms.connectPnt);
+    statusMess("Tcp server running: " + _cng.connectPnt);
   }else{
-    statusMess("Tcp server error, busy -connectPnt: " + _prms.connectPnt + " " + err);
+    statusMess("Tcp server error, busy -connectPnt: " + _cng.connectPnt + " " + err);
     return -1;
   }
   ZM_DB::DbProvider db(statusMess);
-  if (db.connect(_prms.dbServer, _prms.dbName)){
-    statusMess("DB connect success: " + _prms.dbServer + " " + _prms.dbName);
+  if (db.connect(_cng.dbServer, _cng.dbName)){
+    statusMess("DB connect success: " + _cng.dbServer + " " + _cng.dbName);
   }else{
     statusMess("DB connect error, not correct params -dbServer or -dbName: " + 
-      _prms.dbServer + " " + _prms.dbName + " " + db.getLastError());
+      _cng.dbServer + " " + _cng.dbName + " " + db.getLastError());
     ZM_Tcp::stopServer();
     return -1;
   }
   // schedr from DB
-  db.getSchedr(_prms.connectPnt, _schedr);
+  db.getSchedr(_cng.connectPnt, _schedr);
   if (_schedr.id == 0){
-    statusMess("Schedr not found in DB for connectPnt " + _prms.connectPnt);
+    statusMess("Schedr not found in DB for connectPnt " + _cng.connectPnt);
     ZM_Tcp::stopServer();
     return -1;
   }
@@ -174,20 +174,20 @@ int main(int argc, char* argv[]){
     timer.updateCycTime();   
 
     // get new tasks from DB
-    if((_tasks.size() < _schedr.capasityTask) && (_schedr.ste == ZM_Base::state::running)){
+    if((_tasks.size() < _schedr.capasityTask) && (_schedr.state == ZM_Base::stateType::running)){
       FUTURE_RUN(frGetNewTask, getNewTaskFromDB);
     }        
     // send task to worker    
     sendTaskToWorker(_workers, _tasks);    
 
     // send all mess to DB
-    if(timer.onDelTmMS(true, _prms.sendAllMessTOutMS, 0) && !_messToDB.empty()){
-      timer.onDelTmMS(false, _prms.sendAllMessTOutMS, 0);
+    if(timer.onDelTmMS(true, _cng.sendAllMessTOutMS, 0) && !_messToDB.empty()){
+      timer.onDelTmMS(false, _cng.sendAllMessTOutMS, 0);
       FUTURE_RUN(frSendAllMessToDB, sendAllMessToDB);
     }    
     // check status of workers
-    if(timer.onDelTmSec(true, _prms.checkWorkerTOutSec, 1)){
-      timer.onDelTmSec(false, _prms.checkWorkerTOutSec, 1);    
+    if(timer.onDelTmSec(true, _cng.checkWorkerTOutSec, 1)){
+      timer.onDelTmSec(false, _cng.checkWorkerTOutSec, 1);    
       checkStatusWorkers(_schedr, _workers, _messToDB);
     }
     // added delay

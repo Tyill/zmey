@@ -36,10 +36,10 @@ void checkStatusWorkers(const ZM_Base::scheduler& schedr,
                         ZM_Aux::QueueThrSave<ZM_DB::messSchedr>& messToDB){
    
   for(auto& w : workers){
-    if (!w.second.isActive && (w.second.ste == ZM_Base::state::running)){            
+    if (!w.second.isActive && (w.second.state == ZM_Base::stateType::running)){            
       messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::workerNotResponding,
                                       w.second.id});
-      w.second.ste = ZM_Base::state::notResponding;
+      w.second.state = ZM_Base::stateType::notResponding;
       w.second.activeTask = 0;
     }else{
       w.second.isActive = false;
@@ -49,7 +49,7 @@ void checkStatusWorkers(const ZM_Base::scheduler& schedr,
   // all inactive
   vector<ZM_Base::worker> wkrNotResp;
   for(auto& w : workers){
-    if (w.second.ste == ZM_Base::state::notResponding){
+    if (w.second.state == ZM_Base::stateType::notResponding){
       wkrNotResp.push_back(w.second);
     }
   }

@@ -54,7 +54,7 @@ namespace ZM_Base{
     python = 2,
   };  
    
-  enum class state{
+  enum class stateType{
     ready               = 0,
     start               = 1,
     running             = 2,
@@ -67,7 +67,7 @@ namespace ZM_Base{
 
   struct task{
     uint64_t id;              // id tblTask in DB
-    state ste;
+    stateType state;
     executorType exrType;     // executor for task
     int averDurationSec;      // estimated lead time 
     int maxDurationSec;       // maximum lead time
@@ -83,7 +83,7 @@ namespace ZM_Base{
 
   struct scheduler{
     uint64_t id = 0;          // id tblScheduler in DB
-    state ste;
+    stateType state;
     int capasityTask = 10000; // the number of tasks that can be performed simultaneously  
     int activeTask = 0;       // number of running tasks
     std::string connectPnt;   // connection point: IP or DNS ':' port
@@ -91,7 +91,7 @@ namespace ZM_Base{
 
   struct worker{
     uint64_t id = 0;          // id tblWorker in DB
-    state ste;
+    stateType state;
     executorType exrType;     // executor for task
     int capasityTask = 10;    // the number of tasks that can be performed simultaneously  
     int activeTask = 0;       // number of running tasks

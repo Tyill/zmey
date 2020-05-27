@@ -31,7 +31,7 @@
 class Process{
     pid_t _pid = -1; 
     ZM_Base::task _task;
-    using taskChangeType = void(uint64_t taskdId, ZM_Base::state, const std::string& result);
+    using taskChangeType = void(uint64_t taskdId, ZM_Base::stateType, const std::string& result);
     std::function<taskChangeType> _taskStateChangeCBack;
   public:
     Process(const ZM_Base::task&, std::function<taskChangeType>);

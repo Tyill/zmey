@@ -20,6 +20,6 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/3rdparty)
 
 add_subdirectory(zmCommon)
 add_subdirectory(zmDbProvider)
-#add_subdirectory(zmManager)
 add_subdirectory(zmScheduler)
 add_subdirectory(zmWorker)
+#add_subdirectory(zmey)

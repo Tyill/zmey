@@ -52,17 +52,7 @@ ZM_Base::worker _worker;
 bool _fClose = false,
      _isSendAck = false;
 
-struct params{
-  bool logEna = false;
-  int capasityTask = 10;
-  int checkTasksTOutSec = 120;
-  int progressTasksTOutSec = 30;
-  int pingSchedrTOutSec = 20; 
-  string connectPnt = "localhost:4146";
-  string schedrConnPnt;
-  ZM_Base::executorType executor = ZM_Base::executorType::bash;
-};
-params _prms;
+config _cng;
 
 void statusMess(const string& mess){
   cout << ZM_Aux::currDateTime() << mess << std::endl;
@@ -70,7 +60,7 @@ void statusMess(const string& mess){
     _pLog->writeMess(mess);
 }
 
-void parseArgs(int argc, char* argv[], params& outPrms){
+void parseArgs(int argc, char* argv[], config& outCng){
   
   string sargs;
   for (int i = 1; i < argc; ++i){
@@ -88,25 +78,19 @@ void parseArgs(int argc, char* argv[], params& outPrms){
     }
   }
   if (sprms.find("log") != sprms.end()){
-    outPrms.logEna = true;
-  }
-  if (sprms.find("exr") != sprms.end()){
-    if (sprms["exr"] == "cmd"){
-      outPrms.executor = ZM_Base::executorType::cmd;
-    }else if (sprms["exr"] == "python"){
-      outPrms.executor = ZM_Base::executorType::python;
-    }
-  }
+    outCng.logEna = true;
+  }  
 #define SET_PARAM(nm, prm) \
   if (sprms.find("nm") != sprms.end()){ \
-    outPrms.prm = sprms["nm"]; \
+    outCng.prm = sprms["nm"]; \
   }
   SET_PARAM(cp, connectPnt);
   SET_PARAM(scp, schedrConnPnt);
-  
+  SET_PARAM(exr, executor);
+ 
 #define SET_PARAM_NUM(nm, prm) \
   if (sprms.find("nm") != sprms.end() && ZM_Aux::isNumber(sprms["nm"])){ \
-    outPrms.prm = stoi(sprms["nm"]); \
+    outCng.prm = stoi(sprms["nm"]); \
   }  
   SET_PARAM_NUM(ctk, capasityTask);
   SET_PARAM_NUM(cht, checkTasksTOutSec);
@@ -123,9 +107,9 @@ void closeHandler(int sig){
 
 int main(int argc, char* argv[]){
 
-  parseArgs(argc, argv, _prms);
+  parseArgs(argc, argv, _cng);
   
-  if (_prms.logEna){
+  if (_cng.logEna){
     _pLog = unique_ptr<ZM_Aux::Logger>(new ZM_Aux::Logger("zmWorker.log", ""));
   }
   // signal(SIGHUP, initHandler);
@@ -137,12 +121,12 @@ int main(int argc, char* argv[]){
 
   // TCP server
   string err;
-  if (ZM_Tcp::startServer(_prms.connectPnt, err, 1)){
+  if (ZM_Tcp::startServer(_cng.connectPnt, err, 1)){
     ZM_Tcp::setReceiveCBack(receiveHandler);
     ZM_Tcp::setStsSendCBack(sendHandler);
-    statusMess("Tcp server running: " + _prms.connectPnt);
+    statusMess("Tcp server running: " + _cng.connectPnt);
   }else{
-    statusMess("Tcp server error, busy -connectPnt: " + _prms.connectPnt + " " + err);
+    statusMess("Tcp server error, busy -connectPnt: " + _cng.connectPnt + " " + err);
     return -1;
   }  
   ZM_Aux::TimerDelay timer;
@@ -155,20 +139,20 @@ int main(int argc, char* argv[]){
     // send mess to schedr (send constantly until it receives)
     if (_isSendAck && !_messToSchedr.empty()){ 
       _isSendAck = false;
-      sendMessToSchedr(_worker, _prms.schedrConnPnt, _messToSchedr.front());
+      sendMessToSchedr(_worker, _cng.schedrConnPnt, _messToSchedr.front());
     }
     // update list of tasks
     updateListTasks(_newTasks, _procs);
 
     // progress of tasks
-    if(timer.onDelTmSec(true, _prms.progressTasksTOutSec, 0)){
-      timer.onDelTmSec(false, _prms.progressTasksTOutSec, 0);
-      progressToSchedr(_prms.schedrConnPnt, _procs);
+    if(timer.onDelTmSec(true, _cng.progressTasksTOutSec, 0)){
+      timer.onDelTmSec(false, _cng.progressTasksTOutSec, 0);
+      progressToSchedr(_cng.schedrConnPnt, _procs);
     }
     // ping to schedr
-    if(timer.onDelTmSec(true, _prms.pingSchedrTOutSec, 1)){
-      timer.onDelTmSec(false, _prms.pingSchedrTOutSec, 1);
-      pingToSchedr(_prms.schedrConnPnt);
+    if(timer.onDelTmSec(true, _cng.pingSchedrTOutSec, 1)){
+      timer.onDelTmSec(false, _cng.pingSchedrTOutSec, 1);
+      pingToSchedr(_cng.schedrConnPnt);
     }
     // added delay
     if (timer.getCTime() < minCycleTimeMS){

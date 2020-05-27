@@ -22,23 +22,44 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#pragma once
 
-#include "zmBase/structurs.h"
+#include "zmey/zmey.h"
 
-struct config{
-  bool logEna = false;
-  int capasityTask = 10;
-  int checkTasksTOutSec = 120;
-  int progressTasksTOutSec = 30;
-  int pingSchedrTOutSec = 20; 
-  std::string connectPnt = "localhost:4146";
-  std::string schedrConnPnt;
-  std::string executor = "/usr/bin/sh";
-};
+namespace zmey{
 
-struct message{
-  uint64_t taskId;
-  ZM_Base::messType messType;
-  std::string taskResult;
-};
+zmConnect createConnection(const char* localPnt, const char* dbServer, const char* dbName){
+
+}
+
+void disconnect(zmConnect){
+
+}
+
+bool addScheduler(zmConnect, zmSchedr, uint64_t* outSchId){
+
+}
+
+bool getScheduler(zmConnect, uint64_t schId, zmSchedr* out){
+
+}
+
+bool addWorker(zmConnect, zmWorker, uint64_t* outWId){
+
+}
+
+bool getWorker(zmConnect, uint64_t wId, zmWorker* out){
+
+}
+
+bool addTask(zmConnect, zmTask, uint64_t* outTaskId){
+  
+}
+
+bool getTask(zmConnect, uint64_t taskId, zmTask* out){
+  
+}
+
+bool pushTaskToQueue(zmConnect, uint64_t taskId, uint32_t priority, const char* params){
+
+}
+}
