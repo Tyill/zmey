@@ -24,7 +24,7 @@
 //
 #include <signal.h>
 #include <map>
-#include <queue>
+#include <algorithm>
 #include <iostream>
 #include "zmCommon/tcp.h"
 #include "zmCommon/timerDelay.h"
@@ -60,6 +60,7 @@ struct params{
   int pingSchedrTOutSec = 20; 
   string connectPnt = "localhost:4146";
   string schedrConnPnt;
+  ZM_Base::executorType executor = ZM_Base::executorType::bash;
 };
 params _prms;
 
@@ -75,35 +76,44 @@ void parseArgs(int argc, char* argv[], params& outPrms){
   for (int i = 1; i < argc; ++i){
     sargs += argv[i];
   }
+  sargs.erase(std::remove(sargs.begin(), sargs.end(), ' '), sargs.end());
   map<string, string> sprms;
   auto argPair = ZM_Aux::split(sargs, "-");
-  size_t asz = argPair.size();
-  for (size_t i = 0; i < asz; ++i){
-    auto pm = ZM_Aux::split(argPair[i], "=");
+  for (auto& arg : argPair){
+    auto pm = ZM_Aux::split(arg, "=");
     if (pm.size() <= 1){
-      sprms[argPair[i]] = "";
+      sprms[arg] = "";
     }else{
       sprms[pm[0]] = pm[1];
     }
   }
-  if (sprms.find("logEna") != sprms.end()){
+  if (sprms.find("log") != sprms.end()){
     outPrms.logEna = true;
   }
-  if (sprms.find("connectPnt") != sprms.end()){
-    outPrms.connectPnt = sprms["connectPnt"];
-  }  
-  if (sprms.find("schedrConnPnt") != sprms.end()){
-    outPrms.schedrConnPnt = sprms["schedrConnPnt"];
+  if (sprms.find("exr") != sprms.end()){
+    if (sprms["exr"] == "cmd"){
+      outPrms.executor = ZM_Base::executorType::cmd;
+    }else if (sprms["exr"] == "python"){
+      outPrms.executor = ZM_Base::executorType::python;
+    }
   }
-#define SET_PARAM_NUM(nm) \
+#define SET_PARAM(nm, prm) \
+  if (sprms.find("nm") != sprms.end()){ \
+    outPrms.prm = sprms["nm"]; \
+  }
+  SET_PARAM(cp, connectPnt);
+  SET_PARAM(scp, schedrConnPnt);
+  
+#define SET_PARAM_NUM(nm, prm) \
   if (sprms.find("nm") != sprms.end() && ZM_Aux::isNumber(sprms["nm"])){ \
-    outPrms.nm = stoi(sprms["nm"]); \
+    outPrms.prm = stoi(sprms["nm"]); \
   }  
-  SET_PARAM_NUM(capasityTask);
-  SET_PARAM_NUM(checkTasksTOutSec);
-  SET_PARAM_NUM(progressTasksTOutSec);
-  SET_PARAM_NUM(pingSchedrTOutSec);
+  SET_PARAM_NUM(ctk, capasityTask);
+  SET_PARAM_NUM(cht, checkTasksTOutSec);
+  SET_PARAM_NUM(prg, progressTasksTOutSec);
+  SET_PARAM_NUM(png, pingSchedrTOutSec);
 
+#undef SET_PARAM
 #undef SET_PARAM_NUM
 }
 

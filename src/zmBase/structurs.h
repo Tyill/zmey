@@ -63,7 +63,6 @@ namespace ZM_Base{
     completed           = 5,
     error               = 6,
     notResponding       = 7,
-    taskTakeByScheduler = 8,
   };
 
   struct task{
@@ -79,7 +78,6 @@ namespace ZM_Base{
 
   struct manager{
     uint64_t id = 0;          // id tblManager in DB
-    state ste;
     std::string connectPnt;   // connection point: IP or DNS ':' port
   };
 
@@ -88,7 +86,6 @@ namespace ZM_Base{
     state ste;
     int capasityTask = 10000; // the number of tasks that can be performed simultaneously  
     int activeTask = 0;       // number of running tasks
-    bool isActive;
     std::string connectPnt;   // connection point: IP or DNS ':' port
   };
 

@@ -23,6 +23,7 @@
 // THE SOFTWARE.
 //
 #include <string>
+#include <algorithm>
 #include "zmCommon/serial.h"
 #include "zmCommon/auxFunc.h"
 #include "zmCommon/queue.h"
@@ -51,28 +52,38 @@ void receiveHandler(const string& cp, const string& data){
   if (mess.find("field") == mess.end()){  \
     statusMess("receiveHandler Error mess.find(field) == mess.end() from: " + cp);  \
     return;  \
-  }
-
+  } 
   checkFieldNum(command);
   ZM_Base::messType mtype = ZM_Base::messType(stoi(mess["command"]));  
-  switch (mtype){
-    case ZM_Base::messType::newTask:
-      checkFieldNum(taskId);
-      checkField(params);
-      checkField(script);
-      checkFieldNum(averDurationSec);
-      checkFieldNum(maxDurationSec);
-      _newTasks.push(ZM_Base::task{stoull(mess["taskId"]),
-                                   ZM_Base::state::ready,
-                                   (ZM_Base::executorType)stoi(mess["exrType"]),
-                                   stoi(mess["averDurationSec"]),
-                                   stoi(mess["maxDurationSec"]),
-                                   mess["params"],
-                                   mess["script"]});
-      break;
-    case ZM_Base::messType::taskPause:
-    case ZM_Base::messType::taskStart:
-    case ZM_Base::messType::taskStop:
-      break;
+  if (mtype == ZM_Base::messType::newTask){
+    checkFieldNum(taskId);
+    checkField(params);
+    checkField(script);
+    checkFieldNum(averDurationSec);
+    checkFieldNum(maxDurationSec);
+    _newTasks.push(ZM_Base::task{stoull(mess["taskId"]),
+                                 ZM_Base::state::ready,
+                                 (ZM_Base::executorType)stoi(mess["exrType"]),
+                                 stoi(mess["averDurationSec"]),
+                                 stoi(mess["maxDurationSec"]),
+                                 mess["params"],
+                                 mess["script"]});
+  }else{
+    checkFieldNum(taskId);
+    uint64_t tId = stoull(mess["taskId"]);
+    auto iPrc = find_if(_procs.begin(), _procs.end(), [tId](const Process& p){
+      return p.getTask().id == tId;
+    });
+    if (iPrc != _procs.end()){
+      switch (mtype){
+        case ZM_Base::messType::taskPause: iPrc->pause(); break;
+        case ZM_Base::messType::taskStart: iPrc->start(); break;
+        case ZM_Base::messType::taskStop:  iPrc->stop(); break;
+        default: statusMess("receiveHandler unknown command: " + mess["command"]);
+        break;
+      }
+    }else{
+      statusMess("receiveHandler iPrc != _procs.end() for taskId: " + mess["taskId"]);
+    }
   }
 }
