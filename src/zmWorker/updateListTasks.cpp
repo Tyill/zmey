@@ -23,9 +23,27 @@
 // THE SOFTWARE.
 //
 #include "zmBase/structurs.h"
+#include "zmCommon/queue.h"
+#include "process.h"
 
 using namespace std;
 
-void updateListTasks(ZM_Aux::QueueThrSave<ZM_Base::task>&, vector<Process>&){
+void taskStateChangeCBack(uint64_t taskdId, ZM_Base::state newState, const std::string& result);
+
+void updateListTasks(ZM_Aux::QueueThrSave<ZM_Base::task>& newTasks, vector<Process>& procs){
   
+  ZM_Base::task tsk;
+  while(newTasks.tryPop(tsk)){
+    procs.push_back(Process(tsk, taskStateChangeCBack));
+  }
+  
+  for (size_t i = 0; i < procs.size(); ++i){
+    ZM_Base::state tskState = procs[i].getTask().ste;
+    if ((tskState == ZM_Base::state::completed) ||
+        (tskState == ZM_Base::state::error) || 
+        (tskState == ZM_Base::state::stop)){
+      procs.erase(procs.begin() + i);
+      --i;
+    }
+  }  
 }

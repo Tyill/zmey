@@ -62,21 +62,24 @@ void receiveHandler(const string& cp, const string& data){
   if(_workers.find(cp) != _workers.end()){
     switch (mtype){
       case ZM_Base::messType::taskError:
-      case ZM_Base::messType::taskSuccess: 
-      case ZM_Base::messType::taskRunning:
-        checkFieldNum(activeTask);
-        _workers[cp].activeTask = stoi(mess["activeTask"]);   // no 'break' - I know
+      case ZM_Base::messType::taskCompleted: 
+      case ZM_Base::messType::taskRunning:        
       case ZM_Base::messType::taskPause:
       case ZM_Base::messType::taskStart:
       case ZM_Base::messType::taskStop:
         checkFieldNum(taskId);
+        checkFieldNum(activeTask);
+        checkField(taskResult);
+        _workers[cp].activeTask = stoi(mess["activeTask"]); 
         _messToDB.push(ZM_DB::messSchedr{mtype, _workers[cp].id,
                                                 stoull(mess["taskId"]),
                                                 _workers[cp].activeTask,
-                                                _schedr.activeTask});
+                                                _schedr.activeTask, 
+                                                0,
+                                                mess["taskResult"]});
         break;
       case ZM_Base::messType::justStartWorker:
-        _workers[cp].ste = ZM_Base::state::run;
+        _workers[cp].ste = ZM_Base::state::running;
         _workers[cp].activeTask = 0;
         _messToDB.push(ZM_DB::messSchedr{mtype, _workers[cp].id});
         break;
@@ -135,12 +138,12 @@ void receiveHandler(const string& cp, const string& data){
         _messToDB.push(ZM_DB::messSchedr{mtype, _workers[mess["workerConnPnt"]].id});
         break;
       case ZM_Base::messType::startSchedr:
-        _schedr.ste = ZM_Base::state::run;
+        _schedr.ste = ZM_Base::state::running;
         _messToDB.push(ZM_DB::messSchedr{mtype});
         break;
       case ZM_Base::messType::startWorker:
         checkField(workerConnPnt);
-        _workers[mess["workerConnPnt"]].ste = ZM_Base::state::run;
+        _workers[mess["workerConnPnt"]].ste = ZM_Base::state::running;
          _messToDB.push(ZM_DB::messSchedr{mtype, _workers[mess["workerConnPnt"]].id});  
         break;
       default: statusMess("receiveHandler unknown command: " + mess["command"]);

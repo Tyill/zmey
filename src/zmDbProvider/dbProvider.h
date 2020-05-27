@@ -40,6 +40,7 @@ struct messSchedr{
   int workerActiveTaskCnt;  
   int schedrActiveTaskCnt;
   int progress;
+  std::string result;
 };
 
 class DbProvider{  

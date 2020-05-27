@@ -23,6 +23,7 @@
 // THE SOFTWARE.
 //
 #include <map>
+#include <vector>
 #include <string>
 #include "zmBase/structurs.h"
 #include "zmCommon/tcp.h"

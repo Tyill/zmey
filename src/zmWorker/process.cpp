@@ -30,7 +30,8 @@
 #include <errno.h>
 #include "process.h"
 
-Process::Process(const std::string& application, const std::string& args){
+Process::Process(const ZM_Base::task& tsk, std::function<taskChangeType> taskStateChangeCBack):
+  _task(tsk), _taskStateChangeCBack(taskStateChangeCBack){
   
   sigset_t blockMask, origMask;
   struct sigaction saIgnore, saOrigQuit, saOrigInt, saDefault;
@@ -57,7 +58,7 @@ Process::Process(const std::string& application, const std::string& args){
       if (saOrigQuit.sa_handler != SIG_IGN)
         sigaction(SIGQUIT, &saDefault, NULL);
       sigprocmask(SIG_SETMASK, &origMask, NULL);
-      execl(application.c_str(), args.c_str(), (char *) NULL);
+      //execl(application.c_str(), args.c_str(), (char *) NULL);
       _exit(127);                  
     default:
       break;
@@ -71,15 +72,12 @@ Process::Process(const std::string& application, const std::string& args){
 Process::~Process(){
 
 }
-std::string Process::getErrorStr(){
-
-  return ""; 
+int Process::getProgress() const{
+  return 0;
 }
-pid_t Process::getPidId(){
-
-  return _pid;
+ZM_Base::task Process::getTask() const{
+  return ZM_Base::task();
 }
-
 void Process::pause(){
 
 }

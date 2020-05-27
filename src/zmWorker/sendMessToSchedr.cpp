@@ -31,13 +31,13 @@
 
 using namespace std;
 
-void sendMessToSchedr(const std::string& schedrConnPnt, const message& mess){
+void sendMessToSchedr(const ZM_Base::worker& worker, const std::string& schedrConnPnt, const message& mess){
   
   map<string, string> data{
         make_pair("command",    to_string((int)mess.messType)),
         make_pair("taskId",     to_string(mess.taskId)),
-        make_pair("activeTask", to_string(mess.activeTask)), 
-        make_pair("progress",   to_string(mess.progress))
+        make_pair("activeTask", to_string(worker.activeTask)),
+        make_pair("taskResult", mess.taskResult),
   };      
   ZM_Tcp::sendData(schedrConnPnt, ZM_Aux::serialn(data), false);
 }

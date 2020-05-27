@@ -30,48 +30,51 @@
 namespace ZM_Base{
 
   enum class messType{
-    newTask = 0,
-    taskRunning = 1,
-    taskError = 2,
-    taskSuccess = 3,
-    taskPause = 4,
-    taskStart = 5,
-    taskStop = 6,
-    progress = 7,
-    pauseWorker = 8,
-    pauseSchedr = 9, 
-    startWorker = 10,
-    startSchedr = 11, 
-    pingWorker = 12,
-    pingSchedr = 13,
-    justStartWorker = 14,
-    workerNotResponding = 15
+    newTask             = 0,
+    taskRunning         = 1,
+    taskError           = 2,
+    taskCompleted       = 3,
+    taskPause           = 4,
+    taskStart           = 5,
+    taskStop            = 6,
+    progress            = 7,
+    pauseWorker         = 8,
+    pauseSchedr         = 9, 
+    startWorker         = 10,
+    startSchedr         = 11, 
+    pingWorker          = 12,
+    pingSchedr          = 13,
+    justStartWorker     = 14,
+    workerNotResponding = 15,
   };
 
   enum class executorType{
-    cmd = 0,
-    bash = 1,
+    cmd    = 0,
+    bash   = 1,
     python = 2,
   };  
    
   enum class state{
-    run = 0,
-    pause = 1,
-    ready = 2,
-    completed = 4,
-    notResponding = 5,
-    taskTakeByScheduler = 6,
-    taskSendToWorker = 7,
+    ready               = 0,
+    start               = 1,
+    running             = 2,
+    pause               = 3,
+    stop                = 4,    
+    completed           = 5,
+    error               = 6,
+    notResponding       = 7,
+    taskTakeByScheduler = 8,
   };
 
   struct task{
-    uint64_t id = 0;          // id tblTask in DB
+    uint64_t id;              // id tblTask in DB
     state ste;
     executorType exrType;     // executor for task
     int averDurationSec;      // estimated lead time 
     int maxDurationSec;       // maximum lead time
     std::string params;       // params for script
     std::string script;       // script on bash, python or cmd    
+    std::string result;       // script result          
   };
 
   struct manager{

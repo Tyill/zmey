@@ -25,18 +25,17 @@
 #pragma once
 
 #include <string>
+#include <functional>
 #include "zmBase/structurs.h"
 
 class Process{
     pid_t _pid = -1; 
     ZM_Base::task _task;
+    using taskChangeType = void(uint64_t taskdId, ZM_Base::state, const std::string& result);
+    std::function<taskChangeType> _taskStateChangeCBack;
   public:
-    Process(const ZM_Base::task&);
-    Process(Process&&) = default;
-    Process(const Process&) = delete;
-    Process& operator=(Process&) = delete;
+    Process(const ZM_Base::task&, std::function<taskChangeType>);
     ~Process();  
-    std::string getErrorStr();
     int getProgress() const;
     ZM_Base::task getTask() const;
     void pause();

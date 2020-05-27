@@ -22,12 +22,27 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#pragma once
-
+#include <vector>
 #include "zmBase/structurs.h"
+#include "zmCommon/queue.h"
+#include "zmCommon/tcp.h" 
+#include "structurs.h" 
 
-struct message{
-  uint64_t taskId;
-  ZM_Base::messType messType;
-  std::string taskResult;
-};
+using namespace std;
+
+extern ZM_Aux::QueueThrSave<message> _messToSchedr;
+
+void taskStateChangeCBack(uint64_t taskdId, ZM_Base::state newState, const std::string& result){
+  
+  ZM_Base::messType mType;
+  switch (newState){
+    case ZM_Base::state::start:     mType = ZM_Base::messType::taskStart; break;
+    case ZM_Base::state::running:   mType = ZM_Base::messType::taskRunning; break;
+    case ZM_Base::state::stop:      mType = ZM_Base::messType::taskStop; break;
+    case ZM_Base::state::pause:     mType = ZM_Base::messType::taskPause; break;
+    case ZM_Base::state::error:     mType = ZM_Base::messType::taskError; break; 
+    case ZM_Base::state::completed: mType = ZM_Base::messType::taskCompleted; break; 
+    default: return;
+  }
+  _messToSchedr.push(message{taskdId, mType, result});
+}

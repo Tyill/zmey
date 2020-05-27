@@ -52,6 +52,7 @@ void receiveHandler(const string& cp, const string& data){
     statusMess("receiveHandler Error mess.find(field) == mess.end() from: " + cp);  \
     return;  \
   }
+
   checkFieldNum(command);
   ZM_Base::messType mtype = ZM_Base::messType(stoi(mess["command"]));  
   switch (mtype){
@@ -61,7 +62,7 @@ void receiveHandler(const string& cp, const string& data){
       checkField(script);
       checkFieldNum(averDurationSec);
       checkFieldNum(maxDurationSec);
-      _newTasks.push(ZM_Base::task{stoll(mess["taskId"]),
+      _newTasks.push(ZM_Base::task{stoull(mess["taskId"]),
                                    ZM_Base::state::ready,
                                    (ZM_Base::executorType)stoi(mess["exrType"]),
                                    stoi(mess["averDurationSec"]),
@@ -72,4 +73,6 @@ void receiveHandler(const string& cp, const string& data){
     case ZM_Base::messType::taskPause:
     case ZM_Base::messType::taskStart:
     case ZM_Base::messType::taskStop:
+      break;
+  }
 }
