@@ -44,31 +44,41 @@ namespace zmey{
 #endif /* __cplusplus */
 
 /// internal connection object
-typedef void* zmConnect;
+typedef void* zmObj;
 
 /// version lib
 /// @param[out] outVersion. The memory is allocated by the user
-ZMEY_API void zmVersionLib(char* outVersion /*sz 32*/);
+ZMEY_API void zmVersionLib(char* outVersion /*sz 8*/);
 
 /// create connection
 /// @param[in] localPnt - IP or DNS:port
 /// @param[in] dbServer - database server IP or DNS (for sqlite - path to file db, for db on files - path to dir)
 /// @param[in] dbName - database name (for sqlite or files - empty) 
+/// @param[out] err - error string. The memory is allocated by the user
 /// @return object connect
-ZMEY_API zmConnect createConnection(const char* localPnt, const char* dbServer, const char* dbName);
+ZMEY_API zmObj 
+zmCreateConnection(const char* localPnt, const char* dbServer, const char* dbName, char* err /*sz 256*/);
 
 /// disconnect
-/// @param[in] zmConnect - object connect
-ZMEY_API void disconnect(zmConnect);
+/// @param[in] zmObj - object connect
+ZMEY_API void zmDisconnect(zmObj);
+
+/// last error str
+/// @param[in] zmObj - object connect
+/// @param[out] err - error string. The memory is allocated by the user
+ZMEY_API bool zmGetLastError(zmObj, char* err/*sz 256*/);
 
 /// create a database if it does not exist
-/// @param[in] zmConnect - object connect
+/// @param[in] zmObj - object connect
 /// @param[in] dbName - database name (for sqlite - path to file db, for db on files - path to dir)
 /// @return true - ok
-ZMEY_API bool createDB(zmConnect, const char* dbName);
+ZMEY_API bool zmCreateDB(zmObj, const char* dbName);
+
+//////////////////////////////////////////////////////////////////////////
+///*** Scheduler ***//////////////////////////////////////////////////////
 
 /// state
-enum stateType{
+enum zmStateType{
   ready         = 0,
   start         = 1,
   running       = 2,
@@ -84,83 +94,131 @@ struct zmSchedrCng{
   uint32_t capasityTask = 10000; ///< permissible simultaneous number of tasks 
 };
 /// add new scheduler
-/// @param[in] zmConnect - object connect
+/// @param[in] zmObj - object connect
 /// @param[in] zmSchedr - scheduler config
 /// @param[out] outSchId - new scheduler id
 /// @return true - ok
-ZMEY_API bool addScheduler(zmConnect, zmSchedrCng, uint64_t* outSchId);
+ZMEY_API bool zmAddScheduler(zmObj, zmSchedrCng, uint64_t* outSchId);
 
 /// get scheduler state and cng
-/// @param[in] zmConnect - object connect
+/// @param[in] zmObj - object connect
 /// @param[in] schId - scheduler id 
 /// @param[out] outState - scheduler state
 /// @param[out] outSchCng - scheduler config. The memory is allocated by the user
 /// @return true - ok
-ZMEY_API bool getScheduler(zmConnect, uint64_t schId, stateType* outState, zmSchedrCng* outSchCng);
+ZMEY_API bool 
+zmGetScheduler(zmObj, uint64_t schId, zmStateType* outState, zmSchedrCng* outSchCng = nullptr);
 
 /// get all schedulers
-/// @param[in] zmConnect - object connect
+/// @param[in] zmObj - object connect
 /// @param[out] outSchId - schedulers id. First pass NULL, then pass it to the same 
 /// @return count of schedulers
-ZMEY_API uint32_t getAllSchedulers(zmConnect, uint64_t** outSchId);
+ZMEY_API uint32_t zmGetAllSchedulers(zmObj, uint64_t** outSchId);
+
+//////////////////////////////////////////////////////////////////////////
+///*** Worker ***/////////////////////////////////////////////////////////
 
 /// executor type
-enum executorType{
+enum zmExecutorType{
   bash = 0,
   cmd = 1,
   python = 2,
 };
 /// worker config
 struct zmWorkerCng{
-  executorType exr;           ///< executor type
+  zmExecutorType exr;         ///< executor type
   char connectPnt[255];       ///< IP or DNS:port
   uint32_t capasityTask = 10; ///< permissible simultaneous number of tasks 
 };
 /// add new worker
-/// @param[in] zmConnect - object connect
+/// @param[in] zmObj - object connect
 /// @param[in] schId - scheduler id
 /// @param[out] outWId - new worker id
 /// @return true - ok
-ZMEY_API bool addWorker(zmConnect, uint64_t schId, zmWorkerCng, uint64_t* outWId);
+ZMEY_API bool zmAddWorker(zmObj, uint64_t schId, zmWorkerCng, uint64_t* outWId);
 
 /// get worker state and cng
-/// @param[in] zmConnect - object connect
+/// @param[in] zmObj - object connect
 /// @param[in] wId - worker id
 /// @param[out] outState - worker state
 /// @param[out] outWCng - worker config. The memory is allocated by the user
 /// @return true - ok
-ZMEY_API bool getWorker(zmConnect, uint64_t wId, stateType* outState, zmWorkerCng* outWCng);
+ZMEY_API bool
+zmGetWorker(zmObj, uint64_t wId, zmStateType* outState, zmWorkerCng* outWCng = nullptr);
 
 /// get all workers
-/// @param[in] zmConnect - object connect
+/// @param[in] zmObj - object connect
 /// @param[in] schId - scheduler id
-/// @param[out] outWId - new worker id. First pass NULL, then pass it to the same 
-/// @return true - ok
-ZMEY_API bool getAllWorkers(zmConnect, uint64_t schId, uint64_t** outWId);
+/// @param[out] outWId - worker id. First pass NULL, then pass it to the same 
+/// @return count of schedulers
+ZMEY_API uint32_t zmGetAllWorkers(zmObj, uint64_t schId, uint64_t** outWId);
+
+//////////////////////////////////////////////////////////////////////////
+///*** Task ***///////////////////////////////////////////////////////////
 
 /// task config
 struct zmTaskCng{
-  executorType exr;         ///< executor type
+  zmExecutorType exr;       ///< executor type
   uint32_t averDurationSec; ///< estimated lead time 
   uint32_t maxDurationSec;  ///< maximum lead time
   char* script;             ///< script on bash, python or cmd. The memory is allocated by the user
 };
 /// add new task
-/// @param[in] zmConnect - object connect
+/// @param[in] zmObj - object connect
 /// @param[in] zmTaskCng - task config
 /// @param[out] outTId - new task id
 /// @return true - ok
-ZMEY_API bool addTask(zmConnect, zmTaskCng, uint64_t* outTId);
+ZMEY_API bool zmAddTask(zmObj, zmTaskCng, uint64_t* outTId);
 
-// /// get task id and cng
-// /// @param[in] zmConnect - object connect
-// /// @param[in] connectPnt - IP or DNS:port
-// /// @param[out] outWId - worker id 
-// /// @param[out] outWCng - worker config. The memory is allocated by the user
-// /// @return true - ok
-// ZMEY_API bool getAllTask(zmConnect, uint64_t taskId, zmTask* out);
+/// get task state and cng
+/// @param[in] zmObj - object connect
+/// @param[in] tId - task id
+/// @param[out] outState - task state
+/// @param[out] outTCng - task config. The memory is allocated by the user
+/// @return true - ok
+ZMEY_API bool
+zmGetTask(zmObj, uint64_t tId, zmStateType* outState, zmTaskCng* outTCng = nullptr);
 
-ZMEY_API bool pushTaskToQueue(zmConnect, uint64_t taskId, uint32_t priority, const char* params);
+/// get all tasks
+/// @param[in] zmObj - object connect
+/// @param[out] outTId - task id. First pass NULL, then pass it to the same 
+/// @return count of tasks
+ZMEY_API uint32_t zmGetAllTasks(zmObj, uint64_t** outTId);
+
+//////////////////////////////////////////////////////////////////////////
+///*** Queue task ***/////////////////////////////////////////////////////
+
+/// push task to queue
+/// @param[in] zmObj - object connect
+/// @param[in] tId - task id
+/// @param[in] priority
+/// @param[in] params of script: -key=value
+/// @param[out] outQTId - queue task id
+/// @return true - ok
+ZMEY_API bool 
+zmPushTaskToQueue(zmObj, uint64_t tId, uint32_t priority, const char* params, uint64_t* outQTId);
+
+/// queue task state
+struct zmQueueTaskState{
+  uint32_t progress; ///< [0..100]
+  uint32_t priority;
+  zmStateType state;
+  char* result;
+};
+/// get queue task state
+/// @param[in] zmObj - object connect
+/// @param[in] qtId - queue task id
+/// @param[out] outState - task state
+/// @return true - ok
+ZMEY_API bool
+zmGetQueueTaskState(zmObj, uint64_t qtId, zmQueueTaskState* outState);
+
+/// get all queue tasks
+/// @param[in] zmObj - object connect
+/// @param[out] outQTId - task id. First pass NULL, then pass it to the same 
+/// @return count of queue tasks
+ZMEY_API uint32_t zmGetAllQueueTasks(zmObj, uint64_t** outQTId);
+
 
 #if defined(__cplusplus)
 }}

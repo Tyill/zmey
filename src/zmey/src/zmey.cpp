@@ -23,43 +23,94 @@
 // THE SOFTWARE.
 //
 
+#include <cstring>
 #include "zmey/zmey.h"
+#include "zmManager.h"
+
+#define ZM_VERSION "1.0.0"
 
 namespace zmey{
 
-zmConnect createConnection(const char* localPnt, const char* dbServer, const char* dbName){
-
+void zmVersionLib(char* outVersion /*sz 8*/){
+  if (outVersion)
+    strcpy(outVersion, ZM_VERSION);
 }
 
-void disconnect(zmConnect){
-
-}
-
-bool addScheduler(zmConnect, zmSchedr, uint64_t* outSchId){
-
-}
-
-bool getScheduler(zmConnect, uint64_t schId, zmSchedr* out){
-
-}
-
-bool addWorker(zmConnect, zmWorker, uint64_t* outWId){
-
-}
-
-bool getWorker(zmConnect, uint64_t wId, zmWorker* out){
-
-}
-
-bool addTask(zmConnect, zmTask, uint64_t* outTaskId){
+zmObj zmCreateConnection(const char* localPnt, const char* dbServer, const char* dbName, char* err){
   
+  if (localPnt && dbServer && dbName){
+    return new ZManager(localPnt, dbServer, dbName);
+  }
+  else if (err){
+    strcpy(err, "zmCreateConnection error: !localPnt || !dbServer || !dbName");
+  } 
+  return nullptr;
 }
 
-bool getTask(zmConnect, uint64_t taskId, zmTask* out){
-  
+void zmDisconnect(zmObj zo){
+  if (zo){
+    delete static_cast<ZManager*>(zo);
+  }
 }
 
-bool pushTaskToQueue(zmConnect, uint64_t taskId, uint32_t priority, const char* params){
+bool zmGetLastError(zmObj zo, char* err/*sz 256*/){
+  if (zo && err){
+    strcpy(err, static_cast<ZManager*>(zo)->getLastError().c_str());
+    return true;
+  }else{
+    return false;
+  } 
+}
+
+bool zmCreateDB(zmObj, const char* dbName){
+
+}
+
+bool zmAddScheduler(zmObj, zmSchedrCng, uint64_t* outSchId){
+
+}
+
+bool zmGetScheduler(zmObj, uint64_t schId, zmStateType* outState, zmSchedrCng* outSchCng){
+
+}
+
+uint32_t zmGetAllSchedulers(zmObj, uint64_t** outSchId){
+
+}
+
+bool zmAddWorker(zmObj, uint64_t schId, zmWorkerCng, uint64_t* outWId){
+
+}
+
+bool zmGetWorker(zmObj, uint64_t wId, zmStateType* outState, zmWorkerCng* outWCng){
+
+}
+
+uint32_t zmGetAllWorkers(zmObj, uint64_t schId, uint64_t** outWId){
+
+}
+
+bool zmAddTask(zmObj, zmTaskCng, uint64_t* outTId){
+
+}
+
+bool zmGetTask(zmObj, uint64_t tId, zmStateType* outState, zmTaskCng* outTCng){
+
+}
+
+uint32_t zmGetAllTasks(zmObj, uint64_t** outTId){
+
+}
+
+bool zmPushTaskToQueue(zmObj, uint64_t tId, uint32_t priority, const char* params, uint64_t* outQTId){
+
+}
+
+bool zmGetQueueTaskState(zmObj, uint64_t qtId, zmQueueTaskState* outState){
+
+}
+
+uint32_t zmGetAllQueueTasks(zmObj, uint64_t** outQTId);
 
 }
 }
