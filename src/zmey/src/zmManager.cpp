@@ -44,45 +44,45 @@ std::string ZManager::getLastError(){
   return _err;
 }
 bool ZManager::createDB(const std::string& dbName){
-
+  return false;
 }
   
 bool ZManager::addScheduler(const ZM_Base::scheduler&, uint64_t& outSchId){
-
+  return false;
 }
-bool ZManager::getScheduler(uint64_t schId, ZM_Base::scheduler&){
-
+bool ZManager::schedulerState(uint64_t schId, ZM_Base::scheduler&){
+  return false;
 }
 std::vector<uint64_t> ZManager::getAllSchedulers(){
-
+  return std::vector<uint64_t>();
 }
 
 bool ZManager::addWorker(uint64_t schId, const ZM_Base::worker&, uint64_t& outWId){
-
+  return false;
 }
-bool ZManager::getWorker(uint64_t wId, ZM_Base::worker&){
-
+bool ZManager::workerState(uint64_t wId, ZM_Base::worker&){
+  return false;
 }
 std::vector<uint64_t> ZManager::getAllWorkers(uint64_t schId){
-
+  return std::vector<uint64_t>();
 }
 
 bool ZManager::addTask(const ZM_Base::task&, uint64_t& outTId){
-
+  return false;
 }
-bool ZManager::getTask(uint64_t tId, ZM_Base::task&){
-
+bool ZManager::getTaskCng(uint64_t tId, ZM_Base::task&){
+  return false;
 }
 std::vector<uint64_t> getAllTasks(){
-
+  return std::vector<uint64_t>();
 }
 
-bool ZManager::pushTaskToQueue(const ZM_Base::task&, uint64_t& outQTId){
-
+bool ZManager::pushTaskToQueue(const queueTask&, uint64_t& outQTId){
+  return false;
 }
-bool ZManager::getQueueTaskState(uint64_t qtId, ZM_Base::task&){
-
+bool ZManager::getQueueTaskState(uint64_t qtId, queueTask&){
+  return false;
 }
 std::vector<uint64_t> ZManager::getAllQueueTasks(){
-
+  return std::vector<uint64_t>();
 }

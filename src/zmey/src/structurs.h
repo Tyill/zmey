@@ -22,38 +22,16 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#include <string>
-#include <vector>
-#include "zmey/zmey.h"
-#include "zmBase/structurs.h"
-#include "structurs.h"
+#pragma once
 
-class ZManager{
-  std::string _err;
-  zmey::zmErrorCBack _errorCBack = nullptr;
-  zmey::zmUData _errorUData = nullptr;
-public:
-  ZManager(const std::string& localPnt, const std::string& dbServer, const std::string& dbName);
-  ~ZManager();
-  void setErrorCBack(zmey::zmErrorCBack ecb, zmey::zmUData ud);
-  std::string getLastError();
-  void errorMess(const std::string&); 
-  bool createDB(const std::string& dbName);
-  
-  bool addScheduler(const ZM_Base::scheduler&, uint64_t& outSchId);
-  bool schedulerState(uint64_t schId, ZM_Base::scheduler& outSchCng);
-  std::vector<uint64_t> getAllSchedulers();
-  
-  bool addWorker(uint64_t schId, const ZM_Base::worker&, uint64_t& outWId);
-  bool workerState(uint64_t wId, ZM_Base::worker&);
-  std::vector<uint64_t> getAllWorkers(uint64_t schId);
-  
-  bool addTask(const ZM_Base::task&, uint64_t& outTId);
-  bool getTaskCng(uint64_t tId, ZM_Base::task&);
-  std::vector<uint64_t> getAllTasks();
-  
-  bool pushTaskToQueue(const queueTask&, uint64_t& outQTId);
-  bool getQueueTaskCng(uint64_t qtId, queueTask&);
-  bool getQueueTaskState(uint64_t qtId, queueTask&);
-  std::vector<uint64_t> getAllQueueTasks();
+#include "zmBase/structurs.h"
+
+struct queueTask{
+  uint64_t qId;           // id tblTaskQueue
+  ZM_Base::task base;     // base task from tblTask
+  int priority;           // [1..3]
+  int progress;           // [0..100]
+  ZM_Base::stateType state;
+  std::string result;
+  std::vector<uint64_t> prevTasks; // queue task id of previous tasks to be completed
 };

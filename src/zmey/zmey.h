@@ -63,8 +63,8 @@ enum zmStateType{
 
 /// executor type
 enum zmExecutorType{
-  bash = 0,
-  cmd = 1,
+  bash =   0,
+  cmd =    1,
   python = 2,
 };
 
@@ -137,7 +137,6 @@ ZMEY_API uint32_t zmGetAllSchedulers(zmObj, uint64_t** outSchId);
 
 //////////////////////////////////////////////////////////////////////////
 ///*** Worker ***/////////////////////////////////////////////////////////
-
 
 /// worker config
 struct zmWorkerCng{
@@ -224,24 +223,24 @@ zmPushTaskToQueue(zmObj, zmQueueTaskCng, uint64_t* outQTId);
 /// get queue task config
 /// @param[in] zmObj - object connect
 /// @param[in] qtId - queue task id
-/// @param[out] outQTCng - queue task config
+/// @param[out] outQCng - queue task config
 /// @return true - ok
 ZMEY_API bool
-zmGetQueueTaskCng(zmObj, uint64_t qtId, zmQueueTaskCng* outQTCng);
+zmGetQueueTaskCng(zmObj, uint64_t qtId, zmQueueTaskCng* outQCng);
 
 /// queue task state
 struct zmQueueTaskState{
   uint32_t progress;      ///< [0..100]
   zmStateType state;  
-  char* result;
+  char* result;           ///< string result
 };
 /// get queue task state
 /// @param[in] zmObj - object connect
 /// @param[in] qtId - queue task id
-/// @param[out] outQTState - queue task state
+/// @param[out] outQState - queue task state
 /// @return true - ok
 ZMEY_API bool
-zmGetQueueTaskState(zmObj, uint64_t qtId, zmQueueTaskState* outQTState);
+zmGetQueueTaskState(zmObj, uint64_t qtId, zmQueueTaskState* outQState);
 
 /// get all queue tasks
 /// @param[in] zmObj - object connect

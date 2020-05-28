@@ -68,6 +68,7 @@ bool zmCreateDB(zmObj zo, const char* dbName){
 
   return static_cast<ZManager*>(zo)->createDB(dbName);
 }
+
 bool zmAddScheduler(zmObj zo, zmSchedrCng cng, uint64_t* outSchId){
   if (!zo) return false;
   
@@ -112,6 +113,7 @@ uint32_t zmGetAllSchedulers(zmObj zo, uint64_t** outSchId){
   }
   return (uint32_t)ssz;
 }
+
 bool zmAddWorker(zmObj zo, uint64_t schId, zmWorkerCng cng, uint64_t* outWId){
   if (!zo) return false;
 
@@ -157,6 +159,7 @@ uint32_t zmGetAllWorkers(zmObj zo, uint64_t schId, uint64_t** outWId){
   }
   return (uint32_t)wsz;
 }
+
 bool zmAddTask(zmObj zo, zmTaskCng cng, uint64_t* outTId){
   if (!zo) return false;
 
@@ -185,7 +188,7 @@ bool zmGetTaskCng(zmObj zo, uint64_t tId, zmTaskCng* outTCng){
     outTCng->averDurationSec = task.averDurationSec;
     outTCng->maxDurationSec = task.maxDurationSec;
    
-    outTCng->script = (char*)realloc(outTCng->script, task.script.size());
+    outTCng->script = (char*)realloc(outTCng->script, task.script.size() + 1);
     strcpy(outTCng->script, task.script.c_str());
     return true;
   }
@@ -204,6 +207,7 @@ uint32_t zmGetAllTasks(zmObj zo, uint64_t** outTId){
   }
   return (uint32_t)tsz;
 }
+
 bool zmPushTaskToQueue(zmObj zo, zmQueueTaskCng cng, uint64_t* outQTId){
   if (!zo) return false;
 
@@ -214,59 +218,65 @@ bool zmPushTaskToQueue(zmObj zo, zmQueueTaskCng cng, uint64_t* outQTId){
   if ((cng.prevTasksCnt > 0) && !cng.prevTasksQId){
     static_cast<ZManager*>(zo)->errorMess("error !cng.prevTasksQId");
     return false;
-  } 
-
-  ZM_Base::task task;
-  task.tId = cng.tId;
-  if (cng.params){
-    task.params = cng.params;
   }
-  task.priority = cng.priority;
- 
-  vector<uint64_t> prevTasks;
+  queueTask qTask;
+  qTask.base.id = cng.tId;
+  qTask.priority = cng.priority;
+  if (cng.params){
+    qTask.base.params = cng.params;
+  }
   for (int i = 0; i < cng.prevTasksCnt; ++i){
-    prevTasks.push_back(cng.prevTasksQId[i]);
+    qTask.prevTasks.push_back(cng.prevTasksQId[i]);
   }  
-  return static_cast<ZManager*>(zo)->pushTaskToQueue(task, prevTasks, *outQTId);
+  return static_cast<ZManager*>(zo)->pushTaskToQueue(qTask, *outQTId);
 }
-bool zmGetQueueTaskCng(zmObj zo, uint64_t qtId, zmQueueTaskCng* outCng){
+bool zmGetQueueTaskCng(zmObj zo, uint64_t qtId, zmQueueTaskCng* outQCng){
   if (!zo) return false;
   
-  ZM_Base::task task;
-  vector<uint64_t> prevTasks;
-  if (static_cast<ZManager*>(zo)->getQueueTaskCng(qtId, task, prevTasks)){
-    outCng->tId = task.tId;
-    outCng->priority = task.priority;
+  if (!outQCng){
+     static_cast<ZManager*>(zo)->errorMess("error !outQCng");
+     return false;
+  }
+  queueTask qTask;
+  if (static_cast<ZManager*>(zo)->getQueueTaskCng(qtId, qTask)){
+    outQCng->tId = qTask.base.id;
+    outQCng->priority = qTask.priority;
     
-    if (!task.params.empty()){ 
-      outCng->params = (char*)realloc(outCng->params, task.params.size());
-      memcpy(outCng->params, task.params.data(), task.params.size());
+    auto& params = qTask.base.params;
+    if (!params.empty()){ 
+      outQCng->params = (char*)realloc(outQCng->params, params.size() + 1);
+      strcpy(outQCng->params, params.c_str());
     }else{
-      outCng->params = nullptr;
+      outQCng->params = nullptr;
     }
-    if (!prevTasks.empty()){ 
-      outCng->prevTasksCnt = prevTasks.size();
-      outCng->prevTasksQId = (uint64_t*)realloc(outCng->prevTasksQId, outCng->prevTasksCnt * sizeof(uint64_t));
-      memcpy(outCng->prevTasksQId, prevTasks.data(), outCng->prevTasksCnt * sizeof(uint64_t));
+    if (!qTask.prevTasks.empty()){ 
+      outQCng->prevTasksCnt = qTask.prevTasks.size();
+      outQCng->prevTasksQId = (uint64_t*)realloc(outQCng->prevTasksQId, outQCng->prevTasksCnt * sizeof(uint64_t));
+      memcpy(outQCng->prevTasksQId, qTask.prevTasks.data(), outQCng->prevTasksCnt * sizeof(uint64_t));
     }else{
-      outCng->prevTasksCnt = 0;
-      outCng->prevTasksQId = nullptr;
+      outQCng->prevTasksCnt = 0;
+      outQCng->prevTasksQId = nullptr;
     }
     return true;
   }
   return false;
 }
-bool zmGetQueueTaskState(zmObj zo, uint64_t qtId, zmQueueTaskState* outState){
+bool zmGetQueueTaskState(zmObj zo, uint64_t qtId, zmQueueTaskState* outQState){
   if (!zo) return false;
   
-  ZM_Base::task task;
-  if (static_cast<ZManager*>(zo)->getQueueTaskState(qtId, task)){
-    outState->progress = task.progress;
-    outState->state = (zmey::zmStateType)task.state;
-    if (!task.result.empty()){ 
-      outState->result = (char*)realloc(outState->result, task.result.size());
+  if (!outQState){
+    static_cast<ZManager*>(zo)->errorMess("error !outQState");
+    return false;
+  }
+  queueTask qTask;
+  if (static_cast<ZManager*>(zo)->getQueueTaskState(qtId, qTask)){
+    outQState->progress = qTask.progress;
+    outQState->state = (zmey::zmStateType)qTask.state;
+    if (!qTask.result.empty()){ 
+      outQState->result = (char*)realloc(outQState->result, qTask.result.size() + 1);
+      strcpy(outQState->result, qTask.result.c_str());
     }else{
-      outState->result = nullptr;
+      outQState->result = nullptr;
     }
     return true;
   }
@@ -285,6 +295,7 @@ uint32_t zmGetAllQueueTasks(zmObj zo, uint64_t** outQTId){
   }
   return (uint32_t)tsz;
 }
+
 uint32_t zmFreeResouces(uint64_t* pUInt, char* pChar){
   if (pUInt){
     free(pUInt);
