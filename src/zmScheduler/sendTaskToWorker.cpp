@@ -52,7 +52,7 @@ void sendTaskToWorker(unordered_map<std::string, ZM_Base::worker>& workers,
     });
     auto iWr = find_if(refWorkers.begin(), refWorkers.end(),
       [&t](const ZM_Base::worker* w){
-        return (w->exrType == t.exrType) && 
+        return (w->exrType == t.exr) && 
                (w->state == ZM_Base::stateType::running) && 
                (w->activeTask < w->capasityTask);
       }); 
@@ -62,7 +62,7 @@ void sendTaskToWorker(unordered_map<std::string, ZM_Base::worker>& workers,
         make_pair("taskId",          to_string(t.id)),
         make_pair("params",          t.params), 
         make_pair("script",          t.script),
-        make_pair("exrType",         to_string(int(t.exrType))),
+        make_pair("exr",             to_string(int(t.exr))),
         make_pair("averDurationSec", to_string(t.averDurationSec)), 
         make_pair("maxDurationSec",  to_string(t.maxDurationSec))
       };      

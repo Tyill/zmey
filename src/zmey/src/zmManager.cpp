@@ -30,6 +30,16 @@ ZManager::ZManager(const std::string& localPnt, const std::string& dbServer, con
 ZManager::~ZManager(){
 
 }
+void ZManager::setErrorCBack(zmey::zmErrorCBack ecb, zmey::zmUData ud){
+  _errorCBack = ecb;
+  _errorUData = ud;
+}
+void ZManager::errorMess(const std::string& mess){
+  _err = mess;
+  if (_errorCBack){
+    _errorCBack(mess.c_str(), _errorUData);
+  } 
+}
 std::string ZManager::getLastError(){
   return _err;
 }

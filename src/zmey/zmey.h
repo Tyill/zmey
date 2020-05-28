@@ -43,8 +43,30 @@ extern "C" {
 namespace zmey{
 #endif /* __cplusplus */
 
+//////////////////////////////////////////////////////////////////////////
+///*** Common ***/////////////////////////////////////////////////////////
+
 /// internal connection object
 typedef void* zmObj;
+
+/// state
+enum zmStateType{
+  ready         = 0,
+  start         = 1,
+  running       = 2,
+  pause         = 3,
+  stop          = 4,    
+  completed     = 5,
+  error         = 6,
+  notResponding = 7,
+};
+
+/// executor type
+enum zmExecutorType{
+  bash = 0,
+  cmd = 1,
+  python = 2,
+};
 
 /// version lib
 /// @param[out] outVersion. The memory is allocated by the user
@@ -63,10 +85,19 @@ zmCreateConnection(const char* localPnt, const char* dbServer, const char* dbNam
 /// @param[in] zmObj - object connect
 ZMEY_API void zmDisconnect(zmObj);
 
+typedef void* zmUData;                                     ///< user data    
+typedef void(*zmErrorCBack)(const char* mess, zmUData);    ///< error callback
+
+/// set error callback
+/// @param[in] zmObj - object connect
+/// @param[in] zmErrorCBack - error callback
+/// @param[in] zmUData - user data    
+ZMEY_API void zmSetErrorCBack(zmObj, zmErrorCBack, zmUData);
+
 /// last error str
 /// @param[in] zmObj - object connect
 /// @param[out] err - error string. The memory is allocated by the user
-ZMEY_API bool zmGetLastError(zmObj, char* err/*sz 256*/);
+ZMEY_API void zmGetLastError(zmObj, char* err/*sz 256*/);
 
 /// create a database if it does not exist
 /// @param[in] zmObj - object connect
@@ -77,17 +108,6 @@ ZMEY_API bool zmCreateDB(zmObj, const char* dbName);
 //////////////////////////////////////////////////////////////////////////
 ///*** Scheduler ***//////////////////////////////////////////////////////
 
-/// state
-enum zmStateType{
-  ready         = 0,
-  start         = 1,
-  running       = 2,
-  pause         = 3,
-  stop          = 4,    
-  completed     = 5,
-  error         = 6,
-  notResponding = 7,
-};
 /// scheduler config
 struct zmSchedrCng{
   char connectPnt[255];          ///< IP or DNS:port
@@ -100,56 +120,53 @@ struct zmSchedrCng{
 /// @return true - ok
 ZMEY_API bool zmAddScheduler(zmObj, zmSchedrCng, uint64_t* outSchId);
 
-/// get scheduler state and cng
+/// scheduler state
 /// @param[in] zmObj - object connect
 /// @param[in] schId - scheduler id 
 /// @param[out] outState - scheduler state
-/// @param[out] outSchCng - scheduler config. The memory is allocated by the user
+/// @param[out] outSchCng - scheduler config. Not necessary
 /// @return true - ok
 ZMEY_API bool 
-zmGetScheduler(zmObj, uint64_t schId, zmStateType* outState, zmSchedrCng* outSchCng = nullptr);
+zmSchedulerState(zmObj, uint64_t schId, zmStateType* outState, zmSchedrCng* outSchCng = nullptr);
 
 /// get all schedulers
 /// @param[in] zmObj - object connect
-/// @param[out] outSchId - schedulers id. First pass NULL, then pass it to the same 
+/// @param[out] outSchId - schedulers id
 /// @return count of schedulers
 ZMEY_API uint32_t zmGetAllSchedulers(zmObj, uint64_t** outSchId);
 
 //////////////////////////////////////////////////////////////////////////
 ///*** Worker ***/////////////////////////////////////////////////////////
 
-/// executor type
-enum zmExecutorType{
-  bash = 0,
-  cmd = 1,
-  python = 2,
-};
+
 /// worker config
 struct zmWorkerCng{
   zmExecutorType exr;         ///< executor type
   char connectPnt[255];       ///< IP or DNS:port
   uint32_t capasityTask = 10; ///< permissible simultaneous number of tasks 
 };
+  
 /// add new worker
 /// @param[in] zmObj - object connect
 /// @param[in] schId - scheduler id
+/// @param[in] zmWorkerCng - worker config
 /// @param[out] outWId - new worker id
 /// @return true - ok
 ZMEY_API bool zmAddWorker(zmObj, uint64_t schId, zmWorkerCng, uint64_t* outWId);
 
-/// get worker state and cng
+/// worker state
 /// @param[in] zmObj - object connect
 /// @param[in] wId - worker id
 /// @param[out] outState - worker state
-/// @param[out] outWCng - worker config. The memory is allocated by the user
+/// @param[out] outWCng - worker config. Not necessary
 /// @return true - ok
 ZMEY_API bool
-zmGetWorker(zmObj, uint64_t wId, zmStateType* outState, zmWorkerCng* outWCng = nullptr);
+zmWorkerState(zmObj, uint64_t wId, zmStateType* outState, zmWorkerCng* outWCng = nullptr);
 
 /// get all workers
 /// @param[in] zmObj - object connect
 /// @param[in] schId - scheduler id
-/// @param[out] outWId - worker id. First pass NULL, then pass it to the same 
+/// @param[out] outWId - worker id 
 /// @return count of schedulers
 ZMEY_API uint32_t zmGetAllWorkers(zmObj, uint64_t schId, uint64_t** outWId);
 
@@ -170,55 +187,70 @@ struct zmTaskCng{
 /// @return true - ok
 ZMEY_API bool zmAddTask(zmObj, zmTaskCng, uint64_t* outTId);
 
-/// get task state and cng
+/// get task cng
 /// @param[in] zmObj - object connect
 /// @param[in] tId - task id
-/// @param[out] outState - task state
 /// @param[out] outTCng - task config. The memory is allocated by the user
 /// @return true - ok
 ZMEY_API bool
-zmGetTask(zmObj, uint64_t tId, zmStateType* outState, zmTaskCng* outTCng = nullptr);
+zmGetTaskCng(zmObj, uint64_t tId, zmTaskCng* outTCng);
 
 /// get all tasks
 /// @param[in] zmObj - object connect
-/// @param[out] outTId - task id. First pass NULL, then pass it to the same 
+/// @param[out] outTId - task id
 /// @return count of tasks
 ZMEY_API uint32_t zmGetAllTasks(zmObj, uint64_t** outTId);
 
 //////////////////////////////////////////////////////////////////////////
 ///*** Queue task ***/////////////////////////////////////////////////////
 
+/// queue task config
+struct zmQueueTaskCng{
+  uint64_t tId;           ///< task id
+  uint64_t* prevTasksQId; ///< queue task id of previous tasks to be completed
+  uint32_t prevTasksCnt;  ///< queue task count
+  uint32_t priority;      ///< [1..3]
+  char* params;           ///< params of script: -key=value
+};
+
 /// push task to queue
 /// @param[in] zmObj - object connect
-/// @param[in] tId - task id
-/// @param[in] priority
-/// @param[in] params of script: -key=value
+/// @param[in] zmQueueTaskCng - queue task config
 /// @param[out] outQTId - queue task id
 /// @return true - ok
 ZMEY_API bool 
-zmPushTaskToQueue(zmObj, uint64_t tId, uint32_t priority, const char* params, uint64_t* outQTId);
+zmPushTaskToQueue(zmObj, zmQueueTaskCng, uint64_t* outQTId);
+
+/// get queue task config
+/// @param[in] zmObj - object connect
+/// @param[in] qtId - queue task id
+/// @param[out] outQTCng - queue task config
+/// @return true - ok
+ZMEY_API bool
+zmGetQueueTaskCng(zmObj, uint64_t qtId, zmQueueTaskCng* outQTCng);
 
 /// queue task state
 struct zmQueueTaskState{
-  uint32_t progress; ///< [0..100]
-  uint32_t priority;
-  zmStateType state;
+  uint32_t progress;      ///< [0..100]
+  zmStateType state;  
   char* result;
 };
 /// get queue task state
 /// @param[in] zmObj - object connect
 /// @param[in] qtId - queue task id
-/// @param[out] outState - task state
+/// @param[out] outQTState - queue task state
 /// @return true - ok
 ZMEY_API bool
-zmGetQueueTaskState(zmObj, uint64_t qtId, zmQueueTaskState* outState);
+zmGetQueueTaskState(zmObj, uint64_t qtId, zmQueueTaskState* outQTState);
 
 /// get all queue tasks
 /// @param[in] zmObj - object connect
-/// @param[out] outQTId - task id. First pass NULL, then pass it to the same 
+/// @param[out] outQTId - task id 
 /// @return count of queue tasks
 ZMEY_API uint32_t zmGetAllQueueTasks(zmObj, uint64_t** outQTId);
 
+/// free resouces
+ZMEY_API uint32_t zmFreeResouces(uint64_t*, char*);
 
 #if defined(__cplusplus)
 }}

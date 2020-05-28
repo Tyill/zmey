@@ -66,18 +66,18 @@ namespace ZM_Base{
   };
 
   struct task{
-    uint64_t id;              // id tblTask in DB
+    uint64_t id;             // id tblTask in DB
     stateType state;
-    executorType exrType;     // executor for task
+    executorType exr;         // executor for task
     int averDurationSec;      // estimated lead time 
     int maxDurationSec;       // maximum lead time
     std::string params;       // params for script
-    std::string script;       // script on bash, python or cmd    
-    std::string result;       // script result          
+    std::string script;       // script on bash, python or cmd
   };
 
   struct manager{
     uint64_t id = 0;          // id tblManager in DB
+    stateType state;
     std::string connectPnt;   // connection point: IP or DNS ':' port
   };
 

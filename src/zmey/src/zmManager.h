@@ -29,25 +29,30 @@
 
 class ZManager{
   std::string _err;
+  zmey::zmErrorCBack _errorCBack = nullptr;
+  zmey::zmUData _errorUData = nullptr;
 public:
   ZManager(const std::string& localPnt, const std::string& dbServer, const std::string& dbName);
   ~ZManager();
+  void setErrorCBack(zmey::zmErrorCBack ecb, zmey::zmUData ud);
   std::string getLastError();
+  void errorMess(const std::string&); 
   bool createDB(const std::string& dbName);
   
   bool addScheduler(const ZM_Base::scheduler&, uint64_t& outSchId);
-  bool getScheduler(uint64_t schId, ZM_Base::scheduler& outSchCng);
+  bool schedulerState(uint64_t schId, ZM_Base::scheduler& outSchCng);
   std::vector<uint64_t> getAllSchedulers();
   
   bool addWorker(uint64_t schId, const ZM_Base::worker&, uint64_t& outWId);
-  bool getWorker(uint64_t wId, ZM_Base::worker&);
+  bool workerState(uint64_t wId, ZM_Base::worker&);
   std::vector<uint64_t> getAllWorkers(uint64_t schId);
   
   bool addTask(const ZM_Base::task&, uint64_t& outTId);
-  bool getTask(uint64_t tId, ZM_Base::task&);
+  bool getTaskCng(uint64_t tId, ZM_Base::task&);
   std::vector<uint64_t> getAllTasks();
   
-  bool pushTaskToQueue(const ZM_Base::task&, uint64_t& outQTId);
+  bool pushTaskToQueue(const ZM_Base::task&, const std::vector<uint64_t>& prevTasks, uint64_t& outQTId);
+  bool getQueueTaskCng(uint64_t qtId, ZM_Base::task&, std::vector<uint64_t>& prevTasks);
   bool getQueueTaskState(uint64_t qtId, ZM_Base::task&);
   std::vector<uint64_t> getAllQueueTasks();
 };
