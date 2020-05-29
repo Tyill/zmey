@@ -31,6 +31,7 @@
 namespace ZM_Base{
 
   enum class messType{
+    undefined           = -1,
     newTask             = 0,
     taskRunning         = 1,
     taskError           = 2,
@@ -50,12 +51,14 @@ namespace ZM_Base{
   };
 
   enum class executorType{
-    cmd    = 0,
-    bash   = 1,
-    python = 2,
+    undefined = -1,
+    cmd       = 0,
+    bash      = 1,
+    python    = 2,
   };  
    
   enum class stateType{
+    undefined          = -1,
     ready               = 0,
     start               = 1,
     running             = 2,
@@ -67,33 +70,38 @@ namespace ZM_Base{
   };
 
   struct task{
-    uint64_t id;              // id tblTask (for schedr == qId)
-    stateType state;
-    executorType exr;         
-    int averDurationSec;      // estimated lead time 
-    int maxDurationSec;       // maximum lead time
-    std::string params;       // params for script
+    uint64_t id = 0;          // id tblTask
+    uint64_t mId = 0;         // id tblManager
+    executorType exr = executorType::undefined;           
+    int averDurationSec = 0;  // estimated lead time 
+    int maxDurationSec = 0;   // maximum lead time      
     std::string script;       // script on bash, python or cmd
   };
 
   struct queueTask{
-    uint64_t qId;             // id tblTaskQueue
-    task base;                // base task from tblTask
-    int priority;             // [1..3]
-    int progress;             // [0..100]  
+    uint64_t qId = 0;         // id tblTaskQueue
+    uint64_t tId = 0;         // id tblTask
+    uint64_t mId = 0;         // id tblManager
+    uint64_t sId = 0;         // id tblScheduler
+    uint64_t wId = 0;         // id tblWorker
+    stateType state = stateType::undefined; 
+    int priority = 0;         // [1..3]
+    int progress = 0;         // [0..100]     
+    std::string params;
     std::string result;
     std::vector<uint64_t> prevTasks; // queue task id of previous tasks to be completed
   };
 
   struct manager{
     uint64_t id = 0;          // id tblManager
-    stateType state;
+    stateType state = stateType::undefined;
     std::string connectPnt;   // connection point: IP or DNS ':' port
   };
 
   struct scheduler{
     uint64_t id = 0;          // id tblScheduler
-    stateType state;
+    uint64_t mId = 0;         // id tblManager
+    stateType state = stateType::undefined;
     int capasityTask = 10000; // the number of tasks that can be performed simultaneously  
     int activeTask = 0;       // number of running tasks
     std::string connectPnt;   // connection point: IP or DNS ':' port
@@ -101,12 +109,13 @@ namespace ZM_Base{
 
   struct worker{
     uint64_t id = 0;          // id tblWorker
-    stateType state;
-    executorType exr;     
+    uint64_t sId = 0;         // id tblScheduler
+    uint64_t mId = 0;         // id tblManager
+    stateType state = stateType::undefined;
+    executorType exr = executorType::undefined;     
     int capasityTask = 10;    // the number of tasks that can be performed simultaneously  
     int activeTask = 0;       // number of running tasks
     int rating = 10;          // manager is assigned a rating to the worker[1..10]
-    bool isActive;
     std::string connectPnt;   // connection point: IP or DNS ':' port
   }; 
 }

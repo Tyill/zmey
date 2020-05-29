@@ -109,7 +109,7 @@ uint32_t zmGetAllSchedulers(zmObj zo, uint64_t** outSchId){
   return (uint32_t)ssz;
 }
 
-bool zmAddWorker(zmObj zo, uint64_t schId, zmWorkerCng cng, uint64_t* outWId){
+bool zmAddWorker(zmObj zo, zmWorkerCng cng, uint64_t* outWId){
   if (!zo) return false;
 
   if (!outWId){
@@ -120,7 +120,7 @@ bool zmAddWorker(zmObj zo, uint64_t schId, zmWorkerCng cng, uint64_t* outWId){
   worker.capasityTask = cng.capasityTask;
   worker.connectPnt = cng.connectPnt;
 
-  return static_cast<Manager*>(zo)->addWorker(schId, worker, *outWId);
+  return static_cast<Manager*>(zo)->addWorker(worker, *outWId);
 }
 bool zmWorkerState(zmObj zo, uint64_t wId, zmStateType* outState, zmWorkerCng* outWCng){
   if (!zo) return false; 
@@ -133,6 +133,7 @@ bool zmWorkerState(zmObj zo, uint64_t wId, zmStateType* outState, zmWorkerCng* o
   if (static_cast<Manager*>(zo)->workerState(wId, worker)){    
     *outState = (zmey::zmStateType)worker.state;
     if (outWCng){
+      outWCng->schId = worker.sId;
       outWCng->exr = (zmey::zmExecutorType)worker.exr;
       outWCng->capasityTask = worker.capasityTask;
       strcpy(outWCng->connectPnt, worker.connectPnt.c_str());
@@ -141,7 +142,7 @@ bool zmWorkerState(zmObj zo, uint64_t wId, zmStateType* outState, zmWorkerCng* o
   }
   return false;
 }
-uint32_t zmGetAllWorkers(zmObj zo, uint64_t schId, uint64_t** outWId){
+uint32_t zmGetAllWorkers(zmObj zo, uint64_t** outWId){
   if (!zo) return false; 
 
   auto workers = static_cast<Manager*>(zo)->getAllSchedulers();
@@ -215,10 +216,10 @@ bool zmPushTaskToQueue(zmObj zo, zmQueueTaskCng cng, uint64_t* outQTId){
     return false;
   }
   ZM_Base::queueTask qTask;
-  qTask.base.id = cng.tId;
+  qTask.tId = cng.tId;
   qTask.priority = cng.priority;
   if (cng.params){
-    qTask.base.params = cng.params;
+    qTask.params = cng.params;
   }
   for (int i = 0; i < cng.prevTasksCnt; ++i){
     qTask.prevTasks.push_back(cng.prevTasksQId[i]);
@@ -234,10 +235,10 @@ bool zmGetQueueTaskCng(zmObj zo, uint64_t qtId, zmQueueTaskCng* outQCng){
   }
   ZM_Base::queueTask qTask;
   if (static_cast<Manager*>(zo)->getQueueTaskCng(qtId, qTask)){
-    outQCng->tId = qTask.base.id;
+    outQCng->tId = qTask.tId;
     outQCng->priority = qTask.priority;
     
-    auto& params = qTask.base.params;
+    auto& params = qTask.params;
     if (!params.empty()){ 
       outQCng->params = (char*)realloc(outQCng->params, params.size() + 1);
       strcpy(outQCng->params, params.c_str());
@@ -266,7 +267,7 @@ bool zmGetQueueTaskState(zmObj zo, uint64_t qtId, zmQueueTaskState* outQState){
   ZM_Base::queueTask qTask;
   if (static_cast<Manager*>(zo)->getQueueTaskState(qtId, qTask)){
     outQState->progress = qTask.progress;
-    outQState->state = (zmey::zmStateType)qTask.base.state;
+    outQState->state = (zmey::zmStateType)qTask.state;
     if (!qTask.result.empty()){ 
       outQState->result = (char*)realloc(outQState->result, qTask.result.size() + 1);
       strcpy(outQState->result, qTask.result.c_str());

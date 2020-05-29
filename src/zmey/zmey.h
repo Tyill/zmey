@@ -142,6 +142,7 @@ ZMEY_API uint32_t zmGetAllSchedulers(zmObj, uint64_t** outSchId);
 
 /// worker config
 struct zmWorkerCng{
+  uint64_t schId;             ///< scheduler id 
   zmExecutorType exr;         ///< executor type
   char connectPnt[255];       ///< IP or DNS:port
   uint32_t capasityTask = 10; ///< permissible simultaneous number of tasks 
@@ -149,11 +150,10 @@ struct zmWorkerCng{
   
 /// add new worker
 /// @param[in] zmObj - object connect
-/// @param[in] schId - scheduler id
 /// @param[in] zmWorkerCng - worker config
 /// @param[out] outWId - new worker id
 /// @return true - ok
-ZMEY_API bool zmAddWorker(zmObj, uint64_t schId, zmWorkerCng, uint64_t* outWId);
+ZMEY_API bool zmAddWorker(zmObj, zmWorkerCng, uint64_t* outWId);
 
 /// worker state
 /// @param[in] zmObj - object connect
@@ -166,10 +166,9 @@ zmWorkerState(zmObj, uint64_t wId, zmStateType* outState, zmWorkerCng* outWCng =
 
 /// get all workers
 /// @param[in] zmObj - object connect
-/// @param[in] schId - scheduler id
 /// @param[out] outWId - worker id 
 /// @return count of schedulers
-ZMEY_API uint32_t zmGetAllWorkers(zmObj, uint64_t schId, uint64_t** outWId);
+ZMEY_API uint32_t zmGetAllWorkers(zmObj, uint64_t** outWId);
 
 //////////////////////////////////////////////////////////////////////////
 ///*** Task ***///////////////////////////////////////////////////////////
