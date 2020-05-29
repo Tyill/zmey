@@ -62,6 +62,7 @@ struct config{
   int sendAllMessTOutMS = 500;
   int checkWorkerTOutSec = 120; 
   string connectPnt = "localhost:4145";
+  string dbType;
   string dbServer;
   string dbName;  
 };
@@ -98,6 +99,7 @@ void parseArgs(int argc, char* argv[], config& outCng){
     outCng.prm = sprms["nm"]; \
   }
   SET_PARAM(cp, connectPnt);
+  SET_PARAM(dbt, dbType);
   SET_PARAM(dbs, dbServer);
   SET_PARAM(dbn, dbName);
  
@@ -138,25 +140,24 @@ int main(int argc, char* argv[]){
     statusMess("Tcp server error, busy -connectPnt: " + _cng.connectPnt + " " + err);
     return -1;
   }
-  ZM_DB::DbProvider db(statusMess);
-  if (db.connect(_cng.dbServer, _cng.dbName)){
-    statusMess("DB connect success: " + _cng.dbServer + " " + _cng.dbName);
+  unique_ptr<ZM_DB::DbProvider> db(ZM_DB::makeDbProvider(ZM_DB::dbTypeFromStr(_cng.dbType), _cng.dbServer, _cng.dbName, statusMess));
+  if (db && db->getLastError().empty()){
+    statusMess("DB connect success: " + _cng.dbType + " " + _cng.dbServer + " " + _cng.dbName);
   }else{
-    statusMess("DB connect error, not correct params -dbServer or -dbName: " + 
-      _cng.dbServer + " " + _cng.dbName + " " + db.getLastError());
+    statusMess("DB connect error: " + _cng.dbType + " " + _cng.dbServer + " " + _cng.dbName);
     ZM_Tcp::stopServer();
     return -1;
   }
   // schedr from DB
-  db.getSchedr(_cng.connectPnt, _schedr);
+  db->getSchedr(_cng.connectPnt, _schedr);
   if (_schedr.id == 0){
     statusMess("Schedr not found in DB for connectPnt " + _cng.connectPnt);
     ZM_Tcp::stopServer();
     return -1;
   }
   // prev tasks and workers
-  getPrevTaskFromDB(db, _schedr, _tasks);
-  getPrevWorkersFromDB(db, _schedr, _workers);
+  getPrevTaskFromDB(*db, _schedr, _tasks);
+  getPrevWorkersFromDB(*db, _schedr, _workers);
   
   future<void> frGetNewTask,
                frSendAllMessToDB; 
@@ -166,7 +167,7 @@ int main(int argc, char* argv[]){
 #define FUTURE_RUN(fut, func)                                                     \
   if(!fut.valid() || (fut.wait_for(chrono::seconds(0)) == future_status::ready)){ \
     fut = async(launch::async, [&db]{                                             \
-      func(db);                                                                   \
+      func(*db);                                                                  \
     });                                                                           \
   }
   // main cycle

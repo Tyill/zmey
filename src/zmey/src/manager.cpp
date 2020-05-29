@@ -31,9 +31,6 @@ using namespace std;
 Manager::Manager(const std::string& localPnt, zmey::zmDbType dbType, const std::string& dbServer, const std::string& dbName){
   
   _db = ZM_DB::makeDbProvider((ZM_DB::dbType)dbType, dbServer, dbName, bind(&Manager::errorMess, this, placeholders::_1));
-  if (!_db){
-    errorMess("not support dbType " + to_string((int)dbType));
-  }
 }
 Manager::~Manager(){
   if (_db){

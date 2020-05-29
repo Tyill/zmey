@@ -26,22 +26,23 @@
 
 #include "../dbProvider.h"
 
-class DbSQLiteProvider final : ZM_DB::DbProvider{  
-public:
-  DbSQLiteProvider(const std::string& dbServer, const std::string& dbName, ZM_DB::errCBack);    
-  ~DbSQLiteProvider(); 
-  DbSQLiteProvider(const DbProvider& other) = delete;
-  DbSQLiteProvider& operator=(const DbProvider& other) = delete;
-  // for zmSchedr
-  bool addSchedr(const ZM_Base::scheduler& schedl, uint64_t& schId) override;
-  bool getSchedr(std::string& connPnt, ZM_Base::scheduler& outSchedl) override;
-  // for zmSchedr
-  bool getTasksForSchedr(uint64_t schedrId, std::vector<ZM_Base::task>&) override;
-  bool getWorkersForSchedr(uint64_t schedrId, std::vector<ZM_Base::worker>&) override;
-  bool getNewTasks(std::vector<ZM_Base::task>&, int maxTaskCnt) override;
-  bool sendAllMessFromSchedr(uint64_t schedrId, std::vector<ZM_DB::messSchedr>&) override;
-private:
-  std::string _lastErr;
-  ZM_DB::errCBack _errCBack = nullptr;
-  bool query(const std::string& query, std::vector<std::vector<std::string>>& results) const;
-};
+// class DbJSONProvider final : ZM_DB::DbProvider{  
+// public:
+//   DbJSONProvider(const std::string& dbServer, const std::string& dbName, ZM_DB::errCBack);    
+//   ~DbJSONProvider(); 
+//   DbJSONProvider(const DbProvider& other) = delete;
+//   DbJSONProvider& operator=(const DbProvider& other) = delete;
+//   bool createDB(const std::string& dbName) override;
+//   bool connect(const std::string& dbServer, const std::string& dbName) override;
+//   void disconnect() override;
+//   bool addSchedr(ZM_Base::scheduler& ioSchedl) override;
+//   bool getSchedr(std::string& connPnt, ZM_Base::scheduler& outSchedl) override;
+//   bool getTasksForSchedr(uint64_t schedrId, std::vector<ZM_Base::task>&) override;
+//   bool getWorkersForSchedr(uint64_t schedrId, std::vector<ZM_Base::worker>&) override;
+//   bool getNewTasks(std::vector<ZM_Base::task>&, int maxTaskCnt) override;
+//   bool sendAllMessFromSchedr(uint64_t schedrId, std::vector<ZM_DB::messSchedr>&) override;
+// private:
+//   std::string _lastErr;
+//   ZM_DB::errCBack _errCBack = nullptr;
+//   bool query(const std::string& query, std::vector<std::vector<std::string>>& results) const;
+// };

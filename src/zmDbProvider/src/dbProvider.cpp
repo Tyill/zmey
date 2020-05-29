@@ -24,17 +24,32 @@
 //
 
 #include "../dbProvider.h"
-#include "filesJSON.h"
-#include "PostgreSQL.h"
-#include "SQLite.h"
+#include "dbJSON.h"
+#include "dbPostgreSQL.h"
+#include "dbSQLite.h"
 
 namespace ZM_DB{
+
+std::string dbTypeToStr(dbType dbt){
+  switch (dbt){
+    case dbType::filesJSON:  return "filesJSON";
+    case dbType::SQLite:     return "SQLite";
+    case dbType::PostgreSQL: return "PostgreSQL";
+    default:                 return "undefined";
+  }
+}
+dbType dbTypeFromStr(const std::string& dbt){
+  if      (dbt == "filesJSON")  return dbType::filesJSON;
+  else if (dbt == "SQLite")     return dbType::SQLite;
+  else if (dbt == "PostgreSQL") return dbType::PostgreSQL;
+  else                          return dbType::undefined;
+}
 
 DbProvider* makeDbProvider(dbType dbt, const std::string& dbServer, const std::string& dbName, errCBack ecb){
   DbProvider* ret = nullptr;
   switch (dbt){
     case dbType::filesJSON: 
-      ret = reinterpret_cast<DbProvider*>(new DbJSONProvider(dbServer, dbName, ecb));
+     // ret = reinterpret_cast<DbProvider*>(new DbJSONProvider(dbServer, dbName, ecb));
       break;
     case dbType::SQLite: 
       ret = reinterpret_cast<DbProvider*>(new DbSQLiteProvider(dbServer, dbName, ecb));
@@ -45,6 +60,9 @@ DbProvider* makeDbProvider(dbType dbt, const std::string& dbServer, const std::s
       break;
 #endif
     default:
+      if (ecb){
+        ecb("not support dbType " + dbTypeToStr(dbt));
+      }
     break;
   }
   return ret;

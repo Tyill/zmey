@@ -26,16 +26,32 @@
 
 #include "../dbProvider.h"
 
-class DbJSONProvider final : ZM_DB::DbProvider{  
+class DbSQLiteProvider final : ZM_DB::DbProvider{  
 public:
-  DbJSONProvider(const std::string& dbServer, const std::string& dbName, ZM_DB::errCBack);    
-  ~DbJSONProvider(); 
-  DbJSONProvider(const DbProvider& other) = delete;
-  DbJSONProvider& operator=(const DbProvider& other) = delete;
-  bool createDB(const std::string& dbName) override;
-  bool connect(const std::string& dbServer, const std::string& dbName) override;
-  void disconnect() override;
-  bool addSchedr(ZM_Base::scheduler& ioSchedl) override;
+  DbSQLiteProvider(const std::string& dbServer, const std::string& dbName, ZM_DB::errCBack);    
+  ~DbSQLiteProvider(); 
+  DbSQLiteProvider(const DbProvider& other) = delete;
+  DbSQLiteProvider& operator=(const DbProvider& other) = delete;
+  
+  // for zmManager
+  bool addSchedr(const ZM_Base::scheduler& schedl, uint64_t& schId) override;
+  bool schedrState(uint64_t schId, ZM_Base::scheduler& schedl) override;
+  std::vector<uint64_t> getAllSchedrs() override;
+
+  bool addWorker(uint64_t schId, const ZM_Base::worker& worker, uint64_t& wkrId) override;
+  bool workerState(uint64_t wkrId, ZM_Base::worker& worker) override;
+  std::vector<uint64_t> getAllWorkers(uint64_t schId) override;
+
+  bool addTask(const ZM_Base::task& task, uint64_t& tskId) override;
+  bool getTaskCng(uint64_t tskId, ZM_Base::task& task) override;
+  std::vector<uint64_t> getAllTasks() override;
+
+  bool pushTaskToQueue(const ZM_Base::queueTask& task, uint64_t& qtskId) override;
+  bool getQueueTaskCng(uint64_t qtskId, ZM_Base::queueTask& qTask) override;
+  bool getQueueTaskState(uint64_t qtskId, ZM_Base::queueTask& qTask) override;
+  std::vector<uint64_t> getAllQueueTasks() override;
+
+  // for zmSchedr
   bool getSchedr(std::string& connPnt, ZM_Base::scheduler& outSchedl) override;
   bool getTasksForSchedr(uint64_t schedrId, std::vector<ZM_Base::task>&) override;
   bool getWorkersForSchedr(uint64_t schedrId, std::vector<ZM_Base::worker>&) override;

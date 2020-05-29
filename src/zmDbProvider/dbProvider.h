@@ -33,10 +33,13 @@
 namespace ZM_DB{
 
 enum class dbType{
+  undefined = -1,
   filesJSON =  0,
   SQLite =     1,
   PostgreSQL = 2,
 };
+std::string dbTypeToStr(dbType);
+dbType dbTypeFromStr(const std::string& dbt);
 
 struct messSchedr{
   ZM_Base::messType type;
@@ -50,12 +53,10 @@ struct messSchedr{
 
 typedef std::function<void(const std::string& stsMess)> errCBack;
 
-DbProvider* makeDbProvider(dbType, const std::string& dbServer, const std::string& dbName, errCBack = nullptr);
-
 class DbProvider{  
-  friend DbProvider* makeDbProvider(dbType, const std::string& dbServer, const std::string& dbName, errCBack = nullptr);
+  friend DbProvider* makeDbProvider(dbType, const std::string& dbServer, const std::string& dbName, errCBack);
 public:  
-  virtual ~DbProvider(); 
+  virtual ~DbProvider() = default; 
   DbProvider(const DbProvider& other) = delete;
   DbProvider& operator=(const DbProvider& other) = delete;
   std::string getLastError() const{
@@ -86,8 +87,10 @@ public:
   virtual bool getNewTasks(std::vector<ZM_Base::task>&, int maxTaskCnt) = 0;
   virtual bool sendAllMessFromSchedr(uint64_t schedrId, std::vector<messSchedr>&) = 0;
 protected:  
-  DbProvider(const std::string& dbServer, const std::string& dbName, errCBack);  
+  DbProvider(const std::string& dbServer, const std::string& dbName, errCBack){};  
   std::string _err;
   errCBack _errCBack = nullptr;
 };
+
+DbProvider* makeDbProvider(dbType, const std::string& dbServer, const std::string& dbName, errCBack);
 }

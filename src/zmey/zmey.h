@@ -82,8 +82,8 @@ ZMEY_API void zmVersionLib(char* outVersion /*sz 8*/);
 /// create connection
 /// @param[in] localPnt - IP or DNS:port
 /// @param[in] zmDbType - database type
-/// @param[in] dbServer - database server IP or DNS (for sqlite - path to file db, for db on files - path to dir)
-/// @param[in] dbName - database name (for sqlite or files - empty) 
+/// @param[in] dbServer - for PG: server IP or DNS, for sqlite: path to file db, for db on files: path to dir
+/// @param[in] dbName - for PG: if the database does not exist - will be created, for sqlite or files: empty
 /// @param[out] err - error string. The memory is allocated by the user
 /// @return object connect
 ZMEY_API zmObj 
