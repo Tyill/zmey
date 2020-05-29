@@ -36,7 +36,7 @@
 #define ZMEY_API
 #endif
 
-#include <stdint.h>
+#include <cstdint>
 
 #if defined(__cplusplus)
 extern "C" {
@@ -51,21 +51,28 @@ typedef void* zmObj;
 
 /// state
 enum zmStateType{
-  ready         = 0,
-  start         = 1,
-  running       = 2,
-  pause         = 3,
-  stop          = 4,    
-  completed     = 5,
-  error         = 6,
-  notResponding = 7,
+  zmReady         = 0,
+  zmStart         = 1,
+  zmRunning       = 2,
+  zmPause         = 3,
+  zmStop          = 4,    
+  zmCompleted     = 5,
+  zmError         = 6,
+  zmNotResponding = 7,
 };
 
 /// executor type
 enum zmExecutorType{
-  bash =   0,
-  cmd =    1,
-  python = 2,
+  zmBash =   0,
+  zmCmd =    1,
+  zmPython = 2,
+};
+
+/// database type
+enum zmDbType{
+  zmFilesJSON =  0,
+  zmSQLite =     1,
+  zmPostgreSQL = 2,
 };
 
 /// version lib
@@ -74,12 +81,13 @@ ZMEY_API void zmVersionLib(char* outVersion /*sz 8*/);
 
 /// create connection
 /// @param[in] localPnt - IP or DNS:port
+/// @param[in] zmDbType - database type
 /// @param[in] dbServer - database server IP or DNS (for sqlite - path to file db, for db on files - path to dir)
 /// @param[in] dbName - database name (for sqlite or files - empty) 
 /// @param[out] err - error string. The memory is allocated by the user
 /// @return object connect
 ZMEY_API zmObj 
-zmCreateConnection(const char* localPnt, const char* dbServer, const char* dbName, char* err /*sz 256*/);
+zmCreateConnection(const char* localPnt, zmDbType, const char* dbServer, const char* dbName, char* err /*sz 256*/);
 
 /// disconnect
 /// @param[in] zmObj - object connect

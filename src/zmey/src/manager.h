@@ -28,13 +28,13 @@
 #include "zmBase/structurs.h"
 #include "structurs.h"
 
-class ZManager{
+class Manager{
   std::string _err;
   zmey::zmErrorCBack _errorCBack = nullptr;
   zmey::zmUData _errorUData = nullptr;
 public:
-  ZManager(const std::string& localPnt, const std::string& dbServer, const std::string& dbName);
-  ~ZManager();
+  Manager(const std::string& localPnt, zmey::zmDbType, const std::string& dbServer, const std::string& dbName);
+  ~Manager();
   void setErrorCBack(zmey::zmErrorCBack ecb, zmey::zmUData ud);
   std::string getLastError();
   void errorMess(const std::string&); 

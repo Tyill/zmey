@@ -33,6 +33,13 @@
 
 namespace ZM_DB{
 
+/// database type
+enum class dbType{
+  filesJSON =  0,
+  SQLite =     1,
+  PostgreSQL = 2,
+};
+
 struct messSchedr{
   ZM_Base::messType type;
   uint64_t workerId;
