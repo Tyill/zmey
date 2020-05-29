@@ -90,7 +90,7 @@ ZMEY_API zmObj
 zmCreateConnection(const char* localPnt, zmDbType, const char* dbServer, const char* dbName, char* err /*sz 256*/);
 
 /// disconnect
-/// @param[in] zmObj - object connect
+/// @param[in] zmObj - object connect (zmObj after the call will be deleted!) 
 ZMEY_API void zmDisconnect(zmObj);
 
 typedef void* zmUData;                                     ///< user data    
@@ -106,12 +106,6 @@ ZMEY_API void zmSetErrorCBack(zmObj, zmErrorCBack, zmUData);
 /// @param[in] zmObj - object connect
 /// @param[out] err - error string. The memory is allocated by the user
 ZMEY_API void zmGetLastError(zmObj, char* err/*sz 256*/);
-
-/// create a database if it does not exist
-/// @param[in] zmObj - object connect
-/// @param[in] dbName - database name (for sqlite - path to file db, for db on files - path to dir)
-/// @return true - ok
-ZMEY_API bool zmCreateDB(zmObj, const char* dbName);
 
 //////////////////////////////////////////////////////////////////////////
 ///*** Scheduler ***//////////////////////////////////////////////////////

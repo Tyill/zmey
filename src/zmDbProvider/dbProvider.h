@@ -22,7 +22,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-
 #pragma once
         
 #include <string>
@@ -33,7 +32,6 @@
 
 namespace ZM_DB{
 
-/// database type
 enum class dbType{
   filesJSON =  0,
   SQLite =     1,
@@ -50,26 +48,41 @@ struct messSchedr{
   std::string result;
 };
 
+typedef std::function<void(const std::string& stsMess)> errCBack;
+
+DbProvider* makeDbProvider(dbType, const std::string& dbServer, const std::string& dbName, errCBack = nullptr);
+
 class DbProvider{  
-public:
-  typedef std::function<void(const std::string& stsMess)> errCBack;
-  DbProvider(errCBack);    
-  ~DbProvider(); 
+  friend DbProvider* makeDbProvider(dbType, const std::string& dbServer, const std::string& dbName, errCBack = nullptr);
+public:  
+  virtual ~DbProvider(); 
   DbProvider(const DbProvider& other) = delete;
   DbProvider& operator=(const DbProvider& other) = delete;
-  std::string getLastError();
-  bool createTables();
-  bool connect(const std::string& dbServer, const std::string& dbName);
-  void disconnect();
-  bool addSchedr(ZM_Base::scheduler& ioSchedl);
-  bool getSchedr(std::string& connPnt, ZM_Base::scheduler& outSchedl);
-  bool getTasksForSchedr(uint64_t schedrId, std::vector<ZM_Base::task>&);
-  bool getWorkersForSchedr(uint64_t schedrId, std::vector<ZM_Base::worker>&);
-  bool getNewTasks(std::vector<ZM_Base::task>&, int maxTaskCnt);
-  bool sendAllMessFromSchedr(uint64_t schedrId, std::vector<messSchedr>&);
-private:
-  std::string _lastErr;
+  std::string getLastError() const{
+    return _err;
+  }  
+  // for zmManager
+  virtual bool addSchedr(const ZM_Base::scheduler& schedl, uint64_t& schId) = 0;
+  virtual bool schedrState(uint64_t schId, ZM_Base::scheduler& schedl) = 0;
+  virtual bool getAllSchedrs(std::vector<uint64_t>& schId) = 0;
+  
+  virtual bool addWorker(const ZM_Base::worker& worker, uint64_t& wkrId) = 0;
+  virtual bool workerState(uint64_t wkrId, ZM_Base::worker& worker) = 0;
+  virtual bool getAllWorkers(std::vector<uint64_t>& wkrId) = 0;
+
+  virtual bool addTask(const ZM_Base::task& task, uint64_t& tskId) = 0;
+  virtual bool taskCng(uint64_t tskId, ZM_Base::task& task) = 0;
+  virtual bool getAllTasks(std::vector<uint64_t>& tskId) = 0;
+  
+  // for zmSchedr
+  virtual bool getSchedr(std::string& connPnt, ZM_Base::scheduler& outSchedl) = 0;
+  virtual bool getTasksForSchedr(uint64_t schedrId, std::vector<ZM_Base::task>&) = 0;
+  virtual bool getWorkersForSchedr(uint64_t schedrId, std::vector<ZM_Base::worker>&) = 0;
+  virtual bool getNewTasks(std::vector<ZM_Base::task>&, int maxTaskCnt) = 0;
+  virtual bool sendAllMessFromSchedr(uint64_t schedrId, std::vector<messSchedr>&) = 0;
+protected:  
+  DbProvider(const std::string& dbServer, const std::string& dbName, errCBack);  
+  std::string _err;
   errCBack _errCBack = nullptr;
-  bool query(const std::string& query, std::vector<std::vector<std::string>>& results) const;
 };
 }

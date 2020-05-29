@@ -22,24 +22,31 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+#pragma once 
+
 #include <string>
 #include <vector>
+#include <map>
 #include "zmey/zmey.h"
 #include "zmBase/structurs.h"
 #include "structurs.h"
+#include "zmDbProvider/dbProvider.h"
 
 class Manager{
   std::string _err;
   zmey::zmErrorCBack _errorCBack = nullptr;
   zmey::zmUData _errorUData = nullptr;
+  ZM_DB::DbProvider* _db = nullptr;
+  // std::map<uint64_t, ZM_Base::scheduler> _schedrs;  // key id tblSchedr
+  // std::map<uint64_t, ZM_Base::worker> _workers;     // key id tblWorker
+  // std::map<uint64_t, ZM_Base::task> _tasks;         // key id tblWorker
 public:
   Manager(const std::string& localPnt, zmey::zmDbType, const std::string& dbServer, const std::string& dbName);
   ~Manager();
   void setErrorCBack(zmey::zmErrorCBack ecb, zmey::zmUData ud);
   std::string getLastError();
   void errorMess(const std::string&); 
-  bool createDB(const std::string& dbName);
-  
+ 
   bool addScheduler(const ZM_Base::scheduler&, uint64_t& outSchId);
   bool schedulerState(uint64_t schId, ZM_Base::scheduler& outSchCng);
   std::vector<uint64_t> getAllSchedulers();

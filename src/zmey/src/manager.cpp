@@ -22,10 +22,18 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+#include <functional>
 #include "manager.h"
+#include "zmDbProvider/dbProvider.h"
+
+using namespace std;
 
 Manager::Manager(const std::string& localPnt, zmey::zmDbType dbType, const std::string& dbServer, const std::string& dbName){
-
+  
+  _db = ZM_DB::makeDbProvider((ZM_DB::dbType)dbType, dbServer, dbName, bind(&Manager::errorMess, this, placeholders::_1));
+  if (!_db){
+    errorMess("not support dbType " + to_string((int)dbType));
+  }
 }
 Manager::~Manager(){
 
@@ -43,14 +51,14 @@ void Manager::errorMess(const std::string& mess){
 std::string Manager::getLastError(){
   return _err;
 }
-bool Manager::createDB(const std::string& dbName){
-  return false;
-}
   
-bool Manager::addScheduler(const ZM_Base::scheduler&, uint64_t& outSchId){
-  return false;
+bool Manager::addScheduler(const ZM_Base::scheduler& schedr, uint64_t& outSchId){  
+  return _db->addSchedr(schedr, outSchId);
 }
 bool Manager::schedulerState(uint64_t schId, ZM_Base::scheduler&){
+
+  
+
   return false;
 }
 std::vector<uint64_t> Manager::getAllSchedulers(){

@@ -33,7 +33,7 @@ using namespace std;
 namespace ZM_DB{
 sqlite3* _db = nullptr;
 
-DbProvider::DbProvider(errCBack ecb): _errCBack(ecb){
+DbProvider::DbProvider(dbType, const std::string& dbServer, const std::string& dbName, errCBack ecb): _errCBack(ecb){
 }
 DbProvider::~DbProvider(){
   disconnect();
