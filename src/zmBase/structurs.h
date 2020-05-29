@@ -67,6 +67,7 @@ namespace ZM_Base{
 
   struct task{
     uint64_t id;              // id tblTaskQueue
+    stateType state;
     executorType exr;         
     int averDurationSec;      // estimated lead time 
     int maxDurationSec;       // maximum lead time

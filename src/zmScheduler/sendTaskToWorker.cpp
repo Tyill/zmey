@@ -52,7 +52,7 @@ void sendTaskToWorker(unordered_map<std::string, ZM_Base::worker>& workers,
     });
     auto iWr = find_if(refWorkers.begin(), refWorkers.end(),
       [&t](const ZM_Base::worker* w){
-        return (w->exrType == t.exr) && 
+        return (w->exr == t.exr) && 
                (w->state == ZM_Base::stateType::running) && 
                (w->activeTask < w->capasityTask);
       }); 

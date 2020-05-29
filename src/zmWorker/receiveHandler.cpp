@@ -63,7 +63,7 @@ void receiveHandler(const string& cp, const string& data){
     checkFieldNum(maxDurationSec);
     _newTasks.push(ZM_Base::task{stoull(mess["taskId"]),
                                  ZM_Base::stateType::ready,
-                                 (ZM_Base::executorType)stoi(mess["exrType"]),
+                                 (ZM_Base::executorType)stoi(mess["exr"]),
                                  stoi(mess["averDurationSec"]),
                                  stoi(mess["maxDurationSec"]),
                                  mess["params"],
