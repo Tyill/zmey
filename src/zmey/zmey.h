@@ -51,6 +51,7 @@ typedef void* zmObj;
 
 /// state
 enum zmStateType{
+  undefined       = -1,
   zmReady         = 0,
   zmStart         = 1,
   zmRunning       = 2,
@@ -79,18 +80,36 @@ enum zmDbType{
 /// @param[out] outVersion. The memory is allocated by the user
 ZMEY_API void zmVersionLib(char* outVersion /*sz 8*/);
 
+//////////////////////////////////////////////////////////////////////////
+///*** Manager ***//////////////////////////////////////////////////////
+
+/// manager config
+struct zmManagerCng{  
+  char name[255];    ///< unique name
+  char passw[255];   ///< optional password     
+};
+
+//////////////////////////////////////////////////////////////////////////
+///*** Connection with DB ***//////////////////////////////////////////////////////
+
+/// connection config
+struct zmConnectCng{
+  zmManagerCng mnrCng;      ///< manager config. If it does not exist, a new one will be created
+  zmDbType dbType;          ///< db type
+  char connectPnt[255];     ///< local connection point: IP or DNS:port
+  const char dbServer[255]; ///< for PG: server IP or DNS, for sqlite: path to file db, for db on files: path to dir
+  const char dbName[255];   ///< for PG: if the database does not exist - will be created, for sqlite or files: empty
+  const char dbPassw[255];  ///< db user password
+};
+
 /// create connection
-/// @param[in] localPnt - IP or DNS:port
-/// @param[in] zmDbType - database type
-/// @param[in] dbServer - for PG: server IP or DNS, for sqlite: path to file db, for db on files: path to dir
-/// @param[in] dbName - for PG: if the database does not exist - will be created, for sqlite or files: empty
+/// @param[in] zmConnectCng - connection config
 /// @param[out] err - error string. The memory is allocated by the user
 /// @return object connect
-ZMEY_API zmObj 
-zmCreateConnection(const char* localPnt, zmDbType, const char* dbServer, const char* dbName, char* err /*sz 256*/);
+ZMEY_API zmObj zmCreateConnection(zmConnectCng, char* err /*sz 256*/);
 
-/// disconnect
-/// @param[in] zmObj - object connect (zmObj after the call will be deleted!) 
+/// disconnect !!! zmObj after the call will be deleted !!! 
+/// @param[in] zmObj - object connect
 ZMEY_API void zmDisconnect(zmObj);
 
 typedef void* zmUData;                                     ///< user data    
@@ -112,7 +131,7 @@ ZMEY_API void zmGetLastError(zmObj, char* err/*sz 256*/);
 
 /// scheduler config
 struct zmSchedrCng{
-  char connectPnt[255];          ///< IP or DNS:port
+  char connectPnt[255];          ///< remote connection point: IP or DNS:port
   uint32_t capasityTask = 10000; ///< permissible simultaneous number of tasks 
 };
 /// add new scheduler
@@ -133,9 +152,10 @@ zmSchedulerState(zmObj, uint64_t schId, zmStateType* outState, zmSchedrCng* outS
 
 /// get all schedulers
 /// @param[in] zmObj - object connect
+/// @param[in] zmStateType - choose with current state. If the state is 'undefined', select all
 /// @param[out] outSchId - schedulers id
 /// @return count of schedulers
-ZMEY_API uint32_t zmGetAllSchedulers(zmObj, uint64_t** outSchId);
+ZMEY_API uint32_t zmGetAllSchedulers(zmObj, zmStateType, uint64_t** outSchId);
 
 //////////////////////////////////////////////////////////////////////////
 ///*** Worker ***/////////////////////////////////////////////////////////
@@ -144,7 +164,7 @@ ZMEY_API uint32_t zmGetAllSchedulers(zmObj, uint64_t** outSchId);
 struct zmWorkerCng{
   uint64_t schId;             ///< scheduler id 
   zmExecutorType exr;         ///< executor type
-  char connectPnt[255];       ///< IP or DNS:port
+  char connectPnt[255];       ///< remote connection point: IP or DNS:port
   uint32_t capasityTask = 10; ///< permissible simultaneous number of tasks 
 };
   
@@ -166,9 +186,10 @@ zmWorkerState(zmObj, uint64_t wId, zmStateType* outState, zmWorkerCng* outWCng =
 
 /// get all workers
 /// @param[in] zmObj - object connect
+/// @param[in] zmStateType - choose with current state. If the state is 'undefined', select all
 /// @param[out] outWId - worker id 
 /// @return count of schedulers
-ZMEY_API uint32_t zmGetAllWorkers(zmObj, uint64_t** outWId);
+ZMEY_API uint32_t zmGetAllWorkers(zmObj, zmStateType, uint64_t** outWId);
 
 //////////////////////////////////////////////////////////////////////////
 ///*** Task ***///////////////////////////////////////////////////////////
@@ -192,8 +213,7 @@ ZMEY_API bool zmAddTask(zmObj, zmTaskCng, uint64_t* outTId);
 /// @param[in] tId - task id
 /// @param[out] outTCng - task config. The memory is allocated by the user
 /// @return true - ok
-ZMEY_API bool
-zmGetTaskCng(zmObj, uint64_t tId, zmTaskCng* outTCng);
+ZMEY_API bool zmGetTaskCng(zmObj, uint64_t tId, zmTaskCng* outTCng);
 
 /// get all tasks
 /// @param[in] zmObj - object connect
@@ -240,14 +260,14 @@ struct zmQueueTaskState{
 /// @param[in] qtId - queue task id
 /// @param[out] outQState - queue task state
 /// @return true - ok
-ZMEY_API bool
-zmGetQueueTaskState(zmObj, uint64_t qtId, zmQueueTaskState* outQState);
+ZMEY_API bool zmGetQueueTaskState(zmObj, uint64_t qtId, zmQueueTaskState* outQState);
 
 /// get all queue tasks
 /// @param[in] zmObj - object connect
+/// @param[in] zmStateType - choose with current state. If the state is 'undefined', select all
 /// @param[out] outQTId - task id 
 /// @return count of queue tasks
-ZMEY_API uint32_t zmGetAllQueueTasks(zmObj, uint64_t** outQTId);
+ZMEY_API uint32_t zmGetAllQueueTasks(zmObj, zmStateType, uint64_t** outQTId);
 
 /// free resouces
 ZMEY_API uint32_t zmFreeResouces(uint64_t*, char*);
