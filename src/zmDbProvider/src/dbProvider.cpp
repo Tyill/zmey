@@ -41,7 +41,7 @@ DbProvider* makeDbProvider(dbType dbt, const std::string& dbServer, const std::s
       break;
 #ifdef USE_PostgreSQL
     case dbType::PostgreSQL:
-      ret = reinterpret_cast<DbProvider*>(DbPGProvider(dbServer, dbName, ecb));
+      ret = reinterpret_cast<DbProvider*>(new DbPGProvider(dbServer, dbName, ecb));
       break;
 #endif
     default:

@@ -63,11 +63,6 @@ void zmGetLastError(zmObj zo, char* err/*sz 256*/){
     strcpy(err, static_cast<Manager*>(zo)->getLastError().c_str());
   }
 }
-bool zmCreateDB(zmObj zo, const char* dbName){
-  if (!zo) return false;
-
-  return static_cast<Manager*>(zo)->createDB(dbName);
-}
 
 bool zmAddScheduler(zmObj zo, zmSchedrCng cng, uint64_t* outSchId){
   if (!zo) return false;
@@ -219,7 +214,7 @@ bool zmPushTaskToQueue(zmObj zo, zmQueueTaskCng cng, uint64_t* outQTId){
     static_cast<Manager*>(zo)->errorMess("error !cng.prevTasksQId");
     return false;
   }
-  queueTask qTask;
+  ZM_Base::queueTask qTask;
   qTask.base.id = cng.tId;
   qTask.priority = cng.priority;
   if (cng.params){
@@ -237,7 +232,7 @@ bool zmGetQueueTaskCng(zmObj zo, uint64_t qtId, zmQueueTaskCng* outQCng){
      static_cast<Manager*>(zo)->errorMess("error !outQCng");
      return false;
   }
-  queueTask qTask;
+  ZM_Base::queueTask qTask;
   if (static_cast<Manager*>(zo)->getQueueTaskCng(qtId, qTask)){
     outQCng->tId = qTask.base.id;
     outQCng->priority = qTask.priority;
@@ -268,7 +263,7 @@ bool zmGetQueueTaskState(zmObj zo, uint64_t qtId, zmQueueTaskState* outQState){
     static_cast<Manager*>(zo)->errorMess("error !outQState");
     return false;
   }
-  queueTask qTask;
+  ZM_Base::queueTask qTask;
   if (static_cast<Manager*>(zo)->getQueueTaskState(qtId, qTask)){
     outQState->progress = qTask.progress;
     outQState->state = (zmey::zmStateType)qTask.base.state;

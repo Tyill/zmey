@@ -64,15 +64,20 @@ public:
   // for zmManager
   virtual bool addSchedr(const ZM_Base::scheduler& schedl, uint64_t& schId) = 0;
   virtual bool schedrState(uint64_t schId, ZM_Base::scheduler& schedl) = 0;
-  virtual bool getAllSchedrs(std::vector<uint64_t>& schId) = 0;
+  virtual std::vector<uint64_t> getAllSchedrs() = 0;
   
-  virtual bool addWorker(const ZM_Base::worker& worker, uint64_t& wkrId) = 0;
+  virtual bool addWorker(uint64_t schId, const ZM_Base::worker& worker, uint64_t& wkrId) = 0;
   virtual bool workerState(uint64_t wkrId, ZM_Base::worker& worker) = 0;
-  virtual bool getAllWorkers(std::vector<uint64_t>& wkrId) = 0;
+  virtual std::vector<uint64_t> getAllWorkers(uint64_t schId) = 0;
 
   virtual bool addTask(const ZM_Base::task& task, uint64_t& tskId) = 0;
-  virtual bool taskCng(uint64_t tskId, ZM_Base::task& task) = 0;
-  virtual bool getAllTasks(std::vector<uint64_t>& tskId) = 0;
+  virtual bool getTaskCng(uint64_t tskId, ZM_Base::task& task) = 0;
+  virtual std::vector<uint64_t> getAllTasks() = 0;
+
+  virtual bool pushTaskToQueue(const ZM_Base::queueTask& task, uint64_t& qtskId) = 0;
+  virtual bool getQueueTaskCng(uint64_t qtskId, ZM_Base::queueTask& qTask) = 0;
+  virtual bool getQueueTaskState(uint64_t qtskId, ZM_Base::queueTask& qTask) = 0;
+  virtual std::vector<uint64_t> getAllQueueTasks() = 0;
   
   // for zmSchedr
   virtual bool getSchedr(std::string& connPnt, ZM_Base::scheduler& outSchedl) = 0;

@@ -209,7 +209,7 @@ ZMEY_API uint32_t zmGetAllTasks(zmObj, uint64_t** outTId);
 struct zmQueueTaskCng{
   uint64_t tId;           ///< task id
   uint64_t* prevTasksQId; ///< queue task id of previous tasks to be completed
-  uint32_t prevTasksCnt;  ///< queue task count
+  uint32_t prevTasksCnt;  ///< queue task previous count
   uint32_t priority;      ///< [1..3]
   char* params;           ///< params of script: -key=value
 };

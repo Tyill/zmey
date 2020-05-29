@@ -59,8 +59,8 @@ public:
   bool getTaskCng(uint64_t tId, ZM_Base::task&);
   std::vector<uint64_t> getAllTasks();
   
-  bool pushTaskToQueue(const queueTask&, uint64_t& outQTId);
-  bool getQueueTaskCng(uint64_t qtId, queueTask&);
-  bool getQueueTaskState(uint64_t qtId, queueTask&);
+  bool pushTaskToQueue(const ZM_Base::queueTask&, uint64_t& outQTId);
+  bool getQueueTaskCng(uint64_t qtId, ZM_Base::queueTask&);
+  bool getQueueTaskState(uint64_t qtId, ZM_Base::queueTask&);
   std::vector<uint64_t> getAllQueueTasks();
 };

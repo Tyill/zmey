@@ -66,13 +66,22 @@ namespace ZM_Base{
   };
 
   struct task{
-    uint64_t id;              // id tblTaskQueue
+    uint64_t id;              // id tblTask (for schedr == qId)
     stateType state;
     executorType exr;         
     int averDurationSec;      // estimated lead time 
     int maxDurationSec;       // maximum lead time
     std::string params;       // params for script
     std::string script;       // script on bash, python or cmd
+  };
+
+  struct queueTask{
+    uint64_t qId;             // id tblTaskQueue
+    task base;                // base task from tblTask
+    int priority;             // [1..3]
+    int progress;             // [0..100]  
+    std::string result;
+    std::vector<uint64_t> prevTasks; // queue task id of previous tasks to be completed
   };
 
   struct manager{

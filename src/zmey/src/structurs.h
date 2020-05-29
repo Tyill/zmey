@@ -25,12 +25,3 @@
 #pragma once
 
 #include "zmBase/structurs.h"
-
-struct queueTask{
-  uint64_t qId;           // id tblTaskQueue
-  ZM_Base::task base;     // base task from tblTask
-  int priority;           // [1..3]
-  int progress;           // [0..100]  
-  std::string result;
-  std::vector<uint64_t> prevTasks; // queue task id of previous tasks to be completed
-};
