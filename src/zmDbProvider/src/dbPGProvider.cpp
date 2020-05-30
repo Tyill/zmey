@@ -27,20 +27,19 @@
 #include <sstream>        
 #include "sqlite/sqlite3.h"
 #include "../dbProvider.h"
-#include "dbSQLite.h"
-
+#include "dbPGProvider.h"
 
 using namespace std;
 
 sqlite3* _db = nullptr;
 
-DbSQLiteProvider::DbSQLiteProvider(const ZM_DB::connectCng& connCng, ZM_DB::errCBack ecb)
+DbPGProvider::DbPGProvider(const ZM_DB::connectCng& connCng, ZM_DB::errCBack ecb)
   : _errCBack(ecb), ZM_DB::DbProvider(connCng, ecb){
 }
-DbSQLiteProvider::~DbSQLiteProvider(){
+DbPGProvider::~DbPGProvider(){
   //disconnect();
 }
-// bool DbSQLiteProvider::connect(const string& dbPath, const string& ){
+// bool DbPGProvider::connect(const string& dbPath, const string& ){
 //   if (_db) return true;
 //   try{          
 //     if (sqlite3_shutdown() ||
@@ -70,13 +69,13 @@ DbSQLiteProvider::~DbSQLiteProvider(){
 //   }        
 //   return true;
 // }
-// void DbSQLiteProvider::disconnect(){
+// void DbPGProvider::disconnect(){
 //   if (_db){
 //     sqlite3_close(_db);
 //     _db = nullptr;
 //   }
 // }
-// bool DbSQLiteProvider::createTables(){
+// bool DbPGProvider::createTables(){
 //   if (!_db) return false;
 //   try{
 //     stringstream ss;
@@ -187,10 +186,10 @@ DbSQLiteProvider::~DbSQLiteProvider(){
 //   }
 //   return true;
 // }
-// std::string DbSQLiteProvider::getLastError(){
+// std::string DbPGProvider::getLastError(){
 //   return _lastErr;
 // }
-// bool DbSQLiteProvider::query(const string& query, vector<vector<string>>& results) const{
+// bool DbPGProvider::query(const string& query, vector<vector<string>>& results) const{
 //   try{
 //     sqlite3_stmt* statement;
 //     if (sqlite3_prepare_v2(_db, query.c_str(), -1, &statement, 0) != SQLITE_OK){  
@@ -217,70 +216,70 @@ DbSQLiteProvider::~DbSQLiteProvider(){
 //   return true;
 // }
 // common
-bool DbSQLiteProvider::getManager(const std::string& mnrName,
+bool DbPGProvider::getManager(const std::string& mnrName,
              const std::string& mnrPassw, ZM_Base::manager& out){
   return true;
 }
 
 // for zmManager
-bool DbSQLiteProvider::addSchedr(const ZM_Base::scheduler& schedl, uint64_t& schId){
+bool DbPGProvider::addSchedr(const ZM_Base::scheduler& schedl, uint64_t& schId){
   return true;
 }
-bool DbSQLiteProvider::schedrState(uint64_t schId, ZM_Base::scheduler& schedl){
+bool DbPGProvider::schedrState(uint64_t schId, ZM_Base::scheduler& schedl){
   return true;
 }
-std::vector<uint64_t> DbSQLiteProvider::getAllSchedrs(uint64_t mId, ZM_Base::stateType){
+std::vector<uint64_t> DbPGProvider::getAllSchedrs(uint64_t mId, ZM_Base::stateType){
   return std::vector<uint64_t>();
 }
 
-bool DbSQLiteProvider::addWorker(const ZM_Base::worker& worker, uint64_t& wkrId){
+bool DbPGProvider::addWorker(const ZM_Base::worker& worker, uint64_t& wkrId){
   return true;
 }
-bool DbSQLiteProvider::workerState(uint64_t wkrId, ZM_Base::worker& worker){
+bool DbPGProvider::workerState(uint64_t wkrId, ZM_Base::worker& worker){
   return true;
 }
-std::vector<uint64_t> DbSQLiteProvider::getAllWorkers(uint64_t mId, uint64_t schId, ZM_Base::stateType){
+std::vector<uint64_t> DbPGProvider::getAllWorkers(uint64_t mId, uint64_t schId, ZM_Base::stateType){
   return std::vector<uint64_t>();
 }
 
-bool DbSQLiteProvider::addTask(const ZM_Base::task& task, uint64_t& tskId){
+bool DbPGProvider::addTask(const ZM_Base::task& task, uint64_t& tskId){
   return true;
 }
-bool DbSQLiteProvider::getTaskCng(uint64_t tskId, ZM_Base::task& task){
+bool DbPGProvider::getTaskCng(uint64_t tskId, ZM_Base::task& task){
   return true;
 }
-std::vector<uint64_t> DbSQLiteProvider::getAllTasks(uint64_t mId){
+std::vector<uint64_t> DbPGProvider::getAllTasks(uint64_t mId){
   return std::vector<uint64_t>();
 }
 
-bool DbSQLiteProvider::pushTaskToQueue(const ZM_Base::queueTask& task, uint64_t& qtskId){
+bool DbPGProvider::pushTaskToQueue(const ZM_Base::queueTask& task, uint64_t& qtskId){
   return true;
 }
-bool DbSQLiteProvider::getQueueTaskCng(uint64_t qtskId, ZM_Base::queueTask& qTask){
+bool DbPGProvider::getQueueTaskCng(uint64_t qtskId, ZM_Base::queueTask& qTask){
   return true;
 }
-bool DbSQLiteProvider::getQueueTaskState(uint64_t qtskId, ZM_Base::queueTask& qTask){
+bool DbPGProvider::getQueueTaskState(uint64_t qtskId, ZM_Base::queueTask& qTask){
   return true;
 }
-std::vector<uint64_t> DbSQLiteProvider::getAllQueueTasks(uint64_t mId, ZM_Base::stateType){
+std::vector<uint64_t> DbPGProvider::getAllQueueTasks(uint64_t mId, ZM_Base::stateType){
   return std::vector<uint64_t>();
 }
 
 // for zmSchedr
-bool DbSQLiteProvider::getSchedr(std::string& connPnt, ZM_Base::scheduler& outSchedl){
+bool DbPGProvider::getSchedr(std::string& connPnt, ZM_Base::scheduler& outSchedl){
   return true;
 }
 bool 
-DbSQLiteProvider::getTasksForSchedr(uint64_t schedrId, std::vector<std::pair<ZM_Base::task, ZM_Base::queueTask>>&){
+DbPGProvider::getTasksForSchedr(uint64_t schedrId, std::vector<std::pair<ZM_Base::task, ZM_Base::queueTask>>&){
   return true;
 }
-bool DbSQLiteProvider::getWorkersForSchedr(uint64_t schedrId, std::vector<ZM_Base::worker>&){
+bool DbPGProvider::getWorkersForSchedr(uint64_t schedrId, std::vector<ZM_Base::worker>&){
   return true;
 }
 bool 
-DbSQLiteProvider::getNewTasks(int maxTaskCnt, std::vector<std::pair<ZM_Base::task, ZM_Base::queueTask>>&){
+DbPGProvider::getNewTasks(int maxTaskCnt, std::vector<std::pair<ZM_Base::task, ZM_Base::queueTask>>&){
   return true;
 }
-bool DbSQLiteProvider::sendAllMessFromSchedr(uint64_t schedrId, std::vector<ZM_DB::messSchedr>&){
+bool DbPGProvider::sendAllMessFromSchedr(uint64_t schedrId, std::vector<ZM_DB::messSchedr>&){
   return true;
 }

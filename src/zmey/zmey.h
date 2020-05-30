@@ -71,9 +71,7 @@ enum zmExecutorType{
 
 /// database type
 enum zmDbType{
-  zmFilesJSON =  0,
-  zmSQLite =     1,
-  zmPostgreSQL = 2,
+  zmPostgreSQL = 0,
 };
 
 /// version lib

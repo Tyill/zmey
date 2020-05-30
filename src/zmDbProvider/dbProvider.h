@@ -34,9 +34,7 @@ namespace ZM_DB{
 
 enum class dbType{
   undefined = -1,
-  filesJSON =  0,
-  SQLite =     1,
-  PostgreSQL = 2,
+  PostgreSQL = 0,
 };
 std::string dbTypeToStr(dbType);
 dbType dbTypeFromStr(const std::string& dbt);
