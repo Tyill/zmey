@@ -24,6 +24,16 @@
 //
 #pragma once
 
-#include <string>
+#include "zmBase/structurs.h"
 
 void statusMess(const std::string& mess);
+
+struct task{
+  ZM_Base::task base;
+  std::string params;
+};
+
+struct worker{
+  bool isActive = false;
+  ZM_Base::worker base;
+};

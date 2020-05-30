@@ -23,33 +23,33 @@
 // THE SOFTWARE.
 //
 #include <unordered_map>
-#include "zmBase/structurs.h"
 #include "zmDbProvider/dbProvider.h"
 #include "zmCommon/queue.h"
 #include "zmCommon/tcp.h"
 #include "zmCommon/serial.h"
+#include "structurs.h"
 
 using namespace std;
 
 void checkStatusWorkers(const ZM_Base::scheduler& schedr,
-                        unordered_map<std::string, ZM_Base::worker>& workers,
+                        unordered_map<std::string, worker>& workers,
                         ZM_Aux::QueueThrSave<ZM_DB::messSchedr>& messToDB){
    
   for(auto& w : workers){
-    if (!w.second.isActive && (w.second.state == ZM_Base::stateType::running)){            
+    if (!w.second.isActive && (w.second.base.state == ZM_Base::stateType::running)){            
       messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::workerNotResponding,
-                                      w.second.id});
-      w.second.state = ZM_Base::stateType::notResponding;
-      w.second.activeTask = 0;
+                                      w.second.base.id});
+      w.second.base.state = ZM_Base::stateType::notResponding;
+      w.second.base.activeTask = 0;
     }else{
       w.second.isActive = false;
     }
   }
 
   // all inactive
-  vector<ZM_Base::worker> wkrNotResp;
+  vector<worker> wkrNotResp;
   for(auto& w : workers){
-    if (w.second.state == ZM_Base::stateType::notResponding){
+    if (w.second.base.state == ZM_Base::stateType::notResponding){
       wkrNotResp.push_back(w.second);
     }
   }
@@ -64,7 +64,7 @@ void checkStatusWorkers(const ZM_Base::scheduler& schedr,
     map<string, string> sendData{
       make_pair("command", to_string((int)ZM_Base::messType::pingWorker))
     };      
-    ZM_Tcp::sendData(wkrNotResp[i].connectPnt, ZM_Aux::serialn(sendData));
+    ZM_Tcp::sendData(wkrNotResp[i].base.connectPnt, ZM_Aux::serialn(sendData));
     ++cnt;
     if (cnt == maxCnt)
       break;

@@ -32,25 +32,25 @@
 #include "zmCommon/queue.h"
 #include "zmCommon/auxFunc.h"
 #include "zmDbProvider/dbProvider.h"
-#include "zmBase/structurs.h"
 #include "zmCommon/logger.h"
+#include "structurs.h"
 
 using namespace std;
 
 void receiveHandler(const string& cp, const string& data);
 void sendHandler(const string& cp, const string& data, const std::error_code& ec);
 void getNewTaskFromDB(ZM_DB::DbProvider& db);
-void sendTaskToWorker(unordered_map<std::string, ZM_Base::worker>&,
-                      ZM_Aux::QueueThrSave<ZM_Base::task>&);
+void sendTaskToWorker(unordered_map<std::string, worker>&,
+                      ZM_Aux::QueueThrSave<task>&);
 void sendAllMessToDB(ZM_DB::DbProvider& db);
 void checkStatusWorkers(const ZM_Base::scheduler&,
-                        unordered_map<std::string, ZM_Base::worker>&,
+                        unordered_map<std::string, worker>&,
                         ZM_Aux::QueueThrSave<ZM_DB::messSchedr>&);
-void getPrevTaskFromDB(ZM_DB::DbProvider& db, ZM_Base::scheduler&,  ZM_Aux::QueueThrSave<ZM_Base::task>&);
-void getPrevWorkersFromDB(ZM_DB::DbProvider& db, ZM_Base::scheduler&, unordered_map<std::string, ZM_Base::worker>&);
+void getPrevTaskFromDB(ZM_DB::DbProvider& db, ZM_Base::scheduler&,  ZM_Aux::QueueThrSave<task>&);
+void getPrevWorkersFromDB(ZM_DB::DbProvider& db, ZM_Base::scheduler&, unordered_map<std::string, worker>&);
 
-unordered_map<std::string, ZM_Base::worker> _workers;   // key - connectPnt
-ZM_Aux::QueueThrSave<ZM_Base::task> _tasks;
+unordered_map<std::string, worker> _workers;   // key - connectPnt
+ZM_Aux::QueueThrSave<task> _tasks;
 ZM_Aux::QueueThrSave<ZM_DB::messSchedr> _messToDB;
 unique_ptr<ZM_Aux::Logger> _pLog = nullptr;
 ZM_Base::scheduler _schedr;
@@ -61,10 +61,9 @@ struct config{
   int capasityTask = 10000;
   int sendAllMessTOutMS = 500;
   int checkWorkerTOutSec = 120; 
-  string connectPnt = "localhost:4145";
-  string dbType;
-  string dbServer;
-  string dbName;  
+  std::string dbType;
+  std::string connectPnt;
+  ZM_DB::connectCng dbConnCng;
 };
 config _cng;
 
@@ -99,9 +98,14 @@ void parseArgs(int argc, char* argv[], config& outCng){
     outCng.prm = sprms["nm"]; \
   }
   SET_PARAM(cp, connectPnt);
-  SET_PARAM(dbt, dbType);
-  SET_PARAM(dbs, dbServer);
-  SET_PARAM(dbn, dbName);
+  SET_PARAM(dbtp, dbType);
+  SET_PARAM(dbcp, dbConnCng.connectPnt);
+  SET_PARAM(dbsr, dbConnCng.dbServer);
+  SET_PARAM(dbnm, dbConnCng.dbName);
+  SET_PARAM(dbur, dbConnCng.dbUser);
+  SET_PARAM(dbpw, dbConnCng.dbPassw);
+
+  outCng.dbConnCng.dbSelType = ZM_DB::dbTypeFromStr(outCng.dbType);
  
 #define SET_PARAM_NUM(nm, prm) \
   if (sprms.find("nm") != sprms.end() && ZM_Aux::isNumber(sprms["nm"])){ \
@@ -140,11 +144,13 @@ int main(int argc, char* argv[]){
     statusMess("Tcp server error, busy -connectPnt: " + _cng.connectPnt + " " + err);
     return -1;
   }
-  unique_ptr<ZM_DB::DbProvider> db(ZM_DB::makeDbProvider(ZM_DB::dbTypeFromStr(_cng.dbType), _cng.dbServer, _cng.dbName, statusMess));
+  unique_ptr<ZM_DB::DbProvider> db(ZM_DB::makeDbProvider(_cng.dbConnCng, statusMess));
   if (db && db->getLastError().empty()){
-    statusMess("DB connect success: " + _cng.dbType + " " + _cng.dbServer + " " + _cng.dbName);
+    statusMess(
+      "DB connect success: " + _cng.dbType + " " + _cng.dbConnCng.dbServer + " " + _cng.dbConnCng.dbName);
   }else{
-    statusMess("DB connect error: " + _cng.dbType + " " + _cng.dbServer + " " + _cng.dbName);
+    statusMess(
+      "DB connect error: " + _cng.dbType + " " + _cng.dbConnCng.dbServer + " " + _cng.dbConnCng.dbName);
     ZM_Tcp::stopServer();
     return -1;
   }
