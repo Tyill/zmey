@@ -29,16 +29,16 @@
 using namespace std;
 
 extern ZM_Base::scheduler _schedr;
-extern ZM_Aux::QueueThrSave<task> _tasks;
+extern ZM_Aux::QueueThrSave<sTask> _tasks;
 
 void getNewTaskFromDB(ZM_DB::DbProvider& db){
 
   size_t cSz = _tasks.size(),
          capSz = _schedr.capasityTask;
-  vector<ZM_Base::task> tasks;
+  vector<std::pair<ZM_Base::task, ZM_Base::queueTask>> tasks;
   if (db.getNewTasks(capSz - cSz, tasks)){
     for(auto& t : tasks){
-      _tasks.push(move(t));
+      _tasks.push(sTask{t.first, t.second.params});
     }
     _schedr.activeTask = _tasks.size();
   }

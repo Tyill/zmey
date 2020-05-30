@@ -32,7 +32,7 @@
 using namespace std;
 
 void checkStatusWorkers(const ZM_Base::scheduler& schedr,
-                        unordered_map<std::string, worker>& workers,
+                        unordered_map<std::string, sWorker>& workers,
                         ZM_Aux::QueueThrSave<ZM_DB::messSchedr>& messToDB){
    
   for(auto& w : workers){
@@ -47,7 +47,7 @@ void checkStatusWorkers(const ZM_Base::scheduler& schedr,
   }
 
   // all inactive
-  vector<worker> wkrNotResp;
+  vector<sWorker> wkrNotResp;
   for(auto& w : workers){
     if (w.second.base.state == ZM_Base::stateType::notResponding){
       wkrNotResp.push_back(w.second);

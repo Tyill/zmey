@@ -26,18 +26,18 @@
 
 #include <string>
 #include <functional>
-#include "zmBase/structurs.h"
+#include "structurs.h"
 
 class Process{
     pid_t _pid = -1; 
-    ZM_Base::task _task;
+    wTask _task;
     using taskChangeType = void(uint64_t taskdId, ZM_Base::stateType, const std::string& result);
     std::function<taskChangeType> _taskStateChangeCBack;
   public:
-    Process(const ZM_Base::task&, std::function<taskChangeType>);
+    Process(const wTask&, std::function<taskChangeType>);
     ~Process();  
     int getProgress() const;
-    ZM_Base::task getTask() const;
+    wTask getTask() const;
     void pause();
     void start();
     void stop();

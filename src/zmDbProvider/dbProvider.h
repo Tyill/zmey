@@ -96,9 +96,9 @@ public:
   
   // for zmSchedr
   virtual bool getSchedr(std::string& connPnt, ZM_Base::scheduler& outSchedl) = 0;
-  virtual bool getTasksForSchedr(uint64_t schId, std::vector<ZM_Base::task>& out) = 0;
+  virtual bool getTasksForSchedr(uint64_t schId, std::vector<std::pair<ZM_Base::task, ZM_Base::queueTask>>& out) = 0;
   virtual bool getWorkersForSchedr(uint64_t schId, std::vector<ZM_Base::worker>& out) = 0;
-  virtual bool getNewTasks(int maxTaskCnt, std::vector<ZM_Base::task>& out) = 0;
+  virtual bool getNewTasks(int maxTaskCnt, std::vector<std::pair<ZM_Base::task, ZM_Base::queueTask>>& out) = 0;
   virtual bool sendAllMessFromSchedr(uint64_t schId, std::vector<messSchedr>& out) = 0;
 protected:  
   DbProvider(const connectCng&, errCBack){};  

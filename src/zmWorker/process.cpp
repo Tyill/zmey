@@ -30,7 +30,7 @@
 #include <errno.h>
 #include "process.h"
 
-Process::Process(const ZM_Base::task& tsk, std::function<taskChangeType> taskStateChangeCBack):
+Process::Process(const wTask& tsk, std::function<taskChangeType> taskStateChangeCBack):
   _task(tsk), _taskStateChangeCBack(taskStateChangeCBack){
   
   sigset_t blockMask, origMask;
@@ -75,8 +75,8 @@ Process::~Process(){
 int Process::getProgress() const{
   return 0;
 }
-ZM_Base::task Process::getTask() const{
-  return ZM_Base::task();
+wTask Process::getTask() const{
+  return wTask();
 }
 void Process::pause(){
 

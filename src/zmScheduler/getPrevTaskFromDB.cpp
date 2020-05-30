@@ -23,19 +23,19 @@
 // THE SOFTWARE.
 //
 #include "zmDbProvider/dbProvider.h"
-#include "zmBase/structurs.h"
 #include "zmCommon/queue.h"
+#include "structurs.h"
 
 using namespace std;
 
 void getPrevTaskFromDB(ZM_DB::DbProvider& db, 
                        ZM_Base::scheduler& schedr,
-                       ZM_Aux::QueueThrSave<ZM_Base::task>& outTasks){
+                       ZM_Aux::QueueThrSave<sTask>& outTasks){
 
-  vector<ZM_Base::task> tasks;
+  vector<pair<ZM_Base::task, ZM_Base::queueTask>> tasks;
   if (db.getTasksForSchedr(schedr.id, tasks)){
     for(auto& t : tasks){
-      outTasks.push(move(t));
+      outTasks.push(sTask{t.first, t.second.params});
     }
   }
 };

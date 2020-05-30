@@ -28,12 +28,12 @@
 
 void statusMess(const std::string& mess);
 
-struct task{
+struct sTask{
   ZM_Base::task base;
   std::string params;
 };
 
-struct worker{
-  bool isActive = false;
+struct sWorker{
   ZM_Base::worker base;
+  bool isActive;
 };

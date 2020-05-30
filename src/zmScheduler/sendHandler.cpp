@@ -26,15 +26,14 @@
 #include <system_error>
 #include "zmCommon/serial.h"
 #include "zmCommon/tcp.h"
-#include "zmBase/structurs.h"
 #include "zmCommon/queue.h"
 #include "zmDbProvider/dbProvider.h"
-#include "stdafx.h"
+#include "structurs.h"
 
 using namespace std;
 
-extern ZM_Aux::QueueThrSave<ZM_Base::task> _tasks;
-extern unordered_map<std::string, ZM_Base::worker> _workers;
+extern ZM_Aux::QueueThrSave<sTask> _tasks;
+extern unordered_map<std::string, sWorker> _workers;
 extern ZM_Base::scheduler _schedr;
 
 void sendHandler(const string& cp, const string& data, const std::error_code& ec){
@@ -45,13 +44,13 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
     ZM_Base::messType mtype = ZM_Base::messType(stoi(mess["command"]));
     switch (mtype){
       case ZM_Base::messType::newTask:{
-        ZM_Base::task t;
-        t.id = stoull(mess["taskId"]);
+        sTask t;
+        t.base.id = stoull(mess["taskId"]);
         t.params = stoi(mess["params"]);
-        t.script = stoi(mess["script"]);
-        t.exr = (ZM_Base::executorType)stoi(mess["exr"]);
-        t.averDurationSec = stoi(mess["averDurationSec"]);
-        t.maxDurationSec = stoi(mess["maxDurationSec"]);
+        t.base.script = stoi(mess["script"]);
+        t.base.exr = (ZM_Base::executorType)stoi(mess["exr"]);
+        t.base.averDurationSec = stoi(mess["averDurationSec"]);
+        t.base.maxDurationSec = stoi(mess["maxDurationSec"]);
         _tasks.push(move(t));
         statusMess("sendHandler worker not response, cp: " + cp);
         }
@@ -63,7 +62,7 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
           make_pair("command", to_string((int)mtype)),
           make_pair("taskId", mess["taskId"]),
           make_pair("schedrId", to_string(_schedr.id)),
-          make_pair("workerId", to_string(_workers[cp].id)),
+          make_pair("workerId", to_string(_workers[cp].base.id)),
           make_pair("state", to_string((int)ZM_Base::messType::workerNotResponding)),
         };  
         ZM_Tcp::sendData(mess["managerConnPnt"], ZM_Aux::serialn(data));

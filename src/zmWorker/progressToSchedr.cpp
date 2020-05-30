@@ -40,7 +40,7 @@ void progressToSchedr(const std::string& schedrConnPnt, const vector<Process>& p
   size_t psz = procs.size();
   for (size_t i = 0; i < psz; ++i){
     data.insert(make_pair("taskId" + to_string(i),
-                          to_string(procs[i].getTask().id)));
+                          to_string(procs[i].getTask().base.id)));
     data.insert(make_pair("progress" + to_string(i),
                           to_string(procs[i].getProgress())));
   }

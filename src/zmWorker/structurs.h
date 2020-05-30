@@ -44,3 +44,9 @@ struct message{
   ZM_Base::messType messType;
   std::string taskResult;
 };
+
+struct wTask{
+  ZM_Base::task base;
+  ZM_Base::stateType state;
+  std::string params;
+};

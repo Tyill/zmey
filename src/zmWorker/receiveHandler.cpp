@@ -27,14 +27,13 @@
 #include "zmCommon/serial.h"
 #include "zmCommon/auxFunc.h"
 #include "zmCommon/queue.h"
-#include "zmBase/structurs.h"
-#include "stdafx.h"
+#include "structurs.h"
 #include "process.h" 
 
 using namespace std;
 
 extern vector<Process> _procs;
-extern ZM_Aux::QueueThrSave<ZM_Base::task> _newTasks;
+extern ZM_Aux::QueueThrSave<wTask> _newTasks;
 
 void receiveHandler(const string& cp, const string& data){
     
@@ -61,18 +60,20 @@ void receiveHandler(const string& cp, const string& data){
     checkField(script);
     checkFieldNum(averDurationSec);
     checkFieldNum(maxDurationSec);
-    _newTasks.push(ZM_Base::task{stoull(mess["taskId"]),
-                                 ZM_Base::stateType::ready,
-                                 (ZM_Base::executorType)stoi(mess["exr"]),
-                                 stoi(mess["averDurationSec"]),
-                                 stoi(mess["maxDurationSec"]),
-                                 mess["params"],
-                                 mess["script"]});
+    ZM_Base::task t;
+    t.id = stoull(mess["taskId"]);
+    t.exr = (ZM_Base::executorType)stoi(mess["exr"]);
+    t.averDurationSec = stoi(mess["averDurationSec"]);
+    t.maxDurationSec = stoi(mess["maxDurationSec"]);
+    t.script = mess["script"];
+    _newTasks.push(wTask{t, 
+                         ZM_Base::stateType::ready,
+                         mess["params"]});
   }else{
     checkFieldNum(taskId);
     uint64_t tId = stoull(mess["taskId"]);
     auto iPrc = find_if(_procs.begin(), _procs.end(), [tId](const Process& p){
-      return p.getTask().id == tId;
+      return p.getTask().base.id == tId;
     });
     if (iPrc != _procs.end()){
       switch (mtype){

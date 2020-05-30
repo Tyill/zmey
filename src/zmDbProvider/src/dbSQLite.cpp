@@ -270,13 +270,15 @@ std::vector<uint64_t> DbSQLiteProvider::getAllQueueTasks(uint64_t mId, ZM_Base::
 bool DbSQLiteProvider::getSchedr(std::string& connPnt, ZM_Base::scheduler& outSchedl){
   return true;
 }
-bool DbSQLiteProvider::getTasksForSchedr(uint64_t schedrId, std::vector<ZM_Base::task>&){
+bool 
+DbSQLiteProvider::getTasksForSchedr(uint64_t schedrId, std::vector<std::pair<ZM_Base::task, ZM_Base::queueTask>>&){
   return true;
 }
 bool DbSQLiteProvider::getWorkersForSchedr(uint64_t schedrId, std::vector<ZM_Base::worker>&){
   return true;
 }
-bool DbSQLiteProvider::getNewTasks(int maxTaskCnt, std::vector<ZM_Base::task>&){
+bool 
+DbSQLiteProvider::getNewTasks(int maxTaskCnt, std::vector<std::pair<ZM_Base::task, ZM_Base::queueTask>>&){
   return true;
 }
 bool DbSQLiteProvider::sendAllMessFromSchedr(uint64_t schedrId, std::vector<ZM_DB::messSchedr>&){

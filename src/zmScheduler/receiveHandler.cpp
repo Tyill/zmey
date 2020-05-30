@@ -23,18 +23,17 @@
 // THE SOFTWARE.
 //
 #include <unordered_map>
-#include "zmBase/structurs.h"
 #include "zmCommon/serial.h"
 #include "zmCommon/queue.h"
 #include "zmDbProvider/dbProvider.h"
 #include "zmCommon/tcp.h"
 #include "zmCommon/auxFunc.h"
-#include "stdafx.h"
+#include "structurs.h"
 
 using namespace std;
 
 extern ZM_Aux::QueueThrSave<ZM_DB::messSchedr> _messToDB;
-extern unordered_map<std::string, ZM_Base::worker> _workers;
+extern unordered_map<std::string, sWorker> _workers;
 extern ZM_Base::scheduler _schedr;
 
 void receiveHandler(const string& cp, const string& data){
@@ -70,25 +69,25 @@ void receiveHandler(const string& cp, const string& data){
         checkFieldNum(taskId);
         checkFieldNum(activeTask);
         checkField(taskResult);
-        _workers[cp].activeTask = stoi(mess["activeTask"]); 
-        _messToDB.push(ZM_DB::messSchedr{mtype, _workers[cp].id,
+        _workers[cp].base.activeTask = stoi(mess["activeTask"]); 
+        _messToDB.push(ZM_DB::messSchedr{mtype, _workers[cp].base.id,
                                                 stoull(mess["taskId"]),
-                                                _workers[cp].activeTask,
+                                                _workers[cp].base.activeTask,
                                                 _schedr.activeTask, 
                                                 0,
                                                 mess["taskResult"]});
         break;
       case ZM_Base::messType::justStartWorker:
-        _workers[cp].state = ZM_Base::stateType::running;
-        _workers[cp].activeTask = 0;
-        _messToDB.push(ZM_DB::messSchedr{mtype, _workers[cp].id});
+        _workers[cp].base.state = ZM_Base::stateType::running;
+        _workers[cp].base.activeTask = 0;
+        _messToDB.push(ZM_DB::messSchedr{mtype, _workers[cp].base.id});
         break;
       case ZM_Base::messType::progress:{
         int tCnt = 0;
         while(mess.find("taskId" + to_string(tCnt)) != mess.end()){
-          _messToDB.push(ZM_DB::messSchedr{mtype, _workers[cp].id,
+          _messToDB.push(ZM_DB::messSchedr{mtype, _workers[cp].base.id,
                                            stoull(mess["taskId" + to_string(tCnt)]),
-                                           _workers[cp].activeTask,
+                                           _workers[cp].base.activeTask,
                                            _schedr.activeTask,
                                            stoi(mess["progress" + to_string(tCnt)])});
           ++tCnt;
@@ -134,8 +133,8 @@ void receiveHandler(const string& cp, const string& data){
         break;
       case ZM_Base::messType::pauseWorker:
         checkField(workerConnPnt);
-        _workers[mess["workerConnPnt"]].state = ZM_Base::stateType::pause;
-        _messToDB.push(ZM_DB::messSchedr{mtype, _workers[mess["workerConnPnt"]].id});
+        _workers[mess["workerConnPnt"]].base.state = ZM_Base::stateType::pause;
+        _messToDB.push(ZM_DB::messSchedr{mtype, _workers[mess["workerConnPnt"]].base.id});
         break;
       case ZM_Base::messType::startSchedr:
         _schedr.state = ZM_Base::stateType::running;
@@ -143,8 +142,8 @@ void receiveHandler(const string& cp, const string& data){
         break;
       case ZM_Base::messType::startWorker:
         checkField(workerConnPnt);
-        _workers[mess["workerConnPnt"]].state = ZM_Base::stateType::running;
-         _messToDB.push(ZM_DB::messSchedr{mtype, _workers[mess["workerConnPnt"]].id});  
+        _workers[mess["workerConnPnt"]].base.state = ZM_Base::stateType::running;
+         _messToDB.push(ZM_DB::messSchedr{mtype, _workers[mess["workerConnPnt"]].base.id});  
         break;
       default: statusMess("receiveHandler unknown command: " + mess["command"]);
         break;

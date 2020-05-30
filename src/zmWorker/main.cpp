@@ -29,7 +29,6 @@
 #include "zmCommon/tcp.h"
 #include "zmCommon/timerDelay.h"
 #include "zmCommon/auxFunc.h"
-#include "zmBase/structurs.h"
 #include "zmCommon/logger.h"
 #include "zmCommon/queue.h"
 #include "structurs.h"
@@ -42,11 +41,11 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
 void sendMessToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt, const message&);
 void progressToSchedr(const std::string& schedrConnPnt, const vector<Process>&);
 void pingToSchedr(const std::string& schedrConnPnt);
-void updateListTasks(ZM_Aux::QueueThrSave<ZM_Base::task>& newTasks, vector<Process>& procs);
+void updateListTasks(ZM_Aux::QueueThrSave<wTask>& newTasks, vector<Process>& procs);
 
 unique_ptr<ZM_Aux::Logger> _pLog = nullptr;
 ZM_Aux::QueueThrSave<message> _messToSchedr;
-ZM_Aux::QueueThrSave<ZM_Base::task> _newTasks;
+ZM_Aux::QueueThrSave<wTask> _newTasks;
 vector<Process> _procs;
 ZM_Base::worker _worker;
 bool _fClose = false,

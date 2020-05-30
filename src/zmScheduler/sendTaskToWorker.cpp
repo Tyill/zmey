@@ -24,50 +24,49 @@
 //
 #include <algorithm>
 #include <unordered_map>
-#include "zmBase/structurs.h"
 #include "zmCommon/tcp.h"
 #include "zmCommon/serial.h"
 #include "zmCommon/queue.h"
 #include "zmCommon/auxFunc.h"
-#include "stdafx.h"
+#include "structurs.h"
 
 using namespace std;
 
 ZM_Aux::CounterTick ctick;
-vector<ZM_Base::worker*> refWorkers;
+vector<sWorker*> refWorkers;
 
-void sendTaskToWorker(unordered_map<std::string, ZM_Base::worker>& workers,
-                      ZM_Aux::QueueThrSave<ZM_Base::task>& tasks){  
+void sendTaskToWorker(unordered_map<std::string, sWorker>& workers,
+                      ZM_Aux::QueueThrSave<sTask>& tasks){  
   
   if (refWorkers.empty()){
     for (auto& w : workers){
       refWorkers.push_back(&w.second);
     }
   }
-  vector<ZM_Base::task> buffTask; 
-  ZM_Base::task t;
+  vector<sTask> buffTask; 
+  sTask t;
   while (tasks.tryPop(t)){
-    sort(refWorkers.begin(), refWorkers.end(), [](ZM_Base::worker* l, ZM_Base::worker* r){
-      return (float)l->activeTask/max(1, l->rating) < (float)r->activeTask/max(1, r->rating);
+    sort(refWorkers.begin(), refWorkers.end(), [](sWorker* l, sWorker* r){
+      return (float)l->base.activeTask/max(1, l->base.rating) < (float)r->base.activeTask/max(1, r->base.rating);
     });
     auto iWr = find_if(refWorkers.begin(), refWorkers.end(),
-      [&t](const ZM_Base::worker* w){
-        return (w->exr == t.exr) && 
-               (w->state == ZM_Base::stateType::running) && 
-               (w->activeTask < w->capasityTask);
+      [&t](const sWorker* w){
+        return (w->base.exr == t.base.exr) && 
+               (w->base.state == ZM_Base::stateType::running) && 
+               (w->base.activeTask < w->base.capasityTask);
       }); 
     if(iWr != refWorkers.end()){
       map<string, string> data{
         make_pair("command",         to_string((int)ZM_Base::messType::newTask)),
-        make_pair("taskId",          to_string(t.id)),
+        make_pair("taskId",          to_string(t.base.id)),
         make_pair("params",          t.params), 
-        make_pair("script",          t.script),
-        make_pair("exr",             to_string(int(t.exr))),
-        make_pair("averDurationSec", to_string(t.averDurationSec)), 
-        make_pair("maxDurationSec",  to_string(t.maxDurationSec))
+        make_pair("script",          t.base.script),
+        make_pair("exr",             to_string(int(t.base.exr))),
+        make_pair("averDurationSec", to_string(t.base.averDurationSec)), 
+        make_pair("maxDurationSec",  to_string(t.base.maxDurationSec))
       };      
-      ++(*iWr)->activeTask;
-      ZM_Tcp::sendData((*iWr)->connectPnt, ZM_Aux::serialn(data));
+      ++(*iWr)->base.activeTask;
+      ZM_Tcp::sendData((*iWr)->base.connectPnt, ZM_Aux::serialn(data));
     }else{
       buffTask.push_back(t);
     }
@@ -77,7 +76,7 @@ void sendTaskToWorker(unordered_map<std::string, ZM_Base::worker>& workers,
     if (ctick(1000)){
       string sTskId;
       for(auto& t : buffTask){
-        sTskId += to_string(t.id) + " ";
+        sTskId += to_string(t.base.id) + " ";
       }
       statusMess("Not found available worker for tasks: " + sTskId);
     }
