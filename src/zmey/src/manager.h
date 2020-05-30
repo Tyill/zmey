@@ -37,30 +37,31 @@ class Manager{
   zmey::zmErrorCBack _errorCBack = nullptr;
   zmey::zmUData _errorUData = nullptr;
   ZM_DB::DbProvider* _db = nullptr;
+  ZM_Base::manager _mnr;
   // std::map<uint64_t, ZM_Base::scheduler> _schedrs;  // key id tblSchedr
   // std::map<uint64_t, ZM_Base::worker> _workers;     // key id tblWorker
   // std::map<uint64_t, ZM_Base::task> _tasks;         // key id tblWorker
 public:
-  Manager(const std::string& localPnt, zmey::zmDbType, const std::string& dbServer, const std::string& dbName);
+  Manager(const ZM_DB::connectCng&, const zmey::zmManagerCng&);
   ~Manager();
   void setErrorCBack(zmey::zmErrorCBack ecb, zmey::zmUData ud);
   std::string getLastError();
   void errorMess(const std::string&); 
  
-  bool addScheduler(const ZM_Base::scheduler&, uint64_t& outSchId);
+  bool addScheduler(ZM_Base::scheduler&, uint64_t& outSchId);
   bool schedulerState(uint64_t schId, ZM_Base::scheduler& outSchCng);
-  std::vector<uint64_t> getAllSchedulers();
+  std::vector<uint64_t> getAllSchedulers(ZM_Base::stateType);
   
-  bool addWorker(uint64_t schId, const ZM_Base::worker&, uint64_t& outWId);
+  bool addWorker(ZM_Base::worker&, uint64_t& outWId);
   bool workerState(uint64_t wId, ZM_Base::worker&);
-  std::vector<uint64_t> getAllWorkers(uint64_t schId);
+  std::vector<uint64_t> getAllWorkers(uint64_t schId, ZM_Base::stateType);
   
-  bool addTask(const ZM_Base::task&, uint64_t& outTId);
+  bool addTask(ZM_Base::task&, uint64_t& outTId);
   bool getTaskCng(uint64_t tId, ZM_Base::task&);
   std::vector<uint64_t> getAllTasks();
   
-  bool pushTaskToQueue(const ZM_Base::queueTask&, uint64_t& outQTId);
+  bool pushTaskToQueue(ZM_Base::queueTask&, uint64_t& outQTId);
   bool getQueueTaskCng(uint64_t qtId, ZM_Base::queueTask&);
   bool getQueueTaskState(uint64_t qtId, ZM_Base::queueTask&);
-  std::vector<uint64_t> getAllQueueTasks();
+  std::vector<uint64_t> getAllQueueTasks(ZM_Base::stateType);
 };

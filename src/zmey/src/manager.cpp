@@ -28,9 +28,13 @@
 
 using namespace std;
 
-Manager::Manager(const std::string& localPnt, zmey::zmDbType dbType, const std::string& dbServer, const std::string& dbName){
+Manager::Manager(const ZM_DB::connectCng& connCng, const zmey::zmManagerCng& mnrCng){
   
-  _db = ZM_DB::makeDbProvider((ZM_DB::dbType)dbType, dbServer, dbName, bind(&Manager::errorMess, this, placeholders::_1));
+  _db = ZM_DB::makeDbProvider(connCng, bind(&Manager::errorMess, this, placeholders::_1));
+  
+  if (_db->getLastError().empty()){
+    _db->getManager(mnrCng.name, mnrCng.passw, _mnr);
+  }
 }
 Manager::~Manager(){
   if (_db){
@@ -51,37 +55,41 @@ std::string Manager::getLastError(){
   return _err;
 }
   
-bool Manager::addScheduler(const ZM_Base::scheduler& schedr, uint64_t& outSchId){  
+bool Manager::addScheduler(ZM_Base::scheduler& schedr, uint64_t& outSchId){  
+  schedr.mId = _mnr.mId;
   return _db->addSchedr(schedr, outSchId);
 }
 bool Manager::schedulerState(uint64_t schId, ZM_Base::scheduler& schedr){
   return _db->schedrState(schId, schedr);
 }
-std::vector<uint64_t> Manager::getAllSchedulers(){
-  return _db->getAllSchedrs();
+std::vector<uint64_t> Manager::getAllSchedulers(ZM_Base::stateType state){
+  return _db->getAllSchedrs(_mnr.mId, state);
 }
 
-bool Manager::addWorker(uint64_t schId, const ZM_Base::worker& worker, uint64_t& outWId){
-  return _db->addWorker(schId, worker, outWId);
+bool Manager::addWorker(ZM_Base::worker& worker, uint64_t& outWId){
+  worker.mId = _mnr.mId;
+  return _db->addWorker(worker, outWId);
 }
 bool Manager::workerState(uint64_t wId, ZM_Base::worker& worker){
   return _db->workerState(wId, worker);
 }
-std::vector<uint64_t> Manager::getAllWorkers(uint64_t schId){
-  return _db->getAllWorkers(schId);
+std::vector<uint64_t> Manager::getAllWorkers(uint64_t schId, ZM_Base::stateType state){
+  return _db->getAllWorkers(_mnr.mId, schId, state);
 }
 
-bool Manager::addTask(const ZM_Base::task& task, uint64_t& outTId){
+bool Manager::addTask(ZM_Base::task& task, uint64_t& outTId){
+  task.mId = _mnr.mId;
   return _db->addTask(task, outTId);
 }
 bool Manager::getTaskCng(uint64_t tId, ZM_Base::task& task){
   return _db->getTaskCng(tId, task);
 }
 std::vector<uint64_t> Manager::getAllTasks(){
-  return _db->getAllTasks();
+  return _db->getAllTasks(_mnr.mId);
 }
 
-bool Manager::pushTaskToQueue(const ZM_Base::queueTask& qTask, uint64_t& outQTId){
+bool Manager::pushTaskToQueue(ZM_Base::queueTask& qTask, uint64_t& outQTId){
+  qTask.mId = _mnr.mId;
   return _db->pushTaskToQueue(qTask, outQTId);
 }
 bool Manager::getQueueTaskCng(uint64_t qtId, ZM_Base::queueTask& qTask){
@@ -90,6 +98,6 @@ bool Manager::getQueueTaskCng(uint64_t qtId, ZM_Base::queueTask& qTask){
 bool Manager::getQueueTaskState(uint64_t qtId, ZM_Base::queueTask& qTask){
   return _db->getQueueTaskState(qtId, qTask);
 }
-std::vector<uint64_t> Manager::getAllQueueTasks(){
-  return _db->getAllQueueTasks();
+std::vector<uint64_t> Manager::getAllQueueTasks(ZM_Base::stateType state){
+  return _db->getAllQueueTasks(_mnr.mId, state);
 }

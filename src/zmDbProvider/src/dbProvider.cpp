@@ -45,14 +45,14 @@ dbType dbTypeFromStr(const std::string& dbt){
   else                          return dbType::undefined;
 }
 
-DbProvider* makeDbProvider(dbType dbt, const std::string& dbServer, const std::string& dbName, errCBack ecb){
+DbProvider* makeDbProvider(const ZM_DB::connectCng& connCng, errCBack ecb){
   DbProvider* ret = nullptr;
-  switch (dbt){
+  switch (connCng.dbSelType){
     case dbType::filesJSON: 
      // ret = reinterpret_cast<DbProvider*>(new DbJSONProvider(dbServer, dbName, ecb));
       break;
     case dbType::SQLite: 
-      ret = reinterpret_cast<DbProvider*>(new DbSQLiteProvider(dbServer, dbName, ecb));
+      ret = reinterpret_cast<DbProvider*>(new DbSQLiteProvider(connCng, ecb));
       break;
 #ifdef USE_PostgreSQL
     case dbType::PostgreSQL:
@@ -61,7 +61,7 @@ DbProvider* makeDbProvider(dbType dbt, const std::string& dbServer, const std::s
 #endif
     default:
       if (ecb){
-        ecb("not support dbType " + dbTypeToStr(dbt));
+        ecb("not support dbType " + dbTypeToStr(connCng.dbSelType));
       }
     break;
   }

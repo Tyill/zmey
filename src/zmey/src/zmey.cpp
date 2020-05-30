@@ -38,11 +38,22 @@ void zmVersionLib(char* outVersion /*sz 8*/){
     strcpy(outVersion, ZM_VERSION);
   }
 }
-zmObj zmCreateConnection(const char* localPnt, zmDbType dbType, const char* dbServer, const char* dbName, char* err){  
-  Manager* mr = new Manager(localPnt, dbType, dbServer, dbName);
+zmObj zmCreateConnection(zmConnectCng cng, zmManagerCng mnrCng, char* err){
+  
+  ZM_DB::connectCng connCng{ (ZM_DB::dbType)cng.dbType,
+                             cng.connectPnt,
+                             cng.dbServer,
+                             cng.dbName,
+                             cng.dbUser,
+                             cng.dbPassw,
+                            };
+
+  Manager* mr = new Manager(connCng, mnrCng);
   auto serr = mr->getLastError();
   if (!serr.empty()){
-    strcpy(err, serr.c_str());
+    if (err){
+      strcpy(err, serr.c_str());
+    }
     delete mr;
     return nullptr;
   }
@@ -95,10 +106,10 @@ bool zmSchedulerState(zmObj zo, uint64_t schId, zmStateType* outState, zmSchedrC
   }
   return false;
 }
-uint32_t zmGetAllSchedulers(zmObj zo, uint64_t** outSchId){
+uint32_t zmGetAllSchedulers(zmObj zo, zmStateType state, uint64_t** outSchId){
   if (!zo) return false; 
 
-  auto schedrs = static_cast<Manager*>(zo)->getAllSchedulers();
+  auto schedrs = static_cast<Manager*>(zo)->getAllSchedulers((ZM_Base::stateType)state);
   size_t ssz = schedrs.size();
   if (ssz > 0){
     *outSchId = (uint64_t*)realloc(*outSchId, ssz * sizeof(uint64_t));
@@ -142,10 +153,10 @@ bool zmWorkerState(zmObj zo, uint64_t wId, zmStateType* outState, zmWorkerCng* o
   }
   return false;
 }
-uint32_t zmGetAllWorkers(zmObj zo, uint64_t** outWId){
+uint32_t zmGetAllWorkers(zmObj zo, uint64_t schId, zmStateType state, uint64_t** outWId){
   if (!zo) return false; 
 
-  auto workers = static_cast<Manager*>(zo)->getAllSchedulers();
+  auto workers = static_cast<Manager*>(zo)->getAllWorkers(schId, (ZM_Base::stateType)state);
   size_t wsz = workers.size();
   if (wsz > 0){ 
     *outWId = (uint64_t*)realloc(*outWId, wsz * sizeof(uint64_t));
@@ -278,10 +289,10 @@ bool zmGetQueueTaskState(zmObj zo, uint64_t qtId, zmQueueTaskState* outQState){
   }
   return false;
 }
-uint32_t zmGetAllQueueTasks(zmObj zo, uint64_t** outQTId){
+uint32_t zmGetAllQueueTasks(zmObj zo, zmStateType state, uint64_t** outQTId){
   if (!zo) return false; 
 
-  auto tasks = static_cast<Manager*>(zo)->getAllQueueTasks();
+  auto tasks = static_cast<Manager*>(zo)->getAllQueueTasks((ZM_Base::stateType)state);
   size_t tsz = tasks.size();
   if (tsz > 0){
     *outQTId = (uint64_t*)realloc(*outQTId, tsz * sizeof(uint64_t));

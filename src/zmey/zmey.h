@@ -86,7 +86,7 @@ ZMEY_API void zmVersionLib(char* outVersion /*sz 8*/);
 /// manager config
 struct zmManagerCng{  
   char name[255];    ///< unique name
-  char passw[255];   ///< optional password     
+  char passw[255];   ///< password     
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -94,19 +94,20 @@ struct zmManagerCng{
 
 /// connection config
 struct zmConnectCng{
-  zmManagerCng mnrCng;      ///< manager config. If it does not exist, a new one will be created
   zmDbType dbType;          ///< db type
   char connectPnt[255];     ///< local connection point: IP or DNS:port
-  const char dbServer[255]; ///< for PG: server IP or DNS, for sqlite: path to file db, for db on files: path to dir
-  const char dbName[255];   ///< for PG: if the database does not exist - will be created, for sqlite or files: empty
-  const char dbPassw[255];  ///< db user password
+  char dbServer[255];       ///< for PG: server IP or DNS, for sqlite: path to file db, for db on files: path to dir
+  char dbName[255];         ///< for PG: if the database does not exist - will be created, for sqlite or files: empty
+  char dbUser[255];         ///< db user name
+  char dbPassw[255];        ///< db user password
 };
 
 /// create connection
 /// @param[in] zmConnectCng - connection config
+/// @param[in] zmManagerCng - manager config. If it does not exist, a new one will be created
 /// @param[out] err - error string. The memory is allocated by the user
 /// @return object connect
-ZMEY_API zmObj zmCreateConnection(zmConnectCng, char* err /*sz 256*/);
+ZMEY_API zmObj zmCreateConnection(zmConnectCng, zmManagerCng, char* err /*sz 256*/);
 
 /// disconnect !!! zmObj after the call will be deleted !!! 
 /// @param[in] zmObj - object connect
@@ -164,8 +165,8 @@ ZMEY_API uint32_t zmGetAllSchedulers(zmObj, zmStateType, uint64_t** outSchId);
 struct zmWorkerCng{
   uint64_t schId;             ///< scheduler id 
   zmExecutorType exr;         ///< executor type
-  char connectPnt[255];       ///< remote connection point: IP or DNS:port
-  uint32_t capasityTask = 10; ///< permissible simultaneous number of tasks 
+  uint32_t capasityTask = 10; ///< permissible simultaneous number of tasks
+  char connectPnt[255];       ///< remote connection point: IP or DNS:port   
 };
   
 /// add new worker
@@ -186,10 +187,11 @@ zmWorkerState(zmObj, uint64_t wId, zmStateType* outState, zmWorkerCng* outWCng =
 
 /// get all workers
 /// @param[in] zmObj - object connect
+/// @param[in] schId - scheduler id 
 /// @param[in] zmStateType - choose with current state. If the state is 'undefined', select all
 /// @param[out] outWId - worker id 
 /// @return count of schedulers
-ZMEY_API uint32_t zmGetAllWorkers(zmObj, zmStateType, uint64_t** outWId);
+ZMEY_API uint32_t zmGetAllWorkers(zmObj, uint64_t schId, zmStateType, uint64_t** outWId);
 
 //////////////////////////////////////////////////////////////////////////
 ///*** Task ***///////////////////////////////////////////////////////////

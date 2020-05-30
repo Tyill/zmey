@@ -41,6 +41,15 @@ enum class dbType{
 std::string dbTypeToStr(dbType);
 dbType dbTypeFromStr(const std::string& dbt);
 
+struct connectCng{
+  dbType dbSelType;
+  std::string connectPnt;
+  std::string dbServer;
+  std::string dbName;
+  std::string dbUser;
+  std::string dbPassw;  
+};
+
 struct messSchedr{
   ZM_Base::messType type;
   uint64_t workerId;
@@ -54,7 +63,7 @@ struct messSchedr{
 typedef std::function<void(const std::string& stsMess)> errCBack;
 
 class DbProvider{  
-  friend DbProvider* makeDbProvider(dbType, const std::string& dbServer, const std::string& dbName, errCBack);
+  friend DbProvider* makeDbProvider(const connectCng&, errCBack);
 public:  
   virtual ~DbProvider() = default; 
   DbProvider(const DbProvider& other) = delete;
@@ -62,35 +71,40 @@ public:
   std::string getLastError() const{
     return _err;
   }  
-  // for zmManager
-  virtual bool addSchedr(const ZM_Base::scheduler& schedl, uint64_t& schId) = 0;
-  virtual bool schedrState(uint64_t schId, ZM_Base::scheduler& schedl) = 0;
-  virtual std::vector<uint64_t> getAllSchedrs() = 0;
+  // common
+  virtual bool 
+  getManager(const std::string& mnrName,
+             const std::string& mnrPassw, ZM_Base::manager& out) = 0;
   
-  virtual bool addWorker(uint64_t schId, const ZM_Base::worker& worker, uint64_t& wkrId) = 0;
-  virtual bool workerState(uint64_t wkrId, ZM_Base::worker& worker) = 0;
-  virtual std::vector<uint64_t> getAllWorkers(uint64_t schId) = 0;
+  // for zmManager
+  virtual bool addSchedr(const ZM_Base::scheduler& schedl, uint64_t& outSchId) = 0;
+  virtual bool schedrState(uint64_t schId, ZM_Base::scheduler& out) = 0;
+  virtual std::vector<uint64_t> getAllSchedrs(uint64_t mnrId, ZM_Base::stateType) = 0;
+  
+  virtual bool addWorker(const ZM_Base::worker& worker, uint64_t& outWkrId) = 0;
+  virtual bool workerState(uint64_t wkrId, ZM_Base::worker& out) = 0;
+  virtual std::vector<uint64_t> getAllWorkers(uint64_t mnrId, uint64_t schId, ZM_Base::stateType) = 0;
 
-  virtual bool addTask(const ZM_Base::task& task, uint64_t& tskId) = 0;
+  virtual bool addTask(const ZM_Base::task& task, uint64_t& outTskId) = 0;
   virtual bool getTaskCng(uint64_t tskId, ZM_Base::task& task) = 0;
-  virtual std::vector<uint64_t> getAllTasks() = 0;
+  virtual std::vector<uint64_t> getAllTasks(uint64_t mnrId) = 0;
 
-  virtual bool pushTaskToQueue(const ZM_Base::queueTask& task, uint64_t& qtskId) = 0;
-  virtual bool getQueueTaskCng(uint64_t qtskId, ZM_Base::queueTask& qTask) = 0;
-  virtual bool getQueueTaskState(uint64_t qtskId, ZM_Base::queueTask& qTask) = 0;
-  virtual std::vector<uint64_t> getAllQueueTasks() = 0;
+  virtual bool pushTaskToQueue(const ZM_Base::queueTask& task, uint64_t& outQId) = 0;
+  virtual bool getQueueTaskCng(uint64_t qId, ZM_Base::queueTask& out) = 0;
+  virtual bool getQueueTaskState(uint64_t qId, ZM_Base::queueTask& out) = 0;
+  virtual std::vector<uint64_t> getAllQueueTasks(uint64_t mnrId, ZM_Base::stateType) = 0;
   
   // for zmSchedr
   virtual bool getSchedr(std::string& connPnt, ZM_Base::scheduler& outSchedl) = 0;
-  virtual bool getTasksForSchedr(uint64_t schedrId, std::vector<ZM_Base::task>&) = 0;
-  virtual bool getWorkersForSchedr(uint64_t schedrId, std::vector<ZM_Base::worker>&) = 0;
-  virtual bool getNewTasks(std::vector<ZM_Base::task>&, int maxTaskCnt) = 0;
-  virtual bool sendAllMessFromSchedr(uint64_t schedrId, std::vector<messSchedr>&) = 0;
+  virtual bool getTasksForSchedr(uint64_t schId, std::vector<ZM_Base::task>& out) = 0;
+  virtual bool getWorkersForSchedr(uint64_t schId, std::vector<ZM_Base::worker>& out) = 0;
+  virtual bool getNewTasks(int maxTaskCnt, std::vector<ZM_Base::task>& out) = 0;
+  virtual bool sendAllMessFromSchedr(uint64_t schId, std::vector<messSchedr>& out) = 0;
 protected:  
-  DbProvider(const std::string& dbServer, const std::string& dbName, errCBack){};  
+  DbProvider(const connectCng&, errCBack){};  
   std::string _err;
   errCBack _errCBack = nullptr;
 };
 
-DbProvider* makeDbProvider(dbType, const std::string& dbServer, const std::string& dbName, errCBack);
+DbProvider* makeDbProvider(const connectCng&, errCBack);
 }

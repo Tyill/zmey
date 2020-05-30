@@ -34,8 +34,8 @@ using namespace std;
 
 sqlite3* _db = nullptr;
 
-DbSQLiteProvider::DbSQLiteProvider(const std::string& dbServer, const std::string& dbName, ZM_DB::errCBack ecb)
-  : _errCBack(ecb), ZM_DB::DbProvider(dbServer, dbName, ecb){
+DbSQLiteProvider::DbSQLiteProvider(const ZM_DB::connectCng& connCng, ZM_DB::errCBack ecb)
+  : _errCBack(ecb), ZM_DB::DbProvider(connCng, ecb){
 }
 DbSQLiteProvider::~DbSQLiteProvider(){
   //disconnect();
@@ -216,6 +216,12 @@ DbSQLiteProvider::~DbSQLiteProvider(){
 //   }
 //   return true;
 // }
+// common
+bool DbSQLiteProvider::getManager(const std::string& mnrName,
+             const std::string& mnrPassw, ZM_Base::manager& out){
+  return true;
+}
+
 // for zmManager
 bool DbSQLiteProvider::addSchedr(const ZM_Base::scheduler& schedl, uint64_t& schId){
   return true;
@@ -223,17 +229,17 @@ bool DbSQLiteProvider::addSchedr(const ZM_Base::scheduler& schedl, uint64_t& sch
 bool DbSQLiteProvider::schedrState(uint64_t schId, ZM_Base::scheduler& schedl){
   return true;
 }
-std::vector<uint64_t> DbSQLiteProvider::getAllSchedrs(){
+std::vector<uint64_t> DbSQLiteProvider::getAllSchedrs(uint64_t mId, ZM_Base::stateType){
   return std::vector<uint64_t>();
 }
 
-bool DbSQLiteProvider::addWorker(uint64_t schId, const ZM_Base::worker& worker, uint64_t& wkrId){
+bool DbSQLiteProvider::addWorker(const ZM_Base::worker& worker, uint64_t& wkrId){
   return true;
 }
 bool DbSQLiteProvider::workerState(uint64_t wkrId, ZM_Base::worker& worker){
   return true;
 }
-std::vector<uint64_t> DbSQLiteProvider::getAllWorkers(uint64_t schId){
+std::vector<uint64_t> DbSQLiteProvider::getAllWorkers(uint64_t mId, uint64_t schId, ZM_Base::stateType){
   return std::vector<uint64_t>();
 }
 
@@ -243,7 +249,7 @@ bool DbSQLiteProvider::addTask(const ZM_Base::task& task, uint64_t& tskId){
 bool DbSQLiteProvider::getTaskCng(uint64_t tskId, ZM_Base::task& task){
   return true;
 }
-std::vector<uint64_t> DbSQLiteProvider::getAllTasks(){
+std::vector<uint64_t> DbSQLiteProvider::getAllTasks(uint64_t mId){
   return std::vector<uint64_t>();
 }
 
@@ -256,7 +262,7 @@ bool DbSQLiteProvider::getQueueTaskCng(uint64_t qtskId, ZM_Base::queueTask& qTas
 bool DbSQLiteProvider::getQueueTaskState(uint64_t qtskId, ZM_Base::queueTask& qTask){
   return true;
 }
-std::vector<uint64_t> DbSQLiteProvider::getAllQueueTasks(){
+std::vector<uint64_t> DbSQLiteProvider::getAllQueueTasks(uint64_t mId, ZM_Base::stateType){
   return std::vector<uint64_t>();
 }
 
@@ -270,7 +276,7 @@ bool DbSQLiteProvider::getTasksForSchedr(uint64_t schedrId, std::vector<ZM_Base:
 bool DbSQLiteProvider::getWorkersForSchedr(uint64_t schedrId, std::vector<ZM_Base::worker>&){
   return true;
 }
-bool DbSQLiteProvider::getNewTasks(std::vector<ZM_Base::task>&, int maxTaskCnt){
+bool DbSQLiteProvider::getNewTasks(int maxTaskCnt, std::vector<ZM_Base::task>&){
   return true;
 }
 bool DbSQLiteProvider::sendAllMessFromSchedr(uint64_t schedrId, std::vector<ZM_DB::messSchedr>&){
