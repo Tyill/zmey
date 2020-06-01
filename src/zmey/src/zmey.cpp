@@ -130,6 +130,7 @@ bool zmAddWorker(zmObj zo, zmWorkerCng cng, uint64_t* outWId){
   ZM_Base::worker worker;
   worker.capasityTask = cng.capasityTask;
   worker.connectPnt = cng.connectPnt;
+  worker.rating = cng.rating;
 
   return static_cast<Manager*>(zo)->addWorker(worker, *outWId);
 }
@@ -147,6 +148,7 @@ bool zmWorkerState(zmObj zo, uint64_t wId, zmStateType* outState, zmWorkerCng* o
       outWCng->schId = worker.sId;
       outWCng->exr = (zmey::zmExecutorType)worker.exr;
       outWCng->capasityTask = worker.capasityTask;
+      outWCng->rating = worker.rating;
       strcpy(outWCng->connectPnt, worker.connectPnt.c_str());
     }
     return true;

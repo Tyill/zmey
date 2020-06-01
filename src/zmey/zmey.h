@@ -94,8 +94,8 @@ struct zmManagerCng{
 struct zmConnectCng{
   zmDbType dbType;          ///< db type
   char connectPnt[255];     ///< local connection point: IP or DNS:port
-  char dbServer[255];       ///< for PG: server IP or DNS, for sqlite: path to file db, for db on files: path to dir
-  char dbName[255];         ///< for PG: if the database does not exist - will be created, for sqlite or files: empty
+  char dbServer[255];       ///< PG: server IP or DNS
+  char dbName[255];         ///< PG: if the database does not exist - will be created
   char dbUser[255];         ///< db user name
   char dbPassw[255];        ///< db user password
 };
@@ -163,6 +163,7 @@ ZMEY_API uint32_t zmGetAllSchedulers(zmObj, zmStateType, uint64_t** outSchId);
 struct zmWorkerCng{
   uint64_t schId;             ///< scheduler id 
   zmExecutorType exr;         ///< executor type
+  uint32_t rating = 10;       ///< rating higher is better [1..10] 
   uint32_t capasityTask = 10; ///< permissible simultaneous number of tasks
   char connectPnt[255];       ///< remote connection point: IP or DNS:port   
 };
@@ -269,6 +270,8 @@ ZMEY_API bool zmGetQueueTaskState(zmObj, uint64_t qtId, zmQueueTaskState* outQSt
 /// @return count of queue tasks
 ZMEY_API uint32_t zmGetAllQueueTasks(zmObj, zmStateType, uint64_t** outQTId);
 
+
+//////////////////////////////////////////////////////////////////////////
 /// free resouces
 ZMEY_API uint32_t zmFreeResouces(uint64_t*, char*);
 
