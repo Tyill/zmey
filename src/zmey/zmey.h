@@ -79,15 +79,6 @@ enum zmDbType{
 ZMEY_API void zmVersionLib(char* outVersion /*sz 8*/);
 
 //////////////////////////////////////////////////////////////////////////
-///*** Manager ***//////////////////////////////////////////////////////
-
-/// manager config
-struct zmManagerCng{  
-  char name[255];    ///< unique name
-  char passw[255];   ///< password     
-};
-
-//////////////////////////////////////////////////////////////////////////
 ///*** Connection with DB ***//////////////////////////////////////////////////////
 
 /// connection config
@@ -102,10 +93,9 @@ struct zmConnectCng{
 
 /// create connection
 /// @param[in] zmConnectCng - connection config
-/// @param[in] zmManagerCng - manager config. If it does not exist, a new one will be created
 /// @param[out] err - error string. The memory is allocated by the user
 /// @return object connect
-ZMEY_API zmObj zmCreateConnection(zmConnectCng, zmManagerCng, char* err /*sz 256*/);
+ZMEY_API zmObj zmCreateConnection(zmConnectCng, char* err /*sz 256*/);
 
 /// disconnect !!! zmObj after the call will be deleted !!! 
 /// @param[in] zmObj - object connect
@@ -124,6 +114,35 @@ ZMEY_API void zmSetErrorCBack(zmObj, zmErrorCBack, zmUData);
 /// @param[in] zmObj - object connect
 /// @param[out] err - error string. The memory is allocated by the user
 ZMEY_API void zmGetLastError(zmObj, char* err/*sz 256*/);
+
+//////////////////////////////////////////////////////////////////////////
+///*** User ***//////////////////////////////////////////////////////
+
+/// user config
+struct zmUserCng{  
+  char name[255];    ///< unique name
+  char passw[255];   ///< password     
+};
+
+/// add new user
+/// @param[in] zmObj - object connect
+/// @param[in] zmUserCng - user config
+/// @param[out] outUserId - new user id
+/// @return true - ok
+ZMEY_API bool zmAddUser(zmObj, zmUserCng, uint64_t* outUserId);
+
+/// get user
+/// @param[in] zmObj - object connect
+/// @param[in] zmUserCng - user config
+/// @param[out] outUserId - new user id
+/// @return true - ok
+ZMEY_API bool zmGetUser(zmObj, zmUserCng, uint64_t* outUserId);
+
+/// get all users
+/// @param[in] zmObj - object connect
+/// @param[out] outUserId - users id
+/// @return count of users
+ZMEY_API uint32_t zmGetAllUsers(zmObj, uint64_t** outUserId);
 
 //////////////////////////////////////////////////////////////////////////
 ///*** Scheduler ***//////////////////////////////////////////////////////
@@ -197,6 +216,7 @@ ZMEY_API uint32_t zmGetAllWorkers(zmObj, uint64_t schId, zmStateType, uint64_t**
 
 /// task config
 struct zmTaskCng{
+  uint64_t userId;          ///< user id
   zmExecutorType exr;       ///< executor type
   uint32_t averDurationSec; ///< estimated lead time 
   uint32_t maxDurationSec;  ///< maximum lead time

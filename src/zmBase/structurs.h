@@ -71,7 +71,7 @@ namespace ZM_Base{
 
   struct task{
     uint64_t id = 0;          // id tblTask
-    uint64_t mId = 0;         // id tblManager
+    uint64_t uId = 0;         // id tblUser
     executorType exr = executorType::undefined;           
     int averDurationSec = 0;  // estimated lead time 
     int maxDurationSec = 0;   // maximum lead time      
@@ -81,7 +81,7 @@ namespace ZM_Base{
   struct queueTask{
     uint64_t id = 0;          // id tblTaskQueue
     uint64_t tId = 0;         // id tblTask
-    uint64_t mId = 0;         // id tblManager
+    uint64_t uId = 0;         // id tblUser
     uint64_t sId = 0;         // id tblScheduler
     uint64_t wId = 0;         // id tblWorker
     stateType state = stateType::undefined; 
@@ -92,17 +92,14 @@ namespace ZM_Base{
     std::vector<uint64_t> prevTasks; // queue task id of previous tasks to be completed
   };
 
-  struct manager{
-    uint64_t id = 0;          // id tblManager
-    stateType state = stateType::undefined;
+  struct user{
+    uint64_t id = 0;          // id tblUser
     std::string name;         // unique name
-    std::string passw;        // optional password 
-    std::string connectPnt;   // connection point: IP or DNS ':' port
+    std::string passw;        // optional password
   };
 
   struct scheduler{
     uint64_t id = 0;          // id tblScheduler
-    uint64_t mId = 0;         // id tblManager
     stateType state = stateType::undefined;
     int capasityTask = 10000; // the number of tasks that can be performed simultaneously  
     int activeTask = 0;       // number of running tasks
@@ -112,7 +109,6 @@ namespace ZM_Base{
   struct worker{
     uint64_t id = 0;          // id tblWorker
     uint64_t sId = 0;         // id tblScheduler
-    uint64_t mId = 0;         // id tblManager
     stateType state = stateType::undefined;
     executorType exr = executorType::undefined;     
     int capasityTask = 10;    // the number of tasks that can be performed simultaneously  
