@@ -31,8 +31,6 @@
 
 using namespace std;
 
-sqlite3* _db = nullptr;
-
 DbPGProvider::DbPGProvider(const ZM_DB::connectCng& connCng, ZM_DB::errCBack ecb)
   : _errCBack(ecb), ZM_DB::DbProvider(connCng, ecb){
 
@@ -44,12 +42,6 @@ DbPGProvider::~DbPGProvider(){
   //disconnect();
 }
 
-// common
-bool DbPGProvider::getManager(const std::string& mnrName,
-             const std::string& mnrPassw, ZM_Base::manager& out){
-  return true;
-}
-
 // for zmManager
 bool DbPGProvider::addSchedr(const ZM_Base::scheduler& schedl, uint64_t& schId){
   return true;
@@ -57,7 +49,7 @@ bool DbPGProvider::addSchedr(const ZM_Base::scheduler& schedl, uint64_t& schId){
 bool DbPGProvider::schedrState(uint64_t schId, ZM_Base::scheduler& schedl){
   return true;
 }
-std::vector<uint64_t> DbPGProvider::getAllSchedrs(uint64_t mId, ZM_Base::stateType){
+std::vector<uint64_t> DbPGProvider::getAllSchedrs(ZM_Base::stateType){
   return std::vector<uint64_t>();
 }
 
@@ -67,7 +59,7 @@ bool DbPGProvider::addWorker(const ZM_Base::worker& worker, uint64_t& wkrId){
 bool DbPGProvider::workerState(uint64_t wkrId, ZM_Base::worker& worker){
   return true;
 }
-std::vector<uint64_t> DbPGProvider::getAllWorkers(uint64_t mId, uint64_t schId, ZM_Base::stateType){
+std::vector<uint64_t> DbPGProvider::getAllWorkers(uint64_t schId, ZM_Base::stateType){
   return std::vector<uint64_t>();
 }
 
@@ -77,7 +69,7 @@ bool DbPGProvider::addTask(const ZM_Base::task& task, uint64_t& tskId){
 bool DbPGProvider::getTaskCng(uint64_t tskId, ZM_Base::task& task){
   return true;
 }
-std::vector<uint64_t> DbPGProvider::getAllTasks(uint64_t mId){
+std::vector<uint64_t> DbPGProvider::getAllTasks(){
   return std::vector<uint64_t>();
 }
 
@@ -90,7 +82,7 @@ bool DbPGProvider::getQueueTaskCng(uint64_t qtskId, ZM_Base::queueTask& qTask){
 bool DbPGProvider::getQueueTaskState(uint64_t qtskId, ZM_Base::queueTask& qTask){
   return true;
 }
-std::vector<uint64_t> DbPGProvider::getAllQueueTasks(uint64_t mId, ZM_Base::stateType){
+std::vector<uint64_t> DbPGProvider::getAllQueueTasks(ZM_Base::stateType){
   return std::vector<uint64_t>();
 }
 

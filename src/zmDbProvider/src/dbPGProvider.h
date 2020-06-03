@@ -33,27 +33,23 @@ public:
   DbPGProvider(const DbProvider& other) = delete;
   DbPGProvider& operator=(const DbProvider& other) = delete;
   
-  // common
-  bool getManager(const std::string& mnrName,
-             const std::string& mnrPassw, ZM_Base::manager& out) override;
-
   // for zmManager
   bool addSchedr(const ZM_Base::scheduler& schedl, uint64_t& outSchId) override;
   bool schedrState(uint64_t schId, ZM_Base::scheduler& schedl) override;
-  std::vector<uint64_t> getAllSchedrs(uint64_t mnrId, ZM_Base::stateType) override;
+  std::vector<uint64_t> getAllSchedrs(ZM_Base::stateType) override;
 
   bool addWorker(const ZM_Base::worker& worker, uint64_t& outWkrId) override;
   bool workerState(uint64_t wkrId, ZM_Base::worker& out) override;
-  std::vector<uint64_t> getAllWorkers(uint64_t mnrId, uint64_t schId, ZM_Base::stateType) override;
+  std::vector<uint64_t> getAllWorkers(uint64_t schId, ZM_Base::stateType) override;
 
   bool addTask(const ZM_Base::task& task, uint64_t& outTskId) override;
   bool getTaskCng(uint64_t tskId, ZM_Base::task& task) override;
-  std::vector<uint64_t> getAllTasks(uint64_t mnrId) override;
+  std::vector<uint64_t> getAllTasks() override;
 
   bool pushTaskToQueue(const ZM_Base::queueTask& task, uint64_t& outQId) override;
   bool getQueueTaskCng(uint64_t qId, ZM_Base::queueTask& qTask) override;
   bool getQueueTaskState(uint64_t qId, ZM_Base::queueTask& qTask) override;
-  std::vector<uint64_t> getAllQueueTasks(uint64_t mnrId, ZM_Base::stateType) override;
+  std::vector<uint64_t> getAllQueueTasks(ZM_Base::stateType) override;
 
   // for zmSchedr
   bool getSchedr(std::string& connPnt, ZM_Base::scheduler& outSchedl) override;

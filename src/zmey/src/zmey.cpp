@@ -38,7 +38,7 @@ void zmVersionLib(char* outVersion /*sz 8*/){
     strcpy(outVersion, ZM_VERSION);
   }
 }
-zmObj zmCreateConnection(zmConnectCng cng, zmManagerCng mnrCng, char* err){
+zmObj zmCreateConnection(zmConnectCng cng, char* err){
   
   ZM_DB::connectCng connCng{ (ZM_DB::dbType)cng.dbType,
                              cng.connectPnt,
@@ -48,7 +48,7 @@ zmObj zmCreateConnection(zmConnectCng cng, zmManagerCng mnrCng, char* err){
                              cng.dbPassw,
                             };
 
-  Manager* mr = new Manager(connCng, mnrCng);
+  Manager* mr = new Manager(connCng);
   auto serr = mr->getLastError();
   if (!serr.empty()){
     if (err){

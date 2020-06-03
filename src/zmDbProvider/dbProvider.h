@@ -69,28 +69,23 @@ public:
   std::string getLastError() const{
     return _err;
   }  
-  // common
-  virtual bool 
-  getManager(const std::string& mnrName,
-             const std::string& mnrPassw, ZM_Base::manager& out) = 0;
-  
   // for zmManager
   virtual bool addSchedr(const ZM_Base::scheduler& schedl, uint64_t& outSchId) = 0;
   virtual bool schedrState(uint64_t schId, ZM_Base::scheduler& out) = 0;
-  virtual std::vector<uint64_t> getAllSchedrs(uint64_t mnrId, ZM_Base::stateType) = 0;
+  virtual std::vector<uint64_t> getAllSchedrs(ZM_Base::stateType) = 0;
   
   virtual bool addWorker(const ZM_Base::worker& worker, uint64_t& outWkrId) = 0;
   virtual bool workerState(uint64_t wkrId, ZM_Base::worker& out) = 0;
-  virtual std::vector<uint64_t> getAllWorkers(uint64_t mnrId, uint64_t schId, ZM_Base::stateType) = 0;
+  virtual std::vector<uint64_t> getAllWorkers(uint64_t schId, ZM_Base::stateType) = 0;
 
   virtual bool addTask(const ZM_Base::task& task, uint64_t& outTskId) = 0;
   virtual bool getTaskCng(uint64_t tskId, ZM_Base::task& task) = 0;
-  virtual std::vector<uint64_t> getAllTasks(uint64_t mnrId) = 0;
+  virtual std::vector<uint64_t> getAllTasks() = 0;
 
   virtual bool pushTaskToQueue(const ZM_Base::queueTask& task, uint64_t& outQId) = 0;
   virtual bool getQueueTaskCng(uint64_t qId, ZM_Base::queueTask& out) = 0;
   virtual bool getQueueTaskState(uint64_t qId, ZM_Base::queueTask& out) = 0;
-  virtual std::vector<uint64_t> getAllQueueTasks(uint64_t mnrId, ZM_Base::stateType) = 0;
+  virtual std::vector<uint64_t> getAllQueueTasks(ZM_Base::stateType) = 0;
   
   // for zmSchedr
   virtual bool getSchedr(std::string& connPnt, ZM_Base::scheduler& outSchedl) = 0;

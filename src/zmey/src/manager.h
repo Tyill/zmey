@@ -37,12 +37,11 @@ class Manager{
   zmey::zmErrorCBack _errorCBack = nullptr;
   zmey::zmUData _errorUData = nullptr;
   ZM_DB::DbProvider* _db = nullptr;
-  ZM_Base::manager _mnr;
   // std::map<uint64_t, ZM_Base::scheduler> _schedrs;  // key id tblSchedr
   // std::map<uint64_t, ZM_Base::worker> _workers;     // key id tblWorker
   // std::map<uint64_t, ZM_Base::task> _tasks;         // key id tblWorker
 public:
-  Manager(const ZM_DB::connectCng&, const zmey::zmManagerCng&);
+  Manager(const ZM_DB::connectCng&);
   ~Manager();
   void setErrorCBack(zmey::zmErrorCBack ecb, zmey::zmUData ud);
   std::string getLastError();
