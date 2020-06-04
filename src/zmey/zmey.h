@@ -115,7 +115,7 @@ ZMEY_API void zmSetErrorCBack(zmObj, zmErrorCBack, zmUData);
 /// @param[out] err - error string. The memory is allocated by the user
 ZMEY_API void zmGetLastError(zmObj, char* err/*sz 256*/);
 
-//////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
 ///*** User ***//////////////////////////////////////////////////////
 
 /// user config
@@ -126,23 +126,53 @@ struct zmUserCng{
 
 /// add new user
 /// @param[in] zmObj - object connect
-/// @param[in] zmUserCng - user config
+/// @param[in] newUserCng - new user config
 /// @param[out] outUserId - new user id
 /// @return true - ok
-ZMEY_API bool zmAddUser(zmObj, zmUserCng, uint64_t* outUserId);
+ZMEY_API bool zmAddUser(zmObj, zmUserCng newUserCng, uint64_t* outUserId);
 
-/// get user
+/// get exist user
 /// @param[in] zmObj - object connect
 /// @param[in] zmUserCng - user config
-/// @param[out] outUserId - new user id
+/// @param[out] outUserId - user id
 /// @return true - ok
 ZMEY_API bool zmGetUser(zmObj, zmUserCng, uint64_t* outUserId);
+
+/// change user
+/// @param[in] zmObj - object connect
+/// @param[in] userId - user id
+/// @param[in] newCng - new user cng
+/// @return true - ok
+ZMEY_API bool zmChangeUser(zmObj, uint64_t userId, zmUserCng newCng);
+
+/// delete user
+/// @param[in] zmObj - object connect
+/// @param[in] userId - user id
+/// @return true - ok
+ZMEY_API bool zmDelUser(zmObj, uint64_t userId);
+
+/// user name
+/// @param[in] zmObj - object connect
+/// @param[in] userId - user id
+/// @param[out] outUserName - user name
+/// @return true - ok
+ZMEY_API bool zmUserName(zmObj, uint64_t userId, char* outUserName);
 
 /// get all users
 /// @param[in] zmObj - object connect
 /// @param[out] outUserId - users id
 /// @return count of users
 ZMEY_API uint32_t zmGetAllUsers(zmObj, uint64_t** outUserId);
+
+//////////////////////////////////////////////////////////////////////////
+///*** Group users ***////////////////////////////////////////////////////
+
+/// group config
+struct zmGroupCng{  
+  char name[255];    ///< unique name
+  char passw[255];   ///< password     
+};
+/// TODO
 
 //////////////////////////////////////////////////////////////////////////
 ///*** Scheduler ***//////////////////////////////////////////////////////
@@ -182,7 +212,6 @@ ZMEY_API uint32_t zmGetAllSchedulers(zmObj, zmStateType, uint64_t** outSchId);
 struct zmWorkerCng{
   uint64_t schId;             ///< scheduler id 
   zmExecutorType exr;         ///< executor type
-  uint32_t rating = 10;       ///< rating higher is better [1..10] 
   uint32_t capasityTask = 10; ///< permissible simultaneous number of tasks
   char connectPnt[255];       ///< remote connection point: IP or DNS:port   
 };
@@ -211,56 +240,85 @@ zmWorkerState(zmObj, uint64_t wId, zmStateType* outState, zmWorkerCng* outWCng =
 /// @return count of schedulers
 ZMEY_API uint32_t zmGetAllWorkers(zmObj, uint64_t schId, zmStateType, uint64_t** outWId);
 
-//////////////////////////////////////////////////////////////////////////
-///*** Task ***///////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+///*** Task template ***///////////////////////////////////////////////////////////
 
-/// task config
-struct zmTaskCng{
+/// task template config
+struct zmTaskTemplateCng{
   uint64_t userId;          ///< user id
   zmExecutorType exr;       ///< executor type
   uint32_t averDurationSec; ///< estimated lead time 
   uint32_t maxDurationSec;  ///< maximum lead time
   char* script;             ///< script on bash, python or cmd. The memory is allocated by the user
 };
-/// add new task
+/// add new task template
 /// @param[in] zmObj - object connect
-/// @param[in] zmTaskCng - task config
+/// @param[in] zmTaskTemplateCng - task template config
 /// @param[out] outTId - new task id
 /// @return true - ok
-ZMEY_API bool zmAddTask(zmObj, zmTaskCng, uint64_t* outTId);
+ZMEY_API bool zmAddTaskTemplate(zmObj, zmTaskTemplateCng, uint64_t* outTId);
 
-/// get task cng
+/// get task template cng
 /// @param[in] zmObj - object connect
 /// @param[in] tId - task id
 /// @param[out] outTCng - task config. The memory is allocated by the user
 /// @return true - ok
-ZMEY_API bool zmGetTaskCng(zmObj, uint64_t tId, zmTaskCng* outTCng);
+ZMEY_API bool zmGetTaskTemplateCng(zmObj, uint64_t tId, zmTaskTemplateCng* outTCng);
 
-/// get all tasks
+/// change task template cng
+/// @param[in] zmObj - object connect
+/// @param[in] tId - task id
+/// @param[in] newTCng - new task config
+/// @return true - ok
+ZMEY_API bool zmChangeTaskTemplateCng(zmObj, uint64_t tId, zmTaskTemplateCng newTCng);
+
+/// delete task template
+/// @param[in] zmObj - object connect
+/// @param[in] tId - task id
+/// @return true - ok
+ZMEY_API bool zmDelTaskTemplate(zmObj, uint64_t tId);
+
+/// get all tasks templates
 /// @param[in] zmObj - object connect
 /// @param[out] outTId - task id
 /// @return count of tasks
-ZMEY_API uint32_t zmGetAllTasks(zmObj, uint64_t** outTId);
+ZMEY_API uint32_t zmGetAllTaskTemplates(zmObj, uint64_t** outTId);
 
 //////////////////////////////////////////////////////////////////////////
 ///*** Queue task ***/////////////////////////////////////////////////////
 
-/// queue task config
-struct zmQueueTaskCng{
-  uint64_t tId;           ///< task id
-  uint64_t* prevTasksQId; ///< queue task id of previous tasks to be completed
-  uint32_t prevTasksCnt;  ///< queue task previous count
-  uint32_t priority;      ///< [1..3]
-  char* params;           ///< params of script: -key=value
+struct zmScreenRect{
+  uint32_t x, y, w, h;
 };
 
-/// push task to queue
+/// queue task config
+struct zmQueueTaskCng{
+  uint64_t userId;         ///< user id
+  uint64_t tId;            ///< task template id
+  uint64_t* prevTasksQId;  ///< queue task id of previous tasks to be completed
+  uint64_t* nextTasksQId;  ///< queue task id of next tasks
+  uint32_t prevTasksCnt;   ///< queue task previous count
+  uint32_t nextTasksCnt;   ///< queue task next count
+  uint32_t priority;       ///< [1..3]
+  char* params;            ///< params of script: -key=value
+  zmScreenRect screenRect; ///< screenRect
+};
+
+/// add queue task
 /// @param[in] zmObj - object connect
 /// @param[in] zmQueueTaskCng - queue task config
 /// @param[out] outQTId - queue task id
 /// @return true - ok
 ZMEY_API bool 
-zmPushTaskToQueue(zmObj, zmQueueTaskCng, uint64_t* outQTId);
+zmAddQueueTask(zmObj, zmQueueTaskCng, uint64_t* outQTId);
+
+/// add task
+/// @param[in] zmObj - object connect
+/// @param[in] zmQueueTaskCng - queue task config
+/// @param[out] outQTId - queue task id
+/// @return true - ok
+ZMEY_API bool 
+zmStartQueueTask(zmObj, zmQueueTaskCng, uint64_t* outQTId);
 
 /// get queue task config
 /// @param[in] zmObj - object connect
