@@ -51,6 +51,25 @@ std::string Manager::getLastError(){
   return _err;
 }
   
+bool Manager::addUser(const ZM_Base::user& newUserCng, uint64_t& outUserId){
+  return _db->addUser(newUserCng, outUserId);
+}
+bool Manager::getUser(const std::string& name, const std::string& passw, uint64_t& outUserId){
+  return _db->getUser(name, passw, outUserId);
+}
+bool Manager::getUser(uint64_t userId, ZM_Base::user& outCng){
+  return _db->getUser(userId, outCng);
+}
+bool Manager::changeUser(uint64_t userId, const ZM_Base::user& newCng){
+  return _db->changeUser(userId, newCng);
+}
+bool Manager::delUser(uint64_t userId){
+  return _db->delUser(userId);
+}
+std::vector<uint64_t> Manager::getAllUsers(){
+  return _db->getAllUsers();
+}
+
 bool Manager::addScheduler(ZM_Base::scheduler& schedr, uint64_t& outSchId){  
   return _db->addSchedr(schedr, outSchId);
 }
@@ -69,6 +88,22 @@ bool Manager::workerState(uint64_t wId, ZM_Base::worker& worker){
 }
 std::vector<uint64_t> Manager::getAllWorkers(uint64_t schId, ZM_Base::stateType state){
   return _db->getAllWorkers(schId, state);
+}
+
+bool Manager::addPipeline(const ZM_Base::pipeline& cng, uint64_t& outPPLId){
+  return _db->addPipeline(cng, outPPLId);
+}
+bool Manager::getPipeline(uint64_t pplId, ZM_Base::pipeline& cng){
+  return _db->getPipeline(pplId, cng);
+}
+bool Manager::changePipeline(uint64_t pplId, const ZM_Base::pipeline& newCng){
+  return _db->changePipeline(pplId, newCng);
+}
+bool Manager::delPipeline(uint64_t pplId){
+  return _db->delPipeline(pplId);
+}
+std::vector<uint64_t> Manager::getAllPipelines(uint64_t userId){
+  return _db->getAllPipelines(userId);
 }
 
 bool Manager::addTask(ZM_Base::task& task, uint64_t& outTId){

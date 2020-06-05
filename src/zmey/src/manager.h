@@ -47,6 +47,13 @@ public:
   std::string getLastError();
   void errorMess(const std::string&); 
  
+  bool addUser(const ZM_Base::user& newUserCng, uint64_t& outUserId);
+  bool getUser(const std::string& name, const std::string& passw, uint64_t& outUserId);
+  bool getUser(uint64_t userId, ZM_Base::user& cng);
+  bool changeUser(uint64_t userIdCng, const ZM_Base::user& newCng);
+  bool delUser(uint64_t userId);  
+  std::vector<uint64_t> getAllUsers();
+
   bool addScheduler(ZM_Base::scheduler&, uint64_t& outSchId);
   bool schedulerState(uint64_t schId, ZM_Base::scheduler& outSchCng);
   std::vector<uint64_t> getAllSchedulers(ZM_Base::stateType);
@@ -55,6 +62,12 @@ public:
   bool workerState(uint64_t wId, ZM_Base::worker&);
   std::vector<uint64_t> getAllWorkers(uint64_t schId, ZM_Base::stateType);
   
+  bool addPipeline(const ZM_Base::pipeline& cng, uint64_t& outPPLId);
+  bool getPipeline(uint64_t pplId, ZM_Base::pipeline& cng);
+  bool changePipeline(uint64_t pplId, const ZM_Base::pipeline& newCng);
+  bool delPipeline(uint64_t pplId);
+  std::vector<uint64_t> getAllPipelines(uint64_t userId);
+
   bool addTask(ZM_Base::task&, uint64_t& outTId);
   bool getTaskCng(uint64_t tId, ZM_Base::task&);
   std::vector<uint64_t> getAllTasks();

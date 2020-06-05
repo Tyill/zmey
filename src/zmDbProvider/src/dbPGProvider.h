@@ -33,7 +33,14 @@ public:
   DbPGProvider(const DbProvider& other) = delete;
   DbPGProvider& operator=(const DbProvider& other) = delete;
   
-  // for zmManager
+  // for manager
+  bool addUser(const ZM_Base::user& newUserCng, uint64_t& outUserId) override;
+  bool getUser(const std::string& name, const std::string& passw, uint64_t& outUserId) override;
+  bool getUser(uint64_t userId, ZM_Base::user& cng) override;
+  bool changeUser(uint64_t userId, const ZM_Base::user& newCng) override;
+  bool delUser(uint64_t userId) override;
+  std::vector<uint64_t> getAllUsers() override;
+
   bool addSchedr(const ZM_Base::scheduler& schedl, uint64_t& outSchId) override;
   bool schedrState(uint64_t schId, ZM_Base::scheduler& schedl) override;
   std::vector<uint64_t> getAllSchedrs(ZM_Base::stateType) override;
@@ -41,6 +48,12 @@ public:
   bool addWorker(const ZM_Base::worker& worker, uint64_t& outWkrId) override;
   bool workerState(uint64_t wkrId, ZM_Base::worker& out) override;
   std::vector<uint64_t> getAllWorkers(uint64_t schId, ZM_Base::stateType) override;
+
+  bool addPipeline(const ZM_Base::pipeline& cng, uint64_t& outPPLId) override;
+  bool getPipeline(uint64_t pplId, ZM_Base::pipeline& cng) override;
+  bool changePipeline(uint64_t pplId, const ZM_Base::pipeline& newCng) override;
+  bool delPipeline(uint64_t pplId) override;
+  std::vector<uint64_t> getAllPipelines(uint64_t userId) override;
 
   bool addTask(const ZM_Base::task& task, uint64_t& outTskId) override;
   bool getTaskCng(uint64_t tskId, ZM_Base::task& task) override;

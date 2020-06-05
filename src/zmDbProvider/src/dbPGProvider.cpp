@@ -42,7 +42,26 @@ DbPGProvider::~DbPGProvider(){
   //disconnect();
 }
 
-// for zmManager
+// for manager
+bool DbPGProvider::addUser(const ZM_Base::user& newUserCng, uint64_t& outUserId){
+  return true;
+}
+bool DbPGProvider::getUser(const std::string& name, const std::string& passw, uint64_t& outUserId){
+  return true;
+}
+bool DbPGProvider::getUser(uint64_t userId, ZM_Base::user& cng){
+  return true;
+}
+bool DbPGProvider::changeUser(uint64_t userId, const ZM_Base::user& newCng){
+  return true;
+}
+bool DbPGProvider::delUser(uint64_t userId){
+  return true;
+}
+std::vector<uint64_t> DbPGProvider::getAllUsers(){
+  return std::vector<uint64_t>();
+}
+
 bool DbPGProvider::addSchedr(const ZM_Base::scheduler& schedl, uint64_t& schId){
   return true;
 }
@@ -60,6 +79,22 @@ bool DbPGProvider::workerState(uint64_t wkrId, ZM_Base::worker& worker){
   return true;
 }
 std::vector<uint64_t> DbPGProvider::getAllWorkers(uint64_t schId, ZM_Base::stateType){
+  return std::vector<uint64_t>();
+}
+
+bool DbPGProvider::addPipeline(const ZM_Base::pipeline& cng, uint64_t& outPPLId){
+  return true;
+}
+bool DbPGProvider::getPipeline(uint64_t pplId, ZM_Base::pipeline& cng){
+  return true;
+}
+bool DbPGProvider::changePipeline(uint64_t pplId, const ZM_Base::pipeline& newCng){
+  return true;
+}
+bool DbPGProvider::delPipeline(uint64_t pplId){
+  return true;
+}
+std::vector<uint64_t> DbPGProvider::getAllPipelines(uint64_t userId){
   return std::vector<uint64_t>();
 }
 

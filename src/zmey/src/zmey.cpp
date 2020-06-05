@@ -38,6 +38,10 @@ void zmVersionLib(char* outVersion /*sz 8*/){
     strcpy(outVersion, ZM_VERSION);
   }
 }
+
+/////////////////////////////////////////////////////////////////////
+///*** Connection with DB ***////////////////////////////////////////
+
 zmObj zmCreateConnection(zmConnectCng cng, char* err){
   
   ZM_DB::connectCng connCng{ (ZM_DB::dbType)cng.dbType,
@@ -74,6 +78,80 @@ void zmGetLastError(zmObj zo, char* err/*sz 256*/){
     strcpy(err, static_cast<Manager*>(zo)->getLastError().c_str());
   }
 }
+
+/////////////////////////////////////////////////////////////////////
+///*** User ***//////////////////////////////////////////////////////
+
+bool zmAddUser(zmObj zo, zmUserCng newUserCng, uint64_t* outUserId){
+  if (!zo) return false;
+  
+  if (!outUserId){
+     static_cast<Manager*>(zo)->errorMess("error !outUserId");
+     return false;
+  }
+  ZM_Base::user us;
+  us.name = newUserCng.name;
+  us.passw = newUserCng.passw;
+  us.decription = newUserCng.decription;
+  
+  return static_cast<Manager*>(zo)->addUser(us, *outUserId);
+}
+bool zmGetUserId(zmObj zo, zmUserCng cng, uint64_t* outUserId){
+  if (!zo) return false;
+  
+  if (!outUserId){
+     static_cast<Manager*>(zo)->errorMess("error !outUserId");
+     return false;
+  }   
+  return static_cast<Manager*>(zo)->getUser(string(cng.name), string(cng.passw), *outUserId);
+}
+bool zmGetUserCng(zmObj zo, uint64_t userId, zmUserCng* outUserCng){
+  if (!zo) return false; 
+
+  if (!outUserCng){
+     static_cast<Manager*>(zo)->errorMess("error !outUserCng");
+     return false;
+  }
+  ZM_Base::user ur;
+  if (static_cast<Manager*>(zo)->getUser(userId, ur)){    
+    strcpy(outUserCng->name, ur.name.c_str());
+    outUserCng->decription = (char*)realloc(outUserCng->decription, ur.decription.size() + 1);
+    strcpy(outUserCng->decription, ur.decription.c_str());   
+    return true;
+  }
+  return false;
+}
+bool zmChangeUser(zmObj zo, uint64_t userId, zmUserCng newCng){
+  if (!zo) return false;
+     
+  ZM_Base::user us;
+  us.name = newCng.name;
+  us.passw = newCng.passw;
+  us.decription = newCng.decription;
+
+  return static_cast<Manager*>(zo)->changeUser(userId, us);
+}
+bool zmDelUser(zmObj zo, uint64_t userId){
+  if (!zo) return false;
+ 
+  return static_cast<Manager*>(zo)->delUser(userId);
+}
+uint32_t zmGetAllUsers(zmObj zo, uint64_t** outUserId){
+  if (!zo) return false; 
+
+  auto users = static_cast<Manager*>(zo)->getAllUsers();
+  size_t usz = users.size();
+  if (usz > 0){
+    *outUserId = (uint64_t*)realloc(*outUserId, usz * sizeof(uint64_t));
+    memcpy(*outUserId, users.data(), usz * sizeof(uint64_t));
+  }else{
+    *outUserId = nullptr;
+  }
+  return (uint32_t)usz;
+}
+
+//////////////////////////////////////////////////////////////////////////
+///*** Scheduler ***//////////////////////////////////////////////////////
 
 bool zmAddScheduler(zmObj zo, zmSchedrCng cng, uint64_t* outSchId){
   if (!zo) return false;
@@ -120,6 +198,9 @@ uint32_t zmGetAllSchedulers(zmObj zo, zmStateType state, uint64_t** outSchId){
   return (uint32_t)ssz;
 }
 
+//////////////////////////////////////////////////////////////////////////
+///*** Worker ***/////////////////////////////////////////////////////////
+
 bool zmAddWorker(zmObj zo, zmWorkerCng cng, uint64_t* outWId){
   if (!zo) return false;
 
@@ -130,7 +211,6 @@ bool zmAddWorker(zmObj zo, zmWorkerCng cng, uint64_t* outWId){
   ZM_Base::worker worker;
   worker.capasityTask = cng.capasityTask;
   worker.connectPnt = cng.connectPnt;
-  worker.rating = cng.rating;
 
   return static_cast<Manager*>(zo)->addWorker(worker, *outWId);
 }
@@ -148,7 +228,6 @@ bool zmWorkerState(zmObj zo, uint64_t wId, zmStateType* outState, zmWorkerCng* o
       outWCng->schId = worker.sId;
       outWCng->exr = (zmey::zmExecutorType)worker.exr;
       outWCng->capasityTask = worker.capasityTask;
-      outWCng->rating = worker.rating;
       strcpy(outWCng->connectPnt, worker.connectPnt.c_str());
     }
     return true;
@@ -169,6 +248,72 @@ uint32_t zmGetAllWorkers(zmObj zo, uint64_t schId, zmStateType state, uint64_t**
   return (uint32_t)wsz;
 }
 
+/////////////////////////////////////////////////////////////////////////////////
+///*** Pipeline of tasks ***/////////////////////////////////////////////////////
+
+bool zmAddPipeline(zmObj zo, zmPipelineCng cng, uint64_t* outPPLId){
+  if (!zo) return false;
+  
+  if (!outPPLId){
+     static_cast<Manager*>(zo)->errorMess("error !outPPLId");
+     return false;
+  }
+  ZM_Base::pipeline pp;
+  pp.uId = cng.userId;
+  pp.name = cng.name;
+  pp.decription = cng.decription;
+  
+  return static_cast<Manager*>(zo)->addPipeline(pp, *outPPLId);
+}
+bool zmGetPipelineCng(zmObj zo, uint64_t pplId, zmPipelineCng* outPPLCng){
+  if (!zo) return false; 
+
+  if (!outPPLCng){
+     static_cast<Manager*>(zo)->errorMess("error !outPPLCng");
+     return false;
+  }
+  ZM_Base::pipeline pp;
+  if (static_cast<Manager*>(zo)->getPipeline(pplId, pp)){    
+    outPPLCng->userId = pp.uId;
+    strcpy(outPPLCng->name, pp.name.c_str());
+    outPPLCng->decription = (char*)realloc(outPPLCng->decription, pp.decription.size() + 1);
+    strcpy(outPPLCng->decription, pp.decription.c_str());   
+    return true;
+  }
+  return false;
+}
+bool zmChangePipelineCng(zmObj zo, uint64_t pplId, zmPipelineCng newCng){
+  if (!zo) return false;
+     
+  ZM_Base::pipeline pp;
+  pp.uId = newCng.userId;
+  pp.name = newCng.name;
+  pp.decription = newCng.decription;
+  
+  return static_cast<Manager*>(zo)->changePipeline(pplId, pp);
+}
+bool zmDelPipeline(zmObj zo, uint64_t pplId){
+  if (!zo) return false;
+ 
+  return static_cast<Manager*>(zo)->delPipeline(pplId);
+}
+uint32_t zmGetAllPipelines(zmObj zo, uint64_t userId, uint64_t** outPPLId){
+  if (!zo) return false; 
+
+  auto ppls = static_cast<Manager*>(zo)->getAllPipelines(userId);
+  size_t psz = ppls.size();
+  if (psz > 0){
+    *outPPLId = (uint64_t*)realloc(*outPPLId, psz * sizeof(uint64_t));
+    memcpy(*outPPLId, ppls.data(), psz * sizeof(uint64_t));
+  }else{
+    *outPPLId = nullptr;
+  }
+  return (uint32_t)psz;
+}
+
+///////////////////////////////////////////////////////////////////////////////////
+///*** Task template ***///////////////////////////////////////////////////////////
+
 bool zmAddTask(zmObj zo, zmTaskCng cng, uint64_t* outTId){
   if (!zo) return false;
 
@@ -185,7 +330,7 @@ bool zmAddTask(zmObj zo, zmTaskCng cng, uint64_t* outTId){
   return static_cast<Manager*>(zo)->addTask(task, *outTId);
 }
 bool zmGetTaskCng(zmObj zo, uint64_t tId, zmTaskCng* outTCng){
-   if (!zo) return false; 
+  if (!zo) return false; 
 
   if (!outTCng){
      static_cast<Manager*>(zo)->errorMess("error !outTCng");

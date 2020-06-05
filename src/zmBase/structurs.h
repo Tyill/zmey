@@ -69,19 +69,34 @@ namespace ZM_Base{
     notResponding       = 7,
   };
 
+  struct user{
+    uint64_t id = 0;          // id tblUser
+    std::string name;         // unique name
+    std::string passw;        // optional password
+    std::string decription;
+  };
+
+  struct pipeline{
+    uint64_t id = 0;          // id tblPipeline
+    uint64_t uId = 0;         // id tblUser
+    std::string name;         // unique name
+    std::string decription;
+  };
+  
   struct task{
     uint64_t id = 0;          // id tblTask
-    uint64_t uId = 0;         // id tblUser
+    uint64_t uId = 0;         // parent id tblUser
     executorType exr = executorType::undefined;           
     int averDurationSec = 0;  // estimated lead time 
     int maxDurationSec = 0;   // maximum lead time      
     std::string script;       // script on bash, python or cmd
+    std::string decription;
   };
 
   struct queueTask{
     uint64_t id = 0;          // id tblTaskQueue
     uint64_t tId = 0;         // id tblTask
-    uint64_t uId = 0;         // id tblUser
+    uint64_t uId = 0;         // launcher id tblUser
     uint64_t sId = 0;         // id tblScheduler
     uint64_t wId = 0;         // id tblWorker
     stateType state = stateType::undefined; 
@@ -91,13 +106,8 @@ namespace ZM_Base{
     std::string result;
     std::vector<uint64_t> prevTasks; // queue task id of previous tasks to be completed
   };
-
-  struct user{
-    uint64_t id = 0;          // id tblUser
-    std::string name;         // unique name
-    std::string passw;        // optional password
-  };
-
+  
+  
   struct scheduler{
     uint64_t id = 0;          // id tblScheduler
     stateType state = stateType::undefined;
