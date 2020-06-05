@@ -43,8 +43,8 @@ extern "C" {
 namespace zmey{
 #endif /* __cplusplus */
 
-//////////////////////////////////////////////////////////////////////////
-///*** Common ***/////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+/// Common
 
 /// internal connection object
 typedef void* zmObj;
@@ -78,8 +78,8 @@ enum zmDbType{
 /// @param[out] outVersion. The memory is allocated by the user
 ZMEY_API void zmVersionLib(char* outVersion /*sz 8*/);
 
-//////////////////////////////////////////////////////////////////////////
-///*** Connection with DB ***/////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+/// Connection with DB
 
 /// connection config
 struct zmConnectCng{
@@ -115,14 +115,14 @@ ZMEY_API void zmSetErrorCBack(zmObj, zmErrorCBack, zmUData);
 /// @param[out] err - error string. The memory is allocated by the user
 ZMEY_API void zmGetLastError(zmObj, char* err/*sz 256*/);
 
-/////////////////////////////////////////////////////////////////////
-///*** User ***//////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+/// User
 
 /// user config
 struct zmUserCng{  
   char name[255];    ///< unique name
   char passw[255];   ///< password  
-  char* decription;  ///< the memory is allocated by the user   
+  char* description;  ///< the memory is allocated by the user   
 };
 
 /// add new user
@@ -165,19 +165,19 @@ ZMEY_API bool zmDelUser(zmObj, uint64_t userId);
 /// @return count of users
 ZMEY_API uint32_t zmGetAllUsers(zmObj, uint64_t** outUserId);
 
-//////////////////////////////////////////////////////////////////////////
-///*** Group users ***////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+/// Group users
 
 /// group config
 struct zmGroupCng{  
   char name[255];    ///< unique name
   char passw[255];   ///< password  
-  char* decription;  ///< the memory is allocated by the user
+  char* description;  ///< the memory is allocated by the user
 };
 /// TODO
 
-//////////////////////////////////////////////////////////////////////////
-///*** Scheduler ***//////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+/// Scheduler
 
 /// scheduler config
 struct zmSchedrCng{
@@ -207,8 +207,8 @@ zmSchedulerState(zmObj, uint64_t schId, zmStateType* outState, zmSchedrCng* outS
 /// @return count of schedulers
 ZMEY_API uint32_t zmGetAllSchedulers(zmObj, zmStateType state, uint64_t** outSchId);
 
-//////////////////////////////////////////////////////////////////////////
-///*** Worker ***/////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+/// Worker
 
 /// worker config
 struct zmWorkerCng{
@@ -242,8 +242,52 @@ zmWorkerState(zmObj, uint64_t wId, zmStateType* outState, zmWorkerCng* outWCng =
 /// @return count of schedulers
 ZMEY_API uint32_t zmGetAllWorkers(zmObj, uint64_t schId, zmStateType state, uint64_t** outWId);
 
-///////////////////////////////////////////////////////////////////////////////////
-///*** Task template ***///////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+/// Pipeline of tasks
+
+/// pipeline config
+struct zmPipelineCng{
+  uint64_t userId;         ///< user id
+  char name[255];          ///< pipeline name
+  char* description;       ///< description of pipeline. The memory is allocated by the user
+};
+
+/// add pipeline
+/// @param[in] zmObj - object connect
+/// @param[in] cng - pipeline config
+/// @param[out] outPPLId - pipeline id
+/// @return true - ok
+ZMEY_API bool zmAddPipeline(zmObj, zmPipelineCng cng, uint64_t* outPPLId);
+
+/// get pipeline config
+/// @param[in] zmObj - object connect
+/// @param[in] pplId - pipeline id
+/// @param[out] outCng - pipeline config
+/// @return true - ok
+ZMEY_API bool zmGetPipelineCng(zmObj, uint64_t pplId, zmPipelineCng* outCng);
+
+/// change pipeline config
+/// @param[in] zmObj - object connect
+/// @param[in] pplId - pipeline id
+/// @param[in] newCng - pipeline config
+/// @return true - ok
+ZMEY_API bool zmChangePipelineCng(zmObj, uint64_t pplId, zmPipelineCng newCng);
+
+/// delete pipeline
+/// @param[in] zmObj - object connect
+/// @param[in] pplId - pipeline
+/// @return true - ok
+ZMEY_API bool zmDelPipeline(zmObj, uint64_t pplId);
+
+/// get all pipelines
+/// @param[in] zmObj - object connect
+/// @param[in] userId - user id
+/// @param[out] outPPLId - pipeline id 
+/// @return count of pipelines
+ZMEY_API uint32_t zmGetAllPipelines(zmObj, uint64_t userId, uint64_t** outPPLId);
+
+///////////////////////////////////////////////////////////////////////////////
+/// Task template 
 
 /// task template config
 struct zmTaskTemplateCng{
@@ -252,7 +296,7 @@ struct zmTaskTemplateCng{
   uint32_t averDurationSec; ///< estimated lead time 
   uint32_t maxDurationSec;  ///< maximum lead time
   char name[255];           ///< task template name
-  char* decription;         ///< decription of task. The memory is allocated by the user
+  char* description;        ///< description of task. The memory is allocated by the user
   char* script;             ///< script on bash, python or cmd. The memory is allocated by the user
 };
 /// add new task template
@@ -292,141 +336,97 @@ ZMEY_API bool zmDelTaskTemplate(zmObj, uint64_t tId);
 /// @return count of tasks
 ZMEY_API uint32_t zmGetAllTaskTemplates(zmObj, uint64_t parent, uint64_t** outTId);
 
-/////////////////////////////////////////////////////////////////////////////////
-///*** Pipeline of tasks ***/////////////////////////////////////////////////////
-
-/// pipeline config
-struct zmPipelineCng{
-  uint64_t userId;         ///< user id
-  char name[255];          ///< pipeline name
-  char* decription;        ///< decription of pipeline. The memory is allocated by the user
-};
-
-/// add pipeline
-/// @param[in] zmObj - object connect
-/// @param[in] cng - pipeline config
-/// @param[out] outPPLId - pipeline id
-/// @return true - ok
-ZMEY_API bool zmAddPipeline(zmObj, zmPipelineCng cng, uint64_t* outPPLId);
-
-/// get pipeline config
-/// @param[in] zmObj - object connect
-/// @param[in] pplId - pipeline id
-/// @param[out] outCng - pipeline config
-/// @return true - ok
-ZMEY_API bool zmGetPipelineCng(zmObj, uint64_t pplId, zmPipelineCng* outCng);
-
-/// change pipeline config
-/// @param[in] zmObj - object connect
-/// @param[in] pplId - pipeline id
-/// @param[in] newCng - pipeline config
-/// @return true - ok
-ZMEY_API bool zmChangePipelineCng(zmObj, uint64_t pplId, zmPipelineCng newCng);
-
-/// delete pipeline
-/// @param[in] zmObj - object connect
-/// @param[in] pplId - pipeline
-/// @return true - ok
-ZMEY_API bool zmDelPipeline(zmObj, uint64_t pplId);
-
-/// get all pipelines
-/// @param[in] zmObj - object connect
-/// @param[in] userId - user id
-/// @param[out] outPPLId - pipeline id 
-/// @return count of pipelines
-ZMEY_API uint32_t zmGetAllPipelines(zmObj, uint64_t userId, uint64_t** outPPLId);
-
-//////////////////////////////////////////////////////////////////////////
-///*** Queue task ***/////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+/// Task of pipeline
 
 struct zmScreenRect{
   uint32_t x, y, w, h;
 };
 
-/// queue task config
-struct zmQueueTaskCng{
+/// pipeline task config
+struct zmTaskCng{
   uint64_t pplId;          ///< pipeline id
   uint64_t tId;            ///< task template id
-  uint64_t* prevTasksQId;  ///< queue task id of previous tasks to be completed
-  uint64_t* nextTasksQId;  ///< queue task id of next tasks
-  uint32_t prevTasksCnt;   ///< queue task previous count
-  uint32_t nextTasksCnt;   ///< queue task next count
+  uint64_t* prevTasksQId;  ///< pipeline task id of previous tasks to be completed
+  uint64_t* nextTasksQId;  ///< pipeline task id of next tasks
+  uint32_t prevTasksCnt;   ///< pipeline task previous count
+  uint32_t nextTasksCnt;   ///< pipeline task next count
   uint32_t priority;       ///< [1..3]
   char* params;            ///< params of script: -key=value
   zmScreenRect screenRect; ///< screenRect
 };
 
-/// add queue task
+/// add pipeline task
 /// @param[in] zmObj - object connect
-/// @param[in] cng - queue task config
-/// @param[out] outQTaskId - queue task id
+/// @param[in] cng - pipeline task config
+/// @param[out] outTaskId - pipeline task id
 /// @return true - ok
-ZMEY_API bool zmAddQueueTask(zmObj, zmQueueTaskCng cng, uint64_t* outQTaskId);
+ZMEY_API bool zmAddTask(zmObj, zmTaskCng cng, uint64_t* outTaskId);
 
-/// get queue task config
+/// get pipeline task config
 /// @param[in] zmObj - object connect
-/// @param[in] qtId - queue task id
-/// @param[out] outQCng - queue task config
+/// @param[in] tId - pipeline task id
+/// @param[out] outTCng - pipeline task config
 /// @return true - ok
-ZMEY_API bool zmGetQueueTaskCng(zmObj, uint64_t qtId, zmQueueTaskCng* outQCng);
+ZMEY_API bool zmGetTaskCng(zmObj, uint64_t tId, zmTaskCng* outTCng);
 
-/// change queue task config
+/// change pipeline task config
 /// @param[in] zmObj - object connect
-/// @param[in] qtId - queue task id
-/// @param[in] newQCng - queue task config
+/// @param[in] tId - pipeline task id
+/// @param[in] newCng - pipeline task config
 /// @return true - ok
-ZMEY_API bool zmChangeQueueTaskCng(zmObj, uint64_t qtId, zmQueueTaskCng newQCng);
+ZMEY_API bool zmChangeTaskCng(zmObj, uint64_t tId, zmTaskCng newCng);
 
-/// delete queue task
+/// delete pipeline task
 /// @param[in] zmObj - object connect
-/// @param[in] qtId - queue task id
+/// @param[in] tId - pipeline task id
 /// @return true - ok
-ZMEY_API bool zmDelQueueTask(zmObj, uint64_t qtId);
+ZMEY_API bool zmDelTask(zmObj, uint64_t tId);
 
-/// start queue task
+/// start pipeline task
 /// @param[in] zmObj - object connect
-/// @param[in] qtId - queue task id
+/// @param[in] tId - pipeline task id
 /// @return true - ok
-ZMEY_API bool zmStartQueueTask(zmObj, uint64_t qtId);
+ZMEY_API bool zmStartTask(zmObj, uint64_t tId);
 
-/// stop queue task
+/// stop pipeline task
 /// @param[in] zmObj - object connect
-/// @param[in] qtId - queue task id
+/// @param[in] tId - pipeline task id
 /// @return true - ok
-ZMEY_API bool zmStopQueueTask(zmObj, uint64_t qtId);
+ZMEY_API bool zmStopTask(zmObj, uint64_t tId);
 
-/// pause queue task
+/// pause pipeline task
 /// @param[in] zmObj - object connect
-/// @param[in] qtId - queue task id
+/// @param[in] tId - pipeline task id
 /// @return true - ok
-ZMEY_API bool zmPauseQueueTask(zmObj, uint64_t qtId);
+ZMEY_API bool zmPauseTask(zmObj, uint64_t tId);
 
-/// queue task state
-struct zmQueueTaskState{
+/// pipeline task state
+struct zmTaskState{
   uint32_t progress;      ///< [0..100]
   zmStateType state;  
   char* result;           ///< string result
 };
-/// get queue task state
+/// get pipeline task state
 /// @param[in] zmObj - object connect
-/// @param[in] qtId - queue task id
-/// @param[out] outQTState - queue task state
+/// @param[in] tId - pipeline task id
+/// @param[out] outTState - pipeline task state
 /// @return true - ok
-ZMEY_API bool zmGetQueueTaskState(zmObj, uint64_t qtId, zmQueueTaskState* outQTState);
+ZMEY_API bool zmGetTaskState(zmObj, uint64_t tId, zmTaskState* outTState);
 
-/// get all queue tasks
+/// get all pipeline tasks
 /// @param[in] zmObj - object connect
-/// @param[in] pplId - pipeline id
+/// @param[in] tId - pipeline id
 /// @param[in] state - choose with current state. If the state is 'undefined', select all
-/// @param[out] outQTId - task id 
-/// @return count of queue tasks
-ZMEY_API uint32_t zmGetAllQueueTasks(zmObj, uint64_t pplId, zmStateType state, uint64_t** outQTId);
+/// @param[out] outTId - pipeline task id 
+/// @return count of pipeline tasks
+ZMEY_API uint32_t zmGetAllTasks(zmObj, uint64_t pplId, zmStateType state, uint64_t** outTId);
 
 
 
-//////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 /// free resouces
-ZMEY_API uint32_t zmFreeResouces(uint64_t*, char*);
+ZMEY_API void zmFreeResouces(uint64_t*, char*);
 
 #if defined(__cplusplus)
 }}

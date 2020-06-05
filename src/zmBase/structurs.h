@@ -59,9 +59,9 @@ namespace ZM_Base{
    
   enum class stateType{
     undefined          = -1,
-    ready               = 0,
-    start               = 1,
-    running             = 2,
+    ready               = 0, // for task: can be taken to work
+    start               = 1, // for task: taken to work
+    running             = 2, // for task: running
     pause               = 3,
     stop                = 4,    
     completed           = 5,
@@ -73,25 +73,46 @@ namespace ZM_Base{
     uint64_t id = 0;          // id tblUser
     std::string name;         // unique name
     std::string passw;        // optional password
-    std::string decription;
+    std::string description;
   };
 
-  struct pipeline{
-    uint64_t id = 0;          // id tblPipeline
+  struct uPipeline{
+    uint64_t id = 0;          // id tblUPipeline
     uint64_t uId = 0;         // id tblUser
     std::string name;         // unique name
-    std::string decription;
+    std::string description;
+  };
+
+  struct uTaskTemplate{
+    uint64_t tId = 0;         // id tblUTaskTemplate (tblTask)
+    uint64_t uId = 0;         // parent id tblUser
+    std::string name;
+    std::string description;
+    int version = 0;
+    bool isDelete = false;
+  };
+
+  struct uScreenRect{
+    int x, y, w, h;
+  };
+  struct uTask{
+    uint64_t id = 0;          // id tblUTask 
+    uint64_t pplId = 0;       // id tblUPipeline
+    uint64_t utId = 0;        // id tblUTaskTemplate
+    uint64_t qId = 0;         // id tblTaskQueue
+    std::vector<uint64_t> prevTasks; // queue task id tblUTask of previous tasks to be completed
+    std::vector<uint64_t> nextTasks; // queue task id tblUTask of next tasks
+    std::string params;       // params of script: -key=value
+    uScreenRect rct;          // rect on screen
   };
   
   struct task{
     uint64_t id = 0;          // id tblTask
-    uint64_t uId = 0;         // parent id tblUser
     executorType exr = executorType::undefined;           
     int averDurationSec = 0;  // estimated lead time 
     int maxDurationSec = 0;   // maximum lead time      
-    std::string script;       // script on bash, python or cmd
-    std::string decription;
-  };
+    std::string script;       // script on bash, python or cmd    
+  };  
 
   struct queueTask{
     uint64_t id = 0;          // id tblTaskQueue
@@ -102,11 +123,10 @@ namespace ZM_Base{
     stateType state = stateType::undefined; 
     int priority = 0;         // [1..3]
     int progress = 0;         // [0..100]     
-    std::string params;
+    std::string params;       // params of script: -key=value
     std::string result;
-    std::vector<uint64_t> prevTasks; // queue task id of previous tasks to be completed
-  };
-  
+    std::vector<uint64_t> prevTasks; // queue task id tblTaskQueue of previous tasks to be completed
+  };  
   
   struct scheduler{
     uint64_t id = 0;          // id tblScheduler

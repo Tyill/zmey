@@ -82,13 +82,13 @@ std::vector<uint64_t> DbPGProvider::getAllWorkers(uint64_t schId, ZM_Base::state
   return std::vector<uint64_t>();
 }
 
-bool DbPGProvider::addPipeline(const ZM_Base::pipeline& cng, uint64_t& outPPLId){
+bool DbPGProvider::addPipeline(const ZM_Base::uPipeline& cng, uint64_t& outPPLId){
   return true;
 }
-bool DbPGProvider::getPipeline(uint64_t pplId, ZM_Base::pipeline& cng){
+bool DbPGProvider::getPipeline(uint64_t pplId, ZM_Base::uPipeline& cng){
   return true;
 }
-bool DbPGProvider::changePipeline(uint64_t pplId, const ZM_Base::pipeline& newCng){
+bool DbPGProvider::changePipeline(uint64_t pplId, const ZM_Base::uPipeline& newCng){
   return true;
 }
 bool DbPGProvider::delPipeline(uint64_t pplId){
@@ -98,26 +98,41 @@ std::vector<uint64_t> DbPGProvider::getAllPipelines(uint64_t userId){
   return std::vector<uint64_t>();
 }
 
-bool DbPGProvider::addTask(const ZM_Base::task& task, uint64_t& tskId){
+bool DbPGProvider::addTaskTemplate(const ZM_Base::uTaskTemplate& cng, uint64_t& outTId){
   return true;
 }
-bool DbPGProvider::getTaskCng(uint64_t tskId, ZM_Base::task& task){
+bool DbPGProvider::getTaskTemplateCng(uint64_t tId, ZM_Base::uTaskTemplate& outTCng){
+  return true;
+};
+bool DbPGProvider::changeTaskTemplateCng(uint64_t tId, const ZM_Base::uTaskTemplate& newTCng){
   return true;
 }
-std::vector<uint64_t> DbPGProvider::getAllTasks(){
+bool DbPGProvider::delTaskTemplate(uint64_t tId){
+  return true;
+}
+std::vector<uint64_t> DbPGProvider::zmGetAllTaskTemplates(uint64_t parent, uint64_t** outTId){
   return std::vector<uint64_t>();
 }
 
-bool DbPGProvider::pushTaskToQueue(const ZM_Base::queueTask& task, uint64_t& qtskId){
+bool DbPGProvider::addTask(ZM_Base::uTask&, uint64_t& outTId){
   return true;
 }
-bool DbPGProvider::getQueueTaskCng(uint64_t qtskId, ZM_Base::queueTask& qTask){
+bool DbPGProvider::getTaskCng(uint64_t tId, ZM_Base::uTask&){
   return true;
 }
-bool DbPGProvider::getQueueTaskState(uint64_t qtskId, ZM_Base::queueTask& qTask){
+bool DbPGProvider::changeTaskCng(uint64_t tId, const ZM_Base::uTask& newTCng){
   return true;
 }
-std::vector<uint64_t> DbPGProvider::getAllQueueTasks(ZM_Base::stateType){
+bool DbPGProvider::delTask(uint64_t tId){
+  return true;
+}
+bool DbPGProvider::startTask(uint64_t tId){
+  return true;
+}
+bool DbPGProvider::getTaskState(uint64_t tId, ZM_Base::queueTask&){
+  return true;
+}
+std::vector<uint64_t> DbPGProvider::getAllTasks(uint64_t pplId){
   return std::vector<uint64_t>();
 }
 

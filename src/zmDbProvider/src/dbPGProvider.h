@@ -49,20 +49,25 @@ public:
   bool workerState(uint64_t wkrId, ZM_Base::worker& out) override;
   std::vector<uint64_t> getAllWorkers(uint64_t schId, ZM_Base::stateType) override;
 
-  bool addPipeline(const ZM_Base::pipeline& cng, uint64_t& outPPLId) override;
-  bool getPipeline(uint64_t pplId, ZM_Base::pipeline& cng) override;
-  bool changePipeline(uint64_t pplId, const ZM_Base::pipeline& newCng) override;
+  bool addPipeline(const ZM_Base::uPipeline& cng, uint64_t& outPPLId) override;
+  bool getPipeline(uint64_t pplId, ZM_Base::uPipeline& cng) override;
+  bool changePipeline(uint64_t pplId, const ZM_Base::uPipeline& newCng) override;
   bool delPipeline(uint64_t pplId) override;
   std::vector<uint64_t> getAllPipelines(uint64_t userId) override;
 
-  bool addTask(const ZM_Base::task& task, uint64_t& outTskId) override;
-  bool getTaskCng(uint64_t tskId, ZM_Base::task& task) override;
-  std::vector<uint64_t> getAllTasks() override;
+  bool addTaskTemplate(const ZM_Base::uTaskTemplate& cng, uint64_t& outTId) override;
+  bool getTaskTemplateCng(uint64_t tId, ZM_Base::uTaskTemplate& outTCng) override;;
+  bool changeTaskTemplateCng(uint64_t tId, const ZM_Base::uTaskTemplate& newTCng) override;
+  bool delTaskTemplate(uint64_t tId) override;
+  std::vector<uint64_t> zmGetAllTaskTemplates(uint64_t parent, uint64_t** outTId) override;
 
-  bool pushTaskToQueue(const ZM_Base::queueTask& task, uint64_t& outQId) override;
-  bool getQueueTaskCng(uint64_t qId, ZM_Base::queueTask& qTask) override;
-  bool getQueueTaskState(uint64_t qId, ZM_Base::queueTask& qTask) override;
-  std::vector<uint64_t> getAllQueueTasks(ZM_Base::stateType) override;
+  bool addTask(ZM_Base::uTask&, uint64_t& outTId) override;
+  bool getTaskCng(uint64_t tId, ZM_Base::uTask&) override;
+  bool changeTaskCng(uint64_t tId, const ZM_Base::uTask& newTCng) override;
+  bool delTask(uint64_t tId) override;
+  bool startTask(uint64_t tId) override;
+  bool getTaskState(uint64_t tId, ZM_Base::queueTask&) override;
+  std::vector<uint64_t> getAllTasks(uint64_t pplId) override;
 
   // for zmSchedr
   bool getSchedr(std::string& connPnt, ZM_Base::scheduler& outSchedl) override;

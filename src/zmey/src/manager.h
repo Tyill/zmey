@@ -62,18 +62,25 @@ public:
   bool workerState(uint64_t wId, ZM_Base::worker&);
   std::vector<uint64_t> getAllWorkers(uint64_t schId, ZM_Base::stateType);
   
-  bool addPipeline(const ZM_Base::pipeline& cng, uint64_t& outPPLId);
-  bool getPipeline(uint64_t pplId, ZM_Base::pipeline& cng);
-  bool changePipeline(uint64_t pplId, const ZM_Base::pipeline& newCng);
+  bool addPipeline(const ZM_Base::uPipeline& cng, uint64_t& outPPLId);
+  bool getPipeline(uint64_t pplId, ZM_Base::uPipeline& cng);
+  bool changePipeline(uint64_t pplId, const ZM_Base::uPipeline& newCng);
   bool delPipeline(uint64_t pplId);
   std::vector<uint64_t> getAllPipelines(uint64_t userId);
 
-  bool addTask(ZM_Base::task&, uint64_t& outTId);
-  bool getTaskCng(uint64_t tId, ZM_Base::task&);
-  std::vector<uint64_t> getAllTasks();
-  
-  bool pushTaskToQueue(ZM_Base::queueTask&, uint64_t& outQTId);
-  bool getQueueTaskCng(uint64_t qtId, ZM_Base::queueTask&);
-  bool getQueueTaskState(uint64_t qtId, ZM_Base::queueTask&);
-  std::vector<uint64_t> getAllQueueTasks(ZM_Base::stateType);
+  bool addTaskTemplate(const ZM_Base::uTaskTemplate& ttcng, const ZM_Base::task& tcng, uint64_t& outTId);
+  bool getTaskTemplateCng(uint64_t tId, ZM_Base::uTaskTemplate& outTCng);
+  bool changeTaskTemplateCng(uint64_t tId, const ZM_Base::uTaskTemplate& newTCng);
+  bool delTaskTemplate(uint64_t tId);
+  std::vector<uint64_t> zmGetAllTaskTemplates(uint64_t parent, uint64_t** outTId);
+
+  bool addTask(ZM_Base::uTask&, uint64_t& outTId);
+  bool getTaskCng(uint64_t tId, ZM_Base::uTask&);
+  bool changeTaskCng(uint64_t tId, const ZM_Base::uTask& newTCng);
+  bool delTask(uint64_t tId);
+  bool startTask(uint64_t tId);
+  bool stopTask(uint64_t tId);
+  bool pauseTask(uint64_t tId);
+  bool getTaskState(uint64_t tId, ZM_Base::queueTask&);
+  std::vector<uint64_t> getAllTasks(uint64_t pplId);
 };

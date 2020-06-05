@@ -85,20 +85,25 @@ public:
   virtual bool workerState(uint64_t wkrId, ZM_Base::worker& out) = 0;
   virtual std::vector<uint64_t> getAllWorkers(uint64_t schId, ZM_Base::stateType) = 0;
 
-  virtual bool addPipeline(const ZM_Base::pipeline& cng, uint64_t& outPPLId) = 0;
-  virtual bool getPipeline(uint64_t pplId, ZM_Base::pipeline& cng) = 0;
-  virtual bool changePipeline(uint64_t pplId, const ZM_Base::pipeline& newCng) = 0;
+  virtual bool addPipeline(const ZM_Base::uPipeline& cng, uint64_t& outPPLId) = 0;
+  virtual bool getPipeline(uint64_t pplId, ZM_Base::uPipeline& cng) = 0;
+  virtual bool changePipeline(uint64_t pplId, const ZM_Base::uPipeline& newCng) = 0;
   virtual bool delPipeline(uint64_t pplId) = 0;
   virtual std::vector<uint64_t> getAllPipelines(uint64_t userId) = 0;
 
-  virtual bool addTask(const ZM_Base::task& task, uint64_t& outTskId) = 0;
-  virtual bool getTaskCng(uint64_t tskId, ZM_Base::task& task) = 0;
-  virtual std::vector<uint64_t> getAllTasks() = 0;
+  virtual bool addTaskTemplate(const ZM_Base::uTaskTemplate& ttcng, const ZM_Base::uTaskTemplate& ttcng, uint64_t& outTId) = 0;
+  virtual bool getTaskTemplateCng(uint64_t tId, ZM_Base::uTaskTemplate& outTCng) = 0;;
+  virtual bool changeTaskTemplateCng(uint64_t tId, const ZM_Base::uTaskTemplate& newTCng) = 0;
+  virtual bool delTaskTemplate(uint64_t tId) = 0;
+  virtual std::vector<uint64_t> zmGetAllTaskTemplates(uint64_t parent, uint64_t** outTId) = 0;
 
-  virtual bool pushTaskToQueue(const ZM_Base::queueTask& task, uint64_t& outQId) = 0;
-  virtual bool getQueueTaskCng(uint64_t qId, ZM_Base::queueTask& out) = 0;
-  virtual bool getQueueTaskState(uint64_t qId, ZM_Base::queueTask& out) = 0;
-  virtual std::vector<uint64_t> getAllQueueTasks(ZM_Base::stateType) = 0;
+  virtual bool addTask(ZM_Base::uTask&, uint64_t& outTId) = 0;
+  virtual bool getTaskCng(uint64_t tId, ZM_Base::uTask&) = 0;
+  virtual bool changeTaskCng(uint64_t tId, const ZM_Base::uTask& newTCng) = 0;
+  virtual bool delTask(uint64_t tId) = 0;
+  virtual bool startTask(uint64_t tId) = 0;
+  virtual bool getTaskState(uint64_t tId, ZM_Base::queueTask&) = 0;
+  virtual std::vector<uint64_t> getAllTasks(uint64_t pplId) = 0;
   
   // for zmSchedr
   virtual bool getSchedr(std::string& connPnt, ZM_Base::scheduler& outSchedl) = 0;

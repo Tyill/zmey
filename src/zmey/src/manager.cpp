@@ -90,13 +90,13 @@ std::vector<uint64_t> Manager::getAllWorkers(uint64_t schId, ZM_Base::stateType 
   return _db->getAllWorkers(schId, state);
 }
 
-bool Manager::addPipeline(const ZM_Base::pipeline& cng, uint64_t& outPPLId){
+bool Manager::addPipeline(const ZM_Base::uPipeline& cng, uint64_t& outPPLId){
   return _db->addPipeline(cng, outPPLId);
 }
-bool Manager::getPipeline(uint64_t pplId, ZM_Base::pipeline& cng){
+bool Manager::getPipeline(uint64_t pplId, ZM_Base::uPipeline& cng){
   return _db->getPipeline(pplId, cng);
 }
-bool Manager::changePipeline(uint64_t pplId, const ZM_Base::pipeline& newCng){
+bool Manager::changePipeline(uint64_t pplId, const ZM_Base::uPipeline& newCng){
   return _db->changePipeline(pplId, newCng);
 }
 bool Manager::delPipeline(uint64_t pplId){
@@ -106,25 +106,46 @@ std::vector<uint64_t> Manager::getAllPipelines(uint64_t userId){
   return _db->getAllPipelines(userId);
 }
 
-bool Manager::addTask(ZM_Base::task& task, uint64_t& outTId){
-  return _db->addTask(task, outTId);
+bool Manager::addTaskTemplate(const ZM_Base::uTaskTemplate& ttcng, const ZM_Base::task& tcng, uint64_t& outTId){
+  
 }
-bool Manager::getTaskCng(uint64_t tId, ZM_Base::task& task){
-  return _db->getTaskCng(tId, task);
+bool Manager::getTaskTemplateCng(uint64_t tId, ZM_Base::uTaskTemplate& outTCng){
+
 }
-std::vector<uint64_t> Manager::getAllTasks(){
-  return _db->getAllTasks();
+bool Manager::changeTaskTemplateCng(uint64_t tId, const ZM_Base::uTaskTemplate& newTCng){
+
+}
+bool Manager::delTaskTemplate(uint64_t tId){
+
+}
+std::vector<uint64_t> Manager::zmGetAllTaskTemplates(uint64_t parent, uint64_t** outTId){
+
 }
 
-bool Manager::pushTaskToQueue(ZM_Base::queueTask& qTask, uint64_t& outQTId){
-  return _db->pushTaskToQueue(qTask, outQTId);
+bool Manager::addTask(ZM_Base::uTask&, uint64_t& outTId){
+
 }
-bool Manager::getQueueTaskCng(uint64_t qtId, ZM_Base::queueTask& qTask){
-  return _db->getQueueTaskCng(qtId, qTask);
+bool Manager::getTaskCng(uint64_t tId, ZM_Base::uTask&){
+
 }
-bool Manager::getQueueTaskState(uint64_t qtId, ZM_Base::queueTask& qTask){
-  return _db->getQueueTaskState(qtId, qTask);
+bool Manager::changeTaskCng(uint64_t tId, const ZM_Base::uTask& newTCng){
+
 }
-std::vector<uint64_t> Manager::getAllQueueTasks(ZM_Base::stateType state){
-  return _db->getAllQueueTasks(state);
+bool Manager::delTask(uint64_t tId){
+
+}
+bool Manager::startTask(uint64_t tId){
+
+}
+bool Manager::stopTask(uint64_t tId){
+
+}
+bool Manager::pauseTask(uint64_t tId){
+
+}
+bool Manager::getTaskState(uint64_t tId, ZM_Base::queueTask&){
+
+}
+std::vector<uint64_t> Manager::getAllTasks(uint64_t pplId){
+
 }
