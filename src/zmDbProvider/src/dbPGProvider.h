@@ -71,7 +71,7 @@ public:
 
   // for zmSchedr
   bool getSchedr(std::string& connPnt, ZM_Base::scheduler& outSchedl) override;
-  bool getTasksForSchedr(uint64_t schedrId, std::vector<std::pair<ZM_Base::task, ZM_Base::queueTask>>&) override;
+  bool getTasksForSchedr(uint64_t schedrId, std::vector<ZM_Base::schedrTask>&) override;
   bool getWorkersForSchedr(uint64_t schedrId, std::vector<ZM_Base::worker>&) override;
   bool getNewTasks(int maxTaskCnt, std::vector<std::pair<ZM_Base::task, ZM_Base::queueTask>>&) override;
   bool sendAllMessFromSchedr(uint64_t schedrId, std::vector<ZM_DB::messSchedr>&) override;

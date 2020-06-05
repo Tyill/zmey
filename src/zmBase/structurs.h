@@ -82,29 +82,6 @@ namespace ZM_Base{
     std::string name;         // unique name
     std::string description;
   };
-
-  struct uTaskTemplate{
-    uint64_t tId = 0;         // id tblUTaskTemplate (tblTask)
-    uint64_t uId = 0;         // parent id tblUser
-    std::string name;
-    std::string description;
-    int version = 0;
-    bool isDelete = false;
-  };
-
-  struct uScreenRect{
-    int x, y, w, h;
-  };
-  struct uTask{
-    uint64_t id = 0;          // id tblUTask 
-    uint64_t pplId = 0;       // id tblUPipeline
-    uint64_t utId = 0;        // id tblUTaskTemplate
-    uint64_t qId = 0;         // id tblTaskQueue
-    std::vector<uint64_t> prevTasks; // queue task id tblUTask of previous tasks to be completed
-    std::vector<uint64_t> nextTasks; // queue task id tblUTask of next tasks
-    std::string params;       // params of script: -key=value
-    uScreenRect rct;          // rect on screen
-  };
   
   struct task{
     uint64_t id = 0;          // id tblTask
@@ -118,16 +95,32 @@ namespace ZM_Base{
     uint64_t id = 0;          // id tblTaskQueue
     uint64_t tId = 0;         // id tblTask
     uint64_t uId = 0;         // launcher id tblUser
-    uint64_t sId = 0;         // id tblScheduler
-    uint64_t wId = 0;         // id tblWorker
     stateType state = stateType::undefined; 
     int priority = 0;         // [1..3]
     int progress = 0;         // [0..100]     
     std::string params;       // params of script: -key=value
     std::string result;
-    std::vector<uint64_t> prevTasks; // queue task id tblTaskQueue of previous tasks to be completed
   };  
   
+  struct uTaskTemplate{
+    uint64_t uId = 0;         // parent id tblUser
+    std::string name;
+    std::string description;
+    task base;
+  };
+  
+  struct uScreenRect{
+    int x, y, w, h;
+  };
+  struct uTask{
+    uint64_t id = 0;          // id tblUTask 
+    uint64_t pplId = 0;       // id tblUPipeline
+    std::vector<uint64_t> prevTasks; // queue task id tblUTask of previous tasks to be completed
+    std::vector<uint64_t> nextTasks; // queue task id tblUTask of next tasks
+    uScreenRect rct;          // rect on screen
+    queueTask base; 
+  };
+
   struct scheduler{
     uint64_t id = 0;          // id tblScheduler
     stateType state = stateType::undefined;
@@ -135,6 +128,7 @@ namespace ZM_Base{
     int activeTask = 0;       // number of running tasks
     std::string connectPnt;   // connection point: IP or DNS ':' port
   };
+  using schedrTask = std::pair<ZM_Base::task, ZM_Base::queueTask>;
 
   struct worker{
     uint64_t id = 0;          // id tblWorker

@@ -86,7 +86,7 @@ bool zmAddUser(zmObj zo, zmUserCng newUserCng, uint64_t* outUserId){
   if (!zo) return false;
   
   if (!outUserId){
-     static_cast<Manager*>(zo)->errorMess("error !outUserId");
+     static_cast<Manager*>(zo)->errorMess("zmAddUser error: !outUserId");
      return false;
   }
   ZM_Base::user us;
@@ -100,7 +100,7 @@ bool zmGetUserId(zmObj zo, zmUserCng cng, uint64_t* outUserId){
   if (!zo) return false;
   
   if (!outUserId){
-     static_cast<Manager*>(zo)->errorMess("error !outUserId");
+     static_cast<Manager*>(zo)->errorMess("zmGetUserId error: !outUserId");
      return false;
   }   
   return static_cast<Manager*>(zo)->getUser(string(cng.name), string(cng.passw), *outUserId);
@@ -109,7 +109,7 @@ bool zmGetUserCng(zmObj zo, uint64_t userId, zmUserCng* outUserCng){
   if (!zo) return false; 
 
   if (!outUserCng){
-     static_cast<Manager*>(zo)->errorMess("error !outUserCng");
+     static_cast<Manager*>(zo)->errorMess("zmGetUserCng error: !outUserCng");
      return false;
   }
   ZM_Base::user ur;
@@ -157,7 +157,7 @@ bool zmAddScheduler(zmObj zo, zmSchedrCng cng, uint64_t* outSchId){
   if (!zo) return false;
   
   if (!outSchId){
-     static_cast<Manager*>(zo)->errorMess("error !outSchId");
+     static_cast<Manager*>(zo)->errorMess("zmAddScheduler error: !outSchId");
      return false;
   }
   ZM_Base::scheduler schedr;
@@ -170,7 +170,7 @@ bool zmSchedulerState(zmObj zo, uint64_t schId, zmStateType* outState, zmSchedrC
   if (!zo) return false; 
 
   if (!outState){
-     static_cast<Manager*>(zo)->errorMess("error !outState");
+     static_cast<Manager*>(zo)->errorMess("zmSchedulerState error: !outState");
      return false;
   }
   ZM_Base::scheduler schedr;
@@ -205,7 +205,7 @@ bool zmAddWorker(zmObj zo, zmWorkerCng cng, uint64_t* outWId){
   if (!zo) return false;
 
   if (!outWId){
-     static_cast<Manager*>(zo)->errorMess("error !outWId");
+     static_cast<Manager*>(zo)->errorMess("zmAddWorker error: !outWId");
      return false;
   }
   ZM_Base::worker worker;
@@ -218,7 +218,7 @@ bool zmWorkerState(zmObj zo, uint64_t wId, zmStateType* outState, zmWorkerCng* o
   if (!zo) return false; 
 
   if (!outState){
-     static_cast<Manager*>(zo)->errorMess("error !outState");
+     static_cast<Manager*>(zo)->errorMess("zmWorkerState error: !outState");
      return false;
   }
   ZM_Base::worker worker;
@@ -255,7 +255,7 @@ bool zmAddPipeline(zmObj zo, zmPipelineCng cng, uint64_t* outPPLId){
   if (!zo) return false;
   
   if (!outPPLId){
-     static_cast<Manager*>(zo)->errorMess("error !outPPLId");
+     static_cast<Manager*>(zo)->errorMess("zmAddPipeline error: !outPPLId");
      return false;
   }
   ZM_Base::uPipeline pp;
@@ -269,7 +269,7 @@ bool zmGetPipelineCng(zmObj zo, uint64_t pplId, zmPipelineCng* outPPLCng){
   if (!zo) return false; 
 
   if (!outPPLCng){
-     static_cast<Manager*>(zo)->errorMess("error !outPPLCng");
+     static_cast<Manager*>(zo)->errorMess("zmGetPipelineCng error: !outPPLCng");
      return false;
   }
   ZM_Base::uPipeline pp;
@@ -318,48 +318,68 @@ bool zmAddTaskTemplate(zmObj zo, zmTaskTemplateCng cng, uint64_t* outTId){
   if (!zo) return false;
 
   if (!outTId || !cng.script){
-     static_cast<Manager*>(zo)->errorMess("error !outTId || !cng.script");
+     static_cast<Manager*>(zo)->errorMess("zmAddTaskTemplate error: !outTId || !cng.script");
      return false;
   }
   ZM_Base::uTaskTemplate task;
   task.name = cng.name;
   task.description = cng.description;
-  task. = (ZM_Base::executorType)cng.exr;
-  task.script = cng.script;
-
+  task.uId = cng.parent;
+  task.base.averDurationSec = cng.averDurationSec;
+  task.base.maxDurationSec = cng.maxDurationSec;
+  task.base.exr = (ZM_Base::executorType)cng.exr;
+  task.base.script = cng.script;
+  
   return static_cast<Manager*>(zo)->addTaskTemplate(task, *outTId);
 }
 bool zmGetTaskTemplateCng(zmObj zo, uint64_t tId, zmTaskTemplateCng* outTCng){
   if (!zo) return false; 
 
   if (!outTCng){
-     static_cast<Manager*>(zo)->errorMess("error !outTCng");
+     static_cast<Manager*>(zo)->errorMess("zmGetTaskTemplateCng error: !outTCng");
      return false;
   }
-  ZM_Base::task task;
-  if (static_cast<Manager*>(zo)->getTaskCng(tId, task)){    
-    outTCng->exr = (zmey::zmExecutorType)task.exr;
-    outTCng->averDurationSec = task.averDurationSec;
-    outTCng->maxDurationSec = task.maxDurationSec;
-   
-    outTCng->script = (char*)realloc(outTCng->script, task.script.size() + 1);
-    strcpy(outTCng->script, task.script.c_str());
+  ZM_Base::uTaskTemplate task;
+  if (static_cast<Manager*>(zo)->getTaskTemplateCng(tId, task)){  
+    strcpy(outTCng->name, task.name.c_str());  
+    outTCng->description = (char*)realloc(outTCng->description, task.description.size() + 1);
+    strcpy(outTCng->description, task.description.c_str());
+    outTCng->exr = (zmey::zmExecutorType)task.base.exr;
+    outTCng->averDurationSec = task.base.averDurationSec;
+    outTCng->maxDurationSec = task.base.maxDurationSec;
+    outTCng->parent = task.uId;
+    outTCng->script = (char*)realloc(outTCng->script, task.base.script.size() + 1);
+    strcpy(outTCng->script, task.base.script.c_str());
     return true;
   }
   return false;
 }
-bool zmChangeTaskTemplateCng(zmObj, uint64_t tId, zmTaskTemplateCng newTCng, uint64_t* outTId){
-
-
-}
-bool zmDelTaskTemplate(zmObj, uint64_t tId){
-
-
-}
-uint32_t zmGetAllTaskTemplates(zmObj, uint64_t parent, uint64_t** outTId){
+bool zmChangeTaskTemplateCng(zmObj zo, uint64_t tId, zmTaskTemplateCng cng, uint64_t* outTId){
   if (!zo) return false; 
 
-  auto tasks = static_cast<Manager*>(zo)->getAllTasks();
+  if (!outTId){
+     static_cast<Manager*>(zo)->errorMess("zmChangeTaskTemplateCng error: !outTId");
+     return false;
+  }
+  ZM_Base::uTaskTemplate task;
+  task.name = cng.name;
+  task.description = cng.description;
+  task.uId = cng.parent;
+  task.base.averDurationSec = cng.averDurationSec;
+  task.base.maxDurationSec = cng.maxDurationSec;
+  task.base.exr = (ZM_Base::executorType)cng.exr;
+  task.base.script = cng.script;
+  return static_cast<Manager*>(zo)->changeTaskTemplateCng(tId, task, *outTId);
+}
+bool zmDelTaskTemplate(zmObj zo, uint64_t tId){
+  if (!zo) return false; 
+
+  return static_cast<Manager*>(zo)->delTaskTemplate(tId);
+}
+uint32_t zmGetAllTaskTemplates(zmObj zo, uint64_t parent, uint64_t** outTId){
+  if (!zo) return false; 
+
+  auto tasks = static_cast<Manager*>(zo)->getAllTaskTemplates(parent);
   size_t tsz = tasks.size();
   if (tsz > 0){
     *outTId = (uint64_t*)realloc(*outTId, tsz * sizeof(uint64_t));

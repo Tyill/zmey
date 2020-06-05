@@ -91,8 +91,8 @@ public:
   virtual bool delPipeline(uint64_t pplId) = 0;
   virtual std::vector<uint64_t> getAllPipelines(uint64_t userId) = 0;
 
-  virtual bool addTaskTemplate(const ZM_Base::uTaskTemplate& ttcng, const ZM_Base::uTaskTemplate& ttcng, uint64_t& outTId) = 0;
-  virtual bool getTaskTemplateCng(uint64_t tId, ZM_Base::uTaskTemplate& outTCng) = 0;;
+  virtual bool addTaskTemplate(const ZM_Base::uTaskTemplate& cng, uint64_t& outTId) = 0;
+  virtual bool getTaskTemplateCng(uint64_t tId, ZM_Base::uTaskTemplate& outTCng) = 0;
   virtual bool changeTaskTemplateCng(uint64_t tId, const ZM_Base::uTaskTemplate& newTCng) = 0;
   virtual bool delTaskTemplate(uint64_t tId) = 0;
   virtual std::vector<uint64_t> zmGetAllTaskTemplates(uint64_t parent, uint64_t** outTId) = 0;
@@ -107,7 +107,7 @@ public:
   
   // for zmSchedr
   virtual bool getSchedr(std::string& connPnt, ZM_Base::scheduler& outSchedl) = 0;
-  virtual bool getTasksForSchedr(uint64_t schId, std::vector<std::pair<ZM_Base::task, ZM_Base::queueTask>>& out) = 0;
+  virtual bool getTasksForSchedr(uint64_t schId, std::vector<ZM_Base::schedrTask>& out) = 0;
   virtual bool getWorkersForSchedr(uint64_t schId, std::vector<ZM_Base::worker>& out) = 0;
   virtual bool getNewTasks(int maxTaskCnt, std::vector<std::pair<ZM_Base::task, ZM_Base::queueTask>>& out) = 0;
   virtual bool sendAllMessFromSchedr(uint64_t schId, std::vector<messSchedr>& out) = 0;
