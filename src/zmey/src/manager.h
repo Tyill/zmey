@@ -82,5 +82,5 @@ public:
   bool stopTask(uint64_t tId);
   bool pauseTask(uint64_t tId);
   bool getTaskState(uint64_t tId, ZM_Base::queueTask&);
-  std::vector<uint64_t> getAllTasks(uint64_t pplId);
+  std::vector<uint64_t> getAllTasks(uint64_t pplId, ZM_Base::stateType);
 };

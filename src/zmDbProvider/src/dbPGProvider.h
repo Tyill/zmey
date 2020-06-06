@@ -57,9 +57,9 @@ public:
 
   bool addTaskTemplate(const ZM_Base::uTaskTemplate& cng, uint64_t& outTId) override;
   bool getTaskTemplateCng(uint64_t tId, ZM_Base::uTaskTemplate& outTCng) override;;
-  bool changeTaskTemplateCng(uint64_t tId, const ZM_Base::uTaskTemplate& newTCng) override;
+  bool changeTaskTemplateCng(uint64_t tId, const ZM_Base::uTaskTemplate& newTCng, uint64_t& outTId) override;
   bool delTaskTemplate(uint64_t tId) override;
-  std::vector<uint64_t> zmGetAllTaskTemplates(uint64_t parent, uint64_t** outTId) override;
+  std::vector<uint64_t> getAllTaskTemplates(uint64_t parent) override;
 
   bool addTask(ZM_Base::uTask&, uint64_t& outTId) override;
   bool getTaskCng(uint64_t tId, ZM_Base::uTask&) override;
@@ -67,7 +67,7 @@ public:
   bool delTask(uint64_t tId) override;
   bool startTask(uint64_t tId) override;
   bool getTaskState(uint64_t tId, ZM_Base::queueTask&) override;
-  std::vector<uint64_t> getAllTasks(uint64_t pplId) override;
+  std::vector<uint64_t> getAllTasks(uint64_t pplId, ZM_Base::stateType) override;
 
   // for zmSchedr
   bool getSchedr(std::string& connPnt, ZM_Base::scheduler& outSchedl) override;

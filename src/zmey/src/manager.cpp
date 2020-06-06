@@ -106,46 +106,46 @@ std::vector<uint64_t> Manager::getAllPipelines(uint64_t userId){
   return _db->getAllPipelines(userId);
 }
 
-bool Manager::addTaskTemplate(const ZM_Base::uTaskTemplate& ttcng, const ZM_Base::task& tcng, uint64_t& outTId){
-  
+bool Manager::addTaskTemplate(const ZM_Base::uTaskTemplate& cng, uint64_t& outTId){
+  return _db->addTaskTemplate(cng, outTId);
 }
 bool Manager::getTaskTemplateCng(uint64_t tId, ZM_Base::uTaskTemplate& outTCng){
-
+  return _db->getTaskTemplateCng(tId, outTCng);
 }
-bool Manager::changeTaskTemplateCng(uint64_t tId, const ZM_Base::uTaskTemplate& newTCng){
-
+bool Manager::changeTaskTemplateCng(uint64_t tId, const ZM_Base::uTaskTemplate& newTCng, uint64_t& outTId){
+  return _db->changeTaskTemplateCng(tId, newTCng, outTId);
 }
 bool Manager::delTaskTemplate(uint64_t tId){
-
+  return _db->delTaskTemplate(tId);
 }
-std::vector<uint64_t> Manager::zmGetAllTaskTemplates(uint64_t parent, uint64_t** outTId){
-
+std::vector<uint64_t> Manager::getAllTaskTemplates(uint64_t parent){
+  return _db->getAllTaskTemplates(parent);
 }
 
-bool Manager::addTask(ZM_Base::uTask&, uint64_t& outTId){
-
+bool Manager::addTask(ZM_Base::uTask& task, uint64_t& outTId){
+  return _db->addTask(task, outTId);
 }
-bool Manager::getTaskCng(uint64_t tId, ZM_Base::uTask&){
-
+bool Manager::getTaskCng(uint64_t tId, ZM_Base::uTask& outCng){
+  return _db->getTaskCng(tId, outCng);
 }
 bool Manager::changeTaskCng(uint64_t tId, const ZM_Base::uTask& newTCng){
-
+  return _db->changeTaskCng(tId, newTCng);
 }
 bool Manager::delTask(uint64_t tId){
-
+  return _db->delTask(tId);
 }
 bool Manager::startTask(uint64_t tId){
-
+  return true;
 }
 bool Manager::stopTask(uint64_t tId){
-
+  return true;
 }
 bool Manager::pauseTask(uint64_t tId){
-
+  return true;
 }
-bool Manager::getTaskState(uint64_t tId, ZM_Base::queueTask&){
-
+bool Manager::getTaskState(uint64_t tId, ZM_Base::queueTask& outState){
+  return _db->getTaskState(tId, outState);
 }
-std::vector<uint64_t> Manager::getAllTasks(uint64_t pplId){
-
+std::vector<uint64_t> Manager::getAllTasks(uint64_t pplId, ZM_Base::stateType state){
+  return _db->getAllTasks(pplId, state);
 }

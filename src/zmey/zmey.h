@@ -347,8 +347,8 @@ struct zmScreenRect{
 struct zmTaskCng{
   uint64_t pplId;          ///< pipeline id
   uint64_t tId;            ///< task template id
-  uint64_t* prevTasksQId;  ///< pipeline task id of previous tasks to be completed
-  uint64_t* nextTasksQId;  ///< pipeline task id of next tasks
+  uint64_t* prevTasksId;   ///< pipeline task id of previous tasks to be completed
+  uint64_t* nextTasksId;   ///< pipeline task id of next tasks
   uint32_t prevTasksCnt;   ///< pipeline task previous count
   uint32_t nextTasksCnt;   ///< pipeline task next count
   uint32_t priority;       ///< [1..3]

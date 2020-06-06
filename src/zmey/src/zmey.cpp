@@ -25,6 +25,7 @@
 
 #include <cstring>
 #include "zmey/zmey.h"
+#include "zmCommon/auxFunc.h"
 #include "manager.h"
 
 #define ZM_VERSION "1.0.0"
@@ -397,50 +398,61 @@ bool zmAddTask(zmObj zo, zmTaskCng cng, uint64_t* outQTId){
   if (!zo) return false;
 
   if (!outQTId){
-    static_cast<Manager*>(zo)->errorMess("error !outQTId");
+    static_cast<Manager*>(zo)->errorMess("zmAddTask error: !outQTId");
     return false;
   }
-  if ((cng.prevTasksCnt > 0) && !cng.prevTasksQId){
-    static_cast<Manager*>(zo)->errorMess("error !cng.prevTasksQId");
+  if ((cng.prevTasksCnt > 0) && !cng.prevTasksId){
+    static_cast<Manager*>(zo)->errorMess("zmAddTask error: !cng.prevTasksId");
     return false;
   }
-  ZM_Base::queueTask qTask;
-  qTask.tId = cng.tId;
-  qTask.priority = cng.priority;
+  if ((cng.nextTasksCnt > 0) && !cng.nextTasksId){
+    static_cast<Manager*>(zo)->errorMess("zmAddTask error: !cng.nextTasksId");
+    return false;
+  }
+  ZM_Base::uTask task;
+  task.pplId = cng.pplId;
   if (cng.params){
-    qTask.params = cng.params;
+    task.base.params = cng.params;
   }
   for (int i = 0; i < cng.prevTasksCnt; ++i){
-    qTask.prevTasks.push_back(cng.prevTasksQId[i]);
-  }  
-  return static_cast<Manager*>(zo)->pushTaskToQueue(qTask, *outQTId);
+    task.prevTasks.push_back(cng.prevTasksId[i]);
+  }
+  for (int i = 0; i < cng.nextTasksCnt; ++i){
+    task.nextTasks.push_back(cng.nextTasksId[i]);
+  }
+  task.base.priority = cng.priority;
+  task.rct = ZM_Base::uScreenRect{cng.screenRect.x, cng.screenRect.y, cng.screenRect.w, cng.screenRect.h};
+  task.base.tId = cng.tId;
+    
+  return static_cast<Manager*>(zo)->addTask(task, *outQTId);
 }
-bool zmGetTaskCng(zmObj zo, uint64_t qtId, zmTaskCng* outQCng){
+bool zmGetTaskCng(zmObj zo, uint64_t tId, zmTaskCng* outCng){
   if (!zo) return false;
   
-  if (!outQCng){
-     static_cast<Manager*>(zo)->errorMess("error !outQCng");
+  if (!outCng){
+     static_cast<Manager*>(zo)->errorMess("zmGetTaskCng error: !outCng");
      return false;
   }
-  ZM_Base::queueTask qTask;
-  if (static_cast<Manager*>(zo)->getQueueTaskCng(qtId, qTask)){
-    outQCng->tId = qTask.tId;
-    outQCng->priority = qTask.priority;
+  ZM_Base::uTask task;
+  if (static_cast<Manager*>(zo)->getTaskCng(tId, task)){
+    outCng->tId = task.id;
+    outCng->priority = task.base.priority;
+    outCng->screenRect = zmScreenRect{task.rct.x, task.rct.y, task.rct.w, task.rct.h};
     
-    auto& params = qTask.params;
+    auto& params = task.base.params;
     if (!params.empty()){ 
-      outQCng->params = (char*)realloc(outQCng->params, params.size() + 1);
-      strcpy(outQCng->params, params.c_str());
+      outCng->params = (char*)realloc(outCng->params, params.size() + 1);
+      strcpy(outCng->params, params.c_str());
     }else{
-      outQCng->params = nullptr;
+      outCng->params = nullptr;
     }
-    if (!qTask.prevTasks.empty()){ 
-      outQCng->prevTasksCnt = qTask.prevTasks.size();
-      outQCng->prevTasksQId = (uint64_t*)realloc(outQCng->prevTasksQId, outQCng->prevTasksCnt * sizeof(uint64_t));
-      memcpy(outQCng->prevTasksQId, qTask.prevTasks.data(), outQCng->prevTasksCnt * sizeof(uint64_t));
+    if (!task.prevTasks.empty()){ 
+      outCng->prevTasksCnt = task.prevTasks.size();
+      outCng->prevTasksId = (uint64_t*)realloc(outCng->prevTasksId, outCng->prevTasksCnt * sizeof(uint64_t));
+      memcpy(outCng->prevTasksId, task.prevTasks.data(), outCng->prevTasksCnt * sizeof(uint64_t));
     }else{
-      outQCng->prevTasksCnt = 0;
-      outQCng->prevTasksQId = nullptr;
+      outCng->prevTasksCnt = 0;
+      outCng->prevTasksId = nullptr;
     }
     return true;
   }
@@ -461,15 +473,15 @@ bool zmStopTask(zmObj, uint64_t qtId){
 bool zmPauseTask(zmObj, uint64_t qtId){
   
 }
-bool zmGetTaskState(zmObj zo, uint64_t qtId, zmTaskState* outQTState){
+bool zmGetTaskState(zmObj zo, uint64_t tId, zmTaskState* outQTState){
   if (!zo) return false;
   
   if (!outQTState){
-    static_cast<Manager*>(zo)->errorMess("error !outQTState");
+    static_cast<Manager*>(zo)->errorMess("zmGetTaskState error: !outQTState");
     return false;
   }
   ZM_Base::queueTask qTask;
-  if (static_cast<Manager*>(zo)->getQueueTaskState(qtId, qTask)){
+  if (static_cast<Manager*>(zo)->getTaskState(tId, qTask)){
     outQTState->progress = qTask.progress;
     outQTState->state = (zmey::zmStateType)qTask.state;
     if (!qTask.result.empty()){ 
@@ -485,7 +497,7 @@ bool zmGetTaskState(zmObj zo, uint64_t qtId, zmTaskState* outQTState){
 uint32_t zmGetAllTasks(zmObj zo, uint64_t pplId, zmStateType state, uint64_t** outQTId){
   if (!zo) return false; 
 
-  auto tasks = static_cast<Manager*>(zo)->getAllQueueTasks((ZM_Base::stateType)state);
+  auto tasks = static_cast<Manager*>(zo)->getAllTasks(pplId, (ZM_Base::stateType)state);
   size_t tsz = tasks.size();
   if (tsz > 0){
     *outQTId = (uint64_t*)realloc(*outQTId, tsz * sizeof(uint64_t));

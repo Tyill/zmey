@@ -104,13 +104,13 @@ bool DbPGProvider::addTaskTemplate(const ZM_Base::uTaskTemplate& cng, uint64_t& 
 bool DbPGProvider::getTaskTemplateCng(uint64_t tId, ZM_Base::uTaskTemplate& outTCng){
   return true;
 };
-bool DbPGProvider::changeTaskTemplateCng(uint64_t tId, const ZM_Base::uTaskTemplate& newTCng){
+bool DbPGProvider::changeTaskTemplateCng(uint64_t tId, const ZM_Base::uTaskTemplate& newTCng, uint64_t& outTId){
   return true;
 }
 bool DbPGProvider::delTaskTemplate(uint64_t tId){
   return true;
 }
-std::vector<uint64_t> DbPGProvider::zmGetAllTaskTemplates(uint64_t parent, uint64_t** outTId){
+std::vector<uint64_t> DbPGProvider::getAllTaskTemplates(uint64_t parent){
   return std::vector<uint64_t>();
 }
 
@@ -132,7 +132,7 @@ bool DbPGProvider::startTask(uint64_t tId){
 bool DbPGProvider::getTaskState(uint64_t tId, ZM_Base::queueTask&){
   return true;
 }
-std::vector<uint64_t> DbPGProvider::getAllTasks(uint64_t pplId){
+std::vector<uint64_t> DbPGProvider::getAllTasks(uint64_t pplId, ZM_Base::stateType){
   return std::vector<uint64_t>();
 }
 
