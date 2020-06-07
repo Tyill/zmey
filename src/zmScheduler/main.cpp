@@ -99,13 +99,9 @@ void parseArgs(int argc, char* argv[], config& outCng){
   }
   SET_PARAM(cp, connectPnt);
   SET_PARAM(dbtp, dbType);
-  SET_PARAM(dbcp, dbConnCng.connectPnt);
-  SET_PARAM(dbsr, dbConnCng.dbServer);
-  SET_PARAM(dbnm, dbConnCng.dbName);
-  SET_PARAM(dbur, dbConnCng.dbUser);
-  SET_PARAM(dbpw, dbConnCng.dbPassw);
+  SET_PARAM(dbcs, dbConnCng.connectStr);
 
-  outCng.dbConnCng.dbSelType = ZM_DB::dbTypeFromStr(outCng.dbType);
+  outCng.dbConnCng.selType = ZM_DB::dbTypeFromStr(outCng.dbType);
  
 #define SET_PARAM_NUM(nm, prm) \
   if (sprms.find("nm") != sprms.end() && ZM_Aux::isNumber(sprms["nm"])){ \
@@ -144,13 +140,13 @@ int main(int argc, char* argv[]){
     statusMess("Tcp server error, busy -connectPnt: " + _cng.connectPnt + " " + err);
     return -1;
   }
-  unique_ptr<ZM_DB::DbProvider> db(ZM_DB::makeDbProvider(_cng.dbConnCng, statusMess));
+  unique_ptr<ZM_DB::DbProvider> db(ZM_DB::makeDbProvider(_cng.dbConnCng));
   if (db && db->getLastError().empty()){
     statusMess(
-      "DB connect success: " + _cng.dbType + " " + _cng.dbConnCng.dbServer + " " + _cng.dbConnCng.dbName);
+      "DB connect success: " + _cng.dbType + " " + _cng.dbConnCng.connectStr);
   }else{
     statusMess(
-      "DB connect error: " + _cng.dbType + " " + _cng.dbConnCng.dbServer + " " + _cng.dbConnCng.dbName);
+      "DB connect error: " + _cng.dbType + " " + _cng.dbConnCng.connectStr);
     ZM_Tcp::stopServer();
     return -1;
   }

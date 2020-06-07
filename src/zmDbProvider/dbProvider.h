@@ -40,12 +40,8 @@ std::string dbTypeToStr(dbType);
 dbType dbTypeFromStr(const std::string& dbt);
 
 struct connectCng{
-  dbType dbSelType;
-  std::string connectPnt;
-  std::string dbServer;
-  std::string dbName;
-  std::string dbUser;
-  std::string dbPassw;  
+  dbType selType;
+  std::string connectStr;
 };
 
 struct messSchedr{
@@ -58,10 +54,11 @@ struct messSchedr{
   std::string result;
 };
 
-typedef std::function<void(const std::string& stsMess)> errCBack;
+typedef void* udata;
+typedef std::function<void(const char* mess, udata)> errCBack;
 
 class DbProvider{  
-  friend DbProvider* makeDbProvider(const connectCng&, errCBack);
+  friend DbProvider* makeDbProvider(const connectCng&);
 public:  
   virtual ~DbProvider() = default; 
   DbProvider(const DbProvider& other) = delete;
@@ -111,11 +108,16 @@ public:
   virtual bool getWorkersForSchedr(uint64_t schId, std::vector<ZM_Base::worker>& out) = 0;
   virtual bool getNewTasks(int maxTaskCnt, std::vector<std::pair<ZM_Base::task, ZM_Base::queueTask>>& out) = 0;
   virtual bool sendAllMessFromSchedr(uint64_t schId, std::vector<messSchedr>& out) = 0;
+
+  void setErrorCBack(errCBack ecb, udata ud);
+  std::string getLastError();
+  void errorMess(const std::string&); 
 protected:  
-  DbProvider(const connectCng&, errCBack){};  
+  DbProvider(const connectCng&){};    
   std::string _err;
   errCBack _errCBack = nullptr;
+  udata _errUData = nullptr;
 };
 
-DbProvider* makeDbProvider(const connectCng&, errCBack);
+DbProvider* makeDbProvider(const connectCng&);
 }

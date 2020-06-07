@@ -25,16 +25,20 @@
 
 #include <vector>
 #include <sstream>  
+#include <libpq-fe.h>
 #include "../dbProvider.h"
 #include "dbPGProvider.h"
 
 
+
 using namespace std;
 
-DbPGProvider::DbPGProvider(const ZM_DB::connectCng& connCng, ZM_DB::errCBack ecb)
-  : _errCBack(ecb), ZM_DB::DbProvider(connCng, ecb){
+DbPGProvider::DbPGProvider(const ZM_DB::connectCng& connCng)
+  : ZM_DB::DbProvider(connCng){
 
-  
+  // PGconn* _pg = PQconnectdbParams(const char * const *keywords,
+  //                         const char * const *values,
+  //                         int expand_dbname);
 
 
 }

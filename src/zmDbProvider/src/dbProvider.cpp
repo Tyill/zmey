@@ -39,18 +39,28 @@ dbType dbTypeFromStr(const std::string& dbt){
   else                     return dbType::undefined;
 }
 
-DbProvider* makeDbProvider(const ZM_DB::connectCng& connCng, errCBack ecb){
+DbProvider* makeDbProvider(const ZM_DB::connectCng& connCng){
   DbProvider* ret = nullptr;
-  switch (connCng.dbSelType){
+  switch (connCng.selType){
     case dbType::PostgreSQL:
-      ret = reinterpret_cast<DbProvider*>(new DbPGProvider(connCng, ecb));
+      ret = reinterpret_cast<DbProvider*>(new DbPGProvider(connCng));
       break;
     default:
-      if (ecb){
-        ecb("not support dbType " + dbTypeToStr(connCng.dbSelType));
-      }
-    break;
+      break;
   }
   return ret;
+}
+void DbProvider::setErrorCBack(errCBack ecb, udata ud){
+  _errCBack = ecb;
+  _errUData = ud;
+}
+void DbProvider::errorMess(const std::string& mess){
+  _err = mess;
+  if (_errCBack){
+    _errCBack(mess.c_str(), _errUData);
+  } 
+}
+std::string DbProvider::getLastError(){
+  return _err;
 }
 }

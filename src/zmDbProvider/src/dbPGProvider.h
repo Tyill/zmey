@@ -28,7 +28,7 @@
 
 class DbPGProvider final : ZM_DB::DbProvider{  
 public:
-  DbPGProvider(const ZM_DB::connectCng&, ZM_DB::errCBack);    
+  DbPGProvider(const ZM_DB::connectCng&);    
   ~DbPGProvider(); 
   DbPGProvider(const DbProvider& other) = delete;
   DbPGProvider& operator=(const DbProvider& other) = delete;
@@ -76,7 +76,5 @@ public:
   bool getNewTasks(int maxTaskCnt, std::vector<std::pair<ZM_Base::task, ZM_Base::queueTask>>&) override;
   bool sendAllMessFromSchedr(uint64_t schedrId, std::vector<ZM_DB::messSchedr>&) override;
 private:
-  std::string _lastErr;
-  ZM_DB::errCBack _errCBack = nullptr;
   bool query(const std::string& query, std::vector<std::vector<std::string>>& results) const;
 };
