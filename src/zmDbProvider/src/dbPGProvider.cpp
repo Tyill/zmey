@@ -29,18 +29,23 @@
 #include "../dbProvider.h"
 #include "dbPGProvider.h"
 
-
-
 using namespace std;
 
 DbPGProvider::DbPGProvider(const ZM_DB::connectCng& connCng)
   : ZM_DB::DbProvider(connCng){
 
-  // PGconn* _pg = PQconnectdbParams(const char * const *keywords,
-  //                         const char * const *values,
-  //                         int expand_dbname);
+  PGconn* _pg = PQconnectdbParams(const char * const *keywords,
+                           const char * const *values,
+                           0);
+  
 
+//   cursor.execute("SELECT COUNT(*) = 0 FROM pg_catalog.pg_database WHERE datname = 'python_db'")
 
+// not_exists, = cursor.fetchone()
+
+// if not_exists:
+
+//     cursor.execute('CREATE DATABASE python_db')
 }
 DbPGProvider::~DbPGProvider(){
   //disconnect();
