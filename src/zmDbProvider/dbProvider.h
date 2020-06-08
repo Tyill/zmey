@@ -110,10 +110,16 @@ public:
   virtual bool sendAllMessFromSchedr(uint64_t schId, std::vector<messSchedr>& out) = 0;
 
   void setErrorCBack(errCBack ecb, udata ud);
-  std::string getLastError();
-  void errorMess(const std::string&); 
+  std::string getLastError();  
+
+#ifdef DEBUG
+  // for test
+  virtual bool delAllUsers() = 0;
+#endif
+
 protected:  
   DbProvider(const connectCng&){};    
+  void errorMess(const std::string&); 
   std::string _err;
   errCBack _errCBack = nullptr;
   udata _errUData = nullptr;

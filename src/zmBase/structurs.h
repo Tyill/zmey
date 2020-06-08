@@ -70,7 +70,7 @@ namespace ZM_Base{
   };
 
   struct user{
-    uint64_t id = 0;          // id tblUser
+    uint64_t id;              // id tblUser
     std::string name;         // unique name
     std::string passw;        // optional password
     std::string description;

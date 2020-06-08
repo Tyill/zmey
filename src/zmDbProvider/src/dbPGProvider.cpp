@@ -25,8 +25,6 @@
 
 #include <vector>
 #include <sstream>  
-#include <libpq-fe.h>
-#include "../dbProvider.h"
 #include "dbPGProvider.h"
 
 using namespace std;
@@ -34,25 +32,196 @@ using namespace std;
 DbPGProvider::DbPGProvider(const ZM_DB::connectCng& connCng)
   : ZM_DB::DbProvider(connCng){
 
-  PGconn* _pg = PQconnectdbParams(const char * const *keywords,
-                           const char * const *values,
-                           0);
+  _pg = PQconnectdb(connCng.connectStr.c_str());
+  if (PQstatus(_pg) != CONNECTION_OK){
+    errorMess(PQerrorMessage(_pg));
+    return;
+  }  
+#define QUERY(req, sts){                \
+    auto res = PQexec(_pg, req);        \
+    if (PQresultStatus(res) != sts){    \
+        errorMess(PQerrorMessage(_pg)); \
+        PQclear(res);                   \
+        return;                         \
+    }                                   \
+    PQclear(res);                       \
+  }
+  QUERY("SELECT pg_catalog.set_config('search_path', 'public', false)", PGRES_TUPLES_OK);
+
+  stringstream ss;
+  ss << "CREATE TABLE IF NOT EXISTS tblUser("
+        "id          SERIAL PRIMARY KEY,"
+        "name        TEXT NOT NULL UNIQUE CHECK (name <> ''),"
+        "passw       TEXT NOT NULL,"
+        "description TEXT NOT NULL,"
+        "isDelete    INT CHECK (isDelete BETWEEN 0 AND 1));";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+
+  /////////////////////////////////////////////////////////////////////////////
+  /// SYSTEM TABLES
+  ss.str("");
+  ss << "CREATE TABLE IF NOT EXISTS tblExecutor("
+        "id           SERIAL PRIMARY KEY,"
+        "kind         TEXT NOT NULL CHECK (kind <> ''));";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+
+  ss.str("");
+  ss << "INSERT INTO tblExecutor VALUES"
+        "(0, 'bash'),"
+        "(1, 'cmd'),"
+        "(2, 'python') ON CONFLICT (id) DO NOTHING;";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+
+  ss.str("");
+  ss << "CREATE TABLE IF NOT EXISTS tblConnectPnt("
+        "id           SERIAL PRIMARY KEY,"
+        "ipAddr       TEXT NOT NULL CHECK (ipAddr <> ''),"
+        "port         INT NOT NULL CHECK (port > 0));";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
   
+  ss.str("");
+  ss << "CREATE TABLE IF NOT EXISTS tblTask("
+        "id           SERIAL PRIMARY KEY,"
+        "script       TEXT NOT NULL CHECK (script <> ''),"
+        "executor     INT REFERENCES tblExecutor,"
+        "averDurationSec INT NOT NULL,"
+        "maxDurationSec  INT NOT NULL);";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
-//   cursor.execute("SELECT COUNT(*) = 0 FROM pg_catalog.pg_database WHERE datname = 'python_db'")
+  ss.str("");
+  ss << "CREATE TABLE IF NOT EXISTS tblState("
+        "id           SERIAL PRIMARY KEY,"
+        "kind         TEXT NOT NULL CHECK (kind <> ''));";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+    
+  ss.str("");
+  ss << "INSERT INTO tblState VALUES"
+        "(-1, 'undefined'),"
+        "(0, 'ready'),"
+        "(1, 'start'),"
+        "(2, 'running'),"
+        "(3, 'pause'),"
+        "(4, 'stop'),"
+        "(5, 'completed'),"
+        "(6, 'error'),"
+        "(7, 'notResponding') ON CONFLICT (id) DO NOTHING;";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
-// not_exists, = cursor.fetchone()
+  ss.str("");
+  ss << "CREATE TABLE IF NOT EXISTS tblScheduler("
+        "id           SERIAL PRIMARY KEY,"
+        "connPnt      INT REFERENCES tblConnectPnt,"
+        "state        INT REFERENCES tblState,"
+        "capacityTask INT NOT NULL DEFAULT 10000 CHECK (capacityTask > 0),"
+        "activeTask   INT NOT NULL CHECK (activeTask >= 0));";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
-// if not_exists:
+  ss.str("");
+  ss << "CREATE TABLE IF NOT EXISTS tblWorker("
+        "id           SERIAL PRIMARY KEY,"
+        "connPnt      INT REFERENCES tblConnectPnt,"
+        "schedr       INT REFERENCES tblScheduler,"
+        "state        INT REFERENCES tblState,"
+        "executor     INT REFERENCES tblExecutor,"
+        "capacityTask INT NOT NULL DEFAULT 10 CHECK (capacityTask > 0),"
+        "activeTask   INT NOT NULL CHECK (activeTask >= 0),"
+        "rating       INT NOT NULL DEFAULT 10 CHECK (rating BETWEEN 1 AND 10));";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
-//     cursor.execute('CREATE DATABASE python_db')
+  ss.str("");
+  ss << "CREATE TABLE IF NOT EXISTS tblTaskQueue("
+        "id           SERIAL PRIMARY KEY,"
+        "task         INT REFERENCES tblTask,"
+        "state        INT REFERENCES tblState,"
+        "launcher     INT REFERENCES tblUser,"
+        "schedr       INT REFERENCES tblScheduler,"
+        "worker       INT REFERENCES tblWorker,"
+        "percent      INT NOT NULL DEFAULT 0 CHECK (percent BETWEEN 0 AND 100),"
+        "priority     INT NOT NULL DEFAULT 1 CHECK (priority BETWEEN 1 AND 3),"
+        "createTime   TIMESTAMP NOT NULL DEFAULT current_timestamp,"
+        "startTime    TIMESTAMP NOT NULL CHECK (startTime > createTime),"
+        "stopTime     TIMESTAMP NOT NULL CHECK (stopTime > startTime),"
+        "isDependence INT NOT NULL DEFAULT 0 CHECK (isDependence BETWEEN 0 AND 1));";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+
+  ss.str("");
+  ss << "CREATE TABLE IF NOT EXISTS tblParam("
+        "id           SERIAL PRIMARY KEY,"
+        "qtask        INT REFERENCES tblTaskQueue,"
+        "key          TEXT NOT NULL CHECK (key <> ''),"
+        "value        TEXT NOT NULL CHECK (value <> ''));";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+
+  ss.str("");
+  ss << "CREATE TABLE IF NOT EXISTS tblResult("
+        "qtask        INT PRIMARY KEY REFERENCES tblTaskQueue,"
+        "key          TEXT NOT NULL CHECK (key <> ''),"
+        "value        TEXT NOT NULL CHECK (value <> ''));";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+
+  ss.str("");
+  ss << "CREATE TABLE IF NOT EXISTS tblPrevTask("
+        "id           SERIAL PRIMARY KEY,"
+        "qtask        INT REFERENCES tblTaskQueue,"
+        "prevTask     INT REFERENCES tblTaskQueue);";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+  
+  ///////////////////////////////////////////////////////////////////////////
+  /// USER TABLES
+  ss.str("");
+  ss << "CREATE TABLE IF NOT EXISTS tblUPipeline("
+        "id           SERIAL PRIMARY KEY,"
+        "usr          INT REFERENCES tblUser,"
+        "name         TEXT NOT NULL CHECK (name <> ''),"
+        "description  TEXT NOT NULL);";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+
+  ss.str("");
+  ss << "CREATE TABLE IF NOT EXISTS tblUTaskTemplate("
+        "task         INT PRIMARY KEY REFERENCES tblTask,"
+        "parent       INT REFERENCES tblUser,"
+        "name         TEXT NOT NULL CHECK (name <> ''),"
+        "description  TEXT NOT NULL,"
+        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+
+  ss.str("");
+  ss << "CREATE TABLE IF NOT EXISTS tblUPipelineTask("
+        "id           SERIAL PRIMARY KEY,"
+        "pipeline     INT REFERENCES tblUPipeline,"
+        "taskTempl    INT REFERENCES tblUTaskTemplate,"
+        "qtask        INT REFERENCES tblTaskQueue,"
+        "prevTasks    INT REFERENCES tblUPipelineTask,"
+        "nextTasks    INT REFERENCES tblUPipelineTask,"
+        "params       TEXT NOT NULL,"
+        "screenRect   TEXT NOT NULL);";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+
+#undef QUERY
 }
 DbPGProvider::~DbPGProvider(){
-  //disconnect();
+  PQfinish(_pg);
 }
 
 // for manager
-bool DbPGProvider::addUser(const ZM_Base::user& newUserCng, uint64_t& outUserId){
+bool DbPGProvider::addUser(const ZM_Base::user& cng, uint64_t& outUserId){
+  
+  stringstream ss;
+  ss << "INSERT INTO tblUser (name, passw, description) VALUES("
+        "'" << cng.name << "',"
+        "'" << cng.passw << "',"
+        "'" << cng.description << "') RETURNING id;";
+
+  auto res = PQexec(_pg, ss.str().c_str());
+  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+      errorMess(PQerrorMessage(_pg));
+      PQclear(res);
+      return false;
+  }
+
+  outUserId = atoll(PQgetvalue(res, 0, 0));
+  PQclear(res);
+ 
   return true;
 }
 bool DbPGProvider::getUser(const std::string& name, const std::string& passw, uint64_t& outUserId){
@@ -163,3 +332,21 @@ DbPGProvider::getNewTasks(int maxTaskCnt, std::vector<std::pair<ZM_Base::task, Z
 bool DbPGProvider::sendAllMessFromSchedr(uint64_t schedrId, std::vector<ZM_DB::messSchedr>&){
   return true;
 }
+
+#ifdef DEBUG
+// for test
+bool DbPGProvider::delAllUsers(){
+
+  stringstream ss;
+  ss << "TRUNCATE tblUser CASCADE;";
+
+  auto res = PQexec(_pg, ss.str().c_str());
+  if (PQresultStatus(res) != PGRES_COMMAND_OK){
+      errorMess(PQerrorMessage(_pg));
+      PQclear(res);
+      return false;
+  }
+  return true;
+}
+
+#endif // DEBUG

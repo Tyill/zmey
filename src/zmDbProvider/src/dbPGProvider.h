@@ -24,6 +24,7 @@
 //
 #pragma once
 
+#include <libpq-fe.h>
 #include "../dbProvider.h"
 
 class DbPGProvider final : ZM_DB::DbProvider{  
@@ -75,6 +76,11 @@ public:
   bool getWorkersForSchedr(uint64_t schedrId, std::vector<ZM_Base::worker>&) override;
   bool getNewTasks(int maxTaskCnt, std::vector<std::pair<ZM_Base::task, ZM_Base::queueTask>>&) override;
   bool sendAllMessFromSchedr(uint64_t schedrId, std::vector<ZM_DB::messSchedr>&) override;
+
+#ifdef DEBUG
+  // for test
+  bool delAllUsers();
+#endif
 private:
-  bool query(const std::string& query, std::vector<std::vector<std::string>>& results) const;
+  PGconn* _pg = nullptr; 
 };
