@@ -36,18 +36,22 @@ public:
   
   // for manager
   bool addUser(const ZM_Base::user& newUserCng, uint64_t& outUserId) override;
-  bool getUser(const std::string& name, const std::string& passw, uint64_t& outUserId) override;
-  bool getUser(uint64_t userId, ZM_Base::user& cng) override;
+  bool getUserId(const std::string& name, const std::string& passw, uint64_t& outUserId) override;
+  bool getUserCng(uint64_t userId, ZM_Base::user& cng) override;
   bool changeUser(uint64_t userId, const ZM_Base::user& newCng) override;
   bool delUser(uint64_t userId) override;
   std::vector<uint64_t> getAllUsers() override;
 
   bool addSchedr(const ZM_Base::scheduler& schedl, uint64_t& outSchId) override;
-  bool schedrState(uint64_t schId, ZM_Base::scheduler& schedl) override;
+  bool getSchedr(uint64_t schId, ZM_Base::scheduler& cng) override;
+  bool changeSchedr(uint64_t schId, const ZM_Base::scheduler& newCng) override;
+  bool schedrState(uint64_t schId, ZM_Base::stateType&) override;
   std::vector<uint64_t> getAllSchedrs(ZM_Base::stateType) override;
 
   bool addWorker(const ZM_Base::worker& worker, uint64_t& outWkrId) override;
-  bool workerState(uint64_t wkrId, ZM_Base::worker& out) override;
+  bool getWorker(uint64_t wkrId, ZM_Base::worker& cng) override;
+  bool changeWorker(uint64_t wkrId, const ZM_Base::worker& newCng) override;
+  bool workerState(uint64_t wkrId, ZM_Base::stateType& out) override;
   std::vector<uint64_t> getAllWorkers(uint64_t schId, ZM_Base::stateType) override;
 
   bool addPipeline(const ZM_Base::uPipeline& cng, uint64_t& outPPLId) override;
@@ -57,14 +61,14 @@ public:
   std::vector<uint64_t> getAllPipelines(uint64_t userId) override;
 
   bool addTaskTemplate(const ZM_Base::uTaskTemplate& cng, uint64_t& outTId) override;
-  bool getTaskTemplateCng(uint64_t tId, ZM_Base::uTaskTemplate& outTCng) override;;
-  bool changeTaskTemplateCng(uint64_t tId, const ZM_Base::uTaskTemplate& newTCng, uint64_t& outTId) override;
+  bool getTaskTemplate(uint64_t tId, ZM_Base::uTaskTemplate& outTCng) override;;
+  bool changeTaskTemplate(uint64_t tId, const ZM_Base::uTaskTemplate& newTCng, uint64_t& outTId) override;
   bool delTaskTemplate(uint64_t tId) override;
   std::vector<uint64_t> getAllTaskTemplates(uint64_t parent) override;
 
   bool addTask(ZM_Base::uTask&, uint64_t& outTId) override;
-  bool getTaskCng(uint64_t tId, ZM_Base::uTask&) override;
-  bool changeTaskCng(uint64_t tId, const ZM_Base::uTask& newTCng) override;
+  bool getTask(uint64_t tId, ZM_Base::uTask&) override;
+  bool changeTask(uint64_t tId, const ZM_Base::uTask& newTCng) override;
   bool delTask(uint64_t tId) override;
   bool startTask(uint64_t tId) override;
   bool getTaskState(uint64_t tId, ZM_Base::queueTask&) override;
@@ -79,7 +83,8 @@ public:
 
 #ifdef DEBUG
   // for test
-  bool delAllUsers();
+  bool delAllUsers() override;
+  bool delAllSchedrs() override;
 #endif
 private:
   PGconn* _pg = nullptr; 

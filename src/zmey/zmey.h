@@ -142,7 +142,7 @@ ZMEY_API bool zmGetUserId(zmConn, zmUserCng cng, uint64_t* outUserId);
 /// @return true - ok
 ZMEY_API bool zmGetUserCng(zmConn, uint64_t userId, zmUserCng* outCng);
 
-/// change user
+/// change user config
 /// @param[in] zmConn - object connect
 /// @param[in] userId - user id
 /// @param[in] newCng - new user cng
@@ -187,14 +187,26 @@ struct zmSchedrCng{
 /// @return true - ok
 ZMEY_API bool zmAddScheduler(zmConn, zmSchedrCng cng, uint64_t* outSchId);
 
+/// scheduler cng
+/// @param[in] zmConn - object connect
+/// @param[in] schId - scheduler id 
+/// @param[out] outCng - scheduler config
+/// @return true - ok
+ZMEY_API bool zmGetScheduler(zmConn, uint64_t schId, zmSchedrCng* outCng);
+
+/// change scheduler cng
+/// @param[in] zmConn - object connect
+/// @param[in] schId - scheduler id 
+/// @param[in] newCng - scheduler config
+/// @return true - ok
+ZMEY_API bool zmChangeScheduler(zmConn, uint64_t schId, zmSchedrCng newCng);
+
 /// scheduler state
 /// @param[in] zmConn - object connect
 /// @param[in] schId - scheduler id 
 /// @param[out] outState - scheduler state
-/// @param[out] outSchCng - scheduler config. Not necessary
 /// @return true - ok
-ZMEY_API bool 
-zmSchedulerState(zmConn, uint64_t schId, zmStateType* outState, zmSchedrCng* outSchCng = nullptr);
+ZMEY_API bool zmSchedulerState(zmConn, uint64_t schId, zmStateType* outState);
 
 /// get all schedulers
 /// @param[in] zmConn - object connect
@@ -221,14 +233,26 @@ struct zmWorkerCng{
 /// @return true - ok
 ZMEY_API bool zmAddWorker(zmConn, zmWorkerCng cng, uint64_t* outWId);
 
+/// worker cng
+/// @param[in] zmConn - object connect
+/// @param[in] wId - worker id
+/// @param[out] outCng - worker config
+/// @return true - ok
+ZMEY_API bool zmGetWorker(zmConn, uint64_t wId, zmWorkerCng* outCng);
+
+/// change worker cng
+/// @param[in] zmConn - object connect
+/// @param[in] wId - worker id
+/// @param[in] newCng - worker config
+/// @return true - ok
+ZMEY_API bool zmChangeWorker(zmConn, uint64_t wId, zmWorkerCng newCng);
+
 /// worker state
 /// @param[in] zmConn - object connect
 /// @param[in] wId - worker id
 /// @param[out] outState - worker state
-/// @param[out] outWCng - worker config. Not necessary
 /// @return true - ok
-ZMEY_API bool
-zmWorkerState(zmConn, uint64_t wId, zmStateType* outState, zmWorkerCng* outWCng = nullptr);
+ZMEY_API bool zmWorkerState(zmConn, uint64_t wId, zmStateType* outState);
 
 /// get all workers
 /// @param[in] zmConn - object connect
@@ -260,14 +284,14 @@ ZMEY_API bool zmAddPipeline(zmConn, zmPipelineCng cng, uint64_t* outPPLId);
 /// @param[in] pplId - pipeline id
 /// @param[out] outCng - pipeline config
 /// @return true - ok
-ZMEY_API bool zmGetPipelineCng(zmConn, uint64_t pplId, zmPipelineCng* outCng);
+ZMEY_API bool zmGetPipeline(zmConn, uint64_t pplId, zmPipelineCng* outCng);
 
 /// change pipeline config
 /// @param[in] zmConn - object connect
 /// @param[in] pplId - pipeline id
 /// @param[in] newCng - pipeline config
 /// @return true - ok
-ZMEY_API bool zmChangePipelineCng(zmConn, uint64_t pplId, zmPipelineCng newCng);
+ZMEY_API bool zmChangePipeline(zmConn, uint64_t pplId, zmPipelineCng newCng);
 
 /// delete pipeline
 /// @param[in] zmConn - object connect
@@ -307,7 +331,7 @@ ZMEY_API bool zmAddTaskTemplate(zmConn, zmTaskTemplateCng cng, uint64_t* outTId)
 /// @param[in] tId - task id
 /// @param[out] outTCng - task config. The memory is allocated by the user
 /// @return true - ok
-ZMEY_API bool zmGetTaskTemplateCng(zmConn, uint64_t tId, zmTaskTemplateCng* outTCng);
+ZMEY_API bool zmGetTaskTemplate(zmConn, uint64_t tId, zmTaskTemplateCng* outTCng);
 
 /// change task template cng
 /// A new record is created for each change, the old one is not deleted.
@@ -316,7 +340,7 @@ ZMEY_API bool zmGetTaskTemplateCng(zmConn, uint64_t tId, zmTaskTemplateCng* outT
 /// @param[in] newTCng - new task config
 /// @param[out] outTId - new task id
 /// @return true - ok
-ZMEY_API bool zmChangeTaskTemplateCng(zmConn, uint64_t tId, zmTaskTemplateCng newTCng, uint64_t* outTId);
+ZMEY_API bool zmChangeTaskTemplate(zmConn, uint64_t tId, zmTaskTemplateCng newTCng, uint64_t* outTId);
 
 /// delete task template
 /// The record is marked, but not deleted.
@@ -364,14 +388,14 @@ ZMEY_API bool zmAddTask(zmConn, zmTaskCng cng, uint64_t* outTaskId);
 /// @param[in] tId - pipeline task id
 /// @param[out] outTCng - pipeline task config
 /// @return true - ok
-ZMEY_API bool zmGetTaskCng(zmConn, uint64_t tId, zmTaskCng* outTCng);
+ZMEY_API bool zmGetTask(zmConn, uint64_t tId, zmTaskCng* outTCng);
 
 /// change pipeline task config
 /// @param[in] zmConn - object connect
 /// @param[in] tId - pipeline task id
 /// @param[in] newCng - pipeline task config
 /// @return true - ok
-ZMEY_API bool zmChangeTaskCng(zmConn, uint64_t tId, zmTaskCng newCng);
+ZMEY_API bool zmChangeTask(zmConn, uint64_t tId, zmTaskCng newCng);
 
 /// delete pipeline task
 /// @param[in] zmConn - object connect
