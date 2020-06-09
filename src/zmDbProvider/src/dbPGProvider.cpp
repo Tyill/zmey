@@ -24,6 +24,7 @@
 //
 
 #include <vector>
+#include <numeric>
 #include <sstream>  
 #include "zmCommon/auxFunc.h"
 #include "dbPGProvider.h"
@@ -730,12 +731,28 @@ std::vector<uint64_t> DbPGProvider::getAllTaskTemplates(uint64_t parent){
 }
 
 bool DbPGProvider::addTask(ZM_Base::uTask& cng, uint64_t& outTId){
- 
+  string prevTasks = "{";
+  prevTasks = accumulate(cng.prevTasks.begin(), cng.prevTasks.end(), prevTasks,
+                [](string& s, uint64_t v){
+                  return (s == "{") ? s + to_string(v) : s + "," + to_string(v);
+                });
+  prevTasks += "}";
+  
+  string nextTasks = "{";
+  nextTasks = accumulate(cng.nextTasks.begin(), cng.nextTasks.end(), nextTasks,
+                [](string& s, uint64_t v){
+                  return (s == "{") ? s + to_string(v) : s + "," + to_string(v);
+                });
+  nextTasks += "}";
+
   stringstream ss;
-  ss << "INSERT INTO tblUPipelineTask (pipeline, taskTempl, priority, params, screenRect) VALUES("
+  ss << "INSERT INTO tblUPipelineTask (pipeline, taskTempl, priority, "
+        "                              prevTasks, nextTasks, params, screenRect) VALUES("
         "'" << cng.pplId << "',"
         "'" << cng.base.tId << "',"
         "'" << cng.base.priority << "',"
+        "'" << prevTasks << "',"
+        "'" << nextTasks << "',"
         "'" << cng.base.params << "',"
         "'" << cng.rct.toString() << "') RETURNING id;";
 

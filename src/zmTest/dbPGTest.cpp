@@ -875,12 +875,28 @@ TEST_F(DBTest, addTask){
   uint64_t pId = 0;  
   EXPECT_TRUE(_pDb->addPipeline(ppline, pId) && (pId > 0)) << _pDb->getLastError(); 
     
+  ZM_Base::task base;
+  base.exr = ZM_Base::executorType::bash;
+  base.averDurationSec = 10;
+  base.maxDurationSec = 100;
+  base.script = "100500";
+
+  ZM_Base::uTaskTemplate templ;
+  templ.uId = uId; 
+  templ.description = "descr";
+  templ.name = "newTask";
+  templ.base = base;
+  uint64_t ttId = 0;  
+  EXPECT_TRUE(_pDb->addTaskTemplate(templ, ttId) && (ttId > 0)) << _pDb->getLastError(); 
+
   ZM_Base::uTask task;
   task.pplId = pId; 
   task.base.priority = 1;
-  task.base.tId = 0;
+  task.base.tId = ttId;
   task.base.params = "params";
-//  task.rct = ;
+  task.rct = ZM_Base::uScreenRect{1, 2, 3, 4};
+  task.nextTasks = std::vector<uint64_t>{1,2,3,4};
+  task.prevTasks = std::vector<uint64_t>{4,3,2,1};
   uint64_t tId = 0;  
   EXPECT_TRUE(_pDb->addTask(task, tId) && (tId > 0)) << _pDb->getLastError();   
 
