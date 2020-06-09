@@ -123,6 +123,8 @@ public:
   virtual bool delAllUsers() = 0;
   virtual bool delAllSchedrs() = 0;
   virtual bool delAllWorkers() = 0;
+  virtual bool delAllPipelines() = 0;
+  virtual bool delAllTemplateTask() = 0;
 #endif
 
 protected:  

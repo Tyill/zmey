@@ -87,8 +87,8 @@ DbPGProvider::DbPGProvider(const ZM_DB::connectCng& connCng)
         "id           SERIAL PRIMARY KEY,"
         "script       TEXT NOT NULL CHECK (script <> ''),"
         "executor     INT REFERENCES tblExecutor,"
-        "averDurationSec INT NOT NULL,"
-        "maxDurationSec  INT NOT NULL);";
+        "averDurationSec INT NOT NULL CHECK (averDurationSec > 0),"
+        "maxDurationSec  INT NOT NULL CHECK (maxDurationSec > 0));";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
@@ -556,36 +556,175 @@ std::vector<uint64_t> DbPGProvider::getAllWorkers(uint64_t schId, ZM_Base::state
   return ret;
 }
 
-bool DbPGProvider::addPipeline(const ZM_Base::uPipeline& cng, uint64_t& outPPLId){
+bool DbPGProvider::addPipeline(const ZM_Base::uPipeline& ppl, uint64_t& outPPLId){
+  stringstream ss;
+  ss << "INSERT INTO tblUPipeline (usr, name, description) VALUES("
+        "'" << ppl.uId << "',"
+        "'" << ppl.name << "',"
+        "'" << ppl.description << "') RETURNING id;";
+
+  auto res = PQexec(_pg, ss.str().c_str());
+  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+      errorMess(string("addPipeline error: ") + PQerrorMessage(_pg));
+      PQclear(res);
+      return false;
+  }
+  outPPLId = atoll(PQgetvalue(res, 0, 0));
+  PQclear(res); 
   return true;
 }
 bool DbPGProvider::getPipeline(uint64_t pplId, ZM_Base::uPipeline& cng){
+  stringstream ss;
+  ss << "SELECT usr, name, description FROM tblUPipeline "
+        "WHERE id = " << pplId << " AND isDelete = 0;";
+
+  auto res = PQexec(_pg, ss.str().c_str());
+  if ((PQresultStatus(res) != PGRES_TUPLES_OK) || (PQntuples(res) != 1)){
+      errorMess(string("getPipeline error: ") + PQerrorMessage(_pg));
+      PQclear(res);
+      return false;
+  }
+  cng.uId = atoll(PQgetvalue(res, 0, 0));
+  cng.name = PQgetvalue(res, 0, 1);
+  cng.description = PQgetvalue(res, 0, 2);  
+  PQclear(res); 
   return true;
 }
 bool DbPGProvider::changePipeline(uint64_t pplId, const ZM_Base::uPipeline& newCng){
+  stringstream ss;
+  ss << "UPDATE tblUPipeline SET "
+        "usr = '" << newCng.uId << "',"
+        "name = '" << newCng.name << "',"
+        "description = '" << newCng.description << "' "
+        "WHERE id = " << pplId << ";";
+
+  auto res = PQexec(_pg, ss.str().c_str());
+  if (PQresultStatus(res) != PGRES_COMMAND_OK){
+      errorMess(string("changePipeline error: ") + PQerrorMessage(_pg));
+      PQclear(res);
+      return false;
+  }  
+  PQclear(res); 
   return true;
 }
 bool DbPGProvider::delPipeline(uint64_t pplId){
+  stringstream ss;
+  ss << "UPDATE tblUPipeline SET "
+        "isDelete = 1 "
+        "WHERE id = " << pplId << ";";
+
+  auto res = PQexec(_pg, ss.str().c_str());
+  if (PQresultStatus(res) != PGRES_COMMAND_OK){
+      errorMess(string("delPipeline error: ") + PQerrorMessage(_pg));
+      PQclear(res);
+      return false;
+  }  
+  PQclear(res); 
   return true;
 }
 std::vector<uint64_t> DbPGProvider::getAllPipelines(uint64_t userId){
-  return std::vector<uint64_t>();
+  stringstream ss;
+  ss << "SELECT id FROM tblUPipeline "
+        "WHERE usr = " << userId << " AND isDelete = 0;";
+
+  auto res = PQexec(_pg, ss.str().c_str());
+  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+      errorMess(string("getAllPipelines error: ") + PQerrorMessage(_pg));
+      PQclear(res);
+      return std::vector<uint64_t>();
+  }  
+  int rows = PQntuples(res);
+  std::vector<uint64_t> ret(rows);
+  for (int i = 0; i < rows; ++i){
+    ret[i] = atoll(PQgetvalue(res, i, 0));
+  }
+  PQclear(res);
+  return ret;
 }
 
 bool DbPGProvider::addTaskTemplate(const ZM_Base::uTaskTemplate& cng, uint64_t& outTId){
+  stringstream ss;
+  ss << "WITH ntsk AS (INSERT INTO tblTask (script, executor, averDurationSec, maxDurationSec) VALUES("
+        "'" << cng.base.script << "',"
+        "'" << (int)cng.base.exr << "',"
+        "'" << cng.base.averDurationSec << "',"
+        "'" << cng.base.maxDurationSec << "') RETURNING id) "
+        "INSERT INTO tblUTaskTemplate (task, parent, name, description) VALUES("
+        "(SELECT id FROM ntsk),"
+        "'" << cng.uId << "',"
+        "'" << cng.name << "',"
+        "'" << cng.description << "') RETURNING task;";
+
+  auto res = PQexec(_pg, ss.str().c_str());
+  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+      errorMess(string("addTaskTemplate error: ") + PQerrorMessage(_pg));
+      PQclear(res);
+      return false;
+  }
+  outTId = atoll(PQgetvalue(res, 0, 0));
+  PQclear(res); 
   return true;
 }
 bool DbPGProvider::getTaskTemplate(uint64_t tId, ZM_Base::uTaskTemplate& outTCng){
+  stringstream ss;
+  ss << "SELECT tt.parent, tt.name, tt.description, t.script, t.executor, t.averDurationSec, t.maxDurationSec "
+        "FROM tblUTaskTemplate tt "
+        "JOIN tblTask t ON t.id = tt.task "
+        "WHERE t.id = " << tId << " AND isDelete = 0;";
+
+  auto res = PQexec(_pg, ss.str().c_str());
+  if ((PQresultStatus(res) != PGRES_TUPLES_OK) || (PQntuples(res) != 1)){
+      errorMess(string("getTaskTemplate error: ") + PQerrorMessage(_pg));
+      PQclear(res);
+      return false;
+  }
+  outTCng.uId = atoll(PQgetvalue(res, 0, 0));
+  outTCng.name = PQgetvalue(res, 0, 1);
+  outTCng.description = PQgetvalue(res, 0, 2);  
+  outTCng.base.script = PQgetvalue(res, 0, 3);  
+  outTCng.base.exr = (ZM_Base::executorType)atoi(PQgetvalue(res, 0, 4));
+  outTCng.base.averDurationSec = atoi(PQgetvalue(res, 0, 5));
+  outTCng.base.maxDurationSec = atoi(PQgetvalue(res, 0, 6));
+  PQclear(res); 
   return true;
 };
 bool DbPGProvider::changeTaskTemplate(uint64_t tId, const ZM_Base::uTaskTemplate& newTCng, uint64_t& outTId){
-  return true;
+
+  return delTaskTemplate(tId) && addTaskTemplate(newTCng, outTId);
 }
 bool DbPGProvider::delTaskTemplate(uint64_t tId){
+  stringstream ss;
+  ss << "UPDATE tblUTaskTemplate SET "
+        "isDelete = 1 "
+        "WHERE task = " << tId << ";";
+
+  auto res = PQexec(_pg, ss.str().c_str());
+  if (PQresultStatus(res) != PGRES_COMMAND_OK){
+      errorMess(string("delTaskTemplate error: ") + PQerrorMessage(_pg));
+      PQclear(res);
+      return false;
+  }  
+  PQclear(res); 
   return true;
 }
 std::vector<uint64_t> DbPGProvider::getAllTaskTemplates(uint64_t parent){
-  return std::vector<uint64_t>();
+  stringstream ss;
+  ss << "SELECT task FROM tblUTaskTemplate "
+        "WHERE parent = " << parent << " AND isDelete = 0;";
+
+  auto res = PQexec(_pg, ss.str().c_str());
+  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+      errorMess(string("getAllTaskTemplates error: ") + PQerrorMessage(_pg));
+      PQclear(res);
+      return std::vector<uint64_t>();
+  }  
+  int rows = PQntuples(res);
+  std::vector<uint64_t> ret(rows);
+  for (int i = 0; i < rows; ++i){
+    ret[i] = atoll(PQgetvalue(res, i, 0));
+  }
+  PQclear(res);
+  return ret;
 }
 
 bool DbPGProvider::addTask(ZM_Base::uTask&, uint64_t& outTId){
@@ -632,7 +771,6 @@ bool DbPGProvider::sendAllMessFromSchedr(uint64_t schedrId, std::vector<ZM_DB::m
 #ifdef DEBUG
 // for test
 bool DbPGProvider::delAllUsers(){
-
   stringstream ss;
   ss << "TRUNCATE tblUser CASCADE;";
 
@@ -645,7 +783,6 @@ bool DbPGProvider::delAllUsers(){
   return true;
 }
 bool DbPGProvider::delAllSchedrs(){
-
   stringstream ss;
   ss << "TRUNCATE tblScheduler CASCADE;";
 
@@ -658,9 +795,33 @@ bool DbPGProvider::delAllSchedrs(){
   return true;
 }
 bool DbPGProvider::delAllWorkers(){
-
   stringstream ss;
   ss << "TRUNCATE tblWorker CASCADE;";
+
+  auto res = PQexec(_pg, ss.str().c_str());
+  if (PQresultStatus(res) != PGRES_COMMAND_OK){
+      errorMess(PQerrorMessage(_pg));
+      PQclear(res);
+      return false;
+  }
+  return true;
+}
+bool DbPGProvider::delAllPipelines(){
+  stringstream ss;
+  ss << "TRUNCATE tblUPipeline CASCADE;";
+
+  auto res = PQexec(_pg, ss.str().c_str());
+  if (PQresultStatus(res) != PGRES_COMMAND_OK){
+      errorMess(PQerrorMessage(_pg));
+      PQclear(res);
+      return false;
+  }
+  return true;
+}
+bool DbPGProvider::delAllTemplateTask(){
+  stringstream ss;
+  ss << "TRUNCATE tblUTaskTemplate CASCADE;";
+  ss << "TRUNCATE tblTask CASCADE;";
 
   auto res = PQexec(_pg, ss.str().c_str());
   if (PQresultStatus(res) != PGRES_COMMAND_OK){

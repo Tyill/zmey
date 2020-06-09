@@ -492,3 +492,368 @@ TEST_F(DBTest, getAllWorkers){
   workers = _pDb->getAllWorkers(sId + 1, ZM_Base::stateType::undefined);
   EXPECT_TRUE(workers.size() == 0) << _pDb->getLastError();                
 }
+
+TEST_F(DBTest, addPipeline){
+  EXPECT_TRUE(_pDb->delAllPipelines()) << _pDb->getLastError();
+  EXPECT_TRUE(_pDb->delAllUsers()) << _pDb->getLastError();
+  
+  ZM_Base::user usr;
+  usr.name = "usr";
+  usr.passw = "";  
+  uint64_t uId = 0;  
+  EXPECT_TRUE(_pDb->addUser(usr, uId) && (uId > 0)) << _pDb->getLastError();
+
+  ZM_Base::uPipeline ppline;
+  ppline.name = "newPP";
+  ppline.description = "dfsdf";
+  ppline.uId = uId;
+  uint64_t pId = 0;  
+  EXPECT_TRUE(_pDb->addPipeline(ppline, pId) && (pId > 0)) << _pDb->getLastError(); 
+
+  ppline.name = "";
+  pId = 0;  
+  EXPECT_TRUE(!_pDb->addPipeline(ppline, pId) && (pId == 0)) << _pDb->getLastError(); 
+
+  ppline.uId = uId + 1;
+  pId = 0;  
+  EXPECT_TRUE(!_pDb->addPipeline(ppline, pId) && (pId == 0)) << _pDb->getLastError();               
+}
+TEST_F(DBTest, getPipeline){
+  EXPECT_TRUE(_pDb->delAllPipelines()) << _pDb->getLastError();
+  EXPECT_TRUE(_pDb->delAllUsers()) << _pDb->getLastError();
+  
+  ZM_Base::user usr;
+  usr.name = "usr";
+  usr.passw = "";  
+  uint64_t uId = 0;  
+  EXPECT_TRUE(_pDb->addUser(usr, uId) && (uId > 0)) << _pDb->getLastError();
+
+  ZM_Base::uPipeline ppline;
+  ppline.name = "newPP";
+  ppline.description = "dfsdf";
+  ppline.uId = uId;
+  uint64_t pId = 0;  
+  EXPECT_TRUE(_pDb->addPipeline(ppline, pId) && (pId > 0)) << _pDb->getLastError(); 
+
+  ppline.name = ""; 
+  ppline.description = "";   
+  EXPECT_TRUE(_pDb->getPipeline(pId, ppline) && (ppline.uId == uId) &&
+                                                (ppline.name == "newPP") &&
+                                                (ppline.description == "dfsdf")) << _pDb->getLastError(); 
+
+  ppline.uId = 0;
+  ppline.name = ""; 
+  ppline.description = "dd";  
+  EXPECT_TRUE(!_pDb->getPipeline(pId + 1, ppline) && (ppline.uId == 0) &&
+                                                     (ppline.name == "") &&
+                                                     (ppline.description == "dd")) << _pDb->getLastError();                                                   
+}
+TEST_F(DBTest, changePipeline){
+  EXPECT_TRUE(_pDb->delAllPipelines()) << _pDb->getLastError();
+  EXPECT_TRUE(_pDb->delAllUsers()) << _pDb->getLastError();
+  
+  ZM_Base::user usr;
+  usr.name = "usr";
+  usr.passw = "";  
+  uint64_t uId = 0;  
+  EXPECT_TRUE(_pDb->addUser(usr, uId) && (uId > 0)) << _pDb->getLastError();
+
+  ZM_Base::uPipeline ppline;
+  ppline.name = "newPP";
+  ppline.description = "dfsdf";
+  ppline.uId = uId;
+  uint64_t pId = 0;  
+  EXPECT_TRUE(_pDb->addPipeline(ppline, pId) && (pId > 0)) << _pDb->getLastError(); 
+
+  ppline.name = "super";
+  ppline.description = "localhost:1234"; 
+  ppline.uId = uId;
+  EXPECT_TRUE(_pDb->changePipeline(pId, ppline)) << _pDb->getLastError(); 
+
+  ppline.name = "";
+  ppline.description = "1234"; 
+  ppline.uId = 0;   
+  EXPECT_TRUE(_pDb->getPipeline(pId, ppline) && (ppline.name == "super") &&
+                                                (ppline.description == "localhost:1234") &&
+                                                (ppline.uId == uId)) << _pDb->getLastError();  
+                                                
+  ppline.uId = uId + 1;
+  EXPECT_TRUE(!_pDb->changePipeline(pId, ppline)) << _pDb->getLastError();                                                                                           
+}
+TEST_F(DBTest, delPipeline){
+  EXPECT_TRUE(_pDb->delAllPipelines()) << _pDb->getLastError();
+  EXPECT_TRUE(_pDb->delAllUsers()) << _pDb->getLastError();
+  
+  ZM_Base::user usr;
+  usr.name = "usr";
+  usr.passw = "";  
+  uint64_t uId = 0;  
+  EXPECT_TRUE(_pDb->addUser(usr, uId) && (uId > 0)) << _pDb->getLastError();
+
+  ZM_Base::uPipeline ppline;
+  ppline.name = "newPP";
+  ppline.description = "dfsdf";
+  ppline.uId = uId;
+  uint64_t pId = 0;  
+  EXPECT_TRUE(_pDb->addPipeline(ppline, pId) && (pId > 0)) << _pDb->getLastError(); 
+    
+  EXPECT_TRUE(_pDb->delPipeline(pId)) << _pDb->getLastError();
+  
+  EXPECT_TRUE(!_pDb->getPipeline(pId, ppline)) << _pDb->getLastError();  
+}
+TEST_F(DBTest, getAllPipelines){
+  EXPECT_TRUE(_pDb->delAllPipelines()) << _pDb->getLastError();
+  EXPECT_TRUE(_pDb->delAllUsers()) << _pDb->getLastError();
+  
+  auto pplines = _pDb->getAllPipelines(0);
+  EXPECT_TRUE(pplines.empty()) << _pDb->getLastError();   
+
+  ZM_Base::user usr;
+  usr.name = "usr";
+  usr.passw = "";  
+  uint64_t uId = 0;  
+  EXPECT_TRUE(_pDb->addUser(usr, uId) && (uId > 0)) << _pDb->getLastError();
+
+  ZM_Base::uPipeline ppline;
+  ppline.name = "newPP";
+  ppline.description = "dfsdf";
+  ppline.uId = uId;
+  uint64_t pId1 = 0;  
+  EXPECT_TRUE(_pDb->addPipeline(ppline, pId1) && (pId1 > 0)) << _pDb->getLastError(); 
+
+  ppline.name = "newPP2";
+  ppline.description = "dfsdf";
+  ppline.uId = uId;
+  uint64_t pId2 = 0;  
+  EXPECT_TRUE(_pDb->addPipeline(ppline, pId2) && (pId2 > 0)) << _pDb->getLastError(); 
+
+  pplines.clear();      
+  pplines = _pDb->getAllPipelines(uId);
+  EXPECT_TRUE((pplines.size() == 2) && (pplines[0] == pId1) && (pplines[1] == pId2)) << _pDb->getLastError(); 
+
+  pplines.clear();
+  pplines = _pDb->getAllPipelines(uId + 1);
+  EXPECT_TRUE(pplines.size() == 0) << _pDb->getLastError();                     
+}
+
+TEST_F(DBTest, addTaskTemplate){
+  EXPECT_TRUE(_pDb->delAllTemplateTask()) << _pDb->getLastError();
+  EXPECT_TRUE(_pDb->delAllUsers()) << _pDb->getLastError();
+    
+  ZM_Base::user usr;
+  usr.name = "usr";
+  usr.passw = "";  
+  uint64_t uId = 0;  
+  EXPECT_TRUE(_pDb->addUser(usr, uId) && (uId > 0)) << _pDb->getLastError();
+  
+  ZM_Base::task base;
+  base.exr = ZM_Base::executorType::bash;
+  base.averDurationSec = 10;
+  base.maxDurationSec = 100;
+  base.script = "100500";
+
+  ZM_Base::uTaskTemplate templ;
+  templ.uId = uId; 
+  templ.description = "descr";
+  templ.name = "newTask";
+  templ.base = base;
+  uint64_t tId = 0;  
+  EXPECT_TRUE(_pDb->addTaskTemplate(templ, tId) && (tId > 0)) << _pDb->getLastError();   
+
+  templ.uId = uId + 1;  
+  tId = 0;  
+  EXPECT_TRUE(!_pDb->addTaskTemplate(templ, tId) && (tId == 0)) << _pDb->getLastError();           
+}
+TEST_F(DBTest, getTaskTemplate){
+  EXPECT_TRUE(_pDb->delAllTemplateTask()) << _pDb->getLastError();
+  EXPECT_TRUE(_pDb->delAllUsers()) << _pDb->getLastError();
+    
+  ZM_Base::user usr;
+  usr.name = "usr";
+  usr.passw = "";  
+  uint64_t uId = 0;  
+  EXPECT_TRUE(_pDb->addUser(usr, uId) && (uId > 0)) << _pDb->getLastError();
+  
+  ZM_Base::task base;
+  base.exr = ZM_Base::executorType::bash;
+  base.averDurationSec = 10;
+  base.maxDurationSec = 100;
+  base.script = "100500";
+
+  ZM_Base::uTaskTemplate templ;
+  templ.uId = uId; 
+  templ.description = "descr";
+  templ.name = "newTask";
+  templ.base = base;
+  uint64_t tId = 0;  
+  EXPECT_TRUE(_pDb->addTaskTemplate(templ, tId) && (tId > 0)) << _pDb->getLastError();   
+  
+  base.exr = ZM_Base::executorType::cmd;
+  base.averDurationSec = 1;
+  base.maxDurationSec = 10;
+  base.script = "1005";
+  templ.uId = uId; 
+  templ.description = "dscr";
+  templ.name = "newTk";
+  templ.base = base;
+  EXPECT_TRUE(_pDb->getTaskTemplate(tId, templ) && (templ.base.exr == ZM_Base::executorType::bash) &&
+                                                   (templ.base.averDurationSec == 10) &&
+                                                   (templ.base.maxDurationSec == 100) &&
+                                                   (templ.base.script == "100500") &&
+                                                   (templ.uId == uId) &&
+                                                   (templ.description == "descr") &&
+                                                   (templ.name == "newTask")) << _pDb->getLastError(); 
+
+  base.exr = ZM_Base::executorType::cmd;
+  base.averDurationSec = 1;
+  base.maxDurationSec = 10;  
+  templ.base = base;
+  EXPECT_TRUE(!_pDb->getTaskTemplate(tId + 1, templ) && (templ.base.exr == ZM_Base::executorType::cmd) &&
+                                                   (templ.base.averDurationSec == 1) &&
+                                                   (templ.base.maxDurationSec == 10)) << _pDb->getLastError();           
+}
+TEST_F(DBTest, delTaskTemplate){
+  EXPECT_TRUE(_pDb->delAllTemplateTask()) << _pDb->getLastError();
+  EXPECT_TRUE(_pDb->delAllUsers()) << _pDb->getLastError();
+    
+  ZM_Base::user usr;
+  usr.name = "usr";
+  usr.passw = "";  
+  uint64_t uId = 0;  
+  EXPECT_TRUE(_pDb->addUser(usr, uId) && (uId > 0)) << _pDb->getLastError();
+  
+  ZM_Base::task base;
+  base.exr = ZM_Base::executorType::bash;
+  base.averDurationSec = 10;
+  base.maxDurationSec = 100;
+  base.script = "100500";
+
+  ZM_Base::uTaskTemplate templ;
+  templ.uId = uId; 
+  templ.description = "descr";
+  templ.name = "newTask";
+  templ.base = base;
+  uint64_t tId = 0;  
+  EXPECT_TRUE(_pDb->addTaskTemplate(templ, tId) && (tId > 0)) << _pDb->getLastError();   
+  
+  EXPECT_TRUE(_pDb->delTaskTemplate(tId)) << _pDb->getLastError();   
+
+  base.exr = ZM_Base::executorType::cmd;
+  base.averDurationSec = 1;
+  base.maxDurationSec = 10;  
+  templ.base = base;
+  EXPECT_TRUE(!_pDb->getTaskTemplate(tId, templ) && (templ.base.exr == ZM_Base::executorType::cmd) &&
+                                                   (templ.base.averDurationSec == 1) &&
+                                                   (templ.base.maxDurationSec == 10)) << _pDb->getLastError();           
+}
+TEST_F(DBTest, changeTaskTemplate){
+  EXPECT_TRUE(_pDb->delAllTemplateTask()) << _pDb->getLastError();
+  EXPECT_TRUE(_pDb->delAllUsers()) << _pDb->getLastError();
+    
+  ZM_Base::user usr;
+  usr.name = "usr1";
+  usr.passw = "";  
+  uint64_t uId1 = 0;  
+  EXPECT_TRUE(_pDb->addUser(usr, uId1) && (uId1 > 0)) << _pDb->getLastError();
+
+  usr.name = "usr2";
+  usr.passw = "";  
+  uint64_t uId2 = 0;  
+  EXPECT_TRUE(_pDb->addUser(usr, uId2) && (uId2 > 0)) << _pDb->getLastError();
+  
+  ZM_Base::task base;
+  base.exr = ZM_Base::executorType::bash;
+  base.averDurationSec = 10;
+  base.maxDurationSec = 100;
+  base.script = "100500";
+
+  ZM_Base::uTaskTemplate templ;
+  templ.uId = uId1; 
+  templ.description = "descr";
+  templ.name = "newTask";
+  templ.base = base;
+  uint64_t tId = 0;  
+  EXPECT_TRUE(_pDb->addTaskTemplate(templ, tId) && (tId > 0)) << _pDb->getLastError();   
+  
+  base.exr = ZM_Base::executorType::cmd;
+  base.averDurationSec = 1;
+  base.maxDurationSec = 10;
+  base.script = "100";
+  templ.uId = uId2; 
+  templ.description = "de";
+  templ.name = "new";
+  templ.base = base;
+  uint64_t tIdNew = 0;  
+  EXPECT_TRUE(_pDb->changeTaskTemplate(tId, templ, tIdNew) && (tIdNew > 0)) << _pDb->getLastError();   
+
+  base.exr = ZM_Base::executorType::bash;
+  base.averDurationSec = 10;
+  base.maxDurationSec = 100;
+  base.script = "100500";
+  templ.uId = uId1; 
+  templ.description = "descr";
+  templ.name = "newTask";
+  templ.base = base;
+  EXPECT_TRUE(_pDb->getTaskTemplate(tIdNew, templ) && (templ.base.exr == ZM_Base::executorType::cmd) &&
+                                                   (templ.base.averDurationSec == 1) &&
+                                                   (templ.base.maxDurationSec == 10) &&
+                                                   (templ.base.script == "100") &&
+                                                   (templ.uId == uId2) &&
+                                                   (templ.description == "de") &&
+                                                   (templ.name == "new")) << _pDb->getLastError();           
+}
+TEST_F(DBTest, getAllTaskTemplate){
+  EXPECT_TRUE(_pDb->delAllTemplateTask()) << _pDb->getLastError();
+  EXPECT_TRUE(_pDb->delAllUsers()) << _pDb->getLastError();
+    
+  auto ttempl = _pDb->getAllTaskTemplates(0);
+  EXPECT_TRUE(ttempl.empty()) << _pDb->getLastError();   
+
+  ZM_Base::user usr;
+  usr.name = "usr1";
+  usr.passw = "";  
+  uint64_t uId1 = 0;  
+  EXPECT_TRUE(_pDb->addUser(usr, uId1) && (uId1 > 0)) << _pDb->getLastError();
+
+  usr.name = "usr2";
+  usr.passw = "";  
+  uint64_t uId2 = 0;  
+  EXPECT_TRUE(_pDb->addUser(usr, uId2) && (uId2 > 0)) << _pDb->getLastError();
+  
+  ZM_Base::task base;
+  base.exr = ZM_Base::executorType::bash;
+  base.averDurationSec = 10;
+  base.maxDurationSec = 100;
+  base.script = "100500";
+
+  ZM_Base::uTaskTemplate templ;
+  templ.uId = uId1; 
+  templ.description = "descr";
+  templ.name = "newTask";
+  templ.base = base;
+  uint64_t tId1 = 0;  
+  EXPECT_TRUE(_pDb->addTaskTemplate(templ, tId1) && (tId1 > 0)) << _pDb->getLastError();  
+
+  base.exr = ZM_Base::executorType::bash;
+  base.averDurationSec = 10;
+  base.maxDurationSec = 100;
+  base.script = "100500";
+  templ.uId = uId2; 
+  templ.description = "descr";
+  templ.name = "newTask";
+  templ.base = base;
+  uint64_t tId2 = 0;  
+  EXPECT_TRUE(_pDb->addTaskTemplate(templ, tId2) && (tId2 > 0)) << _pDb->getLastError(); 
+    
+  ttempl.clear();      
+  ttempl = _pDb->getAllTaskTemplates(uId1);
+  EXPECT_TRUE((ttempl.size() == 1) && (ttempl[0] == tId1)) << _pDb->getLastError(); 
+
+  ttempl.clear();
+  ttempl = _pDb->getAllTaskTemplates(uId2);
+  EXPECT_TRUE((ttempl.size() == 1) && (ttempl[0] == tId2)) << _pDb->getLastError();   
+
+  ttempl.clear();
+  ttempl = _pDb->getAllTaskTemplates(uId2 + 1);
+  EXPECT_TRUE(ttempl.size() == 0) << _pDb->getLastError();         
+}

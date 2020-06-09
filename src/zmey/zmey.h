@@ -82,7 +82,7 @@ ZMEY_API void zmVersionLib(char* outVersion /*sz 8*/);
 /// Connection with DB
 
 /// connection config
-struct zmConnectCng{
+struct zmConnect{
   zmDbType dbType;          ///< db type
   char* connectStr;         ///< connection string
 };
@@ -91,7 +91,7 @@ struct zmConnectCng{
 /// @param[in] zmConnectCng - connection config
 /// @param[out] err - error string. The memory is allocated by the user
 /// @return object connect
-ZMEY_API zmConn zmCreateConnection(zmConnectCng, char* err /*sz 256*/);
+ZMEY_API zmConn zmCreateConnection(zmConnect, char* err /*sz 256*/);
 
 /// disconnect !!! zmConn after the call will be deleted !!! 
 /// @param[in] zmConn - object connect
@@ -115,7 +115,7 @@ ZMEY_API void zmGetLastError(zmConn, char* err/*sz 256*/);
 /// User
 
 /// user config
-struct zmUserCng{  
+struct zmUser{  
   char name[255];    ///< unique name
   char passw[255];   ///< password  
   char* description;  ///< the memory is allocated by the user   
@@ -126,28 +126,28 @@ struct zmUserCng{
 /// @param[in] newUserCng - new user config
 /// @param[out] outUserId - new user id
 /// @return true - ok
-ZMEY_API bool zmAddUser(zmConn, zmUserCng newUserCng, uint64_t* outUserId);
+ZMEY_API bool zmAddUser(zmConn, zmUser newUser, uint64_t* outUserId);
 
 /// get exist user id
 /// @param[in] zmConn - object connect
 /// @param[in] cng - user config
 /// @param[out] outUserId - user id
 /// @return true - ok
-ZMEY_API bool zmGetUserId(zmConn, zmUserCng cng, uint64_t* outUserId);
+ZMEY_API bool zmGetUserId(zmConn, zmUser cng, uint64_t* outUserId);
 
 /// get user config
 /// @param[in] zmConn - object connect
 /// @param[in] userId - user id
 /// @param[out] outCng - user config
 /// @return true - ok
-ZMEY_API bool zmGetUserCng(zmConn, uint64_t userId, zmUserCng* outCng);
+ZMEY_API bool zmGetUserCng(zmConn, uint64_t userId, zmUser* outCng);
 
 /// change user config
 /// @param[in] zmConn - object connect
 /// @param[in] userId - user id
 /// @param[in] newCng - new user cng
 /// @return true - ok
-ZMEY_API bool zmChangeUser(zmConn, uint64_t userId, zmUserCng newCng);
+ZMEY_API bool zmChangeUser(zmConn, uint64_t userId, zmUser newCng);
 
 /// delete user
 /// @param[in] zmConn - object connect
@@ -162,21 +162,10 @@ ZMEY_API bool zmDelUser(zmConn, uint64_t userId);
 ZMEY_API uint32_t zmGetAllUsers(zmConn, uint64_t** outUserId);
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Group users
-
-/// group config
-struct zmGroupCng{  
-  char name[255];    ///< unique name
-  char passw[255];   ///< password  
-  char* description;  ///< the memory is allocated by the user
-};
-/// TODO
-
-///////////////////////////////////////////////////////////////////////////////
 /// Scheduler
 
 /// scheduler config
-struct zmSchedrCng{
+struct zmSchedr{
   char connectPnt[255];          ///< remote connection point: IP or DNS:port
   uint32_t capacityTask = 10000; ///< permissible simultaneous number of tasks 
 };
@@ -185,21 +174,21 @@ struct zmSchedrCng{
 /// @param[in] cng - scheduler config
 /// @param[out] outSchId - new scheduler id
 /// @return true - ok
-ZMEY_API bool zmAddScheduler(zmConn, zmSchedrCng cng, uint64_t* outSchId);
+ZMEY_API bool zmAddScheduler(zmConn, zmSchedr cng, uint64_t* outSchId);
 
 /// scheduler cng
 /// @param[in] zmConn - object connect
 /// @param[in] schId - scheduler id 
 /// @param[out] outCng - scheduler config
 /// @return true - ok
-ZMEY_API bool zmGetScheduler(zmConn, uint64_t schId, zmSchedrCng* outCng);
+ZMEY_API bool zmGetScheduler(zmConn, uint64_t schId, zmSchedr* outCng);
 
 /// change scheduler cng
 /// @param[in] zmConn - object connect
 /// @param[in] schId - scheduler id 
 /// @param[in] newCng - scheduler config
 /// @return true - ok
-ZMEY_API bool zmChangeScheduler(zmConn, uint64_t schId, zmSchedrCng newCng);
+ZMEY_API bool zmChangeScheduler(zmConn, uint64_t schId, zmSchedr newCng);
 
 /// delete scheduler
 /// @param[in] zmConn - object connect
@@ -225,7 +214,7 @@ ZMEY_API uint32_t zmGetAllSchedulers(zmConn, zmStateType state, uint64_t** outSc
 /// Worker
 
 /// worker config
-struct zmWorkerCng{
+struct zmWorker{
   uint64_t schId;             ///< scheduler id 
   zmExecutorType exr;         ///< executor type
   uint32_t capacityTask = 10; ///< permissible simultaneous number of tasks
@@ -237,21 +226,21 @@ struct zmWorkerCng{
 /// @param[in] cng - worker config
 /// @param[out] outWId - new worker id
 /// @return true - ok
-ZMEY_API bool zmAddWorker(zmConn, zmWorkerCng cng, uint64_t* outWId);
+ZMEY_API bool zmAddWorker(zmConn, zmWorker cng, uint64_t* outWId);
 
 /// worker cng
 /// @param[in] zmConn - object connect
 /// @param[in] wId - worker id
 /// @param[out] outCng - worker config
 /// @return true - ok
-ZMEY_API bool zmGetWorker(zmConn, uint64_t wId, zmWorkerCng* outCng);
+ZMEY_API bool zmGetWorker(zmConn, uint64_t wId, zmWorker* outCng);
 
 /// change worker cng
 /// @param[in] zmConn - object connect
 /// @param[in] wId - worker id
 /// @param[in] newCng - worker config
 /// @return true - ok
-ZMEY_API bool zmChangeWorker(zmConn, uint64_t wId, zmWorkerCng newCng);
+ZMEY_API bool zmChangeWorker(zmConn, uint64_t wId, zmWorker newCng);
 
 /// delete worker
 /// @param[in] zmConn - object connect
@@ -278,7 +267,7 @@ ZMEY_API uint32_t zmGetAllWorkers(zmConn, uint64_t schId, zmStateType state, uin
 /// Pipeline of tasks
 
 /// pipeline config
-struct zmPipelineCng{
+struct zmPipeline{
   uint64_t userId;         ///< user id
   char name[255];          ///< pipeline name
   char* description;       ///< description of pipeline. The memory is allocated by the user
@@ -289,21 +278,21 @@ struct zmPipelineCng{
 /// @param[in] cng - pipeline config
 /// @param[out] outPPLId - pipeline id
 /// @return true - ok
-ZMEY_API bool zmAddPipeline(zmConn, zmPipelineCng cng, uint64_t* outPPLId);
+ZMEY_API bool zmAddPipeline(zmConn, zmPipeline cng, uint64_t* outPPLId);
 
 /// get pipeline config
 /// @param[in] zmConn - object connect
 /// @param[in] pplId - pipeline id
 /// @param[out] outCng - pipeline config
 /// @return true - ok
-ZMEY_API bool zmGetPipeline(zmConn, uint64_t pplId, zmPipelineCng* outCng);
+ZMEY_API bool zmGetPipeline(zmConn, uint64_t pplId, zmPipeline* outCng);
 
 /// change pipeline config
 /// @param[in] zmConn - object connect
 /// @param[in] pplId - pipeline id
 /// @param[in] newCng - pipeline config
 /// @return true - ok
-ZMEY_API bool zmChangePipeline(zmConn, uint64_t pplId, zmPipelineCng newCng);
+ZMEY_API bool zmChangePipeline(zmConn, uint64_t pplId, zmPipeline newCng);
 
 /// delete pipeline
 /// @param[in] zmConn - object connect
@@ -322,7 +311,7 @@ ZMEY_API uint32_t zmGetAllPipelines(zmConn, uint64_t userId, uint64_t** outPPLId
 /// Task template 
 
 /// task template config
-struct zmTaskTemplateCng{
+struct zmTaskTemplate{
   uint64_t parent;          ///< user id
   zmExecutorType exr;       ///< executor type
   uint32_t averDurationSec; ///< estimated lead time 
@@ -336,14 +325,14 @@ struct zmTaskTemplateCng{
 /// @param[in] cng - task template config
 /// @param[out] outTId - new task id
 /// @return true - ok
-ZMEY_API bool zmAddTaskTemplate(zmConn, zmTaskTemplateCng cng, uint64_t* outTId);
+ZMEY_API bool zmAddTaskTemplate(zmConn, zmTaskTemplate cng, uint64_t* outTId);
 
 /// get task template cng
 /// @param[in] zmConn - object connect
 /// @param[in] tId - task id
 /// @param[out] outTCng - task config. The memory is allocated by the user
 /// @return true - ok
-ZMEY_API bool zmGetTaskTemplate(zmConn, uint64_t tId, zmTaskTemplateCng* outTCng);
+ZMEY_API bool zmGetTaskTemplate(zmConn, uint64_t tId, zmTaskTemplate* outTCng);
 
 /// change task template cng
 /// A new record is created for each change, the old one is not deleted.
@@ -352,7 +341,7 @@ ZMEY_API bool zmGetTaskTemplate(zmConn, uint64_t tId, zmTaskTemplateCng* outTCng
 /// @param[in] newTCng - new task config
 /// @param[out] outTId - new task id
 /// @return true - ok
-ZMEY_API bool zmChangeTaskTemplate(zmConn, uint64_t tId, zmTaskTemplateCng newTCng, uint64_t* outTId);
+ZMEY_API bool zmChangeTaskTemplate(zmConn, uint64_t tId, zmTaskTemplate newTCng, uint64_t* outTId);
 
 /// delete task template
 /// The record is marked, but not deleted.
@@ -376,7 +365,7 @@ struct zmScreenRect{
 };
 
 /// pipeline task config
-struct zmTaskCng{
+struct zmTask{
   uint64_t pplId;          ///< pipeline id
   uint64_t tId;            ///< task template id
   uint64_t* prevTasksId;   ///< pipeline task id of previous tasks to be completed
@@ -393,21 +382,21 @@ struct zmTaskCng{
 /// @param[in] cng - pipeline task config
 /// @param[out] outTaskId - pipeline task id
 /// @return true - ok
-ZMEY_API bool zmAddTask(zmConn, zmTaskCng cng, uint64_t* outTaskId);
+ZMEY_API bool zmAddTask(zmConn, zmTask cng, uint64_t* outTaskId);
 
 /// get pipeline task config
 /// @param[in] zmConn - object connect
 /// @param[in] tId - pipeline task id
 /// @param[out] outTCng - pipeline task config
 /// @return true - ok
-ZMEY_API bool zmGetTask(zmConn, uint64_t tId, zmTaskCng* outTCng);
+ZMEY_API bool zmGetTask(zmConn, uint64_t tId, zmTask* outTCng);
 
 /// change pipeline task config
 /// @param[in] zmConn - object connect
 /// @param[in] tId - pipeline task id
 /// @param[in] newCng - pipeline task config
 /// @return true - ok
-ZMEY_API bool zmChangeTask(zmConn, uint64_t tId, zmTaskCng newCng);
+ZMEY_API bool zmChangeTask(zmConn, uint64_t tId, zmTask newCng);
 
 /// delete pipeline task
 /// @param[in] zmConn - object connect

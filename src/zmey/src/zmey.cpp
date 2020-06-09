@@ -82,7 +82,7 @@ void zmGetLastError(zmConn zo, char* err/*sz 256*/){
 ///////////////////////////////////////////////////////////////////////////////
 /// User
 
-bool zmAddUser(zmConn zo, zmUserCng newUserCng, uint64_t* outUserId){
+bool zmAddUser(zmConn zo, zmUser newUserCng, uint64_t* outUserId){
   if (!zo) return false;
   
   if (!outUserId){
@@ -96,7 +96,7 @@ bool zmAddUser(zmConn zo, zmUserCng newUserCng, uint64_t* outUserId){
   
   return static_cast<ZM_DB::DbProvider*>(zo)->addUser(us, *outUserId);
 }
-bool zmGetUserId(zmConn zo, zmUserCng cng, uint64_t* outUserId){
+bool zmGetUserId(zmConn zo, zmUser cng, uint64_t* outUserId){
   if (!zo) return false;
   
   if (!outUserId){
@@ -105,7 +105,7 @@ bool zmGetUserId(zmConn zo, zmUserCng cng, uint64_t* outUserId){
   }   
   return static_cast<ZM_DB::DbProvider*>(zo)->getUserId(string(cng.name), string(cng.passw), *outUserId);
 }
-bool zmGetUserCng(zmConn zo, uint64_t userId, zmUserCng* outUserCng){
+bool zmGetUserCng(zmConn zo, uint64_t userId, zmUser* outUserCng){
   if (!zo) return false; 
 
   if (!outUserCng){
@@ -121,7 +121,7 @@ bool zmGetUserCng(zmConn zo, uint64_t userId, zmUserCng* outUserCng){
   }
   return false;
 }
-bool zmChangeUser(zmConn zo, uint64_t userId, zmUserCng newCng){
+bool zmChangeUser(zmConn zo, uint64_t userId, zmUser newCng){
   if (!zo) return false;
      
   ZM_Base::user us;
@@ -153,7 +153,7 @@ uint32_t zmGetAllUsers(zmConn zo, uint64_t** outUserId){
 ///////////////////////////////////////////////////////////////////////////////
 /// Scheduler
 
-bool zmAddScheduler(zmConn zo, zmSchedrCng cng, uint64_t* outSchId){
+bool zmAddScheduler(zmConn zo, zmSchedr cng, uint64_t* outSchId){
   if (!zo) return false;
   
   if (!outSchId){
@@ -166,7 +166,7 @@ bool zmAddScheduler(zmConn zo, zmSchedrCng cng, uint64_t* outSchId){
 
   return static_cast<ZM_DB::DbProvider*>(zo)->addSchedr(schedr, *outSchId);
 }
-bool zmGetScheduler(zmConn zo, uint64_t schId, zmSchedrCng* outCng){
+bool zmGetScheduler(zmConn zo, uint64_t schId, zmSchedr* outCng){
   if (!zo) return false; 
 
   if (!outCng){
@@ -181,7 +181,7 @@ bool zmGetScheduler(zmConn zo, uint64_t schId, zmSchedrCng* outCng){
   }
   return false;
 }
-bool zmChangeScheduler(zmConn zo, uint64_t schId, zmSchedrCng newCng){
+bool zmChangeScheduler(zmConn zo, uint64_t schId, zmSchedr newCng){
   if (!zo) return false; 
   
   ZM_Base::scheduler schedr;
@@ -226,7 +226,7 @@ uint32_t zmGetAllSchedulers(zmConn zo, zmStateType state, uint64_t** outSchId){
 ///////////////////////////////////////////////////////////////////////////////
 /// Worker
 
-bool zmAddWorker(zmConn zo, zmWorkerCng cng, uint64_t* outWId){
+bool zmAddWorker(zmConn zo, zmWorker cng, uint64_t* outWId){
   if (!zo) return false;
 
   if (!outWId){
@@ -239,7 +239,7 @@ bool zmAddWorker(zmConn zo, zmWorkerCng cng, uint64_t* outWId){
 
   return static_cast<ZM_DB::DbProvider*>(zo)->addWorker(worker, *outWId);
 }
-bool zmGetWorker(zmConn zo, uint64_t wId, zmWorkerCng* outWCng){
+bool zmGetWorker(zmConn zo, uint64_t wId, zmWorker* outWCng){
   if (!zo) return false; 
 
   if (!outWCng){
@@ -256,7 +256,7 @@ bool zmGetWorker(zmConn zo, uint64_t wId, zmWorkerCng* outWCng){
   }
   return false;
 }
-bool zmChangeWorker(zmConn zo, uint64_t wId, zmWorkerCng newCng){
+bool zmChangeWorker(zmConn zo, uint64_t wId, zmWorker newCng){
   if (!zo) return false; 
 
   ZM_Base::worker worker;
@@ -303,7 +303,7 @@ uint32_t zmGetAllWorkers(zmConn zo, uint64_t schId, zmStateType state, uint64_t*
 ///////////////////////////////////////////////////////////////////////////////
 /// Pipeline of tasks
 
-bool zmAddPipeline(zmConn zo, zmPipelineCng cng, uint64_t* outPPLId){
+bool zmAddPipeline(zmConn zo, zmPipeline cng, uint64_t* outPPLId){
   if (!zo) return false;
   
   if (!outPPLId){
@@ -317,7 +317,7 @@ bool zmAddPipeline(zmConn zo, zmPipelineCng cng, uint64_t* outPPLId){
   
   return static_cast<ZM_DB::DbProvider*>(zo)->addPipeline(pp, *outPPLId);
 }
-bool zmGetPipeline(zmConn zo, uint64_t pplId, zmPipelineCng* outPPLCng){
+bool zmGetPipeline(zmConn zo, uint64_t pplId, zmPipeline* outPPLCng){
   if (!zo) return false; 
 
   if (!outPPLCng){
@@ -334,7 +334,7 @@ bool zmGetPipeline(zmConn zo, uint64_t pplId, zmPipelineCng* outPPLCng){
   }
   return false;
 }
-bool zmChangePipeline(zmConn zo, uint64_t pplId, zmPipelineCng newCng){
+bool zmChangePipeline(zmConn zo, uint64_t pplId, zmPipeline newCng){
   if (!zo) return false;
      
   ZM_Base::uPipeline pp;
@@ -366,7 +366,7 @@ uint32_t zmGetAllPipelines(zmConn zo, uint64_t userId, uint64_t** outPPLId){
 ///////////////////////////////////////////////////////////////////////////////
 /// Task template
 
-bool zmAddTaskTemplate(zmConn zo, zmTaskTemplateCng cng, uint64_t* outTId){
+bool zmAddTaskTemplate(zmConn zo, zmTaskTemplate cng, uint64_t* outTId){
   if (!zo) return false;
 
   if (!outTId || !cng.script){
@@ -384,7 +384,7 @@ bool zmAddTaskTemplate(zmConn zo, zmTaskTemplateCng cng, uint64_t* outTId){
   
   return static_cast<ZM_DB::DbProvider*>(zo)->addTaskTemplate(task, *outTId);
 }
-bool zmGetTaskTemplate(zmConn zo, uint64_t tId, zmTaskTemplateCng* outTCng){
+bool zmGetTaskTemplate(zmConn zo, uint64_t tId, zmTaskTemplate* outTCng){
   if (!zo) return false; 
 
   if (!outTCng){
@@ -406,7 +406,7 @@ bool zmGetTaskTemplate(zmConn zo, uint64_t tId, zmTaskTemplateCng* outTCng){
   }
   return false;
 }
-bool zmChangeTaskTemplateCng(zmConn zo, uint64_t tId, zmTaskTemplateCng cng, uint64_t* outTId){
+bool zmChangeTaskTemplateCng(zmConn zo, uint64_t tId, zmTaskTemplate cng, uint64_t* outTId){
   if (!zo) return false; 
 
   if (!outTId){
@@ -445,7 +445,7 @@ uint32_t zmGetAllTaskTemplates(zmConn zo, uint64_t parent, uint64_t** outTId){
 ///////////////////////////////////////////////////////////////////////////////
 /// Task of pipeline
 
-bool zmAddTask(zmConn zo, zmTaskCng cng, uint64_t* outQTId){
+bool zmAddTask(zmConn zo, zmTask cng, uint64_t* outQTId){
   if (!zo) return false;
 
   if (!outQTId){
@@ -477,7 +477,7 @@ bool zmAddTask(zmConn zo, zmTaskCng cng, uint64_t* outQTId){
     
   return static_cast<ZM_DB::DbProvider*>(zo)->addTask(task, *outQTId);
 }
-bool zmGetTask(zmConn zo, uint64_t tId, zmTaskCng* outCng){
+bool zmGetTask(zmConn zo, uint64_t tId, zmTask* outCng){
   if (!zo) return false;
   
   if (!outCng){
@@ -509,7 +509,7 @@ bool zmGetTask(zmConn zo, uint64_t tId, zmTaskCng* outCng){
   }
   return false;
 }
-bool zmChangeTask(zmConn, uint64_t qtId, zmTaskCng newQCng){
+bool zmChangeTask(zmConn, uint64_t qtId, zmTask newQCng){
   
 }
 bool zmDelTask(zmConn, uint64_t qtId){
