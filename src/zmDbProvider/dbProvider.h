@@ -77,12 +77,14 @@ public:
   virtual bool addSchedr(const ZM_Base::scheduler& schedl, uint64_t& outSchId) = 0;
   virtual bool getSchedr(uint64_t schId, ZM_Base::scheduler& outCng) = 0;
   virtual bool changeSchedr(uint64_t schId, const ZM_Base::scheduler& newCng) = 0;
+  virtual bool delSchedr(uint64_t schId) = 0;
   virtual bool schedrState(uint64_t schId, ZM_Base::stateType& ) = 0;
   virtual std::vector<uint64_t> getAllSchedrs(ZM_Base::stateType) = 0;
   
   virtual bool addWorker(const ZM_Base::worker& worker, uint64_t& outWkrId) = 0;
   virtual bool getWorker(uint64_t wkrId, ZM_Base::worker& outCng) = 0;
   virtual bool changeWorker(uint64_t wkrId, const ZM_Base::worker& newCng) = 0;
+  virtual bool delWorker(uint64_t wkrId) = 0;
   virtual bool workerState(uint64_t wkrId, ZM_Base::stateType&) = 0;
   virtual std::vector<uint64_t> getAllWorkers(uint64_t schId, ZM_Base::stateType) = 0;
 
@@ -120,6 +122,7 @@ public:
   // for test
   virtual bool delAllUsers() = 0;
   virtual bool delAllSchedrs() = 0;
+  virtual bool delAllWorkers() = 0;
 #endif
 
 protected:  

@@ -116,7 +116,8 @@ DbPGProvider::DbPGProvider(const ZM_DB::connectCng& connCng)
         "connPnt      INT REFERENCES tblConnectPnt,"
         "state        INT REFERENCES tblState,"
         "capacityTask INT NOT NULL DEFAULT 10000 CHECK (capacityTask > 0),"
-        "activeTask   INT NOT NULL DEFAULT 0 CHECK (activeTask >= 0));";
+        "activeTask   INT NOT NULL DEFAULT 0 CHECK (activeTask >= 0),"
+        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
@@ -127,8 +128,9 @@ DbPGProvider::DbPGProvider(const ZM_DB::connectCng& connCng)
         "state        INT REFERENCES tblState,"
         "executor     INT REFERENCES tblExecutor,"
         "capacityTask INT NOT NULL DEFAULT 10 CHECK (capacityTask > 0),"
-        "activeTask   INT NOT NULL CHECK (activeTask >= 0),"
-        "rating       INT NOT NULL DEFAULT 10 CHECK (rating BETWEEN 1 AND 10));";
+        "activeTask   INT NOT NULL DEFAULT 0 CHECK (activeTask >= 0),"
+        "rating       INT NOT NULL DEFAULT 10 CHECK (rating BETWEEN 1 AND 10),"
+        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
@@ -176,7 +178,8 @@ DbPGProvider::DbPGProvider(const ZM_DB::connectCng& connCng)
         "id           SERIAL PRIMARY KEY,"
         "usr          INT REFERENCES tblUser,"
         "name         TEXT NOT NULL CHECK (name <> ''),"
-        "description  TEXT NOT NULL);";
+        "description  TEXT NOT NULL,"
+        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
@@ -207,8 +210,7 @@ DbPGProvider::~DbPGProvider(){
 }
 
 // for manager
-bool DbPGProvider::addUser(const ZM_Base::user& cng, uint64_t& outUserId){
-  
+bool DbPGProvider::addUser(const ZM_Base::user& cng, uint64_t& outUserId){  
   stringstream ss;
   ss << "INSERT INTO tblUser (name, passwHash, description) VALUES("
         "'" << cng.name << "',"
@@ -221,14 +223,11 @@ bool DbPGProvider::addUser(const ZM_Base::user& cng, uint64_t& outUserId){
       PQclear(res);
       return false;
   }
-
   outUserId = atoll(PQgetvalue(res, 0, 0));
-  PQclear(res);
- 
+  PQclear(res); 
   return true;
 }
 bool DbPGProvider::getUserId(const std::string& name, const std::string& passw, uint64_t& outUserId){
-
   stringstream ss;
   ss << "SELECT id FROM tblUser "
         "WHERE name = '" << name << "' AND " << "passwHash = MD5('" << passw << "') AND isDelete = 0;";
@@ -244,10 +243,9 @@ bool DbPGProvider::getUserId(const std::string& name, const std::string& passw, 
   return true;
 }
 bool DbPGProvider::getUserCng(uint64_t userId, ZM_Base::user& cng){
-
   stringstream ss;
   ss << "SELECT name, description FROM tblUser "
-        "WHERE id = '" << userId << "' AND isDelete = 0;";
+        "WHERE id = " << userId << " AND isDelete = 0;";
 
   auto res = PQexec(_pg, ss.str().c_str());
   if ((PQresultStatus(res) != PGRES_TUPLES_OK) || (PQntuples(res) != 1)){
@@ -261,13 +259,12 @@ bool DbPGProvider::getUserCng(uint64_t userId, ZM_Base::user& cng){
   return true;
 }
 bool DbPGProvider::changeUser(uint64_t userId, const ZM_Base::user& newCng){
-
   stringstream ss;
   ss << "UPDATE tblUser SET "
         "name = '" << newCng.name << "',"
         "passwHash = MD5('" << newCng.passw << "'),"
         "description = '" << newCng.description << "' "
-        "WHERE id = '" << userId << "';";
+        "WHERE id = " << userId << ";";
 
   auto res = PQexec(_pg, ss.str().c_str());
   if (PQresultStatus(res) != PGRES_COMMAND_OK){
@@ -279,11 +276,10 @@ bool DbPGProvider::changeUser(uint64_t userId, const ZM_Base::user& newCng){
   return true;
 }
 bool DbPGProvider::delUser(uint64_t userId){
-
   stringstream ss;
   ss << "UPDATE tblUser SET "
         "isDelete = 1 "
-        "WHERE id = '" << userId << "';";
+        "WHERE id = " << userId << ";";
 
   auto res = PQexec(_pg, ss.str().c_str());
   if (PQresultStatus(res) != PGRES_COMMAND_OK){
@@ -295,7 +291,6 @@ bool DbPGProvider::delUser(uint64_t userId){
   return true;
 }
 std::vector<uint64_t> DbPGProvider::getAllUsers(){
-
   stringstream ss;
   ss << "SELECT id FROM tblUser "
         "WHERE isDelete = 0;";
@@ -315,21 +310,20 @@ std::vector<uint64_t> DbPGProvider::getAllUsers(){
   return ret;
 }
 
-bool DbPGProvider::addSchedr(const ZM_Base::scheduler& schedl, uint64_t& outSchId){
-
-  stringstream ss;
-  
+bool DbPGProvider::addSchedr(const ZM_Base::scheduler& schedl, uint64_t& outSchId){    
   auto connPnt = ZM_Aux::split(schedl.connectPnt, ":");
   if (connPnt.size() != 2){
     errorMess("addSchedr error: connectPnt not correct");
     return false;
   }
+  stringstream ss;
   ss << "WITH ncp AS (INSERT INTO tblConnectPnt (ipAddr, port) VALUES("
         " '" << connPnt[0] << "',"
         " '" << connPnt[1] << "') RETURNING id)"
-        "INSERT INTO tblScheduler (connPnt, state) VALUES("
+        "INSERT INTO tblScheduler (connPnt, state, capacityTask) VALUES("
         "(SELECT id FROM ncp),"
-        "'" << (int)schedl.state << "') RETURNING id;";
+        "'" << (int)schedl.state << "',"
+        "'" << schedl.capacityTask << "') RETURNING id;";
 
   auto res = PQexec(_pg, ss.str().c_str());
   if (PQresultStatus(res) != PGRES_TUPLES_OK){
@@ -342,47 +336,224 @@ bool DbPGProvider::addSchedr(const ZM_Base::scheduler& schedl, uint64_t& outSchI
   return true;
 }
 bool DbPGProvider::getSchedr(uint64_t schId, ZM_Base::scheduler& cng){
+  stringstream ss;
+  ss << "SELECT cp.ipAddr, cp.port, s.state, s.capacityTask FROM tblScheduler s "
+        "JOIN tblConnectPnt cp ON cp.id = s.connPnt "
+        "WHERE s.id = " << schId << " AND s.isDelete = 0;";
+
+  auto res = PQexec(_pg, ss.str().c_str());
+  if ((PQresultStatus(res) != PGRES_TUPLES_OK) || (PQntuples(res) != 1)){
+      errorMess(string("getSchedr error: ") + PQerrorMessage(_pg));
+      PQclear(res);
+      return false;
+  }
+  cng.connectPnt = PQgetvalue(res, 0, 0) + string(":") + PQgetvalue(res, 0, 1);
+  cng.state = (ZM_Base::stateType)atoi(PQgetvalue(res, 0, 2));
+  cng.capacityTask = atoi(PQgetvalue(res, 0, 3));
+  PQclear(res); 
   return true;
 }
-bool DbPGProvider::changeSchedr(uint64_t schId, const ZM_Base::scheduler& newCng){
+bool DbPGProvider::changeSchedr(uint64_t schId, const ZM_Base::scheduler& newCng){  
+  auto connPnt = ZM_Aux::split(newCng.connectPnt, ":");
+  if (connPnt.size() != 2){
+    errorMess("changeSchedr error: connectPnt not correct");
+    return false;
+  }
+  stringstream ss;
+  ss << "UPDATE tblScheduler SET "
+        "state = '" << (int)newCng.state << "',"
+        "capacityTask = '" << newCng.capacityTask << "' "
+        "WHERE id = " << schId << "; "
+
+        "UPDATE tblConnectPnt SET "
+        "ipAddr = '" << connPnt[0] << "',"
+        "port = '" << connPnt[1] << "' "
+        "WHERE id = (SELECT connPnt FROM tblScheduler WHERE id = " << schId << ");";
+
+  auto res = PQexec(_pg, ss.str().c_str());
+  if (PQresultStatus(res) != PGRES_COMMAND_OK){
+      errorMess(string("changeSchedr error: ") + PQerrorMessage(_pg));
+      PQclear(res);
+      return false;
+  }  
+  PQclear(res); 
+  return true;
+}
+bool DbPGProvider::delSchedr(uint64_t schId){  
+  stringstream ss;
+  ss << "UPDATE tblScheduler SET "
+        "isDelete = 1 "
+        "WHERE id = " << schId << ";";
+
+  auto res = PQexec(_pg, ss.str().c_str());
+  if (PQresultStatus(res) != PGRES_COMMAND_OK){
+      errorMess(string("delSchedr error: ") + PQerrorMessage(_pg));
+      PQclear(res);
+      return false;
+  }  
+  PQclear(res); 
   return true;
 }
 bool DbPGProvider::schedrState(uint64_t schId, ZM_Base::stateType& state){
+  stringstream ss;
+  ss << "SELECT state FROM tblScheduler "
+        "WHERE id = " << schId << " AND isDelete = 0;";
 
-  // stringstream ss;
-  // ss << "SELECT name, description FROM tblUser "
-  //       "WHERE id = '" << userId << "' AND isDelete = 0;";
-
-  // auto res = PQexec(_pg, ss.str().c_str());
-  // if ((PQresultStatus(res) != PGRES_TUPLES_OK) || (PQntuples(res) != 1)){
-  //     errorMess(string("getUser error: ") + PQerrorMessage(_pg));
-  //     PQclear(res);
-  //     return false;
-  // }
-  // cng.name = PQgetvalue(res, 0, 0);
-  // cng.description = PQgetvalue(res, 0, 1);  
-  // PQclear(res); 
-  // return true;
-   return true;
+  auto res = PQexec(_pg, ss.str().c_str());
+  if ((PQresultStatus(res) != PGRES_TUPLES_OK) || (PQntuples(res) != 1)){
+      errorMess(string("schedrState error: ") + PQerrorMessage(_pg));
+      PQclear(res);
+      return false;
+  }
+  state = (ZM_Base::stateType)atoi(PQgetvalue(res, 0, 0));
+  PQclear(res); 
+  return true;
 }
-std::vector<uint64_t> DbPGProvider::getAllSchedrs(ZM_Base::stateType){
-  return std::vector<uint64_t>();
+std::vector<uint64_t> DbPGProvider::getAllSchedrs(ZM_Base::stateType state){  
+  stringstream ss;
+  ss << "SELECT id FROM tblScheduler "
+        "WHERE (state = " << (int)state << " OR " << (int)state << " = -1) AND isDelete = 0;";
+
+  auto res = PQexec(_pg, ss.str().c_str());
+  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+      errorMess(string("getAllSchedrs error: ") + PQerrorMessage(_pg));
+      PQclear(res);
+      return std::vector<uint64_t>();
+  }  
+  int rows = PQntuples(res);
+  std::vector<uint64_t> ret(rows);
+  for (int i = 0; i < rows; ++i){
+    ret[i] = atoll(PQgetvalue(res, i, 0));
+  }
+  PQclear(res);
+  return ret;
 }
 
-bool DbPGProvider::addWorker(const ZM_Base::worker& worker, uint64_t& wkrId){
+bool DbPGProvider::addWorker(const ZM_Base::worker& worker, uint64_t& outWkrId){
+  auto connPnt = ZM_Aux::split(worker.connectPnt, ":");
+  if (connPnt.size() != 2){
+    errorMess("addWorker error: connectPnt not correct");
+    return false;
+  }
+  stringstream ss;
+  ss << "WITH ncp AS (INSERT INTO tblConnectPnt (ipAddr, port) VALUES("
+        " '" << connPnt[0] << "',"
+        " '" << connPnt[1] << "') RETURNING id)"
+        "INSERT INTO tblWorker (connPnt, schedr, executor, state, capacityTask) VALUES("
+        "(SELECT id FROM ncp),"
+        "'" << (int)worker.sId << "',"
+        "'" << (int)worker.exr << "',"
+        "'" << (int)worker.state << "',"
+        "'" << worker.capacityTask << "') RETURNING id;";
+
+  auto res = PQexec(_pg, ss.str().c_str());
+  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+      errorMess(string("addWorker error: ") + PQerrorMessage(_pg));
+      PQclear(res);
+      return false;
+  }
+  outWkrId = atoll(PQgetvalue(res, 0, 0));
+  PQclear(res); 
   return true;
 }
 bool DbPGProvider::getWorker(uint64_t wkrId, ZM_Base::worker& cng){
+  stringstream ss;
+  ss << "SELECT cp.ipAddr, cp.port, w.schedr, w.executor, w.state, w.capacityTask FROM tblWorker w "
+        "JOIN tblConnectPnt cp ON cp.id = w.connPnt "
+        "WHERE w.id = " << wkrId << " AND w.isDelete = 0;";
+
+  auto res = PQexec(_pg, ss.str().c_str());
+  if ((PQresultStatus(res) != PGRES_TUPLES_OK) || (PQntuples(res) != 1)){
+      errorMess(string("getWorker error: ") + PQerrorMessage(_pg));
+      PQclear(res);
+      return false;
+  }
+  cng.connectPnt = PQgetvalue(res, 0, 0) + string(":") + PQgetvalue(res, 0, 1);
+  cng.sId = atoll(PQgetvalue(res, 0, 2));
+  cng.exr = (ZM_Base::executorType)atoi(PQgetvalue(res, 0, 3));
+  cng.state = (ZM_Base::stateType)atoi(PQgetvalue(res, 0, 4));
+  cng.capacityTask = atoi(PQgetvalue(res, 0, 5));
+  PQclear(res); 
   return true;
 }
 bool DbPGProvider::changeWorker(uint64_t wkrId, const ZM_Base::worker& newCng){
+  auto connPnt = ZM_Aux::split(newCng.connectPnt, ":");
+  if (connPnt.size() != 2){
+    errorMess("changeWorker error: connectPnt not correct");
+    return false;
+  }
+  stringstream ss;
+  ss << "UPDATE tblWorker SET "
+        "schedr = '" << (int)newCng.sId << "',"
+        "executor = '" << (int)newCng.exr << "',"
+        "state = '" << (int)newCng.state << "',"
+        "capacityTask = '" << newCng.capacityTask << "' "
+        "WHERE id = " << wkrId << "; "
+
+        "UPDATE tblConnectPnt SET "
+        "ipAddr = '" << connPnt[0] << "',"
+        "port = '" << connPnt[1] << "' "
+        "WHERE id = (SELECT connPnt FROM tblWorker WHERE id = " << wkrId << ");";
+
+  auto res = PQexec(_pg, ss.str().c_str());
+  if (PQresultStatus(res) != PGRES_COMMAND_OK){
+      errorMess(string("changeWorker error: ") + PQerrorMessage(_pg));
+      PQclear(res);
+      return false;
+  }  
+  PQclear(res); 
+  return true;
+}
+bool DbPGProvider::delWorker(uint64_t wkrId){
+  stringstream ss;
+  ss << "UPDATE tblWorker SET "
+        "isDelete = 1 "
+        "WHERE id = " << wkrId << ";";
+
+  auto res = PQexec(_pg, ss.str().c_str());
+  if (PQresultStatus(res) != PGRES_COMMAND_OK){
+      errorMess(string("delWorker error: ") + PQerrorMessage(_pg));
+      PQclear(res);
+      return false;
+  }  
+  PQclear(res); 
   return true;
 }
 bool DbPGProvider::workerState(uint64_t wkrId, ZM_Base::stateType& state){
+  stringstream ss;
+  ss << "SELECT state FROM tblWorker "
+        "WHERE id = " << wkrId << " AND isDelete = 0;";
+
+  auto res = PQexec(_pg, ss.str().c_str());
+  if ((PQresultStatus(res) != PGRES_TUPLES_OK) || (PQntuples(res) != 1)){
+      errorMess(string("workerState error: ") + PQerrorMessage(_pg));
+      PQclear(res);
+      return false;
+  }
+  state = (ZM_Base::stateType)atoi(PQgetvalue(res, 0, 0));
+  PQclear(res); 
   return true;
 }
-std::vector<uint64_t> DbPGProvider::getAllWorkers(uint64_t schId, ZM_Base::stateType){
-  return std::vector<uint64_t>();
+std::vector<uint64_t> DbPGProvider::getAllWorkers(uint64_t schId, ZM_Base::stateType state){
+  stringstream ss;
+  ss << "SELECT id FROM tblWorker "
+        "WHERE (state = " << (int)state << " OR " << (int)state << " = -1) "
+        "AND schedr = " << schId << " "
+        "AND isDelete = 0;";
+
+  auto res = PQexec(_pg, ss.str().c_str());
+  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+      errorMess(string("getAllWorkers error: ") + PQerrorMessage(_pg));
+      PQclear(res);
+      return std::vector<uint64_t>();
+  }  
+  int rows = PQntuples(res);
+  std::vector<uint64_t> ret(rows);
+  for (int i = 0; i < rows; ++i){
+    ret[i] = atoll(PQgetvalue(res, i, 0));
+  }
+  PQclear(res);
+  return ret;
 }
 
 bool DbPGProvider::addPipeline(const ZM_Base::uPipeline& cng, uint64_t& outPPLId){
@@ -477,6 +648,19 @@ bool DbPGProvider::delAllSchedrs(){
 
   stringstream ss;
   ss << "TRUNCATE tblScheduler CASCADE;";
+
+  auto res = PQexec(_pg, ss.str().c_str());
+  if (PQresultStatus(res) != PGRES_COMMAND_OK){
+      errorMess(PQerrorMessage(_pg));
+      PQclear(res);
+      return false;
+  }
+  return true;
+}
+bool DbPGProvider::delAllWorkers(){
+
+  stringstream ss;
+  ss << "TRUNCATE tblWorker CASCADE;";
 
   auto res = PQexec(_pg, ss.str().c_str());
   if (PQresultStatus(res) != PGRES_COMMAND_OK){

@@ -34,7 +34,7 @@ extern ZM_Aux::QueueThrSave<sTask> _tasks;
 void getNewTaskFromDB(ZM_DB::DbProvider& db){
 
   size_t cSz = _tasks.size(),
-         capSz = _schedr.capasityTask;
+         capSz = _schedr.capacityTask;
   vector<std::pair<ZM_Base::task, ZM_Base::queueTask>> tasks;
   if (db.getNewTasks(capSz - cSz, tasks)){
     for(auto& t : tasks){

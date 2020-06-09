@@ -124,7 +124,7 @@ namespace ZM_Base{
   struct scheduler{
     uint64_t id = 0;          // id tblScheduler
     stateType state = stateType::undefined;
-    int capasityTask = 10000; // the number of tasks that can be performed simultaneously  
+    int capacityTask = 10000; // the number of tasks that can be performed simultaneously  
     int activeTask = 0;       // number of running tasks
     std::string connectPnt;   // connection point: IP or DNS ':' port
   };
@@ -135,7 +135,7 @@ namespace ZM_Base{
     uint64_t sId = 0;         // id tblScheduler
     stateType state = stateType::undefined;
     executorType exr = executorType::undefined;     
-    int capasityTask = 10;    // the number of tasks that can be performed simultaneously  
+    int capacityTask = 10;    // the number of tasks that can be performed simultaneously  
     int activeTask = 0;       // number of running tasks
     int rating = 10;          // manager is assigned a rating to the worker[1..10]
     std::string connectPnt;   // connection point: IP or DNS ':' port

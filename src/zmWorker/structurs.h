@@ -30,7 +30,7 @@ void statusMess(const std::string& mess);
 
 struct config{
   bool logEna = false;
-  int capasityTask = 10;
+  int capacityTask = 10;
   int checkTasksTOutSec = 120;
   int progressTasksTOutSec = 30;
   int pingSchedrTOutSec = 20; 

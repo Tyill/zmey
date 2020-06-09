@@ -91,7 +91,7 @@ void parseArgs(int argc, char* argv[], config& outCng){
   if (sprms.find("nm") != sprms.end() && ZM_Aux::isNumber(sprms["nm"])){ \
     outCng.prm = stoi(sprms["nm"]); \
   }  
-  SET_PARAM_NUM(ctk, capasityTask);
+  SET_PARAM_NUM(ctk, capacityTask);
   SET_PARAM_NUM(cht, checkTasksTOutSec);
   SET_PARAM_NUM(prg, progressTasksTOutSec);
   SET_PARAM_NUM(png, pingSchedrTOutSec);

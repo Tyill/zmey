@@ -178,7 +178,7 @@ struct zmGroupCng{
 /// scheduler config
 struct zmSchedrCng{
   char connectPnt[255];          ///< remote connection point: IP or DNS:port
-  uint32_t capasityTask = 10000; ///< permissible simultaneous number of tasks 
+  uint32_t capacityTask = 10000; ///< permissible simultaneous number of tasks 
 };
 /// add new scheduler
 /// @param[in] zmConn - object connect
@@ -201,6 +201,12 @@ ZMEY_API bool zmGetScheduler(zmConn, uint64_t schId, zmSchedrCng* outCng);
 /// @return true - ok
 ZMEY_API bool zmChangeScheduler(zmConn, uint64_t schId, zmSchedrCng newCng);
 
+/// delete scheduler
+/// @param[in] zmConn - object connect
+/// @param[in] schId - scheduler id
+/// @return true - ok
+ZMEY_API bool zmDelScheduler(zmConn, uint64_t schId);
+
 /// scheduler state
 /// @param[in] zmConn - object connect
 /// @param[in] schId - scheduler id 
@@ -222,7 +228,7 @@ ZMEY_API uint32_t zmGetAllSchedulers(zmConn, zmStateType state, uint64_t** outSc
 struct zmWorkerCng{
   uint64_t schId;             ///< scheduler id 
   zmExecutorType exr;         ///< executor type
-  uint32_t capasityTask = 10; ///< permissible simultaneous number of tasks
+  uint32_t capacityTask = 10; ///< permissible simultaneous number of tasks
   char connectPnt[255];       ///< remote connection point: IP or DNS:port   
 };
   
@@ -246,6 +252,12 @@ ZMEY_API bool zmGetWorker(zmConn, uint64_t wId, zmWorkerCng* outCng);
 /// @param[in] newCng - worker config
 /// @return true - ok
 ZMEY_API bool zmChangeWorker(zmConn, uint64_t wId, zmWorkerCng newCng);
+
+/// delete worker
+/// @param[in] zmConn - object connect
+/// @param[in] wId - worker id
+/// @return true - ok
+ZMEY_API bool zmDelWorker(zmConn, uint64_t wId);
 
 /// worker state
 /// @param[in] zmConn - object connect

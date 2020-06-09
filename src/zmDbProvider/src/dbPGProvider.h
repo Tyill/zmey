@@ -45,12 +45,14 @@ public:
   bool addSchedr(const ZM_Base::scheduler& schedl, uint64_t& outSchId) override;
   bool getSchedr(uint64_t schId, ZM_Base::scheduler& cng) override;
   bool changeSchedr(uint64_t schId, const ZM_Base::scheduler& newCng) override;
+  bool delSchedr(uint64_t schId) override;
   bool schedrState(uint64_t schId, ZM_Base::stateType&) override;
   std::vector<uint64_t> getAllSchedrs(ZM_Base::stateType) override;
 
   bool addWorker(const ZM_Base::worker& worker, uint64_t& outWkrId) override;
   bool getWorker(uint64_t wkrId, ZM_Base::worker& cng) override;
   bool changeWorker(uint64_t wkrId, const ZM_Base::worker& newCng) override;
+  bool delWorker(uint64_t wkrId) override;
   bool workerState(uint64_t wkrId, ZM_Base::stateType& out) override;
   std::vector<uint64_t> getAllWorkers(uint64_t schId, ZM_Base::stateType) override;
 
@@ -85,6 +87,7 @@ public:
   // for test
   bool delAllUsers() override;
   bool delAllSchedrs() override;
+  bool delAllWorkers() override;
 #endif
 private:
   PGconn* _pg = nullptr; 

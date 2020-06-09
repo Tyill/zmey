@@ -58,7 +58,7 @@ bool _fClose = false;
 
 struct config{
   bool logEna = false;
-  int capasityTask = 10000;
+  int capacityTask = 10000;
   int sendAllMessTOutMS = 500;
   int checkWorkerTOutSec = 120; 
   std::string dbType;
@@ -107,7 +107,7 @@ void parseArgs(int argc, char* argv[], config& outCng){
   if (sprms.find("nm") != sprms.end() && ZM_Aux::isNumber(sprms["nm"])){ \
     outCng.prm = stoi(sprms["nm"]); \
   }  
-  SET_PARAM_NUM(ctk, capasityTask);
+  SET_PARAM_NUM(ctk, capacityTask);
   SET_PARAM_NUM(sdt, sendAllMessTOutMS);
   SET_PARAM_NUM(chw, checkWorkerTOutSec);
 
@@ -177,7 +177,7 @@ int main(int argc, char* argv[]){
     timer.updateCycTime();   
 
     // get new tasks from DB
-    if((_tasks.size() < _schedr.capasityTask) && (_schedr.state == ZM_Base::stateType::running)){
+    if((_tasks.size() < _schedr.capacityTask) && (_schedr.state == ZM_Base::stateType::running)){
       FUTURE_RUN(frGetNewTask, getNewTaskFromDB);
     }        
     // send task to worker    

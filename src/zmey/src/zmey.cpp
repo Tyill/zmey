@@ -161,7 +161,7 @@ bool zmAddScheduler(zmConn zo, zmSchedrCng cng, uint64_t* outSchId){
      return false;
   }
   ZM_Base::scheduler schedr;
-  schedr.capasityTask = cng.capasityTask;
+  schedr.capacityTask = cng.capacityTask;
   schedr.connectPnt = cng.connectPnt;
 
   return static_cast<ZM_DB::DbProvider*>(zo)->addSchedr(schedr, *outSchId);
@@ -175,7 +175,7 @@ bool zmGetScheduler(zmConn zo, uint64_t schId, zmSchedrCng* outCng){
   }
   ZM_Base::scheduler schedr;
   if (static_cast<ZM_DB::DbProvider*>(zo)->getScheduler(schId, schedr)){    
-    outSchCng->capasityTask = schedr.capasityTask;
+    outSchCng->capacityTask = schedr.capacityTask;
     strcpy(outSchCng->connectPnt, schedr.connectPnt.c_str());
     return true;
   }
@@ -185,10 +185,15 @@ bool zmChangeScheduler(zmConn zo, uint64_t schId, zmSchedrCng newCng){
   if (!zo) return false; 
   
   ZM_Base::scheduler schedr;
-  schedr.capasityTask = newCng->capasityTask;
+  schedr.capacityTask = newCng->capacityTask;
   schedr.connectPnt = newCng->connectPnt;
 
   return static_cast<ZM_DB::DbProvider*>(zo)->changeScheduler(schId, schedr);
+}
+bool zmDelScheduler(zmConn, uint64_t schId){
+  if (!zo) return false;
+ 
+  return static_cast<ZM_DB::DbProvider*>(zo)->delSchedr(schId);
 }
 bool zmSchedulerState(zmConn zo, uint64_t schId, zmStateType* outState){
   if (!zo) return false; 
@@ -229,7 +234,7 @@ bool zmAddWorker(zmConn zo, zmWorkerCng cng, uint64_t* outWId){
      return false;
   }
   ZM_Base::worker worker;
-  worker.capasityTask = cng.capasityTask;
+  worker.capacityTask = cng.capacityTask;
   worker.connectPnt = cng.connectPnt;
 
   return static_cast<ZM_DB::DbProvider*>(zo)->addWorker(worker, *outWId);
@@ -245,7 +250,7 @@ bool zmGetWorker(zmConn zo, uint64_t wId, zmWorkerCng* outWCng){
   if (static_cast<ZM_DB::DbProvider*>(zo)->getWorker(wId, worker)){    
     outWCng->schId = worker.sId;
     outWCng->exr = (zmey::zmExecutorType)worker.exr;
-    outWCng->capasityTask = worker.capasityTask;
+    outWCng->capacityTask = worker.capacityTask;
     strcpy(outWCng->connectPnt, worker.connectPnt.c_str());
     return true;
   }
@@ -257,10 +262,15 @@ bool zmChangeWorker(zmConn zo, uint64_t wId, zmWorkerCng newCng){
   ZM_Base::worker worker;
   worker.sId = newCng->schId;
   worker.exr = (ZM_Base::executorType)newCng->exr;
-  worker.capasityTask = newCng->capasityTask;
+  worker.capacityTask = newCng->capacityTask;
   worker.connectPnt = newCng->connectPnt;
   
   return static_cast<ZM_DB::DbProvider*>(zo)->changeWorker(wId, worker);
+}
+bool zmDelWorker(zmConn, uint64_t wId){
+  if (!zo) return false;
+ 
+  return static_cast<ZM_DB::DbProvider*>(zo)->delWorker(wId);
 }
 bool zmWorkerState(zmConn zo, uint64_t wId, zmStateType* outState){
   if (!zo) return false; 
