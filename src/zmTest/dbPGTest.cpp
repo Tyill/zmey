@@ -857,3 +857,34 @@ TEST_F(DBTest, getAllTaskTemplate){
   ttempl = _pDb->getAllTaskTemplates(uId2 + 1);
   EXPECT_TRUE(ttempl.size() == 0) << _pDb->getLastError();         
 }
+
+TEST_F(DBTest, addTask){
+  EXPECT_TRUE(_pDb->delAllTask()) << _pDb->getLastError();
+  EXPECT_TRUE(_pDb->delAllPipelines()) << _pDb->getLastError();
+    
+  ZM_Base::user usr;
+  usr.name = "usr";
+  usr.passw = "";  
+  uint64_t uId = 0;  
+  EXPECT_TRUE(_pDb->addUser(usr, uId) && (uId > 0)) << _pDb->getLastError();
+
+  ZM_Base::uPipeline ppline;
+  ppline.name = "newPP";
+  ppline.description = "dfsdf";
+  ppline.uId = uId;
+  uint64_t pId = 0;  
+  EXPECT_TRUE(_pDb->addPipeline(ppline, pId) && (pId > 0)) << _pDb->getLastError(); 
+    
+  ZM_Base::uTask task;
+  task.pplId = pId; 
+  task.base.priority = 1;
+  task.base.tId = 0;
+  task.base.params = "params";
+//  task.rct = ;
+  uint64_t tId = 0;  
+  EXPECT_TRUE(_pDb->addTask(task, tId) && (tId > 0)) << _pDb->getLastError();   
+
+  task.pplId = pId + 1;  
+  tId = 0;  
+  EXPECT_TRUE(!_pDb->addTask(task, tId) && (tId == 0)) << _pDb->getLastError();           
+}

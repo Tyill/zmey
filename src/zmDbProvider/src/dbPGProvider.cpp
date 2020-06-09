@@ -86,7 +86,7 @@ DbPGProvider::DbPGProvider(const ZM_DB::connectCng& connCng)
   ss << "CREATE TABLE IF NOT EXISTS tblTask("
         "id           SERIAL PRIMARY KEY,"
         "script       TEXT NOT NULL CHECK (script <> ''),"
-        "executor     INT REFERENCES tblExecutor,"
+        "executor     INT NOT NULL REFERENCES tblExecutor,"
         "averDurationSec INT NOT NULL CHECK (averDurationSec > 0),"
         "maxDurationSec  INT NOT NULL CHECK (maxDurationSec > 0));";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
@@ -113,8 +113,8 @@ DbPGProvider::DbPGProvider(const ZM_DB::connectCng& connCng)
   ss.str("");
   ss << "CREATE TABLE IF NOT EXISTS tblScheduler("
         "id           SERIAL PRIMARY KEY,"
-        "connPnt      INT REFERENCES tblConnectPnt,"
-        "state        INT REFERENCES tblState,"
+        "connPnt      INT NOT NULL REFERENCES tblConnectPnt,"
+        "state        INT NOT NULL REFERENCES tblState,"
         "capacityTask INT NOT NULL DEFAULT 10000 CHECK (capacityTask > 0),"
         "activeTask   INT NOT NULL DEFAULT 0 CHECK (activeTask >= 0),"
         "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
@@ -123,10 +123,10 @@ DbPGProvider::DbPGProvider(const ZM_DB::connectCng& connCng)
   ss.str("");
   ss << "CREATE TABLE IF NOT EXISTS tblWorker("
         "id           SERIAL PRIMARY KEY,"
-        "connPnt      INT REFERENCES tblConnectPnt,"
-        "schedr       INT REFERENCES tblScheduler,"
-        "state        INT REFERENCES tblState,"
-        "executor     INT REFERENCES tblExecutor,"
+        "connPnt      INT NOT NULL REFERENCES tblConnectPnt,"
+        "schedr       INT NOT NULL REFERENCES tblScheduler,"
+        "state        INT NOT NULL REFERENCES tblState,"
+        "executor     INT NOT NULL REFERENCES tblExecutor,"
         "capacityTask INT NOT NULL DEFAULT 10 CHECK (capacityTask > 0),"
         "activeTask   INT NOT NULL DEFAULT 0 CHECK (activeTask >= 0),"
         "rating       INT NOT NULL DEFAULT 10 CHECK (rating BETWEEN 1 AND 10),"
@@ -136,23 +136,23 @@ DbPGProvider::DbPGProvider(const ZM_DB::connectCng& connCng)
   ss.str("");
   ss << "CREATE TABLE IF NOT EXISTS tblTaskQueue("
         "id           SERIAL PRIMARY KEY,"
-        "task         INT REFERENCES tblTask,"
-        "state        INT REFERENCES tblState,"
-        "launcher     INT REFERENCES tblUser,"
+        "task         INT NOT NULL REFERENCES tblTask,"
+        "state        INT NOT NULL REFERENCES tblState,"
+        "launcher     INT NOT NULL REFERENCES tblUser,"
         "schedr       INT REFERENCES tblScheduler,"
         "worker       INT REFERENCES tblWorker,"
         "percent      INT NOT NULL DEFAULT 0 CHECK (percent BETWEEN 0 AND 100),"
         "priority     INT NOT NULL DEFAULT 1 CHECK (priority BETWEEN 1 AND 3),"
         "createTime   TIMESTAMP NOT NULL DEFAULT current_timestamp,"
-        "startTime    TIMESTAMP NOT NULL CHECK (startTime > createTime),"
-        "stopTime     TIMESTAMP NOT NULL CHECK (stopTime > startTime),"
+        "startTime    TIMESTAMP CHECK (startTime > createTime),"
+        "stopTime     TIMESTAMP CHECK (stopTime > startTime),"
         "isDependence INT NOT NULL DEFAULT 0 CHECK (isDependence BETWEEN 0 AND 1));";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
   ss << "CREATE TABLE IF NOT EXISTS tblParam("
         "id           SERIAL PRIMARY KEY,"
-        "qtask        INT REFERENCES tblTaskQueue,"
+        "qtask        INT NOT NULL REFERENCES tblTaskQueue,"
         "key          TEXT NOT NULL CHECK (key <> ''),"
         "value        TEXT NOT NULL CHECK (value <> ''));";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
@@ -167,8 +167,8 @@ DbPGProvider::DbPGProvider(const ZM_DB::connectCng& connCng)
   ss.str("");
   ss << "CREATE TABLE IF NOT EXISTS tblPrevTask("
         "id           SERIAL PRIMARY KEY,"
-        "qtask        INT REFERENCES tblTaskQueue,"
-        "prevTask     INT REFERENCES tblTaskQueue);";
+        "qtask        INT NOT NULL REFERENCES tblTaskQueue,"
+        "prevTask     INT NOT NULL REFERENCES tblTaskQueue);";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
   
   ///////////////////////////////////////////////////////////////////////////
@@ -176,7 +176,7 @@ DbPGProvider::DbPGProvider(const ZM_DB::connectCng& connCng)
   ss.str("");
   ss << "CREATE TABLE IF NOT EXISTS tblUPipeline("
         "id           SERIAL PRIMARY KEY,"
-        "usr          INT REFERENCES tblUser,"
+        "usr          INT NOT NULL REFERENCES tblUser,"
         "name         TEXT NOT NULL CHECK (name <> ''),"
         "description  TEXT NOT NULL,"
         "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
@@ -185,7 +185,7 @@ DbPGProvider::DbPGProvider(const ZM_DB::connectCng& connCng)
   ss.str("");
   ss << "CREATE TABLE IF NOT EXISTS tblUTaskTemplate("
         "task         INT PRIMARY KEY REFERENCES tblTask,"
-        "parent       INT REFERENCES tblUser,"
+        "parent       INT NOT NULL REFERENCES tblUser,"
         "name         TEXT NOT NULL CHECK (name <> ''),"
         "description  TEXT NOT NULL,"
         "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
@@ -194,13 +194,15 @@ DbPGProvider::DbPGProvider(const ZM_DB::connectCng& connCng)
   ss.str("");
   ss << "CREATE TABLE IF NOT EXISTS tblUPipelineTask("
         "id           SERIAL PRIMARY KEY,"
-        "pipeline     INT REFERENCES tblUPipeline,"
-        "taskTempl    INT REFERENCES tblUTaskTemplate,"
+        "pipeline     INT NOT NULL REFERENCES tblUPipeline,"
+        "taskTempl    INT NOT NULL REFERENCES tblUTaskTemplate,"
         "qtask        INT REFERENCES tblTaskQueue,"
-        "prevTasks    INT REFERENCES tblUPipelineTask,"
-        "nextTasks    INT REFERENCES tblUPipelineTask,"
+        "prevTasks    INT[],"
+        "nextTasks    INT[],"
+        "priority     INT NOT NULL DEFAULT 1 CHECK (priority BETWEEN 1 AND 3),"
         "params       TEXT NOT NULL,"
-        "screenRect   TEXT NOT NULL);";
+        "screenRect   TEXT NOT NULL,"
+        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
 #undef QUERY
@@ -727,7 +729,24 @@ std::vector<uint64_t> DbPGProvider::getAllTaskTemplates(uint64_t parent){
   return ret;
 }
 
-bool DbPGProvider::addTask(ZM_Base::uTask&, uint64_t& outTId){
+bool DbPGProvider::addTask(ZM_Base::uTask& cng, uint64_t& outTId){
+ 
+  stringstream ss;
+  ss << "INSERT INTO tblUPipelineTask (pipeline, taskTempl, priority, params, screenRect) VALUES("
+        "'" << cng.pplId << "',"
+        "'" << cng.base.tId << "',"
+        "'" << cng.base.priority << "',"
+        "'" << cng.base.params << "',"
+        "'" << cng.rct.toString() << "') RETURNING id;";
+
+  auto res = PQexec(_pg, ss.str().c_str());
+  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+      errorMess(string("addTask error: ") + PQerrorMessage(_pg));
+      PQclear(res);
+      return false;
+  }
+  outTId = atoll(PQgetvalue(res, 0, 0));
+  PQclear(res); 
   return true;
 }
 bool DbPGProvider::getTask(uint64_t tId, ZM_Base::uTask&){
@@ -745,7 +764,7 @@ bool DbPGProvider::startTask(uint64_t tId){
 bool DbPGProvider::getTaskState(uint64_t tId, ZM_Base::queueTask&){
   return true;
 }
-std::vector<uint64_t> DbPGProvider::getAllTasks(uint64_t pplId, ZM_Base::stateType){
+std::vector<uint64_t> DbPGProvider::getAllTasks(uint64_t pplId, ZM_Base::stateType){  
   return std::vector<uint64_t>();
 }
 
@@ -823,6 +842,18 @@ bool DbPGProvider::delAllTemplateTask(){
   ss << "TRUNCATE tblUTaskTemplate CASCADE;";
   ss << "TRUNCATE tblTask CASCADE;";
 
+  auto res = PQexec(_pg, ss.str().c_str());
+  if (PQresultStatus(res) != PGRES_COMMAND_OK){
+      errorMess(PQerrorMessage(_pg));
+      PQclear(res);
+      return false;
+  }
+  return true;
+}
+bool DbPGProvider::delAllTask(){
+  stringstream ss;
+  ss << "TRUNCATE tblUPipelineTask CASCADE;";
+  
   auto res = PQexec(_pg, ss.str().c_str());
   if (PQresultStatus(res) != PGRES_COMMAND_OK){
       errorMess(PQerrorMessage(_pg));

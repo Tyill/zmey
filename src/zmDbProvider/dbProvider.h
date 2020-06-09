@@ -125,6 +125,7 @@ public:
   virtual bool delAllWorkers() = 0;
   virtual bool delAllPipelines() = 0;
   virtual bool delAllTemplateTask() = 0;
+  virtual bool delAllTask() = 0;
 #endif
 
 protected:  

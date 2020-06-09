@@ -111,6 +111,9 @@ namespace ZM_Base{
   
   struct uScreenRect{
     int x, y, w, h;
+    std::string toString(){
+      return std::to_string(x) + " " + std::to_string(y) + " " + std::to_string(w) + " " + std::to_string(h);
+    }
   };
   struct uTask{
     uint64_t id = 0;          // id tblUTask 

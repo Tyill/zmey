@@ -90,6 +90,7 @@ public:
   bool delAllWorkers() override;
   bool delAllPipelines() override;
   bool delAllTemplateTask() override;
+  bool delAllTask() override;
 #endif
 private:
   PGconn* _pg = nullptr; 
