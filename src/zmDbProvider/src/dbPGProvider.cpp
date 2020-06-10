@@ -198,9 +198,9 @@ DbPGProvider::DbPGProvider(const ZM_DB::connectCng& connCng)
         "pipeline     INT NOT NULL REFERENCES tblUPipeline,"
         "taskTempl    INT NOT NULL REFERENCES tblUTaskTemplate,"
         "qtask        INT REFERENCES tblTaskQueue,"
-        "prevTasks    INT[],"
-        "nextTasks    INT[],"
         "priority     INT NOT NULL DEFAULT 1 CHECK (priority BETWEEN 1 AND 3),"
+        "prevTasks    TEXT NOT NULL,"
+        "nextTasks    TEXT NOT NULL,"
         "params       TEXT NOT NULL,"
         "screenRect   TEXT NOT NULL,"
         "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
@@ -209,7 +209,9 @@ DbPGProvider::DbPGProvider(const ZM_DB::connectCng& connCng)
 #undef QUERY
 }
 DbPGProvider::~DbPGProvider(){
-  PQfinish(_pg);
+  if (_pg){
+    PQfinish(_pg);
+  }
 }
 
 // for manager
@@ -730,22 +732,39 @@ std::vector<uint64_t> DbPGProvider::getAllTaskTemplates(uint64_t parent){
   return ret;
 }
 
-bool DbPGProvider::addTask(ZM_Base::uTask& cng, uint64_t& outTId){
-  string prevTasks = "{";
+bool DbPGProvider::addTask(const ZM_Base::uTask& cng, uint64_t& outTId){
+  stringstream ss;
+  for (auto t : cng.prevTasks){ // for check
+    ss.str("");       
+    ss << "SELECT id FROM tblUPipelineTask WHERE id = " << t << ";"; 
+    auto res = PQexec(_pg, ss.str().c_str() );
+    if ((PQresultStatus(res) != PGRES_TUPLES_OK) || (PQntuples(res) != 1)){
+      errorMess("addTask error: prevTasks not found taskId " + to_string(t));
+      PQclear(res);
+      return false;
+    }
+  }
+  for (auto t : cng.nextTasks){ // for check
+    ss.str("");       
+    ss << "SELECT id FROM tblUPipelineTask WHERE id = " << t << ";"; 
+    auto res = PQexec(_pg, ss.str().c_str() );
+    if ((PQresultStatus(res) != PGRES_TUPLES_OK) || (PQntuples(res) != 1)){
+      errorMess("addTask error: nextTasks not found taskId " + to_string(t));
+      PQclear(res);
+      return false;
+    }
+  }
+  string prevTasks;
   prevTasks = accumulate(cng.prevTasks.begin(), cng.prevTasks.end(), prevTasks,
                 [](string& s, uint64_t v){
-                  return (s == "{") ? s + to_string(v) : s + "," + to_string(v);
-                });
-  prevTasks += "}";
-  
-  string nextTasks = "{";
+                  return s.empty() ? to_string(v) : s + " " + to_string(v);
+                });  
+  string nextTasks;
   nextTasks = accumulate(cng.nextTasks.begin(), cng.nextTasks.end(), nextTasks,
                 [](string& s, uint64_t v){
-                  return (s == "{") ? s + to_string(v) : s + "," + to_string(v);
-                });
-  nextTasks += "}";
-
-  stringstream ss;
+                  return s.empty() ? to_string(v) : s + " " + to_string(v);
+                });  
+  ss.str("");
   ss << "INSERT INTO tblUPipelineTask (pipeline, taskTempl, priority, "
         "                              prevTasks, nextTasks, params, screenRect) VALUES("
         "'" << cng.pplId << "',"
@@ -766,13 +785,100 @@ bool DbPGProvider::addTask(ZM_Base::uTask& cng, uint64_t& outTId){
   PQclear(res); 
   return true;
 }
-bool DbPGProvider::getTask(uint64_t tId, ZM_Base::uTask&){
+bool DbPGProvider::getTask(uint64_t tId, ZM_Base::uTask& outTCng){
+  stringstream ss;
+  ss << "SELECT pipeline, taskTempl, priority, prevTasks, nextTasks, params, screenRect "
+        "FROM tblUPipelineTask "
+        "WHERE id = " << tId << " AND isDelete = 0;";
+
+  auto res = PQexec(_pg, ss.str().c_str());
+  if ((PQresultStatus(res) != PGRES_TUPLES_OK) || (PQntuples(res) != 1)){
+      errorMess(string("getTask error: ") + PQerrorMessage(_pg));
+      PQclear(res);
+      return false;
+  }
+  outTCng.pplId = atoll(PQgetvalue(res, 0, 0));
+  outTCng.base.tId = atoll(PQgetvalue(res, 0, 1));
+  outTCng.base.priority = atoi(PQgetvalue(res, 0, 2));  
+  auto prevTasks = ZM_Aux::split(PQgetvalue(res, 0, 3), " ");
+  for(auto& t : prevTasks){
+    outTCng.prevTasks.push_back(stoll(t));
+  }
+  auto nextTasks = ZM_Aux::split(PQgetvalue(res, 0, 4), " ");
+  for(auto& t : nextTasks){
+    outTCng.nextTasks.push_back(stoll(t));
+  }
+  outTCng.base.params = PQgetvalue(res, 0, 5);
+  auto rect = ZM_Aux::split(PQgetvalue(res, 0, 6), " ");
+  outTCng.rct = {stoi(rect[0]), stoi(rect[1]), stoi(rect[2]), stoi(rect[3])};
+  PQclear(res); 
   return true;
 }
 bool DbPGProvider::changeTask(uint64_t tId, const ZM_Base::uTask& newTCng){
+  stringstream ss;
+  for (auto t : newTCng.prevTasks){ // for check
+    ss.str("");       
+    ss << "SELECT id FROM tblUPipelineTask WHERE id = " << t << ";"; 
+    auto res = PQexec(_pg, ss.str().c_str() );
+    if ((PQresultStatus(res) != PGRES_TUPLES_OK) || (PQntuples(res) != 1)){
+      errorMess("changeTask error: prevTasks not found taskId " + to_string(t));
+      PQclear(res);
+      return false;
+    }
+  }
+  for (auto t : newTCng.nextTasks){ // for check
+    ss.str("");       
+    ss << "SELECT id FROM tblUPipelineTask WHERE id = " << t << ";"; 
+    auto res = PQexec(_pg, ss.str().c_str() );
+    if ((PQresultStatus(res) != PGRES_TUPLES_OK) || (PQntuples(res) != 1)){
+      errorMess("changeTask error: nextTasks not found taskId " + to_string(t));
+      PQclear(res);
+      return false;
+    }
+  }
+  string prevTasks;
+  prevTasks = accumulate(newTCng.prevTasks.begin(), newTCng.prevTasks.end(), prevTasks,
+                [](string& s, uint64_t v){
+                  return s.empty() ? to_string(v) : s + " " + to_string(v);
+                });  
+  string nextTasks;
+  nextTasks = accumulate(newTCng.nextTasks.begin(), newTCng.nextTasks.end(), nextTasks,
+                [](string& s, uint64_t v){
+                  return s.empty() ? to_string(v) : s + " " + to_string(v);
+                });  
+  ss.str("");
+  ss << "UPDATE tblUPipelineTask SET "
+        "pipeline = '" << newTCng.pplId << "',"
+        "taskTempl = '" << newTCng.base.tId << "',"
+        "priority = '" << newTCng.base.priority << "',"
+        "prevTasks = '" << prevTasks << "',"
+        "nextTasks = '" << nextTasks << "',"
+        "params = '" << newTCng.base.params << "',"
+        "screenRect = '" << newTCng.rct.toString() << "' "
+        "WHERE id = " << tId << ";";
+
+  auto res = PQexec(_pg, ss.str().c_str());
+  if (PQresultStatus(res) != PGRES_COMMAND_OK){
+      errorMess(string("changeTask error: ") + PQerrorMessage(_pg));
+      PQclear(res);
+      return false;
+  }
+  PQclear(res); 
   return true;
 }
 bool DbPGProvider::delTask(uint64_t tId){
+  stringstream ss;
+  ss << "UPDATE tblUPipelineTask SET "
+        "isDelete = 1 "
+        "WHERE id = " << tId << ";";
+
+  auto res = PQexec(_pg, ss.str().c_str());
+  if (PQresultStatus(res) != PGRES_COMMAND_OK){
+      errorMess(string("delTask error: ") + PQerrorMessage(_pg));
+      PQclear(res);
+      return false;
+  }  
+  PQclear(res); 
   return true;
 }
 bool DbPGProvider::startTask(uint64_t tId){
@@ -789,15 +895,13 @@ std::vector<uint64_t> DbPGProvider::getAllTasks(uint64_t pplId, ZM_Base::stateTy
 bool DbPGProvider::getSchedr(std::string& connPnt, ZM_Base::scheduler& outSchedl){
   return true;
 }
-bool 
-DbPGProvider::getTasksForSchedr(uint64_t schedrId, std::vector<std::pair<ZM_Base::task, ZM_Base::queueTask>>&){
+bool DbPGProvider::getTasksForSchedr(uint64_t schedrId, std::vector<std::pair<ZM_Base::task, ZM_Base::queueTask>>&){
   return true;
 }
 bool DbPGProvider::getWorkersForSchedr(uint64_t schedrId, std::vector<ZM_Base::worker>&){
   return true;
 }
-bool 
-DbPGProvider::getNewTasks(int maxTaskCnt, std::vector<std::pair<ZM_Base::task, ZM_Base::queueTask>>&){
+bool DbPGProvider::getNewTasks(int maxTaskCnt, std::vector<std::pair<ZM_Base::task, ZM_Base::queueTask>>&){
   return true;
 }
 bool DbPGProvider::sendAllMessFromSchedr(uint64_t schedrId, std::vector<ZM_DB::messSchedr>&){

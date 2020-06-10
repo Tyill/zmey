@@ -100,7 +100,7 @@ public:
   virtual bool delTaskTemplate(uint64_t tId) = 0;
   virtual std::vector<uint64_t> getAllTaskTemplates(uint64_t parent) = 0;
 
-  virtual bool addTask(ZM_Base::uTask&, uint64_t& outTId) = 0;
+  virtual bool addTask(const ZM_Base::uTask&, uint64_t& outTId) = 0;
   virtual bool getTask(uint64_t tId, ZM_Base::uTask&) = 0;
   virtual bool changeTask(uint64_t tId, const ZM_Base::uTask& newTCng) = 0;
   virtual bool delTask(uint64_t tId) = 0;
