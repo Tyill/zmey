@@ -422,6 +422,12 @@ ZMEY_API bool zmStopTask(zmConn, uint64_t tId);
 /// @return true - ok
 ZMEY_API bool zmPauseTask(zmConn, uint64_t tId);
 
+/// continue pipeline task
+/// @param[in] zmConn - object connect
+/// @param[in] tId - pipeline task id
+/// @return true - ok
+ZMEY_API bool zmContinueTask(zmConn, uint64_t tId);
+
 /// pipeline task state
 struct zmTaskState{
   uint32_t progress;      ///< [0..100]

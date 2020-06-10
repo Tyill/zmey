@@ -44,8 +44,7 @@ string currDateTime() {
   strftime(curDate, 24, "%Y-%m-%d %H:%M:%S", lct);
   return curDate;
 }
-
-    // %Y-%m-%d %H:%M:%S:%MS
+// %Y-%m-%d %H:%M:%S:%MS
 string currDateTimeMs() {
 
   time_t ct;
@@ -62,8 +61,7 @@ string currDateTimeMs() {
   (sprintf)(curDate, "%s%03d", curDate, int(ms));
 
   return curDate;
-}
- 
+} 
 vector<string> split(const string& str, const char *sep) {
   char *cstr = (char*)str.c_str();
   vector<string> res;
@@ -74,20 +72,26 @@ vector<string> split(const string& str, const char *sep) {
   }
   return res;
 }
+std::string trim(std::string &str){
+  auto itB = std::find_if(str.cbegin(), str.cend(), [](int32_t ch) -> bool { return !std::isspace(ch); });
+  str.erase(str.cbegin(), itB);
 
+  auto itE = std::find_if(str.crbegin(), str.crend(), [](int32_t ch) -> bool { return !std::isspace(ch); });
+  str.erase(itE.base(), str.cend());
+
+  return str;
+}
 uint64_t currDateTimeSinceEpochMs(){
   auto now = std::chrono::system_clock::now();
   auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
   return now_ms.time_since_epoch().count();
 }
-
 bool isNumber(const std::string& s){
   return !s.empty() && std::find_if(s.begin(), s.end(),
     [](char c) {
       return !std::isdigit(c);
     }) == s.end();
 }
-
 void sleepMs(uint64_t ms){
   std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 }    

@@ -464,6 +464,18 @@ bool zmAddTask(zmConn zo, zmTask cng, uint64_t* outQTId){
   task.pplId = cng.pplId;
   if (cng.params){
     task.base.params = cng.params;
+    auto params = ZM_Aux::split(task.base.params, "-");
+    if (params.empty()){
+      static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmAddTask error: params not correct, should be -key=value.. ");
+      return false;
+    }
+    for (auto& p : params){
+      auto keyVal = ZM_Aux::split(p, "=");
+      if (keyVal.size() != 2){ 
+        static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmAddTask error: params not correct, should be -key=value.. ");
+        return false;
+      }
+    }
   }
   for (int i = 0; i < cng.prevTasksCnt; ++i){
     task.prevTasks.push_back(cng.prevTasksId[i]);
@@ -509,8 +521,22 @@ bool zmGetTask(zmConn zo, uint64_t tId, zmTask* outCng){
   }
   return false;
 }
-bool zmChangeTask(zmConn, uint64_t qtId, zmTask newQCng){
-  
+bool zmChangeTask(zmConn zo, uint64_t qtId, zmTask newQCng){
+  if (!zo) return false;
+
+  // task.base.params = newQCng.params;
+  // auto params = ZM_Aux::split(task.base.params, "-");
+  // if (params.empty()){
+  //   static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmAddTask error: params not correct, should be -key=value.. ");
+  //   return false;
+  // }
+  // for (auto& p : params){
+  //   auto keyVal = ZM_Aux::split(p, "=");
+  //   if (keyVal.size() != 2){ 
+  //     static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmAddTask error: params not correct, should be -key=value.. ");
+  //     return false;
+  //   }
+  // }
 }
 bool zmDelTask(zmConn, uint64_t qtId){
   
@@ -523,6 +549,9 @@ bool zmStopTask(zmConn, uint64_t qtId){
 }
 bool zmPauseTask(zmConn, uint64_t qtId){
   
+}
+bool zmContinueTask(zmConn, uint64_t tId){
+
 }
 bool zmGetTaskState(zmConn zo, uint64_t tId, zmTaskState* outQTState){
   if (!zo) return false;

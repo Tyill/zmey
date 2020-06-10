@@ -45,6 +45,8 @@ bool isNumber(const std::string& s);
 
 void sleepMs(uint64_t ms);      
 
+std::string trim(std::string &str);
+
 class CounterTick{
   int _valmem = 0;
 public:
