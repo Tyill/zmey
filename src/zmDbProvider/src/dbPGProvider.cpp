@@ -227,7 +227,7 @@ bool DbPGProvider::addUser(const ZM_Base::user& cng, uint64_t& outUserId){
       PQclear(res);
       return false;
   }
-  outUserId = atoll(PQgetvalue(res, 0, 0));
+  outUserId = stoull(PQgetvalue(res, 0, 0));
   PQclear(res); 
   return true;
 }
@@ -242,7 +242,7 @@ bool DbPGProvider::getUserId(const std::string& name, const std::string& passw, 
       PQclear(res);
       return false;
   }
-  outUserId = atoll(PQgetvalue(res, 0, 0));
+  outUserId = stoull(PQgetvalue(res, 0, 0));
   PQclear(res); 
   return true;
 }
@@ -308,7 +308,7 @@ std::vector<uint64_t> DbPGProvider::getAllUsers(){
   int rows = PQntuples(res);
   std::vector<uint64_t> ret(rows);
   for (int i = 0; i < rows; ++i){
-    ret[i] = atoll(PQgetvalue(res, i, 0));
+    ret[i] = stoull(PQgetvalue(res, i, 0));
   }
   PQclear(res);
   return ret;
@@ -335,7 +335,7 @@ bool DbPGProvider::addSchedr(const ZM_Base::scheduler& schedl, uint64_t& outSchI
       PQclear(res);
       return false;
   }
-  outSchId = atoll(PQgetvalue(res, 0, 0));
+  outSchId = stoull(PQgetvalue(res, 0, 0));
   PQclear(res); 
   return true;
 }
@@ -427,7 +427,7 @@ std::vector<uint64_t> DbPGProvider::getAllSchedrs(ZM_Base::stateType state){
   int rows = PQntuples(res);
   std::vector<uint64_t> ret(rows);
   for (int i = 0; i < rows; ++i){
-    ret[i] = atoll(PQgetvalue(res, i, 0));
+    ret[i] = stoull(PQgetvalue(res, i, 0));
   }
   PQclear(res);
   return ret;
@@ -456,7 +456,7 @@ bool DbPGProvider::addWorker(const ZM_Base::worker& worker, uint64_t& outWkrId){
       PQclear(res);
       return false;
   }
-  outWkrId = atoll(PQgetvalue(res, 0, 0));
+  outWkrId = stoull(PQgetvalue(res, 0, 0));
   PQclear(res); 
   return true;
 }
@@ -473,7 +473,7 @@ bool DbPGProvider::getWorker(uint64_t wkrId, ZM_Base::worker& cng){
       return false;
   }
   cng.connectPnt = PQgetvalue(res, 0, 0) + string(":") + PQgetvalue(res, 0, 1);
-  cng.sId = atoll(PQgetvalue(res, 0, 2));
+  cng.sId = stoull(PQgetvalue(res, 0, 2));
   cng.exr = (ZM_Base::executorType)atoi(PQgetvalue(res, 0, 3));
   cng.state = (ZM_Base::stateType)atoi(PQgetvalue(res, 0, 4));
   cng.capacityTask = atoi(PQgetvalue(res, 0, 5));
@@ -554,7 +554,7 @@ std::vector<uint64_t> DbPGProvider::getAllWorkers(uint64_t schId, ZM_Base::state
   int rows = PQntuples(res);
   std::vector<uint64_t> ret(rows);
   for (int i = 0; i < rows; ++i){
-    ret[i] = atoll(PQgetvalue(res, i, 0));
+    ret[i] = stoull(PQgetvalue(res, i, 0));
   }
   PQclear(res);
   return ret;
@@ -573,7 +573,7 @@ bool DbPGProvider::addPipeline(const ZM_Base::uPipeline& ppl, uint64_t& outPPLId
       PQclear(res);
       return false;
   }
-  outPPLId = atoll(PQgetvalue(res, 0, 0));
+  outPPLId = stoull(PQgetvalue(res, 0, 0));
   PQclear(res); 
   return true;
 }
@@ -588,7 +588,7 @@ bool DbPGProvider::getPipeline(uint64_t pplId, ZM_Base::uPipeline& cng){
       PQclear(res);
       return false;
   }
-  cng.uId = atoll(PQgetvalue(res, 0, 0));
+  cng.uId = stoull(PQgetvalue(res, 0, 0));
   cng.name = PQgetvalue(res, 0, 1);
   cng.description = PQgetvalue(res, 0, 2);  
   PQclear(res); 
@@ -640,7 +640,7 @@ std::vector<uint64_t> DbPGProvider::getAllPipelines(uint64_t userId){
   int rows = PQntuples(res);
   std::vector<uint64_t> ret(rows);
   for (int i = 0; i < rows; ++i){
-    ret[i] = atoll(PQgetvalue(res, i, 0));
+    ret[i] = stoull(PQgetvalue(res, i, 0));
   }
   PQclear(res);
   return ret;
@@ -665,7 +665,7 @@ bool DbPGProvider::addTaskTemplate(const ZM_Base::uTaskTemplate& cng, uint64_t& 
       PQclear(res);
       return false;
   }
-  outTId = atoll(PQgetvalue(res, 0, 0));
+  outTId = stoull(PQgetvalue(res, 0, 0));
   PQclear(res); 
   return true;
 }
@@ -682,7 +682,7 @@ bool DbPGProvider::getTaskTemplate(uint64_t tId, ZM_Base::uTaskTemplate& outTCng
       PQclear(res);
       return false;
   }
-  outTCng.uId = atoll(PQgetvalue(res, 0, 0));
+  outTCng.uId = stoull(PQgetvalue(res, 0, 0));
   outTCng.name = PQgetvalue(res, 0, 1);
   outTCng.description = PQgetvalue(res, 0, 2);  
   outTCng.base.script = PQgetvalue(res, 0, 3);  
@@ -725,7 +725,7 @@ std::vector<uint64_t> DbPGProvider::getAllTaskTemplates(uint64_t parent){
   int rows = PQntuples(res);
   std::vector<uint64_t> ret(rows);
   for (int i = 0; i < rows; ++i){
-    ret[i] = atoll(PQgetvalue(res, i, 0));
+    ret[i] = stoull(PQgetvalue(res, i, 0));
   }
   PQclear(res);
   return ret;
@@ -782,7 +782,7 @@ bool DbPGProvider::addTask(const ZM_Base::uTask& cng, uint64_t& outTId){
       PQclear(res);
       return false;
   }
-  outTId = atoll(PQgetvalue(res, 0, 0));
+  outTId = stoull(PQgetvalue(res, 0, 0));
   PQclear(res); 
   return true;
 }
@@ -798,8 +798,8 @@ bool DbPGProvider::getTask(uint64_t tId, ZM_Base::uTask& outTCng){
       PQclear(res);
       return false;
   }
-  outTCng.pplId = atoll(PQgetvalue(res, 0, 0));
-  outTCng.base.tId = atoll(PQgetvalue(res, 0, 1));
+  outTCng.pplId = stoull(PQgetvalue(res, 0, 0));
+  outTCng.base.tId = stoull(PQgetvalue(res, 0, 1));
   outTCng.base.priority = atoi(PQgetvalue(res, 0, 2));  
   auto prevTasks = ZM_Aux::split(PQgetvalue(res, 0, 3), " ");
   for(auto& t : prevTasks){
@@ -877,9 +877,9 @@ bool DbPGProvider::delTask(uint64_t tId){
 
   auto res = PQexec(_pg, ss.str().c_str());
   if (PQresultStatus(res) != PGRES_COMMAND_OK){
-      errorMess(string("delTask error: ") + PQerrorMessage(_pg));
-      PQclear(res);
-      return false;
+    errorMess(string("delTask error: ") + PQerrorMessage(_pg));
+    PQclear(res);
+    return false;
   }  
   PQclear(res); 
   return true;
@@ -911,7 +911,7 @@ bool DbPGProvider::startTask(uint64_t tId){
   res = PQexec(_pg, ss.str().c_str());
   ROLLBACK(PGRES_TUPLES_OK);
   
-  uint64_t tqId = atoll(PQgetvalue(res, 0, 0));
+  uint64_t tqId = stoull(PQgetvalue(res, 0, 0));
   PQclear(res);   
   /////////////////////////////////////////////////////////////////////////////
   if (!cng.base.params.empty()){
@@ -991,9 +991,15 @@ bool DbPGProvider::getTaskState(uint64_t tId, ZM_Base::queueTask& outState){
 
     auto res = PQexec(_pg, ss.str().c_str());
     if ((PQresultStatus(res) != PGRES_TUPLES_OK) || (PQntuples(res) != 1)){
-        errorMess(string("getTaskState error: ") + PQerrorMessage(_pg));
+      if ((PQresultStatus(res) == PGRES_TUPLES_OK) && (PQntuples(res) == 0)){
+        outState.result = "";
         PQclear(res);
+        return true;
+      }else{
+        errorMess(string("getTaskState error: ") + PQerrorMessage(_pg));
+        PQclear(res);        
         return false;
+      }
     }
     outState.result = string("-") + PQgetvalue(res, 0, 0) + "=" + PQgetvalue(res, 0, 1);
     PQclear(res); 
@@ -1005,7 +1011,7 @@ std::vector<uint64_t> DbPGProvider::getAllTasks(uint64_t pplId, ZM_Base::stateTy
   ss << "SELECT ut.id FROM tblUPipelineTask ut "
         "LEFT JOIN tblTaskQueue qt ON qt.id = ut.qtask "
         "WHERE (qt.state = " << (int)state << " OR " << (int)state << " = -1) "
-        "AND ut.pipeline = " << pplId << " AND ut.isDelete = 0;";
+          "AND ut.pipeline = " << pplId << " AND ut.isDelete = 0;";
 
   auto res = PQexec(_pg, ss.str().c_str());
   if (PQresultStatus(res) != PGRES_TUPLES_OK){
@@ -1016,23 +1022,86 @@ std::vector<uint64_t> DbPGProvider::getAllTasks(uint64_t pplId, ZM_Base::stateTy
   int rows = PQntuples(res);
   std::vector<uint64_t> ret(rows);
   for (int i = 0; i < rows; ++i){
-    ret[i] = atoll(PQgetvalue(res, i, 0));
+    ret[i] = stoull(PQgetvalue(res, i, 0));
   }
   PQclear(res);
   return ret;
 }
 
 // for zmSchedr
-bool DbPGProvider::getSchedr(std::string& connPnt, ZM_Base::scheduler& outSchedl){
+bool DbPGProvider::getSchedr(std::string& connPnt, ZM_Base::scheduler& outCng){
+  auto cp = ZM_Aux::split(connPnt, ":");
+  if (cp.size() != 2){
+    errorMess(string("getSchedr error: connPnt not correct"));
+    return false;
+  }
+  stringstream ss;
+  ss << "SELECT s.id, s.state, s.capacityTask, s.activeTask FROM tblScheduler s "
+        "JOIN tblConnectPnt cp ON cp.id = s.connPnt "
+        "WHERE cp.ipAddr = '" << cp[0] << "' AND cp.port = '" << cp[1] << "' AND s.isDelete = 0;";
+
+  auto res = PQexec(_pg, ss.str().c_str());
+  if ((PQresultStatus(res) != PGRES_TUPLES_OK) || (PQntuples(res) == 0)){
+    errorMess(string("getSchedr error: ") + PQerrorMessage(_pg));
+    PQclear(res);
+    return false;
+  }
+  outCng.id = stoull(PQgetvalue(res, 0, 0));
+  outCng.connectPnt = connPnt;
+  outCng.state = (ZM_Base::stateType)atoi(PQgetvalue(res, 0, 1));
+  outCng.capacityTask = atoi(PQgetvalue(res, 0, 2));
+  outCng.activeTask = atoi(PQgetvalue(res, 0, 3));
+  PQclear(res); 
   return true;
 }
-bool DbPGProvider::getTasksForSchedr(uint64_t schedrId, std::vector<std::pair<ZM_Base::task, ZM_Base::queueTask>>&){
+bool DbPGProvider::getTasksForSchedr(uint64_t sId, std::vector<ZM_DB::schedrTask>& out){
+  stringstream ss;
+  ss << "SELECT t.id, t.executor, t.averDurationSec, t.maxDurationSec, t.script, tq.id FROM tblTask t "
+        "JOIN tblTaskQueue tq ON tq.task = t.id "
+        "WHERE tq.schedr = " << sId << " AND (tq.state BETWEEN 1 AND 3);"; // 1 - start, 2 - running, 3 - pause
+
+  auto resTsk = PQexec(_pg, ss.str().c_str());
+  if (PQresultStatus(resTsk) != PGRES_TUPLES_OK){
+    errorMess(string("getTasksForSchedr error: ") + PQerrorMessage(_pg));
+    PQclear(resTsk);
+    return false;
+  }
+  int tsz = PQntuples(resTsk);
+  for (int i = 0; i < tsz; ++i){    
+    uint64_t qId = stoull(PQgetvalue(resTsk, i, 5));
+    ss.str("");
+    ss << "SELECT key, value FROM tblParam "
+          "WHERE qtask = " << qId << ";";
+
+    auto resPrm = PQexec(_pg, ss.str().c_str());
+    if (PQresultStatus(resPrm) != PGRES_TUPLES_OK){
+      errorMess(string("getTasksForSchedr error: ") + PQerrorMessage(_pg));
+      PQclear(resPrm);
+      PQclear(resTsk);
+      return false;
+    }
+    string prms;
+    int psz = PQntuples(resPrm);
+    for (int j = 0; j < psz; ++j){    
+      prms += string("-") + PQgetvalue(resTsk, j, 0) + "=" + PQgetvalue(resTsk, j, 1);
+    }
+    PQclear(resPrm);
+    out.push_back(make_pair(
+      ZM_Base::task{ stoull(PQgetvalue(resTsk, i, 0)),
+                     (ZM_Base::executorType)atoi(PQgetvalue(resTsk, i, 1)),
+                     atoi(PQgetvalue(resTsk, i, 2)),
+                     atoi(PQgetvalue(resTsk, i, 3)),
+                     PQgetvalue(resTsk, i, 4)
+                   },
+                   prms));
+  }
+  PQclear(resTsk);
   return true;
 }
 bool DbPGProvider::getWorkersForSchedr(uint64_t schedrId, std::vector<ZM_Base::worker>&){
   return true;
 }
-bool DbPGProvider::getNewTasks(int maxTaskCnt, std::vector<std::pair<ZM_Base::task, ZM_Base::queueTask>>&){
+bool DbPGProvider::getNewTasks(int maxTaskCnt, std::vector<ZM_DB::schedrTask>&){
   return true;
 }
 bool DbPGProvider::sendAllMessFromSchedr(uint64_t schedrId, std::vector<ZM_DB::messSchedr>&){
@@ -1114,5 +1183,4 @@ bool DbPGProvider::delAllTask(){
   }
   return true;
 }
-
 #endif // DEBUG

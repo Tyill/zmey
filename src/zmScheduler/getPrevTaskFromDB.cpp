@@ -32,7 +32,7 @@ void getPrevTaskFromDB(ZM_DB::DbProvider& db,
                        ZM_Base::scheduler& schedr,
                        ZM_Aux::QueueThrSave<sTask>& outTasks){
 
-  vector<ZM_Base::schedrTask> tasks;
+  vector<ZM_DB::schedrTask> tasks;
   if (db.getTasksForSchedr(schedr.id, tasks)){
     for(auto& t : tasks){
       outTasks.push(sTask{t.first, t.second.params});

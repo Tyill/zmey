@@ -62,8 +62,8 @@ string currDateTimeMs() {
 
   return curDate;
 } 
-vector<string> split(const string& str, const char *sep) {
-  char *cstr = (char*)str.c_str();
+vector<string> split(string str, const char *sep) {
+  char* cstr = (char*)str.c_str();
   vector<string> res;
   char *pch = strtok(cstr, sep);
   while (pch != NULL) {

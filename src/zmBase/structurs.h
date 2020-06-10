@@ -68,29 +68,29 @@ namespace ZM_Base{
     error               = 6,
     notResponding       = 7,
   };
-
+  // tblUser fields
   struct user{
     uint64_t id;              // id tblUser
     std::string name;         // unique name
     std::string passw;        // optional password
     std::string description;
   };
-
+  // tblUPipeline fields
   struct uPipeline{
     uint64_t id = 0;          // id tblUPipeline
     uint64_t uId = 0;         // id tblUser
     std::string name;         // unique name
     std::string description;
   };
-  
+  // tblTask fields
   struct task{
-    uint64_t id = 0;          // id tblTask
-    executorType exr = executorType::undefined;           
-    int averDurationSec = 0;  // estimated lead time 
-    int maxDurationSec = 0;   // maximum lead time      
+    uint64_t id;              // id tblTask
+    executorType exr;               
+    int averDurationSec;      // estimated lead time 
+    int maxDurationSec;       // maximum lead time      
     std::string script;       // script on bash, python or cmd    
   };  
-
+  // tblTaskQueue fields
   struct queueTask{
     uint64_t id = 0;          // id tblTaskQueue
     uint64_t tId = 0;         // id tblTask
@@ -101,7 +101,7 @@ namespace ZM_Base{
     std::string params;       // params of script: -key=value
     std::string result;
   };  
-  
+  // tblUTaskTemplate fields
   struct uTaskTemplate{
     uint64_t uId = 0;         // parent id tblUser
     std::string name;
@@ -115,6 +115,7 @@ namespace ZM_Base{
       return std::to_string(x) + " " + std::to_string(y) + " " + std::to_string(w) + " " + std::to_string(h);
     }
   };
+  // tblUPipelineTask fields
   struct uTask{
     uint64_t id = 0;          // id tblUTask 
     uint64_t pplId = 0;       // id tblUPipeline
@@ -123,7 +124,7 @@ namespace ZM_Base{
     uScreenRect rct;          // rect on screen
     queueTask base; 
   };
-
+  // tblScheduler fields
   struct scheduler{
     uint64_t id = 0;          // id tblScheduler
     stateType state = stateType::undefined;
@@ -131,8 +132,7 @@ namespace ZM_Base{
     int activeTask = 0;       // number of running tasks
     std::string connectPnt;   // connection point: IP or DNS ':' port
   };
-  using schedrTask = std::pair<ZM_Base::task, ZM_Base::queueTask>;
-
+  // tblWorker fields
   struct worker{
     uint64_t id = 0;          // id tblWorker
     uint64_t sId = 0;         // id tblScheduler

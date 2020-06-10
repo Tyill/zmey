@@ -1264,3 +1264,42 @@ TEST_F(DBTest, getAllTask){
   tasks = _pDb->getAllTasks(pId + 1, ZM_Base::stateType::undefined);
   EXPECT_TRUE(tasks.empty()) << _pDb->getLastError();             
 }
+
+TEST_F(DBTest, getSchedrByCP){
+  EXPECT_TRUE(_pDb->delAllSchedrs()) << _pDb->getLastError();
+  
+  ZM_Base::scheduler schedr;
+  schedr.state = ZM_Base::stateType::ready;
+  schedr.connectPnt = "localhost:4444"; 
+  schedr.capacityTask = 105; 
+  uint64_t sId = 0;  
+  EXPECT_TRUE(_pDb->addSchedr(schedr, sId) && (sId > 0)) << _pDb->getLastError(); 
+
+  schedr.state = ZM_Base::stateType::error;
+  schedr.capacityTask = 1;   
+  schedr.id = 0;
+  EXPECT_TRUE(_pDb->getSchedr(schedr.connectPnt, schedr) && (schedr.id == sId) &&
+                                              (schedr.state == ZM_Base::stateType::ready) &&
+                                              (schedr.connectPnt == "localhost:4444") &&
+                                              (schedr.capacityTask == 105)) << _pDb->getLastError(); 
+
+  schedr.state = ZM_Base::stateType::error;
+  schedr.connectPnt = ""; 
+  schedr.capacityTask = 1;
+  EXPECT_TRUE(!_pDb->getSchedr(schedr.connectPnt, schedr) && (schedr.state == ZM_Base::stateType::error) &&
+                                              (schedr.connectPnt == "") &&
+                                              (schedr.capacityTask == 1)) << _pDb->getLastError();                                                      
+}
+TEST_F(DBTest, getTaskForSchedr){
+  EXPECT_TRUE(_pDb->delAllSchedrs()) << _pDb->getLastError();
+  
+  ZM_Base::scheduler schedr;
+  schedr.state = ZM_Base::stateType::ready;
+  schedr.connectPnt = "localhost:4444"; 
+  schedr.capacityTask = 105; 
+  uint64_t sId = 0;  
+  EXPECT_TRUE(_pDb->addSchedr(schedr, sId) && (sId > 0)) << _pDb->getLastError(); 
+
+  vector<ZM_DB::schedrTask> tasks;
+  EXPECT_TRUE(_pDb->getTasksForSchedr(sId, tasks)) << _pDb->getLastError(); 
+}
