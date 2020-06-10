@@ -113,7 +113,7 @@ public:
   virtual bool getSchedr(std::string& connPnt, ZM_Base::scheduler& outSchedl) = 0;
   virtual bool getTasksForSchedr(uint64_t schId, std::vector<schedrTask>& out) = 0;
   virtual bool getWorkersForSchedr(uint64_t schId, std::vector<ZM_Base::worker>& out) = 0;
-  virtual bool getNewTasks(int maxTaskCnt, std::vector<schedrTask>& out) = 0;
+  virtual bool getNewTasks(uint64_t schId, int maxTaskCnt, std::vector<schedrTask>& out) = 0;
   virtual bool sendAllMessFromSchedr(uint64_t schId, std::vector<messSchedr>& out) = 0;
 
   void setErrorCBack(errCBack ecb, udata ud);

@@ -1056,7 +1056,8 @@ bool DbPGProvider::getSchedr(std::string& connPnt, ZM_Base::scheduler& outCng){
 }
 bool DbPGProvider::getTasksForSchedr(uint64_t sId, std::vector<ZM_DB::schedrTask>& out){
   stringstream ss;
-  ss << "SELECT t.id, t.executor, t.averDurationSec, t.maxDurationSec, t.script, tq.id FROM tblTask t "
+  ss << "SELECT t.id, t.executor, t.averDurationSec, t.maxDurationSec, t.script, tq.id "
+        "FROM tblTask t "
         "JOIN tblTaskQueue tq ON tq.task = t.id "
         "WHERE tq.schedr = " << sId << " AND (tq.state BETWEEN 1 AND 3);"; // 1 - start, 2 - running, 3 - pause
 
@@ -1098,10 +1099,79 @@ bool DbPGProvider::getTasksForSchedr(uint64_t sId, std::vector<ZM_DB::schedrTask
   PQclear(resTsk);
   return true;
 }
-bool DbPGProvider::getWorkersForSchedr(uint64_t schedrId, std::vector<ZM_Base::worker>&){
+bool DbPGProvider::getWorkersForSchedr(uint64_t sId, std::vector<ZM_Base::worker>& out){
+  stringstream ss;
+  ss << "SELECT w.id, w.state, w.executor, w.capacityTask, w.activeTask, w.rating, cp.ipAddr, cp.port "
+        "FROM tblWorker w "
+        "JOIN tblConnectPnt cp ON cp.id = w.connPnt "
+        "WHERE w.schedr = " << sId << " AND w.isDelete = 0;";
+
+  auto res = PQexec(_pg, ss.str().c_str());
+  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+    errorMess(string("getWorkersForSchedr error: ") + PQerrorMessage(_pg));
+    PQclear(res);
+    return false;
+  }
+  int wsz = PQntuples(res);
+  for(int i =0; i < wsz; ++i){
+    out.push_back(ZM_Base::worker{ stoull(PQgetvalue(res, i, 0)),
+                                   sId,
+                                   (ZM_Base::stateType)atoi(PQgetvalue(res, i, 1)),
+                                   (ZM_Base::executorType)atoi(PQgetvalue(res, i, 2)),
+                                   atoi(PQgetvalue(res, i, 3)),
+                                   atoi(PQgetvalue(res, i, 4)),
+                                   atoi(PQgetvalue(res, i, 5)),
+                                   PQgetvalue(res, i, 6) + string(":") + PQgetvalue(res, i, 7)});
+  }
+  PQclear(res);
   return true;
 }
-bool DbPGProvider::getNewTasks(int maxTaskCnt, std::vector<ZM_DB::schedrTask>&){
+bool DbPGProvider::getNewTasks(uint64_t sId, int maxTaskCnt, std::vector<ZM_DB::schedrTask>& out){
+  stringstream ss;
+  ss << "WITH nqt AS (UPDATE tblTaskQueue SET "
+        "state = '" << (int)ZM_Base::stateType::start << "'," 
+        "schedr = '" << sId << "' "
+        "WHERE state = " << (int)ZM_Base::stateType::ready << " RETURNING id, task) "
+        "SELECT t.id, t.executor, t.averDurationSec, t.maxDurationSec, t.script, nqt.id "
+        "FROM tblTask t "
+        "JOIN nqt ON nqt.task = t.id LIMIT " << maxTaskCnt << ";";
+
+  auto resTsk = PQexec(_pg, ss.str().c_str());
+  if (PQresultStatus(resTsk) != PGRES_TUPLES_OK){
+    errorMess(string("getNewTasks error: ") + PQerrorMessage(_pg));
+    PQclear(resTsk);
+    return false;
+  }
+  int tsz = PQntuples(resTsk);
+  for (int i = 0; i < tsz; ++i){    
+    uint64_t qId = stoull(PQgetvalue(resTsk, i, 5));
+    ss.str("");
+    ss << "SELECT key, value FROM tblParam "
+          "WHERE qtask = " << qId << ";";
+
+    auto resPrm = PQexec(_pg, ss.str().c_str());
+    if (PQresultStatus(resPrm) != PGRES_TUPLES_OK){
+      errorMess(string("getTasksForSchedr error: ") + PQerrorMessage(_pg));
+      PQclear(resPrm);
+      PQclear(resTsk);
+      return false;
+    }
+    string prms;
+    int psz = PQntuples(resPrm);
+    for (int j = 0; j < psz; ++j){    
+      prms += string("-") + PQgetvalue(resTsk, j, 0) + "=" + PQgetvalue(resTsk, j, 1);
+    }
+    PQclear(resPrm);
+    out.push_back(make_pair(
+      ZM_Base::task{ stoull(PQgetvalue(resTsk, i, 0)),
+                     (ZM_Base::executorType)atoi(PQgetvalue(resTsk, i, 1)),
+                     atoi(PQgetvalue(resTsk, i, 2)),
+                     atoi(PQgetvalue(resTsk, i, 3)),
+                     PQgetvalue(resTsk, i, 4)
+                   },
+                   prms));
+  }
+  PQclear(resTsk);
   return true;
 }
 bool DbPGProvider::sendAllMessFromSchedr(uint64_t schedrId, std::vector<ZM_DB::messSchedr>&){

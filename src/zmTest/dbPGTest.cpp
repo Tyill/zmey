@@ -182,7 +182,8 @@ TEST_F(DBTest, getAllUsers){
 TEST_F(DBTest, addSchedr){
   EXPECT_TRUE(_pDb->delAllSchedrs()) << _pDb->getLastError();
   
-  ZM_Base::scheduler schedr;
+  ZM_Base::scheduler schedr{0};
+  schedr.capacityTask = 10000;
   schedr.state = ZM_Base::stateType::ready;
   schedr.connectPnt = "localhost:4444";  
   uint64_t sId = 0;  
@@ -304,13 +305,15 @@ TEST_F(DBTest, addWorker){
   EXPECT_TRUE(_pDb->delAllSchedrs()) << _pDb->getLastError();
   EXPECT_TRUE(_pDb->delAllWorkers()) << _pDb->getLastError();
   
-  ZM_Base::scheduler schedr;
+  ZM_Base::scheduler schedr{0};
   schedr.state = ZM_Base::stateType::ready;
-  schedr.connectPnt = "localhost:4444";  
+  schedr.connectPnt = "localhost:4444";
+  schedr.capacityTask = 10000;
   uint64_t sId = 0;  
   EXPECT_TRUE(_pDb->addSchedr(schedr, sId) && (sId > 0)) << _pDb->getLastError(); 
   
-  ZM_Base::worker worker;
+  ZM_Base::worker worker{0};
+  worker.capacityTask = 10;
   worker.sId = sId;
   worker.state = ZM_Base::stateType::ready;
   worker.connectPnt = "localhost:4444";  
@@ -1302,4 +1305,30 @@ TEST_F(DBTest, getTaskForSchedr){
 
   vector<ZM_DB::schedrTask> tasks;
   EXPECT_TRUE(_pDb->getTasksForSchedr(sId, tasks)) << _pDb->getLastError(); 
+}
+TEST_F(DBTest, getWorkerForSchedr){
+  EXPECT_TRUE(_pDb->delAllSchedrs()) << _pDb->getLastError();
+  
+  ZM_Base::scheduler schedr;
+  schedr.state = ZM_Base::stateType::ready;
+  schedr.connectPnt = "localhost:4444"; 
+  schedr.capacityTask = 105; 
+  uint64_t sId = 0;  
+  EXPECT_TRUE(_pDb->addSchedr(schedr, sId) && (sId > 0)) << _pDb->getLastError(); 
+
+  vector<ZM_Base::worker> workers;
+  EXPECT_TRUE(_pDb->getWorkersForSchedr(sId, workers)) << _pDb->getLastError(); 
+}
+TEST_F(DBTest, getNewTaskForSchedr){
+  EXPECT_TRUE(_pDb->delAllSchedrs()) << _pDb->getLastError();
+  
+  ZM_Base::scheduler schedr;
+  schedr.state = ZM_Base::stateType::ready;
+  schedr.connectPnt = "localhost:4444"; 
+  schedr.capacityTask = 105; 
+  uint64_t sId = 0;  
+  EXPECT_TRUE(_pDb->addSchedr(schedr, sId) && (sId > 0)) << _pDb->getLastError(); 
+
+  vector<ZM_DB::schedrTask> tasks;
+  EXPECT_TRUE(_pDb->getNewTasks(sId, 10, tasks)) << _pDb->getLastError(); 
 }

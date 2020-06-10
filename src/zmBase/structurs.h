@@ -49,14 +49,13 @@ namespace ZM_Base{
     justStartWorker     = 14,
     workerNotResponding = 15,
   };
-
+  // tblExecutor
   enum class executorType{
-    undefined = -1,
     cmd       = 0,
     bash      = 1,
     python    = 2,
   };  
-   
+  // tblState
   enum class stateType{
     undefined          = -1,
     ready               = 0, // for task: can be taken to work
@@ -68,21 +67,21 @@ namespace ZM_Base{
     error               = 6,
     notResponding       = 7,
   };
-  // tblUser fields
+  // tblUser
   struct user{
     uint64_t id;              // id tblUser
     std::string name;         // unique name
     std::string passw;        // optional password
     std::string description;
   };
-  // tblUPipeline fields
+  // tblUPipeline
   struct uPipeline{
-    uint64_t id = 0;          // id tblUPipeline
-    uint64_t uId = 0;         // id tblUser
+    uint64_t id;              // id tblUPipeline
+    uint64_t uId;             // id tblUser
     std::string name;         // unique name
     std::string description;
   };
-  // tblTask fields
+  // tblTask
   struct task{
     uint64_t id;              // id tblTask
     executorType exr;               
@@ -90,20 +89,20 @@ namespace ZM_Base{
     int maxDurationSec;       // maximum lead time      
     std::string script;       // script on bash, python or cmd    
   };  
-  // tblTaskQueue fields
+  // tblTaskQueue
   struct queueTask{
-    uint64_t id = 0;          // id tblTaskQueue
-    uint64_t tId = 0;         // id tblTask
-    uint64_t uId = 0;         // launcher id tblUser
+    uint64_t id;              // id tblTaskQueue
+    uint64_t tId;             // id tblTask
+    uint64_t uId;             // launcher id tblUser
     stateType state = stateType::undefined; 
-    int priority = 0;         // [1..3]
-    int progress = 0;         // [0..100]     
+    int priority;             // [1..3]
+    int progress;             // [0..100]     
     std::string params;       // params of script: -key=value
     std::string result;
   };  
-  // tblUTaskTemplate fields
+  // tblUTaskTemplate
   struct uTaskTemplate{
-    uint64_t uId = 0;         // parent id tblUser
+    uint64_t uId;             // parent id tblUser
     std::string name;
     std::string description;
     task base;
@@ -115,32 +114,32 @@ namespace ZM_Base{
       return std::to_string(x) + " " + std::to_string(y) + " " + std::to_string(w) + " " + std::to_string(h);
     }
   };
-  // tblUPipelineTask fields
+  // tblUPipelineTask
   struct uTask{
-    uint64_t id = 0;          // id tblUTask 
-    uint64_t pplId = 0;       // id tblUPipeline
+    uint64_t id;              // id tblUTask 
+    uint64_t pplId;           // id tblUPipeline
     std::vector<uint64_t> prevTasks; // queue task id tblUTask of previous tasks to be completed
     std::vector<uint64_t> nextTasks; // queue task id tblUTask of next tasks
     uScreenRect rct;          // rect on screen
     queueTask base; 
   };
-  // tblScheduler fields
+  // tblScheduler
   struct scheduler{
-    uint64_t id = 0;          // id tblScheduler
-    stateType state = stateType::undefined;
-    int capacityTask = 10000; // the number of tasks that can be performed simultaneously  
-    int activeTask = 0;       // number of running tasks
+    uint64_t id;              // id tblScheduler
+    stateType state;
+    int capacityTask;         // the number of tasks that can be performed simultaneously  
+    int activeTask;           // number of running tasks
     std::string connectPnt;   // connection point: IP or DNS ':' port
   };
-  // tblWorker fields
+  // tblWorker
   struct worker{
-    uint64_t id = 0;          // id tblWorker
-    uint64_t sId = 0;         // id tblScheduler
-    stateType state = stateType::undefined;
-    executorType exr = executorType::undefined;     
-    int capacityTask = 10;    // the number of tasks that can be performed simultaneously  
-    int activeTask = 0;       // number of running tasks
-    int rating = 10;          // manager is assigned a rating to the worker[1..10]
+    uint64_t id;              // id tblWorker
+    uint64_t sId;             // id tblScheduler
+    stateType state;
+    executorType exr;     
+    int capacityTask;         // the number of tasks that can be performed simultaneously  
+    int activeTask;           // number of running tasks
+    int rating;               // manager is assigned a rating to the worker[1..10]
     std::string connectPnt;   // connection point: IP or DNS ':' port
   }; 
 }
