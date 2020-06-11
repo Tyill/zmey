@@ -97,6 +97,11 @@ ZMEY_API zmConn zmCreateConnection(zmConnect, char* err /*sz 256*/);
 /// @param[in] zmConn - object connect
 ZMEY_API void zmDisconnect(zmConn);
 
+/// create tables, will be created if not exist
+/// @param[in] zmConn - object connect
+/// @return true - ok
+ZMEY_API bool zmCreateTables(zmConn);
+
 typedef void* zmUData;                                     ///< user data    
 typedef void(*zmErrorCBack)(const char* mess, zmUData);    ///< error callback
 
@@ -363,7 +368,11 @@ ZMEY_API uint32_t zmGetAllTaskTemplates(zmConn, uint64_t parent, uint64_t** outT
 struct zmScreenRect{
   uint32_t x, y, w, h;
 };
-
+struct zmOpt{
+  char* key; ///< any key, may be nullptr, examples: --a, -b, c, -abc etc.  
+  char* sep; ///< any separator, may be nullptr, examples: =, ' ', ',' etc.  
+  char* val; ///< any value, may be nullptr, examples: 123, 1.12, abc12, 12df$_ etc.
+};
 /// pipeline task config
 struct zmTask{
   uint64_t pplId;          ///< pipeline id
@@ -373,7 +382,9 @@ struct zmTask{
   uint32_t prevTasksCnt;   ///< pipeline task previous count
   uint32_t nextTasksCnt;   ///< pipeline task next count
   uint32_t priority;       ///< [1..3]
-  char* params;            ///< params of script: -key=value
+  zmOpt* params;           ///< CLI params for script
+  uint32_t paramsCnt;      ///< CLI params count for script
+  zmOpt result;            ///< 'key' and 'sep' for result of script
   zmScreenRect screenRect; ///< screenRect
 };
 

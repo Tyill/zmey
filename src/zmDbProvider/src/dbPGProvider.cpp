@@ -39,13 +39,20 @@ DbPGProvider::DbPGProvider(const ZM_DB::connectCng& connCng)
   if (PQstatus(_pg) != CONNECTION_OK){
     errorMess(PQerrorMessage(_pg));
     return;
-  }  
-#define QUERY(req, sts){                \
+  }
+}
+DbPGProvider::~DbPGProvider(){
+  if (_pg){
+    PQfinish(_pg);
+  }
+}
+bool DbPGProvider::createTables(){
+  #define QUERY(req, sts){              \
     auto res = PQexec(_pg, req);        \
     if (PQresultStatus(res) != sts){    \
-        errorMess(string("DbPGProvider error: ") + PQerrorMessage(_pg)); \
+        errorMess(string("createTables error: ") + PQerrorMessage(_pg)); \
         PQclear(res);                   \
-        return;                         \
+        return false;                   \
     }                                   \
     PQclear(res);                       \
   }
@@ -153,15 +160,17 @@ DbPGProvider::DbPGProvider(const ZM_DB::connectCng& connCng)
   ss << "CREATE TABLE IF NOT EXISTS tblParam("
         "id           SERIAL PRIMARY KEY,"
         "qtask        INT NOT NULL REFERENCES tblTaskQueue,"
-        "key          TEXT NOT NULL CHECK (key <> ''),"
-        "value        TEXT NOT NULL CHECK (value <> ''));";
+        "key          TEXT NOT NULL,"
+        "sep          TEXT NOT NULL,"
+        "value        TEXT NOT NULL);";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
   ss << "CREATE TABLE IF NOT EXISTS tblResult("
-        "qtask        INT PRIMARY KEY REFERENCES tblTaskQueue,"
-        "key          TEXT NOT NULL CHECK (key <> ''),"
-        "value        TEXT NOT NULL CHECK (value <> ''));";
+        "qtask        INT NOT NULL PRIMARY KEY REFERENCES tblTaskQueue,"
+        "key          TEXT NOT NULL,"
+        "sep          TEXT NOT NULL,"
+        "value        TEXT NOT NULL);";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
@@ -198,19 +207,15 @@ DbPGProvider::DbPGProvider(const ZM_DB::connectCng& connCng)
         "taskTempl    INT NOT NULL REFERENCES tblUTaskTemplate,"
         "qtask        INT REFERENCES tblTaskQueue,"
         "priority     INT NOT NULL DEFAULT 1 CHECK (priority BETWEEN 1 AND 3),"
-        "prevTasks    TEXT NOT NULL,"
-        "nextTasks    TEXT NOT NULL,"
-        "params       TEXT NOT NULL,"
+        "prevTasks    TEXT NOT NULL,"   // separated by space
+        "nextTasks    TEXT NOT NULL,"  
+        "params       TEXT[] NOT NULL," // [key, sep, val]
         "screenRect   TEXT NOT NULL,"
         "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
-
+  
+  return true;
 #undef QUERY
-}
-DbPGProvider::~DbPGProvider(){
-  if (_pg){
-    PQfinish(_pg);
-  }
 }
 
 // for manager
@@ -966,17 +971,17 @@ bool DbPGProvider::getTaskState(uint64_t tId, ZM_Base::queueTask& outState){
 
   auto res = PQexec(_pg, ss.str().c_str());
   if ((PQresultStatus(res) != PGRES_TUPLES_OK) || (PQntuples(res) != 1)){      
-      if ((PQresultStatus(res) == PGRES_TUPLES_OK) && (PQntuples(res) == 0)){
-        outState.progress = 0;
-        outState.state = ZM_Base::stateType::undefined;
-        outState.result = "";
-        PQclear(res);
-        return true;
-      }else{
-        errorMess(string("getTaskState error: ") + PQerrorMessage(_pg));
-        PQclear(res);        
-        return false;
-      }
+    if ((PQresultStatus(res) == PGRES_TUPLES_OK) && (PQntuples(res) == 0)){
+      outState.progress = 0;
+      outState.state = ZM_Base::stateType::undefined;
+      outState.result = "";
+      PQclear(res);
+      return true;
+    }else{
+      errorMess(string("getTaskState error: ") + PQerrorMessage(_pg));
+      PQclear(res);        
+      return false;
+    }
   }
   outState.progress = atoi(PQgetvalue(res, 0, 0));
   outState.state = (ZM_Base::stateType)atoi(PQgetvalue(res, 0, 1));
@@ -1127,51 +1132,59 @@ bool DbPGProvider::getWorkersForSchedr(uint64_t sId, std::vector<ZM_Base::worker
   return true;
 }
 bool DbPGProvider::getNewTasks(uint64_t sId, int maxTaskCnt, std::vector<ZM_DB::schedrTask>& out){
-  stringstream ss;
-  ss << "WITH nqt AS (UPDATE tblTaskQueue SET "
-        "state = '" << (int)ZM_Base::stateType::start << "'," 
-        "schedr = '" << sId << "' "
-        "WHERE state = " << (int)ZM_Base::stateType::ready << " RETURNING id, task) "
-        "SELECT t.id, t.executor, t.averDurationSec, t.maxDurationSec, t.script, nqt.id "
-        "FROM tblTask t "
-        "JOIN nqt ON nqt.task = t.id LIMIT " << maxTaskCnt << ";";
+  // #define ROLLBACK(res, sts)                                         \
+  // if (PQresultStatus(res) != sts){                                   \
+  //    errorMess(string("getNewTasks error: ") + PQerrorMessage(_pg)); \
+  //    PQexec(_pg, "ROLLBACK;");                                       \
+  //    PQclear(res);                                                   \
+  //    return false;                                                   \
+  // }  
+  // auto resBegin = PQexec(_pg, "BEGIN;");
+  // ROLLBACK(resBegin, PGRES_COMMAND_OK);
+  // PQclear(resBegin);
+  
+  // stringstream ss;
+  // ss << "SELECT tq.id, tq.isDependence FROM tblTaskQueue tq "
+  //       "LEFT JOIN tblPrevTask pt ON pt.qtask = tq.id "
+  //       "WHERE tq.state = " << (int)ZM_Base::stateType::ready << " LIMIT " << maxTaskCnt << ";";
+  
+  // auto resTsk = PQexec(_pg, ss.str().c_str());
+  // ROLLBACK(resTsk, PGRES_TUPLES_OK);
+ 
+  // int tsz = PQntuples(resTsk);
+  // for (int i = 0; i < tsz; ++i){    
+  //   uint64_t qId = stoull(PQgetvalue(resTsk, i, 0));
+  //   bool isDependence = atoi(PQgetvalue(resTsk, i, 1)) == 1;
+  //   if (isDependence){
+  //     ss.str("");
+  //     ss << "SELECT pt.id FROM tblPrevTask pt "
+  //           "JOIN tblTaskQueue tq ON tq.id = pt.prevTask "
+  //           "WHERE pt.qtask = " << qId << " AND tq.state = " << (int)ZM_Base::stateType::completed << ";";
 
-  auto resTsk = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(resTsk) != PGRES_TUPLES_OK){
-    errorMess(string("getNewTasks error: ") + PQerrorMessage(_pg));
-    PQclear(resTsk);
-    return false;
-  }
-  int tsz = PQntuples(resTsk);
-  for (int i = 0; i < tsz; ++i){    
-    uint64_t qId = stoull(PQgetvalue(resTsk, i, 5));
-    ss.str("");
-    ss << "SELECT key, value FROM tblParam "
-          "WHERE qtask = " << qId << ";";
-
-    auto resPrm = PQexec(_pg, ss.str().c_str());
-    if (PQresultStatus(resPrm) != PGRES_TUPLES_OK){
-      errorMess(string("getTasksForSchedr error: ") + PQerrorMessage(_pg));
-      PQclear(resPrm);
-      PQclear(resTsk);
-      return false;
-    }
-    string prms;
-    int psz = PQntuples(resPrm);
-    for (int j = 0; j < psz; ++j){    
-      prms += string("-") + PQgetvalue(resTsk, j, 0) + "=" + PQgetvalue(resTsk, j, 1);
-    }
-    PQclear(resPrm);
-    out.push_back(make_pair(
-      ZM_Base::task{ stoull(PQgetvalue(resTsk, i, 0)),
-                     (ZM_Base::executorType)atoi(PQgetvalue(resTsk, i, 1)),
-                     atoi(PQgetvalue(resTsk, i, 2)),
-                     atoi(PQgetvalue(resTsk, i, 3)),
-                     PQgetvalue(resTsk, i, 4)
-                   },
-                   prms));
-  }
-  PQclear(resTsk);
+  //     auto resDep = PQexec(_pg, ss.str().c_str());
+  //     if (PQresultStatus(resDep) != PGRES_TUPLES_OK){
+  //       errorMess(string("getNewTasks error: ") + PQerrorMessage(_pg));
+  //       PQclear(resDep);
+  //       PQclear(resTsk);
+  //       return false;
+  //     }
+  //   }
+  //   string prms;
+  //   int psz = PQntuples(resPrm);
+  //   for (int j = 0; j < psz; ++j){    
+  //     prms += string("-") + PQgetvalue(resTsk, j, 0) + "=" + PQgetvalue(resTsk, j, 1);
+  //   }
+  //   PQclear(resPrm);
+  //   out.push_back(make_pair(
+  //     ZM_Base::task{ stoull(PQgetvalue(resTsk, i, 0)),
+  //                    (ZM_Base::executorType)atoi(PQgetvalue(resTsk, i, 1)),
+  //                    atoi(PQgetvalue(resTsk, i, 2)),
+  //                    atoi(PQgetvalue(resTsk, i, 3)),
+  //                    PQgetvalue(resTsk, i, 4)
+  //                  },
+  //                  prms));
+  // }
+  // PQclear(resTsk);
   return true;
 }
 bool DbPGProvider::sendAllMessFromSchedr(uint64_t schedrId, std::vector<ZM_DB::messSchedr>&){

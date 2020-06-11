@@ -53,7 +53,7 @@ struct messSchedr{
   int progress;
   std::string result;
 };
-using schedrTask = std::pair<ZM_Base::task, std::string>;
+using schedrTask = std::pair<ZM_Base::task, std::string>; // second - params str
 
 typedef void* udata;
 typedef std::function<void(const char* mess, udata)> errCBack;
@@ -67,6 +67,8 @@ public:
   std::string getLastError() const{
     return _err;
   }  
+  virtual bool createTables() = 0;
+
   // for manager
   virtual bool addUser(const ZM_Base::user& newUserCng, uint64_t& outUserId) = 0;
   virtual bool getUserId(const std::string& name, const std::string& passw, uint64_t& outUserId) = 0;

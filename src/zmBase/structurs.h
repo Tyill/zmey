@@ -84,21 +84,26 @@ namespace ZM_Base{
   // tblTask
   struct task{
     uint64_t id;              // id tblTask
-    executorType exr;               
-    int averDurationSec;      // estimated lead time 
-    int maxDurationSec;       // maximum lead time      
-    std::string script;       // script on bash, python or cmd    
+    executorType exr;
+    int averDurationSec;      // estimated lead time
+    int maxDurationSec;       // maximum lead time
+    std::string script;       // script on bash, python or cmd
   };  
+  struct opt{
+    std::string key;
+    std::string sep;
+    std::string val;
+  };
   // tblTaskQueue
   struct queueTask{
     uint64_t id;              // id tblTaskQueue
     uint64_t tId;             // id tblTask
     uint64_t uId;             // launcher id tblUser
-    stateType state = stateType::undefined; 
+    stateType state;
     int priority;             // [1..3]
-    int progress;             // [0..100]     
-    std::string params;       // params of script: -key=value
-    std::string result;
+    int progress;             // [0..100]
+    std::vector<opt> params;  // CLI params for script: 'key' + 'sep' + 'val'
+    opt result;               // 'key' + 'sep' + result of script 
   };  
   // tblUTaskTemplate
   struct uTaskTemplate{

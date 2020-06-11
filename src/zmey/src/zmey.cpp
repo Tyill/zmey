@@ -68,6 +68,11 @@ void zmDisconnect(zmConn zo){
     delete static_cast<ZM_DB::DbProvider*>(zo);
   }
 }
+bool zmCreateTables(zmConn){
+  if (!zo) return;
+
+  static_cast<ZM_DB::DbProvider*>(zo)->createTables();
+}
 void zmSetErrorCBack(zmConn zo, zmErrorCBack ecb, zmUData ud){
   if (!zo) return;
 
@@ -460,22 +465,19 @@ bool zmAddTask(zmConn zo, zmTask cng, uint64_t* outQTId){
     static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmAddTask error: !cng.nextTasksId");
     return false;
   }
+  if ((cng.paramsCnt > 0) && !cng.params){
+    static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmAddTask error: !cng.params");
+    return false;
+  }
   ZM_Base::uTask task;
   task.pplId = cng.pplId;
   if (cng.params){
-    task.base.params = cng.params;
-    auto params = ZM_Aux::split(task.base.params, "-");
-    if (params.empty()){
-      static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmAddTask error: params not correct, should be -key=value.. ");
-      return false;
-    }
-    for (auto& p : params){
-      auto keyVal = ZM_Aux::split(p, "=");
-      if (keyVal.size() != 2){ 
-        static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmAddTask error: params not correct, should be -key=value.. ");
-        return false;
-      }
-    }
+    for (int i = 0; i < cng.paramsCnt; ++i){ 
+      task.base.params.push_back(
+        ZM_Base::opt{ cng.params[i]->key ? cng.params[i]->key : "",
+                      cng.params[i]->sep ? cng.params[i]->sep : "",
+                      cng.params[i]->val ? cng.params[i]->val : ""});
+    }    
   }
   for (int i = 0; i < cng.prevTasksCnt; ++i){
     task.prevTasks.push_back(cng.prevTasksId[i]);
@@ -486,7 +488,10 @@ bool zmAddTask(zmConn zo, zmTask cng, uint64_t* outQTId){
   task.base.priority = cng.priority;
   task.rct = ZM_Base::uScreenRect{cng.screenRect.x, cng.screenRect.y, cng.screenRect.w, cng.screenRect.h};
   task.base.tId = cng.tId;
-    
+  task.base.result.key = cng.result->key ? cng.result->key : "";
+  task.base.result.sep = cng.result->sep ? cng.result->sep : "";
+  task.base.result.val = cng.result->val ? cng.result->val : ""; 
+  
   return static_cast<ZM_DB::DbProvider*>(zo)->addTask(task, *outQTId);
 }
 bool zmGetTask(zmConn zo, uint64_t tId, zmTask* outCng){
@@ -504,10 +509,26 @@ bool zmGetTask(zmConn zo, uint64_t tId, zmTask* outCng){
     
     auto& params = task.base.params;
     if (!params.empty()){ 
-      outCng->params = (char*)realloc(outCng->params, params.size() + 1);
-      strcpy(outCng->params, params.c_str());
+      size_t psz = params.size();
+      outCng->params = (zmOpt*)realloc(outCng->params, psz * sizeof(zmOpt));
+      for (size_t i = 0; i < psz; ++i){
+        if (!params[i].key.empty()){
+          outCng->params[i]->key = (zmOpt*)realloc(outCng->params[i]->key, params[i].key.size() + 1);
+          strcpy(outCng->params[i]->key, params[i].key.c_str());
+        } 
+        if (!params[i].sep.empty()){
+          outCng->params[i]->sep = (zmOpt*)realloc(outCng->params[i]->sep, params[i].sep.size() + 1);
+          strcpy(outCng->params[i]->sep, params[i].sep.c_str());
+        }
+        if (!params[i].val.empty()){
+          outCng->params[i]->val = (zmOpt*)realloc(outCng->params[i]->val, params[i].val.size() + 1);
+          strcpy(outCng->params[i]->val, params[i].val.c_str());
+        }
+      }
+      outCng->paramsCnt = params.size(); 
     }else{
       outCng->params = nullptr;
+      outCng->paramsCnt = 0;
     }
     if (!task.prevTasks.empty()){ 
       outCng->prevTasksCnt = task.prevTasks.size();

@@ -33,6 +33,7 @@ public:
   ~DbPGProvider(); 
   DbPGProvider(const DbProvider& other) = delete;
   DbPGProvider& operator=(const DbProvider& other) = delete;
+  bool createTables() override;
   
   // for manager
   bool addUser(const ZM_Base::user& newUserCng, uint64_t& outUserId) override;
