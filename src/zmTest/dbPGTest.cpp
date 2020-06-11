@@ -29,7 +29,7 @@
 #include "zmCommon/auxFunc.h"
 
 using namespace std;
-
+bool onc = false;
 class DBTest : public ::testing::Test {
 public:
   DBTest() { 
@@ -39,6 +39,11 @@ public:
 
     _pDb = ZM_DB::makeDbProvider(cng);
     
+    if (!onc){
+      onc = true;
+      _pDb->createTables();
+    }
+
     auto err = _pDb->getLastError();
     if (!err.empty()){    
       TEST_COUT << err << endl;     
@@ -898,7 +903,7 @@ TEST_F(DBTest, addTask){
   task.pplId = pId; 
   task.base.priority = 1;
   task.base.tId = ttId;
-  task.base.params = "params";
+ // task.base.params = "params";
   task.rct = ZM_Base::uScreenRect{1, 2, 3, 4};
   task.nextTasks = std::vector<uint64_t>{};
   task.prevTasks = std::vector<uint64_t>{};
@@ -945,7 +950,7 @@ TEST_F(DBTest, getTask){
   task.pplId = pId; 
   task.base.priority = 1;
   task.base.tId = ttId;
-  task.base.params = "params";
+//  task.base.params = "params";
   task.rct = ZM_Base::uScreenRect{1, 2, 3, 4};
   auto ntsk = std::vector<uint64_t>{};
   task.nextTasks = ntsk;
@@ -957,14 +962,14 @@ TEST_F(DBTest, getTask){
   task.pplId = pId + 1; 
   task.base.priority = 2;
   task.base.tId = ttId + 1;
-  task.base.params = "paramsddd";
+ // task.base.params = "paramsddd";
   task.rct = ZM_Base::uScreenRect{51, 62, 33, 24};
   task.nextTasks.clear();
   task.prevTasks.clear();
   EXPECT_TRUE(_pDb->getTask(tId, task) && (task.pplId == pId) &&
                                           (task.base.priority == 1) &&
                                           (task.base.tId == ttId) &&
-                                          (task.base.params == "params") &&
+                                         // (task.base.params == "params") &&
                  ((task.rct.x == 1) && (task.rct.y == 2) && (task.rct.w == 3) && (task.rct.h == 4)) &&
                                           (std::equal(task.nextTasks.begin(), task.nextTasks.end(), ntsk.begin())) &&
                                           (std::equal(task.prevTasks.begin(), task.prevTasks.end(), ptsk.begin()))) << _pDb->getLastError();             
@@ -1023,7 +1028,7 @@ TEST_F(DBTest, changeTask){
   task.pplId = pId1; 
   task.base.priority = 1;
   task.base.tId = ttId1;
-  task.base.params = "params";
+ // task.base.params = "params";
   task.rct = ZM_Base::uScreenRect{1, 2, 3, 4};
   auto ntsk = std::vector<uint64_t>{};
   task.nextTasks = ntsk;
@@ -1035,7 +1040,7 @@ TEST_F(DBTest, changeTask){
   task.pplId = pId2; 
   task.base.priority = 2;
   task.base.tId = ttId2;
-  task.base.params = "paramsddd";
+ // task.base.params = "paramsddd";
   task.rct = ZM_Base::uScreenRect{51, 62, 33, 24};
   task.nextTasks.clear();
   task.prevTasks.clear();
@@ -1045,7 +1050,7 @@ TEST_F(DBTest, changeTask){
   EXPECT_TRUE(_pDb->getTask(tId, task) && (task.pplId == pId2) &&
                                           (task.base.priority == 2) &&
                                           (task.base.tId == ttId2) &&
-                                          (task.base.params == "paramsddd") &&
+                                 //         (task.base.params == "paramsddd") &&
                  ((task.rct.x == 51) && (task.rct.y == 62) && (task.rct.w == 33) && (task.rct.h == 24)) &&
                                           (std::equal(task.nextTasks.begin(), task.nextTasks.end(), ntsk.begin())) &&
                                           (std::equal(task.prevTasks.begin(), task.prevTasks.end(), ptsk.begin()))) << _pDb->getLastError();             
@@ -1086,7 +1091,7 @@ TEST_F(DBTest, delTask){
   task.pplId = pId; 
   task.base.priority = 1;
   task.base.tId = ttId;
-  task.base.params = "params";
+ // task.base.params = "params";
   task.rct = ZM_Base::uScreenRect{1, 2, 3, 4};
   auto ntsk = std::vector<uint64_t>{};
   task.nextTasks = ntsk;
@@ -1100,14 +1105,14 @@ TEST_F(DBTest, delTask){
   task.pplId = pId + 1; 
   task.base.priority = 2;
   task.base.tId = ttId + 1;
-  task.base.params = "paramsddd";
+//  task.base.params = "paramsddd";
   task.rct = ZM_Base::uScreenRect{51, 62, 33, 24};
   task.nextTasks.clear();
   task.prevTasks.clear();
   EXPECT_TRUE(!_pDb->getTask(tId, task) && (task.pplId == pId + 1) &&
                                           (task.base.priority == 2) &&
                                           (task.base.tId == ttId + 1) &&
-                                          (task.base.params == "paramsddd") &&
+                                      //    (task.base.params == "paramsddd") &&
                  ((task.rct.x == 51) && (task.rct.y == 62) && (task.rct.w == 33) && (task.rct.h == 24)) &&
                                           (std::equal(task.nextTasks.begin(), task.nextTasks.end(), ntsk.begin())) &&
                                           (std::equal(task.prevTasks.begin(), task.prevTasks.end(), ptsk.begin()))) << _pDb->getLastError();             
@@ -1148,7 +1153,7 @@ TEST_F(DBTest, startTask){
   task.pplId = pId; 
   task.base.priority = 1;
   task.base.tId = ttId;
-  task.base.params = "-key1 = params1 -key2 = params2";
+ // task.base.params = "-key1 = params1 -key2 = params2";
   task.rct = ZM_Base::uScreenRect{1, 2, 3, 4};
   task.nextTasks = std::vector<uint64_t>{};
   task.prevTasks = std::vector<uint64_t>{};
@@ -1193,7 +1198,7 @@ TEST_F(DBTest, getTaskState){
   task.pplId = pId; 
   task.base.priority = 1;
   task.base.tId = ttId;
-  task.base.params = "-key1 = params1 -key2 = params2";
+ // task.base.params = "-key1 = params1 -key2 = params2";
   task.rct = ZM_Base::uScreenRect{1, 2, 3, 4};
   task.nextTasks = std::vector<uint64_t>{};
   task.prevTasks = std::vector<uint64_t>{};
@@ -1243,7 +1248,7 @@ TEST_F(DBTest, getAllTask){
   task.pplId = pId; 
   task.base.priority = 1;
   task.base.tId = ttId;
-  task.base.params = "-key1 = params1 -key2 = params2";
+//  task.base.params = "-key1 = params1 -key2 = params2";
   task.rct = ZM_Base::uScreenRect{1, 2, 3, 4};
   task.nextTasks = std::vector<uint64_t>{};
   task.prevTasks = std::vector<uint64_t>{};

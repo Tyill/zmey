@@ -24,6 +24,7 @@
 //
 #pragma once
 
+#include <mutex>
 #include <libpq-fe.h>
 #include "../dbProvider.h"
 
@@ -95,4 +96,5 @@ public:
 #endif
 private:
   PGconn* _pg = nullptr; 
+  std::mutex _mtx;
 };
