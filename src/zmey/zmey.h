@@ -371,10 +371,10 @@ struct zmTask{
   uint64_t pplId;          ///< pipeline id
   uint64_t tId;            ///< task template id
   uint32_t priority;       ///< [1..3]
-  char* prevTasksId;       ///< pipeline task id of previous tasks to be completed: {tId,..}
-  char* nextTasksId;       ///< pipeline task id of next tasks: : {tId,..}
-  char* params;            ///< CLI params for script: {{key, sep, val},{..}..}
-  char* result;            ///< template for result of script: {key, sep, }
+  char* prevTasksId;       ///< pipeline task id of previous tasks to be completed: [tId,..]
+  char* nextTasksId;       ///< pipeline task id of next tasks: : [tId,..]
+  char* params;            ///< CLI params for script: [['key', 'sep', 'val'],[..]..]
+  char* result;            ///< template for result of script: ['key', 'sep', 'val']
   char* screenRect;        ///< screenRect: x y w h
 };
 
@@ -448,6 +448,17 @@ ZMEY_API bool zmTaskState(zmConn, uint64_t* tId, uint32_t tCnt, zmTskState* outT
 /// @param[out] outTState - pipeline task result
 /// @return true - ok
 ZMEY_API bool zmTaskResult(zmConn, uint64_t tId, char** outTResult);
+
+/// pipeline task time
+struct zmTskTime{
+  ;
+};
+/// get pipeline task result
+/// @param[in] zmConn - object connect
+/// @param[in] tId - pipeline task id
+/// @param[out] outTState - pipeline task result
+/// @return true - ok
+ZMEY_API bool zmTaskTime(zmConn, uint64_t tId, zmTskTime* outTResult);
 
 /// get all pipeline tasks
 /// @param[in] zmConn - object connect

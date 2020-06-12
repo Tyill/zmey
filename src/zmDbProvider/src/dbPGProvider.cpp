@@ -144,29 +144,39 @@ bool DbPGProvider::createTables(){
   ss.str("");
   ss << "CREATE TABLE IF NOT EXISTS tblTaskQueue("
         "id           SERIAL PRIMARY KEY,"
-        "task         INT NOT NULL REFERENCES tblTask,"
-        "state        INT NOT NULL REFERENCES tblState,"
+        "task         INT NOT NULL REFERENCES tblTask,"       
         "launcher     INT NOT NULL REFERENCES tblUser,"
         "schedr       INT REFERENCES tblScheduler,"
         "worker       INT REFERENCES tblWorker,"
-        "progress     INT NOT NULL DEFAULT 0 CHECK (progress BETWEEN 0 AND 100),"
-        "priority     INT NOT NULL DEFAULT 1 CHECK (priority BETWEEN 1 AND 3),"
-        "createTime   TIMESTAMP NOT NULL DEFAULT current_timestamp,"
-        "startTime    TIMESTAMP CHECK (startTime > createTime),"
-        "stopTime     TIMESTAMP CHECK (stopTime > startTime),"
         "isDependence INT NOT NULL DEFAULT 0 CHECK (isDependence BETWEEN 0 AND 1));";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
-  ss << "CREATE TABLE IF NOT EXISTS tblParam("
+  ss << "CREATE TABLE IF NOT EXISTS tblTaskState("
         "qtask        INT PRIMARY KEY REFERENCES tblTaskQueue,"        
-        "params       TEXT[][3] NOT NULL);"; // {{key, sep, val},{..}..}
+        "state        INT NOT NULL REFERENCES tblState,"
+        "progress     INT NOT NULL DEFAULT 0 CHECK (progress BETWEEN 0 AND 100));";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
-  ss << "CREATE TABLE IF NOT EXISTS tblResult("
+  ss << "CREATE TABLE IF NOT EXISTS tblTaskTime("
+        "qtask        INT PRIMARY KEY REFERENCES tblTaskQueue,"        
+        "createTime   TIMESTAMP NOT NULL DEFAULT current_timestamp,"
+        "startTime    TIMESTAMP CHECK (startTime > createTime),"
+        "stopTime     TIMESTAMP CHECK (stopTime > startTime));";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+
+  ss.str("");
+  ss << "CREATE TABLE IF NOT EXISTS tblTaskParam("
+        "qtask        INT PRIMARY KEY REFERENCES tblTaskQueue,"        
+        "priority     INT NOT NULL DEFAULT 1 CHECK (priority BETWEEN 1 AND 3),"
+        "params       TEXT[][3] NOT NULL);"; // [['key', 'sep', 'val'],[..]..]
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+
+  ss.str("");
+  ss << "CREATE TABLE IF NOT EXISTS tblTaskResult("
         "qtask        INT PRIMARY KEY REFERENCES tblTaskQueue,"
-        "result       TEXT[3] NOT NULL);"; // {{key, sep, val},{..}..}
+        "result       TEXT[3] NOT NULL);"; // ['key', 'sep', 'val']
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
@@ -183,7 +193,8 @@ bool DbPGProvider::createTables(){
         "usr          INT NOT NULL REFERENCES tblUser,"
         "name         TEXT NOT NULL CHECK (name <> ''),"
         "description  TEXT NOT NULL,"
-        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
+        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1),"
+        "isShared     INT NOT NULL DEFAULT 0 CHECK (isShared BETWEEN 0 AND 1));";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
@@ -192,7 +203,8 @@ bool DbPGProvider::createTables(){
         "parent       INT NOT NULL REFERENCES tblUser,"
         "name         TEXT NOT NULL CHECK (name <> ''),"
         "description  TEXT NOT NULL,"
-        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
+        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1),"
+        "isShared     INT NOT NULL DEFAULT 0 CHECK (isShared BETWEEN 0 AND 1));";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
