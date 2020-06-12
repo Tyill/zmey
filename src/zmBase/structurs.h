@@ -89,11 +89,6 @@ namespace ZM_Base{
     int maxDurationSec;       // maximum lead time
     std::string script;       // script on bash, python or cmd
   };  
-  struct opt{
-    std::string key;
-    std::string sep;
-    std::string val;
-  };
   // tblTaskQueue
   struct queueTask{
     uint64_t id;              // id tblTaskQueue
@@ -102,8 +97,8 @@ namespace ZM_Base{
     stateType state;
     int priority;             // [1..3]
     int progress;             // [0..100]
-    std::vector<opt> params;  // CLI params for script: 'key' + 'sep' + 'val'
-    opt result;               // 'key' + 'sep' + result of script 
+    std::string params;       // CLI params for script: {{key, sep, val},{..}..}
+    std::string result;       // result of script: {key, sep, val}
   };  
   // tblUTaskTemplate
   struct uTaskTemplate{
@@ -112,20 +107,13 @@ namespace ZM_Base{
     std::string description;
     task base;
   };
-  
-  struct uScreenRect{
-    int x, y, w, h;
-    std::string toString() const{
-      return std::to_string(x) + " " + std::to_string(y) + " " + std::to_string(w) + " " + std::to_string(h);
-    }
-  };
   // tblUPipelineTask
   struct uTask{
     uint64_t id;              // id tblUTask 
     uint64_t pplId;           // id tblUPipeline
-    std::vector<uint64_t> prevTasks; // queue task id tblUTask of previous tasks to be completed
-    std::vector<uint64_t> nextTasks; // queue task id tblUTask of next tasks
-    uScreenRect rct;          // rect on screen
+    std::string prevTasks;    // queue task id tblUTask of previous tasks to be completed: {tId,..}
+    std::string nextTasks;    // queue task id tblUTask of next tasks: {tId,..}
+    std::string screenRect;   // rect on screen: x y w h
     queueTask base; 
   };
   // tblScheduler

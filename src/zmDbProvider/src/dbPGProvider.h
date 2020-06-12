@@ -55,7 +55,7 @@ public:
   bool getWorker(uint64_t wkrId, ZM_Base::worker& cng) override;
   bool changeWorker(uint64_t wkrId, const ZM_Base::worker& newCng) override;
   bool delWorker(uint64_t wkrId) override;
-  bool workerState(uint64_t wkrId, ZM_Base::stateType& out) override;
+  bool workerState(const std::vector<uint64_t>& wkrId, std::vector<ZM_Base::stateType>& out) override;
   std::vector<uint64_t> getAllWorkers(uint64_t schId, ZM_Base::stateType) override;
 
   bool addPipeline(const ZM_Base::uPipeline& cng, uint64_t& outPPLId) override;
@@ -75,7 +75,8 @@ public:
   bool changeTask(uint64_t tId, const ZM_Base::uTask& newTCng) override;
   bool delTask(uint64_t tId) override;
   bool startTask(uint64_t tId) override;
-  bool getTaskState(uint64_t tId, ZM_Base::queueTask&) override;
+  bool taskState(const std::vector<uint64_t>& tId, std::vector<ZM_DB::tskState>&) override;
+  bool taskResult(uint64_t tId, std::string&) override;
   std::vector<uint64_t> getAllTasks(uint64_t pplId, ZM_Base::stateType) override;
 
   // for zmSchedr

@@ -123,7 +123,7 @@ ZMEY_API void zmGetLastError(zmConn, char* err/*sz 256*/);
 struct zmUser{  
   char name[255];    ///< unique name
   char passw[255];   ///< password  
-  char* description;  ///< the memory is allocated by the user   
+  char* description; ///< the memory is allocated by the user   
 };
 
 /// add new user
@@ -255,10 +255,11 @@ ZMEY_API bool zmDelWorker(zmConn, uint64_t wId);
 
 /// worker state
 /// @param[in] zmConn - object connect
-/// @param[in] wId - worker id
-/// @param[out] outState - worker state
+/// @param[in] wId - worker id, order by id.
+/// @param[in] wCnt - worker count
+/// @param[out] outState - worker state. The memory is allocated by the user
 /// @return true - ok
-ZMEY_API bool zmWorkerState(zmConn, uint64_t wId, zmStateType* outState);
+ZMEY_API bool zmWorkerState(zmConn, uint64_t* wId, uint32_t wCnt, zmStateType* outState);
 
 /// get all workers
 /// @param[in] zmConn - object connect
@@ -365,27 +366,16 @@ ZMEY_API uint32_t zmGetAllTaskTemplates(zmConn, uint64_t parent, uint64_t** outT
 ///////////////////////////////////////////////////////////////////////////////
 /// Task of pipeline
 
-struct zmScreenRect{
-  uint32_t x, y, w, h;
-};
-struct zmOpt{
-  char* key; ///< any key, may be nullptr, examples: --a, -b, c, -abc etc.  
-  char* sep; ///< any separator, may be nullptr, examples: =, ' ', ',' etc.  
-  char* val; ///< any value, may be nullptr, examples: 123, 1.12, abc12, 12df$_ etc.
-};
 /// pipeline task config
 struct zmTask{
   uint64_t pplId;          ///< pipeline id
   uint64_t tId;            ///< task template id
-  uint64_t* prevTasksId;   ///< pipeline task id of previous tasks to be completed
-  uint64_t* nextTasksId;   ///< pipeline task id of next tasks
-  uint32_t prevTasksCnt;   ///< pipeline task previous count
-  uint32_t nextTasksCnt;   ///< pipeline task next count
   uint32_t priority;       ///< [1..3]
-  zmOpt* params;           ///< CLI params for script
-  uint32_t paramsCnt;      ///< CLI params count for script
-  zmOpt result;            ///< 'key' and 'sep' for result of script
-  zmScreenRect screenRect; ///< screenRect
+  char* prevTasksId;       ///< pipeline task id of previous tasks to be completed: {tId,..}
+  char* nextTasksId;       ///< pipeline task id of next tasks: : {tId,..}
+  char* params;            ///< CLI params for script: {{key, sep, val},{..}..}
+  char* result;            ///< template for result of script: {key, sep, }
+  char* screenRect;        ///< screenRect: x y w h
 };
 
 /// add pipeline task
@@ -440,17 +430,24 @@ ZMEY_API bool zmPauseTask(zmConn, uint64_t tId);
 ZMEY_API bool zmContinueTask(zmConn, uint64_t tId);
 
 /// pipeline task state
-struct zmTaskState{
+struct zmTskState{
   uint32_t progress;      ///< [0..100]
-  zmStateType state;  
-  char* result;           ///< string result
+  zmStateType state;
 };
 /// get pipeline task state
 /// @param[in] zmConn - object connect
-/// @param[in] tId - pipeline task id
-/// @param[out] outTState - pipeline task state
+/// @param[in] tId - pipeline task id, order by tId
+/// @param[in] tCnt - pipeline task id count
+/// @param[out] outTState - pipeline task state. The memory is allocated by the user
 /// @return true - ok
-ZMEY_API bool zmGetTaskState(zmConn, uint64_t tId, zmTaskState* outTState);
+ZMEY_API bool zmTaskState(zmConn, uint64_t* tId, uint32_t tCnt, zmTskState* outTState);
+
+/// get pipeline task result
+/// @param[in] zmConn - object connect
+/// @param[in] tId - pipeline task id
+/// @param[out] outTState - pipeline task result
+/// @return true - ok
+ZMEY_API bool zmTaskResult(zmConn, uint64_t tId, char** outTResult);
 
 /// get all pipeline tasks
 /// @param[in] zmConn - object connect

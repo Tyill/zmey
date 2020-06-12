@@ -159,26 +159,20 @@ bool DbPGProvider::createTables(){
 
   ss.str("");
   ss << "CREATE TABLE IF NOT EXISTS tblParam("
-        "id           SERIAL PRIMARY KEY,"
-        "qtask        INT NOT NULL REFERENCES tblTaskQueue,"
-        "key          TEXT NOT NULL,"
-        "sep          TEXT NOT NULL,"
-        "value        TEXT NOT NULL);";
+        "qtask        INT PRIMARY KEY REFERENCES tblTaskQueue,"        
+        "params       TEXT[][3] NOT NULL);"; // {{key, sep, val},{..}..}
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
   ss << "CREATE TABLE IF NOT EXISTS tblResult("
-        "qtask        INT NOT NULL PRIMARY KEY REFERENCES tblTaskQueue,"
-        "key          TEXT NOT NULL,"
-        "sep          TEXT NOT NULL,"
-        "value        TEXT NOT NULL);";
+        "qtask        INT PRIMARY KEY REFERENCES tblTaskQueue,"
+        "result       TEXT[3] NOT NULL);"; // {{key, sep, val},{..}..}
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
   ss << "CREATE TABLE IF NOT EXISTS tblPrevTask("
-        "id           SERIAL PRIMARY KEY,"
-        "qtask        INT NOT NULL REFERENCES tblTaskQueue,"
-        "prevTask     INT NOT NULL REFERENCES tblTaskQueue);";
+        "qtask        INT PRIMARY KEY REFERENCES tblTaskQueue,"        
+        "prevTask     INT[] NOT NULL);";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
   
   ///////////////////////////////////////////////////////////////////////////
@@ -208,9 +202,9 @@ bool DbPGProvider::createTables(){
         "taskTempl    INT NOT NULL REFERENCES tblUTaskTemplate,"
         "qtask        INT REFERENCES tblTaskQueue,"
         "priority     INT NOT NULL DEFAULT 1 CHECK (priority BETWEEN 1 AND 3),"
-        "prevTasks    TEXT NOT NULL,"      // separated by space
-        "nextTasks    TEXT NOT NULL,"  
-        "params       TEXT[][3] NOT NULL," // [key, sep, val]
+        "prevTasks    INT[] NOT NULL,"    
+        "nextTasks    INT[] NOT NULL,"  
+        "params       TEXT[][3] NOT NULL," // {{key, sep, val},{..}..}
         "screenRect   TEXT NOT NULL,"
         "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
@@ -223,13 +217,20 @@ bool DbPGProvider::createTables(){
   /// FUNCTIONS
   ss.str("");
   ss << "CREATE OR REPLACE FUNCTION "
-        "funcAddTask(knownTasks int[], task tblUPipelineTask) "
-        "RETURNS integer AS $$ "
+        "funcAddTask(task tblUPipelineTask) "
+        "RETURNS int AS $$ "
         "DECLARE "
-        "ret int := 0;"
-        "t int;"
+        "  tId int := 0;"
+        "  t int;"
         "BEGIN"
-        "  FOREACH t IN ARRAY knownTasks"
+        "  FOREACH t IN ARRAY task.prevTasks"
+        "  LOOP"
+        "    PERFORM id FROM tblUPipelineTask WHERE id = t;"
+        "    IF NOT FOUND THEN"
+        "      RETURN 0;"
+        "    END IF;"
+        "  END LOOP;"
+        "  FOREACH t IN ARRAY task.nextTasks"
         "  LOOP"
         "    PERFORM id FROM tblUPipelineTask WHERE id = t;"
         "    IF NOT FOUND THEN"
@@ -244,8 +245,75 @@ bool DbPGProvider::createTables(){
         "           task.prevTasks,"
         "           task.nextTasks,"
         "           task.params,"
-        "           task.screenRect) RETURNING id INTO ret;"
-        "  RETURN ret;" 
+        "           task.screenRect) RETURNING id INTO tId;"
+        "  RETURN tId;" 
+        "END;"
+        "$$ LANGUAGE plpgsql;";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+
+  ss.str("");
+  ss << "CREATE OR REPLACE FUNCTION "
+        "funcUpdateTask(task tblUPipelineTask) "
+        "RETURNS int AS $$ "
+        "DECLARE"
+        "  t int;"
+        "BEGIN"
+        "  FOREACH t IN ARRAY task.prevTasks"
+        "  LOOP"
+        "    PERFORM id FROM tblUPipelineTask WHERE id = t;"
+        "    IF NOT FOUND THEN"
+        "      RETURN 0;"
+        "    END IF;"
+        "  END LOOP;"
+        "  FOREACH t IN ARRAY task.nextTasks"
+        "  LOOP"
+        "    PERFORM id FROM tblUPipelineTask WHERE id = t;"
+        "    IF NOT FOUND THEN"
+        "      RETURN 0;"
+        "    END IF;"
+        "  END LOOP;"
+        "  UPDATE tblUPipelineTask SET "
+        "    pipeline = task.pipeline,"
+        "    taskTempl = task.taskTempl,"
+        "    priority = task.priority,"
+        "    prevTasks = task.prevTasks,"
+        "    nextTasks = task.nextTasks,"
+        "    params = task.params,"
+        "    screenRect = task.screenRect"
+        "  WHERE id = task.id;"
+        "  RETURN task.id;" 
+        "END;"
+        "$$ LANGUAGE plpgsql;";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+
+  ss.str("");
+  ss << "CREATE OR REPLACE FUNCTION "
+        "funcStartTask(tId int) AS $$ "
+        "DECLARE "
+        "  task tblUPipelineTask;"
+        "  qId int := 0;"
+        "BEGIN"
+        "  SELECT * INTO task "
+        "  FROM tblUPipelineTask "
+        "  WHERE id = tId AND isDelete = 0;";
+        "  INSERT INTO tblTaskQueue (task, state, launcher, priority, isDependence) VALUES("
+        "    task.taskTempl,"
+        "    0," // ready
+        "    (SELECT usr FROM tblUPipeline WHERE id = task.pipeline),"
+        "    task.priority,"
+        "    task.isDependence) RETURNING id INTO qId;"
+        "  INSERT INTO tblParam (qtask, params) VALUES("
+        "    qId,"
+        "    task.params);"
+        "  INSERT INTO tblResult (qtask, result) VALUES("
+        "    qId,"
+        "    task.result);"
+        "  INSERT INTO tblPrevTask (qtask, result) VALUES("
+        "    qId,"
+        "    task.prevTask);"
+        "  UPDATE tblUPipelineTask SET"
+        "    qtask = qId"
+        "  WHERE id = task.id;"
         "END;"
         "$$ LANGUAGE plpgsql;";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
@@ -580,19 +648,28 @@ bool DbPGProvider::delWorker(uint64_t wkrId){
   PQclear(res); 
   return true;
 }
-bool DbPGProvider::workerState(uint64_t wkrId, ZM_Base::stateType& state){
+bool DbPGProvider::workerState(const std::vector<uint64_t>& wkrId, std::vector<ZM_Base::stateType>& state){
   lock_guard<mutex> lk(_mtx);
+  string swId;
+  swId = accumulate(wkrId.begin(), wkrId.end(), swId,
+                [](string& s, uint64_t v){
+                  return s.empty() ? to_string(v) : s + "," + to_string(v);
+                }); 
   stringstream ss;
   ss << "SELECT state FROM tblWorker "
-        "WHERE id = " << wkrId << " AND isDelete = 0;";
+        "WHERE id IN (" << swId << ") AND isDelete = 0 ORDER BY id;";
 
   auto res = PQexec(_pg, ss.str().c_str());
-  if ((PQresultStatus(res) != PGRES_TUPLES_OK) || (PQntuples(res) != 1)){
+  size_t wsz = wkrId.size();
+  if ((PQresultStatus(res) != PGRES_TUPLES_OK) || (PQntuples(res) != wsz)){
       errorMess(string("workerState error: ") + PQerrorMessage(_pg));
       PQclear(res);
       return false;
   }
-  state = (ZM_Base::stateType)atoi(PQgetvalue(res, 0, 0));
+  state.resize(wsz);
+  for (size_t i = 0; i < wsz; ++i){
+    state[i] = (ZM_Base::stateType)atoi(PQgetvalue(res, i, 0));
+  }
   PQclear(res); 
   return true;
 }
@@ -801,67 +878,33 @@ std::vector<uint64_t> DbPGProvider::getAllTaskTemplates(uint64_t parent){
 
 bool DbPGProvider::addTask(const ZM_Base::uTask& cng, uint64_t& outTId){
   lock_guard<mutex> lk(_mtx);
+    
   stringstream ss;
-  ss << "DO $$BEGIN "
-         
-          "FOR r IN SELECT table_schema, table_name FROM information_schema.tables"
-          "         WHERE table_type = 'VIEW' AND table_schema = 'public'"
-          "LOOP"
-          "    EXECUTE 'GRANT ALL ON ' || quote_ident(r.table_schema) || '.' || quote_ident(r.table_name) || ' TO webuser';"
-          "END LOOP;"
-        "END$$;";
+  ss << "SELECT * FROM funcAddTask("
+        "(" << 0 << ","
+            << cng.pplId << ","
+            << cng.base.tId << ","
+            << 0 << ","
+            << cng.base.priority << ","
+            << cng.prevTasks << ","
+            << cng.nextTasks << ","
+            << cng.base.params << ","
+            << cng.screenRect << ","
+            << 0 << "));";
 
-  // for (auto t : cng.prevTasks){ // for check
-  //   ss.str("");       
-  //   ss << "SELECT id FROM tblUPipelineTask WHERE id = " << t << ";"; 
-  //   auto res = PQexec(_pg, ss.str().c_str() );
-  //   if ((PQresultStatus(res) != PGRES_TUPLES_OK) || (PQntuples(res) != 1)){
-  //     errorMess("addTask error: prevTasks not found taskId " + to_string(t));
-  //     PQclear(res);
-  //     return false;
-  //   }
-  //   PQclear(res);
-  // }
-  // for (auto t : cng.nextTasks){ // for check
-  //   ss.str("");       
-  //   ss << "SELECT id FROM tblUPipelineTask WHERE id = " << t << ";"; 
-  //   auto res = PQexec(_pg, ss.str().c_str() );
-  //   if ((PQresultStatus(res) != PGRES_TUPLES_OK) || (PQntuples(res) != 1)){
-  //     errorMess("addTask error: nextTasks not found taskId " + to_string(t));
-  //     PQclear(res);
-  //     return false;
-  //   }
-  //   PQclear(res);
-  // }
-  // string prevTasks;
-  // prevTasks = accumulate(cng.prevTasks.begin(), cng.prevTasks.end(), prevTasks,
-  //               [](string& s, uint64_t v){
-  //                 return s.empty() ? to_string(v) : s + " " + to_string(v);
-  //               });  
-  // string nextTasks;
-  // nextTasks = accumulate(cng.nextTasks.begin(), cng.nextTasks.end(), nextTasks,
-  //               [](string& s, uint64_t v){
-  //                 return s.empty() ? to_string(v) : s + " " + to_string(v);
-  //               });  
-  // ss.str("");
-  // ss << "INSERT INTO tblUPipelineTask (pipeline, taskTempl, priority, "
-  //       "                              prevTasks, nextTasks, params, screenRect) VALUES("
-  //       "'" << cng.pplId << "',"
-  //       "'" << cng.base.tId << "',"
-  //       "'" << cng.base.priority << "',"
-  //       "'" << prevTasks << "',"
-  //       "'" << nextTasks << "',"
-  //       "'" << cng.base.params << "',"
-  //       "'" << cng.rct.toString() << "') RETURNING id;";
-
-  // auto res = PQexec(_pg, ss.str().c_str());
-  // if (PQresultStatus(res) != PGRES_TUPLES_OK){
-  //     errorMess(string("addTask error: ") + PQerrorMessage(_pg));
-  //     PQclear(res);
-  //     return false;
-  // }
-  // outTId = stoull(PQgetvalue(res, 0, 0));
-  // PQclear(res); 
+  auto res = PQexec(_pg, ss.str().c_str());
+  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+      errorMess(string("addTask error: ") + PQerrorMessage(_pg));
+      PQclear(res);
+      return false;
+  }
+  outTId = stoull(PQgetvalue(res, 0, 0));
+  if (outTId == 0){
+    errorMess("addTask error: not found one or more task from prevTask or nextTasks");
+    PQclear(res);
+    return false;
+  }
+  PQclear(res); 
   return true;
 }
 bool DbPGProvider::getTask(uint64_t tId, ZM_Base::uTask& outTCng){
@@ -880,71 +923,38 @@ bool DbPGProvider::getTask(uint64_t tId, ZM_Base::uTask& outTCng){
   outTCng.pplId = stoull(PQgetvalue(res, 0, 0));
   outTCng.base.tId = stoull(PQgetvalue(res, 0, 1));
   outTCng.base.priority = atoi(PQgetvalue(res, 0, 2));  
-  auto prevTasks = ZM_Aux::split(PQgetvalue(res, 0, 3), " ");
-  for(auto& t : prevTasks){
-    outTCng.prevTasks.push_back(stoll(t));
-  }
-  auto nextTasks = ZM_Aux::split(PQgetvalue(res, 0, 4), " ");
-  for(auto& t : nextTasks){
-    outTCng.nextTasks.push_back(stoll(t));
-  }
-  //outTCng.base.params = PQgetvalue(res, 0, 5);
-  auto rect = ZM_Aux::split(PQgetvalue(res, 0, 6), " ");
-  outTCng.rct = {stoi(rect[0]), stoi(rect[1]), stoi(rect[2]), stoi(rect[3])};
+  outTCng.prevTasks = PQgetvalue(res, 0, 3);
+  outTCng.nextTasks = PQgetvalue(res, 0, 4);
+  outTCng.base.params = PQgetvalue(res, 0, 5);
+  outTCng.screenRect = PQgetvalue(res, 0, 6);
   PQclear(res); 
   return true;
 }
-bool DbPGProvider::changeTask(uint64_t tId, const ZM_Base::uTask& newTCng){
+bool DbPGProvider::changeTask(uint64_t tId, const ZM_Base::uTask& newCng){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
-  for (auto t : newTCng.prevTasks){ // for check
-    ss.str("");       
-    ss << "SELECT id FROM tblUPipelineTask WHERE id = " << t << ";"; 
-    auto res = PQexec(_pg, ss.str().c_str() );
-    if ((PQresultStatus(res) != PGRES_TUPLES_OK) || (PQntuples(res) != 1)){
-      errorMess("changeTask error: prevTasks not found taskId " + to_string(t));
-      PQclear(res);
-      return false;
-    }
-    PQclear(res);
-  }
-  for (auto t : newTCng.nextTasks){ // for check
-    ss.str("");       
-    ss << "SELECT id FROM tblUPipelineTask WHERE id = " << t << ";"; 
-    auto res = PQexec(_pg, ss.str().c_str() );
-    if ((PQresultStatus(res) != PGRES_TUPLES_OK) || (PQntuples(res) != 1)){
-      errorMess("changeTask error: nextTasks not found taskId " + to_string(t));
-      PQclear(res);
-      return false;
-    }
-    PQclear(res);
-  }
-  string prevTasks;
-  prevTasks = accumulate(newTCng.prevTasks.begin(), newTCng.prevTasks.end(), prevTasks,
-                [](string& s, uint64_t v){
-                  return s.empty() ? to_string(v) : s + " " + to_string(v);
-                });  
-  string nextTasks;
-  nextTasks = accumulate(newTCng.nextTasks.begin(), newTCng.nextTasks.end(), nextTasks,
-                [](string& s, uint64_t v){
-                  return s.empty() ? to_string(v) : s + " " + to_string(v);
-                });  
-  ss.str("");
-  ss << "UPDATE tblUPipelineTask SET "
-        "pipeline = '" << newTCng.pplId << "',"
-        "taskTempl = '" << newTCng.base.tId << "',"
-        "priority = '" << newTCng.base.priority << "',"
-        "prevTasks = '" << prevTasks << "',"
-        "nextTasks = '" << nextTasks << "',"
-     //   "params = '" << newTCng.base.params << "',"
-        "screenRect = '" << newTCng.rct.toString() << "' "
-        "WHERE id = " << tId << ";";
+  ss << "SELECT * FROM funcUpdateTask("
+        "(" << tId << ","
+            << newCng.pplId << ","
+            << newCng.base.tId << ","
+            << 0 << ","
+            << newCng.base.priority << ","
+            << newCng.prevTasks << ","
+            << newCng.nextTasks << ","
+            << newCng.base.params << ","
+            << newCng.screenRect << ","
+            << 0 << "));";
 
   auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_COMMAND_OK){
-      errorMess(string("changeTask error: ") + PQerrorMessage(_pg));
-      PQclear(res);
-      return false;
+  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+    errorMess(string("changeTask error: ") + PQerrorMessage(_pg));
+    PQclear(res);
+    return false;
+  }
+  if (stoull(PQgetvalue(res, 0, 0)) == 0){
+    errorMess("changeTask error: not found one or more task from prevTask or nextTasks");
+    PQclear(res);
+    return false;
   }
   PQclear(res); 
   return true;
@@ -966,93 +976,56 @@ bool DbPGProvider::delTask(uint64_t tId){
   return true;
 }
 bool DbPGProvider::startTask(uint64_t tId){
-  lock_guard<mutex> lk(_mtx);
-  ZM_Base::uTask cng;
-  if (!getTask(tId, cng)){
-    return false;
-  }  
-#define ROLLBACK(sts)                                              \
-  if (PQresultStatus(res) != sts){                                 \
-     errorMess(string("startTask error: ") + PQerrorMessage(_pg)); \
-     PQexec(_pg, "ROLLBACK;");                                     \
-     PQclear(res);                                                 \
-     return false;                                                 \
-  }  
-  auto res = PQexec(_pg, "BEGIN;");
-  ROLLBACK(PGRES_COMMAND_OK);
-  PQclear(res);
-  /////////////////////////////////////////////////////////////////////////////
+  lock_guard<mutex> lk(_mtx);  
   stringstream ss;
-  ss << "INSERT INTO tblTaskQueue (task, state, launcher, priority, isDependence) VALUES("
-        "'" << cng.base.tId << "',"
-        "'" << (int)ZM_Base::stateType::ready << "',"
-        "(SELECT usr FROM tblUPipeline WHERE id = " << cng.pplId << "),"
-        "'" << cng.base.priority << "',"
-        "'" << (cng.prevTasks.empty() ? 0 : 1) << "') RETURNING id;";
+  ss << "SELECT * FROM funcStartTask(" << startTask << ");";
 
-  res = PQexec(_pg, ss.str().c_str());
-  ROLLBACK(PGRES_TUPLES_OK);
-  
-  uint64_t tqId = stoull(PQgetvalue(res, 0, 0));
-  PQclear(res);   
-  /////////////////////////////////////////////////////////////////////////////
-  // if (!cng.base.params.empty()){
-  //   auto params = ZM_Aux::split(cng.base.params, "-");
-  //   map<string, string> keyVal;
-  //   for (auto& p : params){
-  //     auto kv = ZM_Aux::split(p, "=");
-  //     keyVal[kv[0]] = kv[1];
-  //   }
-  //   ss.str("");
-  //   for (auto& kv : keyVal){
-  //     ss << "INSERT INTO tblParam (qtask, key, value) VALUES("
-  //           "'" << tqId << "',"
-  //           "'" << kv.first << "',"
-  //           "'" << kv.second << "');";
-  //   }    
-  //   res = PQexec(_pg, ss.str().c_str());
-  //   ROLLBACK(PGRES_COMMAND_OK);
-  //   PQclear(res);
-  // }
-  ///////////////////////////////////////////////////////////////////////////// 
-  if (!cng.prevTasks.empty()){
-    ss.str("");
-    for (auto pt : cng.prevTasks){
-      ss << "INSERT INTO tblPrevTask (qtask, prevTask) VALUES("
-            "'" << tqId << "',"
-            "'" << pt << "');";
-    }
-    res = PQexec(_pg, ss.str().c_str());
-    ROLLBACK(PGRES_COMMAND_OK);
+  auto res = PQexec(_pg, ss.str().c_str());
+  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+    errorMess(string("startTask error: ") + PQerrorMessage(_pg));
     PQclear(res);
+    return false;
   }
-  ///////////////////////////////////////////////////////////////////////////// 
-  ss.str("");
-  ss << "UPDATE tblUPipelineTask SET "
-          "qtask = '" << tqId << "' "
-          "WHERE id = " << tId << ";";
-  res = PQexec(_pg, ss.str().c_str());
-  ROLLBACK(PGRES_COMMAND_OK);
-  PQclear(res);
-  ///////////////////////////////////////////////////////////////////////////// 
-  res = PQexec(_pg, "COMMIT;");
-  ROLLBACK(PGRES_COMMAND_OK);
-  PQclear(res);
+  PQclear(res); 
   return true;
-#undef ROLLBACK
 }
-bool DbPGProvider::getTaskState(uint64_t tId, ZM_Base::queueTask& outState){
+bool DbPGProvider::taskState(const std::vector<uint64_t>& tId, std::vector<ZM_DB::tskState>& outState){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
-  ss << "SELECT progress, state FROM tblTaskQueue "
-        "WHERE id = (SELECT qtask FROM tblUPipelineTask WHERE id = " << tId << " AND isDelete = 0);";
+ // ss << "SELECT progress, state FROM tblTaskQueue "
+ //       "WHERE id = (SELECT qtask FROM tblUPipelineTask WHERE id = " << tId << " AND isDelete = 0);";
+
+  auto res = PQexec(_pg, ss.str().c_str());
+  if ((PQresultStatus(res) != PGRES_TUPLES_OK) || (PQntuples(res) != 1)){      
+    if ((PQresultStatus(res) == PGRES_TUPLES_OK) && (PQntuples(res) == 0)){
+      //outState.progress = 0;
+     // outState.state = ZM_Base::stateType::undefined;
+      PQclear(res);
+      return true;
+    }else{
+      errorMess(string("getTaskState error: ") + PQerrorMessage(_pg));
+      PQclear(res);        
+      return false;
+    }
+  }
+  //outState.progress = atoi(PQgetvalue(res, 0, 0));
+  //outState.state = (ZM_Base::stateType)atoi(PQgetvalue(res, 0, 1));
+  PQclear(res); 
+  return true;
+}
+bool DbPGProvider::taskResult(uint64_t tId, std::string& out){
+  lock_guard<mutex> lk(_mtx);
+  stringstream ss;
+  ss << "SELECT pt.progress, qt.state FROM tblTaskQueue qt "
+        "JOIN tblResult tr ON tr.qtask = qt.id "
+        "WHERE qt.id = (SELECT qtask FROM tblUPipelineTask WHERE id = " << tId << " AND isDelete = 0);";
 
   auto res = PQexec(_pg, ss.str().c_str());
   if ((PQresultStatus(res) != PGRES_TUPLES_OK) || (PQntuples(res) != 1)){      
     if ((PQresultStatus(res) == PGRES_TUPLES_OK) && (PQntuples(res) == 0)){
       outState.progress = 0;
       outState.state = ZM_Base::stateType::undefined;
-     // outState.result = "";
+      outState.result = "";
       PQclear(res);
       return true;
     }else{
@@ -1064,29 +1037,6 @@ bool DbPGProvider::getTaskState(uint64_t tId, ZM_Base::queueTask& outState){
   outState.progress = atoi(PQgetvalue(res, 0, 0));
   outState.state = (ZM_Base::stateType)atoi(PQgetvalue(res, 0, 1));
   PQclear(res); 
-
-  if ((outState.state == ZM_Base::stateType::completed) ||
-      (outState.state == ZM_Base::stateType::error) ||
-      (outState.state == ZM_Base::stateType::stop)){
-    ss.str("");
-    ss << "SELECT key, value FROM tblResult "
-          "WHERE qtask = (SELECT qtask FROM tblUPipelineTask WHERE id = " << tId << ");";
-
-    auto res = PQexec(_pg, ss.str().c_str());
-    if ((PQresultStatus(res) != PGRES_TUPLES_OK) || (PQntuples(res) != 1)){
-      if ((PQresultStatus(res) == PGRES_TUPLES_OK) && (PQntuples(res) == 0)){
-      //  outState.result = "";
-        PQclear(res);
-        return true;
-      }else{
-        errorMess(string("getTaskState error: ") + PQerrorMessage(_pg));
-        PQclear(res);        
-        return false;
-      }
-    }
-   // outState.result = string("-") + PQgetvalue(res, 0, 0) + "=" + PQgetvalue(res, 0, 1);
-    PQclear(res); 
-  }  
   return true;
 }
 std::vector<uint64_t> DbPGProvider::getAllTasks(uint64_t pplId, ZM_Base::stateType state){  
