@@ -29,26 +29,6 @@
 #include <vector>
 
 namespace ZM_Base{
-
-  enum class messType{
-    undefined           = -1,
-    newTask             = 0,
-    taskRunning         = 1,
-    taskError           = 2,
-    taskCompleted       = 3,
-    taskPause           = 4,
-    taskStart           = 5,
-    taskStop            = 6,
-    progress            = 7,
-    pauseWorker         = 8,
-    pauseSchedr         = 9, 
-    startWorker         = 10,
-    startSchedr         = 11, 
-    pingWorker          = 12,
-    pingSchedr          = 13,
-    justStartWorker     = 14,
-    workerNotResponding = 15,
-  };
   // tblExecutor
   enum class executorType{
     cmd       = 0,
