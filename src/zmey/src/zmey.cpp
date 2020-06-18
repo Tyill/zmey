@@ -556,7 +556,7 @@ bool zmTaskState(zmConn zo, uint64_t* tId, uint32_t tCnt, zmTaskState* outQTStat
   if (!zo) return false;
   
   if (!outQTState){
-    static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmGetTaskState error: !outQTState");
+    static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmTaskState error: !outQTState");
     return false;
   }
   vector<uint64_t> taskId(tCnt);
@@ -579,25 +579,13 @@ bool zmTaskState(zmConn zo, uint64_t* tId, uint32_t tCnt, zmTaskState* outQTStat
 bool zmTaskResult(zmConn zo, uint64_t tId, char** outTResult){
   if (!zo) return false;
   
-  // if (!outQTState){
-  //   static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmGetTaskState error: !outQTState");
-  //   return false;
-  // }
-  // vector<uint64_t> taskId(tCnt);
-  // memcpy(taskId.data(), tId, tCnt * sizeof(uint64_t));
-  // vector<ZM_Base::queueTask> qTask;
-  // if (static_cast<ZM_DB::DbProvider*>(zo)->getTaskState(taskId, qTask)){
-
-  //   outQTState->progress = qTask.progress;
-  //   outQTState->state = (zmey::zmStateType)qTask.state;
-  //   if (!qTask.result.empty()){ 
-  //     outQTState->result = (char*)realloc(outQTState->result, qTask.result.size() + 1);
-  //     strcpy(outQTState->result, qTask.result.c_str());
-  //   }else{
-  //     outQTState->result = nullptr;
-  //   }
-  //   return true;
-  // }
+  
+  return false;
+}
+bool zmTaskTime(zmConn, uint64_t tId, zmTskTime* outTTime){
+  if (!zo) return false;
+  
+  
   return false;
 }
 uint32_t zmGetAllTasks(zmConn zo, uint64_t pplId, zmStateType state, uint64_t** outQTId){

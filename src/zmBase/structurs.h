@@ -29,6 +29,26 @@
 #include <vector>
 
 namespace ZM_Base{
+
+  enum class messType{
+    undefined           = -1,
+    newTask             = 0,
+    taskRunning         = 1,
+    taskError           = 2,
+    taskCompleted       = 3,
+    taskPause           = 4,
+    taskStart           = 5,
+    taskStop            = 6,
+    progress            = 7,
+    pauseWorker         = 8,
+    pauseSchedr         = 9, 
+    startWorker         = 10,
+    startSchedr         = 11, 
+    pingWorker          = 12,
+    pingSchedr          = 13,
+    justStartWorker     = 14,
+    workerNotResponding = 15,
+  };
   // tblExecutor
   enum class executorType{
     cmd       = 0,
@@ -37,10 +57,10 @@ namespace ZM_Base{
   };  
   // tblState
   enum class stateType{
-    undefined          = -1,
-    ready               = 0, // for task: can be taken to work
-    start               = 1, // for task: taken to work
-    running             = 2, // for task: running
+    undefined           = -1,
+    ready               = 0,  // for task: can be taken to work
+    start               = 1,  // for task: taken to work
+    running             = 2,  // for task: running
     pause               = 3,
     stop                = 4,    
     completed           = 5,
@@ -58,6 +78,7 @@ namespace ZM_Base{
   struct uPipeline{
     uint64_t id;              // id tblUPipeline
     uint64_t uId;             // id tblUser
+    int isShared;             // may be shared [0..1]   
     std::string name;         // unique name
     std::string description;
   };
@@ -76,13 +97,14 @@ namespace ZM_Base{
     uint64_t uId;             // launcher id tblUser
     stateType state;
     int priority;             // [1..3]
-    int progress;             // [0..100]
+    int progress;             // [0..100] 
     std::string params;       // CLI params for script: {{key, sep, val},{..}..}
     std::string result;       // result of script: {key, sep, val}
   };  
   // tblUTaskTemplate
   struct uTaskTemplate{
     uint64_t uId;             // parent id tblUser
+    int isShared;             // may be shared [0..1]  
     std::string name;
     std::string description;
     task base;

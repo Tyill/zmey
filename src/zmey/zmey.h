@@ -275,6 +275,7 @@ ZMEY_API uint32_t zmGetAllWorkers(zmConn, uint64_t schId, zmStateType state, uin
 /// pipeline config
 struct zmPipeline{
   uint64_t userId;         ///< user id
+  uint32_t isShared;       ///< may be shared [0..1]   
   char name[255];          ///< pipeline name
   char* description;       ///< description of pipeline. The memory is allocated by the user
 };
@@ -322,6 +323,7 @@ struct zmTaskTemplate{
   zmExecutorType exr;       ///< executor type
   uint32_t averDurationSec; ///< estimated lead time 
   uint32_t maxDurationSec;  ///< maximum lead time
+  uint32_t isShared;        ///< may be shared [0..1]   
   char name[255];           ///< task template name
   char* description;        ///< description of task. The memory is allocated by the user
   char* script;             ///< script on bash, python or cmd. The memory is allocated by the user
@@ -451,14 +453,16 @@ ZMEY_API bool zmTaskResult(zmConn, uint64_t tId, char** outTResult);
 
 /// pipeline task time
 struct zmTskTime{
-  ;
+  char createTime[32];       
+  char startTime[32]; 
+  char stopTime[32]; 
 };
-/// get pipeline task result
+/// get pipeline task time
 /// @param[in] zmConn - object connect
 /// @param[in] tId - pipeline task id
-/// @param[out] outTState - pipeline task result
+/// @param[out] outTTime - pipeline task time
 /// @return true - ok
-ZMEY_API bool zmTaskTime(zmConn, uint64_t tId, zmTskTime* outTResult);
+ZMEY_API bool zmTaskTime(zmConn, uint64_t tId, zmTskTime* outTTime);
 
 /// get all pipeline tasks
 /// @param[in] zmConn - object connect
