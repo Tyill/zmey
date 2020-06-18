@@ -213,9 +213,9 @@ bool DbPGProvider::createTables(){
         "taskTempl    INT NOT NULL REFERENCES tblUTaskTemplate,"
         "qtask        INT REFERENCES tblTaskQueue,"
         "priority     INT NOT NULL DEFAULT 1 CHECK (priority BETWEEN 1 AND 3),"
-        "prevTasks    INT[] NOT NULL,"    
-        "nextTasks    INT[] NOT NULL,"  
-        "params       TEXT[][3] NOT NULL," // {{key, sep, val},{..}..}
+        "prevTasks    INT[] NOT NULL,"     // [..]  
+        "nextTasks    INT[] NOT NULL,"     // [..]
+        "params       TEXT[][3] NOT NULL," // [[key, sep, val],[..],[..]..]
         "screenRect   TEXT NOT NULL,"
         "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
@@ -234,20 +234,20 @@ bool DbPGProvider::createTables(){
         "  tId int := 0;"
         "  t int;"
         "BEGIN"
-        "  FOREACH t IN ARRAY task.prevTasks"
-        "  LOOP"
-        "    PERFORM id FROM tblUPipelineTask WHERE id = t;"
-        "    IF NOT FOUND THEN"
-        "      RETURN 0;"
-        "    END IF;"
-        "  END LOOP;"
-        "  FOREACH t IN ARRAY task.nextTasks"
-        "  LOOP"
-        "    PERFORM id FROM tblUPipelineTask WHERE id = t;"
-        "    IF NOT FOUND THEN"
-        "      RETURN 0;"
-        "    END IF;"
-        "  END LOOP;"
+        // "  FOREACH t IN ARRAY task.prevTasks"
+        // "  LOOP"
+        // "    PERFORM id FROM tblUPipelineTask WHERE id = t;"
+        // "    IF NOT FOUND THEN"
+        // "      RETURN 0;"
+        // "    END IF;"
+        // "  END LOOP;"
+        // "  FOREACH t IN ARRAY task.nextTasks"
+        // "  LOOP"
+        // "    PERFORM id FROM tblUPipelineTask WHERE id = t;"
+        // "    IF NOT FOUND THEN"
+        // "      RETURN 0;"
+        // "    END IF;"
+        // "  END LOOP;"
         "  INSERT INTO tblUPipelineTask (pipeline, taskTempl, priority,"
         "                              prevTasks, nextTasks, params, screenRect)"
         "    VALUES(task.pipeline,"
@@ -310,7 +310,7 @@ bool DbPGProvider::createTables(){
         "BEGIN"
         "  SELECT * INTO task "
         "  FROM tblUPipelineTask "
-        "  WHERE id = tId AND isDelete = 0;";
+        "  WHERE id = tId AND isDelete = 0;"
         "  IF NOT FOUND THEN"
         "    RETURN 0;"
         "  END IF;"
@@ -746,10 +746,11 @@ std::vector<uint64_t> DbPGProvider::getAllWorkers(uint64_t schId, ZM_Base::state
 bool DbPGProvider::addPipeline(const ZM_Base::uPipeline& ppl, uint64_t& outPPLId){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
-  ss << "INSERT INTO tblUPipeline (usr, name, description) VALUES("
+  ss << "INSERT INTO tblUPipeline (usr, name, description, isShared) VALUES("
         "'" << ppl.uId << "',"
         "'" << ppl.name << "',"
-        "'" << ppl.description << "') RETURNING id;";
+        "'" << ppl.description << "',"
+        "'" << ppl.isShared << "') RETURNING id;";
 
   auto res = PQexec(_pg, ss.str().c_str());
   if (PQresultStatus(res) != PGRES_TUPLES_OK){
@@ -849,11 +850,12 @@ bool DbPGProvider::addTaskTemplate(const ZM_Base::uTaskTemplate& cng, uint64_t& 
         "'" << (int)cng.base.exr << "',"
         "'" << cng.base.averDurationSec << "',"
         "'" << cng.base.maxDurationSec << "') RETURNING id) "
-        "INSERT INTO tblUTaskTemplate (task, parent, name, description) VALUES("
+        "INSERT INTO tblUTaskTemplate (task, parent, name, description, isShared) VALUES("
         "(SELECT id FROM ntsk),"
         "'" << cng.uId << "',"
         "'" << cng.name << "',"
-        "'" << cng.description << "') RETURNING task;";
+        "'" << cng.description << "',"
+        "'" << cng.isShared << "') RETURNING task;";
 
   auto res = PQexec(_pg, ss.str().c_str());
   if (PQresultStatus(res) != PGRES_TUPLES_OK){
@@ -963,6 +965,17 @@ std::vector<uint64_t> DbPGProvider::getAllTaskTemplates(uint64_t parent){
 bool DbPGProvider::addTask(const ZM_Base::uTask& cng, uint64_t& outTId){
   lock_guard<mutex> lk(_mtx);
     
+//  "id         SERIAL PRIMARY KEY,"
+//  "pipeline   INT NOT NULL REFERENCES tblUPipeline,"
+//  "taskTempl  INT NOT NULL REFERENCES tblUTaskTemplate,"
+//  "qtask      INT REFERENCES tblTaskQueue,"
+//  "priority   INT NOT NULL DEFAULT 1 CHECK (priority BETWEEN 1 AND 3),"
+//  "prevTasks  INT[] NOT NULL,"    
+//  "nextTasks  INT[] NOT NULL,"  
+//  "params     TEXT[][3] NOT NULL," // {{key, sep, val},{..}..}
+//  "screenRect TEXT NOT NULL,"
+//  "isDelete   INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
+
   stringstream ss;
   ss << "SELECT * FROM funcAddTask("
         "(" << 0 << ","
@@ -970,10 +983,10 @@ bool DbPGProvider::addTask(const ZM_Base::uTask& cng, uint64_t& outTId){
             << cng.base.tId << ","
             << 0 << ","
             << cng.base.priority << ","
-            << cng.prevTasks << ","
-            << cng.nextTasks << ","
-            << cng.base.params << ","
-            << cng.screenRect << ","
+            << "ARRAY" << cng.prevTasks << "::INT[],"
+            << "ARRAY" << cng.nextTasks << "::INT[],"
+            << "ARRAY" << cng.base.params << "::TEXT[][3],"
+            << "'" << cng.screenRect << "'" << ","
             << 0 << "));";
 
   auto res = PQexec(_pg, ss.str().c_str());
