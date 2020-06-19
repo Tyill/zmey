@@ -964,18 +964,7 @@ std::vector<uint64_t> DbPGProvider::getAllTaskTemplates(uint64_t parent){
 
 bool DbPGProvider::addTask(const ZM_Base::uTask& cng, uint64_t& outTId){
   lock_guard<mutex> lk(_mtx);
-    
-//  "id         SERIAL PRIMARY KEY,"
-//  "pipeline   INT NOT NULL REFERENCES tblUPipeline,"
-//  "taskTempl  INT NOT NULL REFERENCES tblUTaskTemplate,"
-//  "qtask      INT REFERENCES tblTaskQueue,"
-//  "priority   INT NOT NULL DEFAULT 1 CHECK (priority BETWEEN 1 AND 3),"
-//  "prevTasks  INT[] NOT NULL,"    
-//  "nextTasks  INT[] NOT NULL,"  
-//  "params     TEXT[][3] NOT NULL," // {{key, sep, val},{..}..}
-//  "screenRect TEXT NOT NULL,"
-//  "isDelete   INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
-
+  
   stringstream ss;
   ss << "SELECT * FROM funcAddTask("
         "(" << 0 << ","
@@ -1013,9 +1002,9 @@ bool DbPGProvider::getTask(uint64_t tId, ZM_Base::uTask& outTCng){
 
   auto res = PQexec(_pg, ss.str().c_str());
   if (PQresultStatus(res) != PGRES_TUPLES_OK){
-      errorMess(string("getTask error: ") + PQerrorMessage(_pg));
-      PQclear(res);
-      return false;
+    errorMess(string("getTask error: ") + PQerrorMessage(_pg));
+    PQclear(res);
+    return false;
   }
   if (PQntuples(res) != 1){
     errorMess(string("getTask error: such task does not exist"));
@@ -1026,8 +1015,21 @@ bool DbPGProvider::getTask(uint64_t tId, ZM_Base::uTask& outTCng){
   outTCng.base.tId = stoull(PQgetvalue(res, 0, 1));
   outTCng.base.priority = atoi(PQgetvalue(res, 0, 2));  
   outTCng.prevTasks = PQgetvalue(res, 0, 3);
+  ZM_Aux::replace(outTCng.prevTasks, "{", "[");
+  ZM_Aux::replace(outTCng.prevTasks, "}", "]");
+  
   outTCng.nextTasks = PQgetvalue(res, 0, 4);
+  ZM_Aux::replace(outTCng.nextTasks, "{", "[");
+  ZM_Aux::replace(outTCng.nextTasks, "}", "]");
+
   outTCng.base.params = PQgetvalue(res, 0, 5);
+  ZM_Aux::replace(outTCng.base.params, "}", "]");
+  ZM_Aux::replace(outTCng.base.params, "{", "[");
+  ZM_Aux::replace(outTCng.base.params, "[[", "[['");
+  ZM_Aux::replace(outTCng.base.params, "]]", "']]");
+  ZM_Aux::replace(outTCng.base.params, ",", "','");
+  ZM_Aux::replace(outTCng.base.params, "]','[", "'],['");
+
   outTCng.screenRect = PQgetvalue(res, 0, 6);
   PQclear(res); 
   return true;

@@ -39,6 +39,12 @@ std::string currDateTimeMs();
 
 std::vector<std::string> split(std::string str, const char *sep);
 
+bool endWith(const std::string& fullString, const std::string& ending);
+
+bool startWith(const std::string& fullString, const std::string& starting);
+
+std::string replace(std::string& ioStr, const std::string& targ, const std::string& repl);
+
 uint64_t currDateTimeSinceEpochMs();
 
 bool isNumber(const std::string& s);

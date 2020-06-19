@@ -72,6 +72,30 @@ vector<string> split(string str, const char *sep) {
   }
   return res;
 }
+bool endWith (const std::string& fullString, const std::string& ending) {
+  if (fullString.size() >= ending.size()) {
+    return (0 == fullString.compare (fullString.size() - ending.size(), ending.size(), ending));
+  } else {
+    return false;
+  }
+}
+bool startWith (const std::string& fullString, const std::string& starting) {
+  if (fullString.size() >= starting.size()) {
+    return (0 == fullString.compare (0, starting.size(), starting));
+  } else {
+    return false;
+  }
+}
+std::string replace(std::string& ioStr, const std::string& targ, const std::string& repl){
+  size_t cpos = ioStr.find(targ, 0),
+         tsz = targ.size(),
+         rsz = repl.size();
+  while (cpos != std::string::npos){
+    ioStr.replace(cpos, tsz, repl);  
+    cpos = ioStr.find(targ, cpos + rsz);  
+  }
+  return ioStr;
+}
 std::string trim(std::string &str){
   auto itB = std::find_if(str.cbegin(), str.cend(), [](int32_t ch) -> bool { return !std::isspace(ch); });
   str.erase(str.cbegin(), itB);
