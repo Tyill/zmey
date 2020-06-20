@@ -75,15 +75,16 @@ public:
   bool changeTask(uint64_t tId, const ZM_Base::uTask& newTCng) override;
   bool delTask(uint64_t tId) override;
   bool startTask(uint64_t tId) override;
-  bool taskState(const std::vector<uint64_t>& tId, std::vector<ZM_DB::tskState>&) override;
+  bool taskState(const std::vector<uint64_t>& tId, std::vector<ZM_DB::taskPrsAState>&) override;
   bool taskResult(uint64_t tId, std::string&) override;
+  bool taskTime(uint64_t tId, ZM_DB::taskTime& out) override;
   std::vector<uint64_t> getAllTasks(uint64_t pplId, ZM_Base::stateType) override;
 
   // for zmSchedr
   bool getSchedr(std::string& connPnt, ZM_Base::scheduler& outSchedl) override;
-  bool getTasksForSchedr(uint64_t sId, std::vector<ZM_DB::schedrTask>&) override;
-  bool getWorkersForSchedr(uint64_t sId, std::vector<ZM_Base::worker>&) override;
-  bool getNewTasks(uint64_t sId, int maxTaskCnt, std::vector<ZM_DB::schedrTask>&) override;
+  bool getTasksOfSchedr(uint64_t sId, std::vector<ZM_DB::schedrTask>&) override;
+  bool getWorkersOfSchedr(uint64_t sId, std::vector<ZM_Base::worker>&) override;
+  bool getNewTasksForSchedr(uint64_t sId, int maxTaskCnt, std::vector<ZM_DB::schedrTask>&) override;
   bool sendAllMessFromSchedr(uint64_t schedrId, std::vector<ZM_DB::messSchedr>&) override;
 
 #ifdef DEBUG
