@@ -942,6 +942,7 @@ TEST_F(DBTest, addTask){
   task.screenRect = "1, 2, 3, 4";
   task.nextTasks = "[]";
   task.prevTasks = "[]";
+  task.base.result = "['key1','=',' ']";
   uint64_t tId = 0;  
   EXPECT_TRUE(_pDb->addTask(task, tId) && (tId > 0)) << _pDb->getLastError();  
   
@@ -991,6 +992,7 @@ TEST_F(DBTest, getTask){
   task.screenRect = "1, 2, 3, 4";
   task.nextTasks = "[1, 2, 3]";
   task.prevTasks = "[4, 5, 6]";
+  task.base.result = "['key1','=',' ']";
   uint64_t tId = 0;  
   EXPECT_TRUE(_pDb->addTask(task, tId) && (tId > 0)) << _pDb->getLastError();  
 
@@ -1071,6 +1073,7 @@ TEST_F(DBTest, changeTask){
   task.screenRect = "1, 2, 3, 4";
   task.nextTasks = "[1, 2, 3]";
   task.prevTasks = "[4, 5, 6]";
+  task.base.result = "['key1','=',' ']";
   uint64_t tId = 0;  
   EXPECT_TRUE(_pDb->addTask(task, tId) && (tId > 0)) << _pDb->getLastError();   
 
@@ -1140,6 +1143,7 @@ TEST_F(DBTest, delTask){
   task.screenRect = "1, 2, 3, 4";
   task.nextTasks = "[1, 2, 3]";
   task.prevTasks = "[4, 5, 6]";
+  task.base.result = "['key1','=',' ']";
   uint64_t tId = 0;  
   EXPECT_TRUE(_pDb->addTask(task, tId) && (tId > 0)) << _pDb->getLastError();  
 
@@ -1202,6 +1206,7 @@ TEST_F(DBTest, startTask){
   task.screenRect = "1, 2, 3, 4";
   task.nextTasks = "[1, 2, 3]";
   task.prevTasks = "[4, 5, 6]";
+  task.base.result = "['key1','=',' ']";
   uint64_t tId = 0;  
   EXPECT_TRUE(_pDb->addTask(task, tId) && (tId > 0)) << _pDb->getLastError();  
 
@@ -1249,6 +1254,7 @@ TEST_F(DBTest, taskState){
   task.screenRect = "1, 2, 3, 4";
   task.nextTasks = "[1, 2, 3]";
   task.prevTasks = "[4, 5, 6]";
+  task.base.result = "['key1','=',' ']";
   uint64_t tId1 = 0;  
   EXPECT_TRUE(_pDb->addTask(task, tId1) && (tId1 > 0)) << _pDb->getLastError();  
 
@@ -1316,6 +1322,7 @@ TEST_F(DBTest, taskResult){
   task.screenRect = "1, 2, 3, 4";
   task.nextTasks = "[1, 2, 3]";
   task.prevTasks = "[4, 5, 6]";
+  task.base.result = "['key1','=',' ']";
   uint64_t tId1 = 0;  
   EXPECT_TRUE(_pDb->addTask(task, tId1) && (tId1 > 0)) << _pDb->getLastError();  
 
@@ -1366,6 +1373,7 @@ TEST_F(DBTest, taskTime){
   task.screenRect = "1, 2, 3, 4";
   task.nextTasks = "[1, 2, 3]";
   task.prevTasks = "[4, 5, 6]";
+  task.base.result = "['key1','=',' ']";
   uint64_t tId1 = 0;  
   EXPECT_TRUE(_pDb->addTask(task, tId1) && (tId1 > 0)) << _pDb->getLastError();  
 
@@ -1416,6 +1424,7 @@ TEST_F(DBTest, getAllTask){
   task.screenRect = "1, 2, 3, 4";
   task.nextTasks = "[1, 2, 3]";
   task.prevTasks = "[4, 5, 6]";
+  task.base.result = "['key1','=',' ']";
   uint64_t tId1 = 0;  
   EXPECT_TRUE(_pDb->addTask(task, tId1) && (tId1 > 0)) << _pDb->getLastError();  
 
@@ -1566,6 +1575,7 @@ TEST_F(DBTest, getNewTasksForSchedr){
   task.screenRect = "1, 2, 3, 4";
   task.nextTasks = "[1, 2, 3]";
   task.prevTasks = "[33]";
+  task.base.result = "['key1','=',' ']";
   uint64_t tId = 0;  
   EXPECT_TRUE(_pDb->addTask(task, tId) && (tId > 0)) << _pDb->getLastError();  
 

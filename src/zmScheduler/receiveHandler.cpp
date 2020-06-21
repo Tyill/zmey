@@ -128,22 +128,30 @@ void receiveHandler(const string& cp, const string& data){
         }
         break;
       case ZM_Base::messType::pauseSchedr:
+        if (_schedr.state != ZM_Base::stateType::pause){
+          _messToDB.push(ZM_DB::messSchedr{mtype});
+        }
         _schedr.state = ZM_Base::stateType::pause;
-        _messToDB.push(ZM_DB::messSchedr{mtype});
         break;
       case ZM_Base::messType::pauseWorker:
         checkField(workerConnPnt);
+        if (_workers[mess["workerConnPnt"]].base.state != ZM_Base::stateType::pause){
+          _messToDB.push(ZM_DB::messSchedr{mtype, _workers[mess["workerConnPnt"]].base.id});
+        }
         _workers[mess["workerConnPnt"]].base.state = ZM_Base::stateType::pause;
-        _messToDB.push(ZM_DB::messSchedr{mtype, _workers[mess["workerConnPnt"]].base.id});
         break;
       case ZM_Base::messType::startSchedr:
+        if (_schedr.state != ZM_Base::stateType::running){
+          _messToDB.push(ZM_DB::messSchedr{mtype});
+        }
         _schedr.state = ZM_Base::stateType::running;
-        _messToDB.push(ZM_DB::messSchedr{mtype});
         break;
       case ZM_Base::messType::startWorker:
         checkField(workerConnPnt);
+        if (_workers[mess["workerConnPnt"]].base.state != ZM_Base::stateType::running){
+          _messToDB.push(ZM_DB::messSchedr{mtype, _workers[mess["workerConnPnt"]].base.id});
+        }
         _workers[mess["workerConnPnt"]].base.state = ZM_Base::stateType::running;
-         _messToDB.push(ZM_DB::messSchedr{mtype, _workers[mess["workerConnPnt"]].base.id});  
         break;
       default: statusMess("receiveHandler unknown command: " + mess["command"]);
         break;

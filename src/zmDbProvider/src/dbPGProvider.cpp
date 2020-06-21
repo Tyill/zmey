@@ -217,6 +217,7 @@ bool DbPGProvider::createTables(){
         "prevTasks    INT[] NOT NULL,"     // [..]  
         "nextTasks    INT[] NOT NULL,"     // [..]
         "params       TEXT[][3] NOT NULL," // [[key, sep, val],[..],[..]..]
+        "result       TEXT[3] NOT NULL,"   // [[key, sep, ""]
         "screenRect   TEXT NOT NULL,"
         "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
@@ -250,13 +251,14 @@ bool DbPGProvider::createTables(){
         // "    END IF;"
         // "  END LOOP;"
         "  INSERT INTO tblUPipelineTask (pipeline, taskTempl, priority,"
-        "                              prevTasks, nextTasks, params, screenRect)"
+        "                              prevTasks, nextTasks, params, result, screenRect)"
         "    VALUES(task.pipeline,"
         "           task.taskTempl,"
         "           task.priority,"
         "           task.prevTasks,"
         "           task.nextTasks,"
         "           task.params,"
+        "           task.result,"
         "           task.screenRect) RETURNING id INTO tId;"
         "  RETURN tId;" 
         "END;"
@@ -291,6 +293,7 @@ bool DbPGProvider::createTables(){
         "    prevTasks = task.prevTasks,"
         "    nextTasks = task.nextTasks,"
         "    params = task.params,"
+        "    result = task.result,"
         "    screenRect = task.screenRect"
         "  WHERE id = task.id AND task.isDelete = 0;"
         "  IF NOT FOUND THEN"
@@ -329,7 +332,7 @@ bool DbPGProvider::createTables(){
         "    task.params);"
         "  INSERT INTO tblTaskResult (qtask, result) VALUES("
         "    qId,"
-        "    ARRAY[]::TEXT[]);"
+        "    task.result);"
         "  INSERT INTO tblPrevTask (qtask, prevTasks) VALUES("
         "    qId,"
         "    task.prevTasks);"
@@ -1029,6 +1032,7 @@ bool DbPGProvider::addTask(const ZM_Base::uTask& cng, uint64_t& outTId){
             << "ARRAY" << cng.prevTasks << "::INT[],"
             << "ARRAY" << cng.nextTasks << "::INT[],"
             << "ARRAY" << cng.base.params << "::TEXT[][3],"
+            << "ARRAY" << cng.base.result << "::TEXT[3],"
             << "'" << cng.screenRect << "'" << ","
             << 0 << "));";
 
@@ -1050,7 +1054,8 @@ bool DbPGProvider::addTask(const ZM_Base::uTask& cng, uint64_t& outTId){
 bool DbPGProvider::getTask(uint64_t tId, ZM_Base::uTask& outTCng){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
-  ss << "SELECT pipeline, taskTempl, priority, prevTasks, nextTasks, params, screenRect "
+  ss << "SELECT pipeline, taskTempl, priority, prevTasks, nextTasks, "
+        "params, result, screenRect "
         "FROM tblUPipelineTask "
         "WHERE id = " << tId << " AND isDelete = 0;";
 
@@ -1084,7 +1089,12 @@ bool DbPGProvider::getTask(uint64_t tId, ZM_Base::uTask& outTCng){
   ZM_Aux::replace(outTCng.base.params, ",", "','");
   ZM_Aux::replace(outTCng.base.params, "]','[", "'],['");
 
-  outTCng.screenRect = PQgetvalue(res, 0, 6);
+  outTCng.base.result = PQgetvalue(res, 0, 6);
+  ZM_Aux::replace(outTCng.base.result, "}", "']");
+  ZM_Aux::replace(outTCng.base.result, "{", "['");
+  ZM_Aux::replace(outTCng.base.result, ",", "','");
+
+  outTCng.screenRect = PQgetvalue(res, 0, 7);
   PQclear(res); 
   return true;
 }
@@ -1100,6 +1110,7 @@ bool DbPGProvider::changeTask(uint64_t tId, const ZM_Base::uTask& newCng){
             << "ARRAY" << newCng.prevTasks << "::INT[],"
             << "ARRAY" << newCng.nextTasks << "::INT[],"
             << "ARRAY" << newCng.base.params << "::TEXT[][3],"
+            << "ARRAY" << newCng.base.result << "::TEXT[3],"
             << "'" << newCng.screenRect << "',"
             << 0 << "));";
 
@@ -1204,6 +1215,7 @@ bool DbPGProvider::taskResult(uint64_t tId, std::string& out){
   out = PQgetvalue(res, 0, 0);
   ZM_Aux::replace(out, "{", "[");
   ZM_Aux::replace(out, "}", "]");
+  ZM_Aux::replace(out, ",", "','");
   PQclear(res); 
   return true;
 }
@@ -1349,29 +1361,93 @@ bool DbPGProvider::getNewTasksForSchedr(uint64_t sId, int maxTaskCnt, std::vecto
   stringstream ss;
   ss << "SELECT * FROM funcNewTasksForSchedr(" << sId << "," << maxTaskCnt << ");";
 
-  auto resTsk = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(resTsk) != PGRES_TUPLES_OK){
+  auto res = PQexec(_pg, ss.str().c_str());
+  if (PQresultStatus(res) != PGRES_TUPLES_OK){
     errorMess(string("getNewTasksForSchedr error: ") + PQerrorMessage(_pg));
-    PQclear(resTsk);
+    PQclear(res);
     return false;
   }
-  int tsz = PQntuples(resTsk);
-  int fsz = PQnfields(resTsk);
+  int tsz = PQntuples(res);
   for (int i = 0; i < tsz; ++i){    
-    out.push_back(ZM_DB::schedrTask{stoull(PQgetvalue(resTsk, i, 0)),
-                                    ZM_Base::task{stoull(PQgetvalue(resTsk, i, 1)),
-                                                  (ZM_Base::executorType)atoi(PQgetvalue(resTsk, i, 2)),
-                                                  atoi(PQgetvalue(resTsk, i, 3)),
-                                                  atoi(PQgetvalue(resTsk, i, 4)),
-                                                  PQgetvalue(resTsk, i, 5)
+    out.push_back(ZM_DB::schedrTask{stoull(PQgetvalue(res, i, 0)),
+                                    ZM_Base::task{stoull(PQgetvalue(res, i, 1)),
+                                                  (ZM_Base::executorType)atoi(PQgetvalue(res, i, 2)),
+                                                  atoi(PQgetvalue(res, i, 3)),
+                                                  atoi(PQgetvalue(res, i, 4)),
+                                                  PQgetvalue(res, i, 5)
                                                 },
-                                    PQgetvalue(resTsk, i, 6)});
+                                    PQgetvalue(res, i, 6)});
   }
-  PQclear(resTsk);
+  PQclear(res);
   return true;
 }
-bool DbPGProvider::sendAllMessFromSchedr(uint64_t schedrId, std::vector<ZM_DB::messSchedr>&){
+bool DbPGProvider::sendAllMessFromSchedr(uint64_t schedrId, std::vector<ZM_DB::messSchedr>& mess){
   lock_guard<mutex> lk(_mtx);
+
+  // stringstream ss;
+  // for (auto& m : mess){
+  //   switch (m.type){
+  //     case ZM_Base::messType::taskError:
+  //       ss << "UPDATE tblTaskState SET "
+  //             "state = " << (int)ZM_Base::stateType::error << " "
+  //             "WHERE qtask = " << m.taskId << ";"
+  //             "UPDATE tblTaskTime SET "
+  //             "stopTime = current_timestamp "
+  //             "WHERE qtask = " << m.taskId << ";";
+  //       break; 
+  //     case ZM_Base::messType::taskCompleted: 
+  //       ss << "UPDATE tblTaskState SET "
+  //             "state = " << (int)ZM_Base::stateType::completed << " "
+  //             "WHERE qtask = " << m.taskId << ";"
+  //             "UPDATE tblTaskTime SET "
+  //             "stopTime = current_timestamp "
+  //             "WHERE qtask = " << m.taskId << ";";
+  //       break;  
+  //     case ZM_Base::messType::taskRunning: 
+  //       ss << "UPDATE tblTaskState SET "
+  //             "state = " << (int)ZM_Base::stateType::running << " "
+  //             "WHERE qtask = " << m.taskId << ";"
+  //             "UPDATE tblTaskTime SET "
+  //             "takeInWorkTime = current_timestamp "
+  //             "WHERE qtask = " << m.taskId << " AND takeInWorkTime IS NULL;";
+  //       break;         
+  //     case ZM_Base::messType::taskPause:
+  //       ss << "UPDATE tblTaskState SET "
+  //             "state = " << (int)ZM_Base::stateType::pause << " "
+  //             "WHERE qtask = " << m.taskId << ";";
+  //       break;        
+  //     case ZM_Base::messType::taskStop:        
+  //       ss << "UPDATE tblTaskState SET "
+  //             "state = " << (int)ZM_Base::stateType::stop << " "
+  //             "WHERE qtask = " << m.taskId << ";"
+  //             "UPDATE tblTaskTime SET "
+  //             "stopTime = current_timestamp "
+  //             "WHERE qtask = " << m.taskId << ";";
+  //       break;
+  //     case ZM_Base::messType::justStartWorker:
+  //       _workers[cp].base.state = ZM_Base::stateType::running;
+  //       _workers[cp].base.activeTask = 0;
+  //       _messToDB.push(ZM_DB::messSchedr{mtype, _workers[cp].base.id});
+  //       break;
+  //     case ZM_Base::messType::progress:{
+  //       int tCnt = 0;
+  //       while(mess.find("taskId" + to_string(tCnt)) != mess.end()){
+  //         _messToDB.push(ZM_DB::messSchedr{mtype, _workers[cp].base.id,
+  //                                         stoull(mess["taskId" + to_string(tCnt)]),
+  //                                         _workers[cp].base.activeTask,
+  //                                         _schedr.activeTask,
+  //                                         stoi(mess["progress" + to_string(tCnt)])});
+  //         ++tCnt;
+  //       }
+  //       }
+  //       break;
+  //     case ZM_Base::messType::pingWorker:
+  //       _workers[cp].isActive = true;
+  //       break;
+  //     default: statusMess("receiveHandler unknown command: " + mess["command"]);
+  //       break;
+  //   }    
+  // }
   return true;
 }
 
