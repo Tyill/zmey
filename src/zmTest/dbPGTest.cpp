@@ -1528,6 +1528,13 @@ TEST_F(DBTest, getNewTasksForSchedr){
   uint64_t uId = 0;  
   EXPECT_TRUE(_pDb->addUser(usr, uId) && (uId > 0)) << _pDb->getLastError();
 
+  ZM_Base::scheduler schedr;
+  schedr.state = ZM_Base::stateType::ready;
+  schedr.connectPnt = "localhost:4444"; 
+  schedr.capacityTask = 105; 
+  uint64_t sId = 0;  
+  EXPECT_TRUE(_pDb->addSchedr(schedr, sId) && (sId > 0)) << _pDb->getLastError(); 
+
   ZM_Base::uPipeline ppline;
   ppline.name = "newPP";
   ppline.description = "dfsdf";
@@ -1558,20 +1565,34 @@ TEST_F(DBTest, getNewTasksForSchedr){
   task.base.params = "[['key1','=','value1'],['key2','=','value2'],['key3','=','value3']]";
   task.screenRect = "1, 2, 3, 4";
   task.nextTasks = "[1, 2, 3]";
-  task.prevTasks = "[4, 5, 6]";
+  task.prevTasks = "[33]";
   uint64_t tId = 0;  
   EXPECT_TRUE(_pDb->addTask(task, tId) && (tId > 0)) << _pDb->getLastError();  
 
-  EXPECT_TRUE(_pDb->startTask(tId)) << _pDb->getLastError();           
-
-  ZM_Base::scheduler schedr;
-  schedr.state = ZM_Base::stateType::ready;
-  schedr.connectPnt = "localhost:4444"; 
-  schedr.capacityTask = 105; 
-  uint64_t sId = 0;  
-  EXPECT_TRUE(_pDb->addSchedr(schedr, sId) && (sId > 0)) << _pDb->getLastError(); 
+  EXPECT_TRUE(_pDb->startTask(tId)) << _pDb->getLastError();        
 
   vector<ZM_DB::schedrTask> tasks;
   EXPECT_TRUE(_pDb->getNewTasksForSchedr(sId, 10, tasks) && 
-              (tasks.size() == 1)) << _pDb->getLastError(); 
+              (tasks.size() == 0)) << _pDb->getLastError(); 
+
+  task.prevTasks = "[]";
+  EXPECT_TRUE(_pDb->addTask(task, tId) && (tId > 0)) << _pDb->getLastError();  
+
+  EXPECT_TRUE(_pDb->startTask(tId)) << _pDb->getLastError();  
+
+  EXPECT_TRUE(_pDb->getNewTasksForSchedr(sId, 10, tasks) && 
+              (tasks.size() == 1) &&
+              (tasks[0].task.id == ttId)) << _pDb->getLastError(); 
+
+  task.prevTasks = "[]";
+  EXPECT_TRUE(_pDb->addTask(task, tId) && (tId > 0)) << _pDb->getLastError();  
+
+  EXPECT_TRUE(_pDb->startTask(tId)) << _pDb->getLastError();     
+
+  tasks.clear();
+  EXPECT_TRUE(_pDb->getNewTasksForSchedr(sId, 10, tasks) && 
+              (tasks.size() == 1) &&
+              (tasks[0].task.id == ttId)) << _pDb->getLastError();
+
+  bool ff = false;   
 }

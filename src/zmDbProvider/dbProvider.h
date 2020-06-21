@@ -61,6 +61,7 @@ struct taskPrsAState{
 };
 struct taskTime{
   std::string createTime;
+  std::string takeInWorkTime;
   std::string startTime;
   std::string stopTime;
 };

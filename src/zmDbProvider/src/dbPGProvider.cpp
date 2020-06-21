@@ -159,10 +159,11 @@ bool DbPGProvider::createTables(){
 
   ss.str("");
   ss << "CREATE TABLE IF NOT EXISTS tblTaskTime("
-        "qtask        INT PRIMARY KEY REFERENCES tblTaskQueue,"        
-        "createTime   TIMESTAMP NOT NULL DEFAULT current_timestamp,"
-        "startTime    TIMESTAMP CHECK (startTime > createTime),"
-        "stopTime     TIMESTAMP CHECK (stopTime > startTime));";
+        "qtask          INT PRIMARY KEY REFERENCES tblTaskQueue,"        
+        "createTime     TIMESTAMP NOT NULL DEFAULT current_timestamp,"
+        "takeInWorkTime TIMESTAMP CHECK (takeInWorkTime > createTime),"
+        "startTime      TIMESTAMP CHECK (startTime > takeInWorkTime),"
+        "stopTime       TIMESTAMP CHECK (stopTime > startTime));";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
@@ -347,25 +348,16 @@ bool DbPGProvider::createTables(){
         "  qid int,"
         "  tid int,"
         "  exr int,"
-        "  averDurationSec int,"
-        "  maxDurationSec int,"
+        "  averDurSec int,"
+        "  maxDurSec int,"
         "  script text,"
         "  params text[][],"
         "  prevTasks int[]) AS $$ "
         "DECLARE "
-        "  recTasks TABLE("
-        "    qid int,"
-        "    tid int,"
-        "    exr int,"
-        "    averDurationSec int,"
-        "    maxDurationSec int,"
-        "    script text,"
-        "    params text[][],"
-        "    prevTasks int[]);"
         "  t int;"
         "BEGIN"
         "  <<mBegin>> "
-        "  FOR recTasks IN"
+        "  FOR qid, tid, exr, averDurSec, maxDurSec, script, params, prevTasks IN"
         "    SELECT tq.id, tt.id, tt.executor, tt.averDurationSec, tt.maxDurationSec,"
         "           tt.script, tp.params, pt.prevTasks"
         "    FROM tblTask tt "
@@ -373,20 +365,30 @@ bool DbPGProvider::createTables(){
         "    JOIN tblTaskState ts ON ts.qtask = tq.id "
         "    JOIN tblTaskParam tp ON tp.qtask = tq.id "
         "    JOIN tblPrevTask pt ON pt.qtask = tq.id "
-        "    WHERE tq.state = 0 ORDER BY tp.priority LIMIT maxTaskCnt"
+        "    WHERE ts.state = 0 ORDER BY tp.priority LIMIT maxTaskCnt"
         "  LOOP"
-        "    FOREACH t IN ARRAY recTasks.pt.prevTasks"
+        "    FOREACH t IN ARRAY prevTasks"
         "      LOOP"
-        "        SELECT qtask FROM tblTaskState"
-        "        WHERE t = qtask AND state = 5;" // completed
-        "        IF NOT FOUND THEN"
-        "          CONTINUE mBegin;"
-        "        END IF;"
+        "        PERFORM * FROM tblTaskState"
+        "        WHERE qtask = t AND state = 5;" // completed
+        "        CONTINUE mBegin WHEN NOT FOUND;"
         "      END LOOP;"
+        
         "    UPDATE tblTaskQueue SET"
         "      schedr = sId"
-        "    WHERE id = recTasks.qid;"
-        "    RETURN NEXT recTasks;"
+        "    WHERE id = qid AND schedr IS NULL;"
+
+        "    CONTINUE mBegin WHEN NOT FOUND;"
+        
+        "    UPDATE tblTaskState SET"
+        "      state = 1"  // start
+        "    WHERE qtask = qid;"
+        
+        "    UPDATE tblTaskTime SET"
+        "      takeInWorkTime = current_timestamp"
+        "    WHERE qtask = qid;"
+        
+        "    RETURN NEXT;"
         "  END LOOP;"
         "END;"
         "$$ LANGUAGE plpgsql;";
@@ -1208,7 +1210,7 @@ bool DbPGProvider::taskResult(uint64_t tId, std::string& out){
 bool DbPGProvider::taskTime(uint64_t tId, ZM_DB::taskTime& out){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
-  ss << "SELECT createTime, startTime, stopTime FROM tblTaskTime "
+  ss << "SELECT createTime, takeInWorkTime, startTime, stopTime FROM tblTaskTime "
         "WHERE qtask = (SELECT qtask FROM tblUPipelineTask WHERE id = " << tId << " AND isDelete = 0);";
 
   auto res = PQexec(_pg, ss.str().c_str());
@@ -1223,8 +1225,9 @@ bool DbPGProvider::taskTime(uint64_t tId, ZM_DB::taskTime& out){
     return false;
   } 
   out.createTime = PQgetvalue(res, 0, 0);
-  out.startTime = PQgetvalue(res, 0, 1);
-  out.stopTime = PQgetvalue(res, 0, 2);
+  out.takeInWorkTime = PQgetvalue(res, 0, 1);
+  out.startTime = PQgetvalue(res, 0, 2);
+  out.stopTime = PQgetvalue(res, 0, 3);
   PQclear(res); 
   return true;
 }
@@ -1353,6 +1356,7 @@ bool DbPGProvider::getNewTasksForSchedr(uint64_t sId, int maxTaskCnt, std::vecto
     return false;
   }
   int tsz = PQntuples(resTsk);
+  int fsz = PQnfields(resTsk);
   for (int i = 0; i < tsz; ++i){    
     out.push_back(ZM_DB::schedrTask{stoull(PQgetvalue(resTsk, i, 0)),
                                     ZM_Base::task{stoull(PQgetvalue(resTsk, i, 1)),
@@ -1442,7 +1446,8 @@ bool DbPGProvider::delAllTemplateTask(){
 bool DbPGProvider::delAllTask(){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
-  ss << "TRUNCATE tblUPipelineTask CASCADE;";
+  ss << "TRUNCATE tblUPipelineTask CASCADE;"
+        "TRUNCATE tblTaskQueue CASCADE;";
   
   auto res = PQexec(_pg, ss.str().c_str());
   if (PQresultStatus(res) != PGRES_COMMAND_OK){

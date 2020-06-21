@@ -453,7 +453,8 @@ ZMEY_API bool zmTaskResult(zmConn, uint64_t tId, char** outTResult);
 
 /// pipeline task time
 struct zmTskTime{
-  char createTime[32];       
+  char createTime[32];
+  char takeInWorkTime[32];        
   char startTime[32]; 
   char stopTime[32]; 
 };
