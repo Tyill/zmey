@@ -101,6 +101,7 @@ void receiveHandler(const string& cp, const string& data){
         break;
     }    
     _workers[cp].isActive = true;
+    _workers[cp].base.rating = max(10, _workers[cp].base.rating + 1);
   }
   // from manager
   else{

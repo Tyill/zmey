@@ -72,6 +72,7 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
       default: // I'm OK
         break;
     } 
+    _workers[cp].base.rating = max(1, _workers[cp].base.rating - 1);
   }
   // error from manager
   else if (ec){
