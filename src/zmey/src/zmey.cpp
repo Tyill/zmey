@@ -171,7 +171,7 @@ bool zmAddScheduler(zmConn zo, zmSchedr cng, uint64_t* outSchId){
 
   return static_cast<ZM_DB::DbProvider*>(zo)->addSchedr(schedr, *outSchId);
 }
-bool zmGetScheduler(zmConn zo, uint64_t schId, zmSchedr* outCng){
+bool zmGetScheduler(zmConn zo, uint64_t sId, zmSchedr* outCng){
   if (!zo) return false; 
 
   if (!outCng){
@@ -179,28 +179,34 @@ bool zmGetScheduler(zmConn zo, uint64_t schId, zmSchedr* outCng){
      return false;
   }
   ZM_Base::scheduler schedr;
-  if (static_cast<ZM_DB::DbProvider*>(zo)->getScheduler(schId, schedr)){    
+  if (static_cast<ZM_DB::DbProvider*>(zo)->getScheduler(sId, schedr)){    
     outSchCng->capacityTask = schedr.capacityTask;
     strcpy(outSchCng->connectPnt, schedr.connectPnt.c_str());
     return true;
   }
   return false;
 }
-bool zmChangeScheduler(zmConn zo, uint64_t schId, zmSchedr newCng){
+bool zmChangeScheduler(zmConn zo, uint64_t sId, zmSchedr newCng){
   if (!zo) return false; 
   
   ZM_Base::scheduler schedr;
   schedr.capacityTask = newCng->capacityTask;
   schedr.connectPnt = newCng->connectPnt;
 
-  return static_cast<ZM_DB::DbProvider*>(zo)->changeScheduler(schId, schedr);
+  return static_cast<ZM_DB::DbProvider*>(zo)->changeScheduler(sId, schedr);
 }
-bool zmDelScheduler(zmConn, uint64_t schId){
+bool zmDelScheduler(zmConn, uint64_t sId){
   if (!zo) return false;
  
-  return static_cast<ZM_DB::DbProvider*>(zo)->delSchedr(schId);
+  return static_cast<ZM_DB::DbProvider*>(zo)->delSchedr(sId);
 }
-bool zmSchedulerState(zmConn zo, uint64_t schId, zmStateType* outState){
+bool zmStartScheduler(zmConn, uint64_t sId){
+  return true;
+}
+bool zmPauseScheduler(zmConn, uint64_t sId){
+  return true;
+}
+bool zmSchedulerState(zmConn zo, uint64_t sId, zmStateType* outState){
   if (!zo) return false; 
 
   if (!outState){
@@ -208,7 +214,7 @@ bool zmSchedulerState(zmConn zo, uint64_t schId, zmStateType* outState){
      return false;
   }
   ZM_Base::stateType state;
-  if (static_cast<ZM_DB::DbProvider*>(zo)->schedrState(schId, state)){    
+  if (static_cast<ZM_DB::DbProvider*>(zo)->schedrState(sId, state)){    
     *outState = (zmey::zmStateType)state;
     return true;
   }
@@ -253,7 +259,7 @@ bool zmGetWorker(zmConn zo, uint64_t wId, zmWorker* outWCng){
   }
   ZM_Base::worker worker;
   if (static_cast<ZM_DB::DbProvider*>(zo)->getWorker(wId, worker)){    
-    outWCng->schId = worker.sId;
+    outWCng->sId = worker.sId;
     outWCng->exr = (zmey::zmExecutorType)worker.exr;
     outWCng->capacityTask = worker.capacityTask;
     strcpy(outWCng->connectPnt, worker.connectPnt.c_str());
@@ -265,7 +271,7 @@ bool zmChangeWorker(zmConn zo, uint64_t wId, zmWorker newCng){
   if (!zo) return false; 
 
   ZM_Base::worker worker;
-  worker.sId = newCng->schId;
+  worker.sId = newCng->sId;
   worker.exr = (ZM_Base::executorType)newCng->exr;
   worker.capacityTask = newCng->capacityTask;
   worker.connectPnt = newCng->connectPnt;
@@ -277,6 +283,12 @@ bool zmDelWorker(zmConn, uint64_t wId){
  
   return static_cast<ZM_DB::DbProvider*>(zo)->delWorker(wId);
 }
+bool zmStartWorker(zmConn, uint64_t wId){
+  return true;
+}
+bool zmPauseWorker(zmConn, uint64_t wId){
+  return true;
+}
 bool zmWorkerState(zmConn zo, uint64_t* wId, uint32_t wCnt, zmStateType* outState){
   if (!zo) return false; 
 
@@ -284,19 +296,19 @@ bool zmWorkerState(zmConn zo, uint64_t* wId, uint32_t wCnt, zmStateType* outStat
      static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmWorkerState error: !outState");
      return false;
   }
-  vector<uint64_t> wkrId(wCnt);
-  memcpy(wkrId.data(), wId, wCnt * sizeof(uint64_t));
+  vector<uint64_t> wId(wCnt);
+  memcpy(wId.data(), wId, wCnt * sizeof(uint64_t));
   vector<ZM_Base::stateType> state;
-  if (static_cast<ZM_DB::DbProvider*>(zo)->workerState(wkrId, state)){    
+  if (static_cast<ZM_DB::DbProvider*>(zo)->workerState(wId, state)){    
     memcpy(outState, state.data(), wCnt * sizeof(ZM_Base::stateType));
     return true;
   }
   return false;
 }
-uint32_t zmGetAllWorkers(zmConn zo, uint64_t schId, zmStateType state, uint64_t** outWId){
+uint32_t zmGetAllWorkers(zmConn zo, uint64_t sId, zmStateType state, uint64_t** outWId){
   if (!zo) return false; 
 
-  auto workers = static_cast<ZM_DB::DbProvider*>(zo)->getAllWorkers(schId, (ZM_Base::stateType)state);
+  auto workers = static_cast<ZM_DB::DbProvider*>(zo)->getAllWorkers(sId, (ZM_Base::stateType)state);
   size_t wsz = workers.size();
   if (wsz > 0){ 
     *outWId = (uint64_t*)realloc(*outWId, wsz * sizeof(uint64_t));

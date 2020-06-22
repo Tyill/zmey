@@ -89,18 +89,18 @@ public:
   virtual std::vector<uint64_t> getAllUsers() = 0;
   
   virtual bool addSchedr(const ZM_Base::scheduler& schedl, uint64_t& outSchId) = 0;
-  virtual bool getSchedr(uint64_t schId, ZM_Base::scheduler& outCng) = 0;
-  virtual bool changeSchedr(uint64_t schId, const ZM_Base::scheduler& newCng) = 0;
-  virtual bool delSchedr(uint64_t schId) = 0;
-  virtual bool schedrState(uint64_t schId, ZM_Base::stateType& ) = 0;
+  virtual bool getSchedr(uint64_t sId, ZM_Base::scheduler& outCng) = 0;
+  virtual bool changeSchedr(uint64_t sId, const ZM_Base::scheduler& newCng) = 0;
+  virtual bool delSchedr(uint64_t sId) = 0;
+  virtual bool schedrState(uint64_t sId, ZM_Base::stateType& ) = 0;
   virtual std::vector<uint64_t> getAllSchedrs(ZM_Base::stateType) = 0;
   
   virtual bool addWorker(const ZM_Base::worker& worker, uint64_t& outWkrId) = 0;
-  virtual bool getWorker(uint64_t wkrId, ZM_Base::worker& outCng) = 0;
-  virtual bool changeWorker(uint64_t wkrId, const ZM_Base::worker& newCng) = 0;
-  virtual bool delWorker(uint64_t wkrId) = 0;
-  virtual bool workerState(const std::vector<uint64_t>& wkrId, std::vector<ZM_Base::stateType>&) = 0;
-  virtual std::vector<uint64_t> getAllWorkers(uint64_t schId, ZM_Base::stateType) = 0;
+  virtual bool getWorker(uint64_t wId, ZM_Base::worker& outCng) = 0;
+  virtual bool changeWorker(uint64_t wId, const ZM_Base::worker& newCng) = 0;
+  virtual bool delWorker(uint64_t wId) = 0;
+  virtual bool workerState(const std::vector<uint64_t>& wId, std::vector<ZM_Base::stateType>&) = 0;
+  virtual std::vector<uint64_t> getAllWorkers(uint64_t sId, ZM_Base::stateType) = 0;
 
   virtual bool addPipeline(const ZM_Base::uPipeline& cng, uint64_t& outPPLId) = 0;
   virtual bool getPipeline(uint64_t pplId, ZM_Base::uPipeline& cng) = 0;
@@ -126,10 +126,10 @@ public:
   
   // for zmSchedr
   virtual bool getSchedr(std::string& connPnt, ZM_Base::scheduler& outSchedl) = 0;
-  virtual bool getTasksOfSchedr(uint64_t schId, std::vector<schedrTask>& out) = 0;
-  virtual bool getWorkersOfSchedr(uint64_t schId, std::vector<ZM_Base::worker>& out) = 0;
-  virtual bool getNewTasksForSchedr(uint64_t schId, int maxTaskCnt, std::vector<schedrTask>& out) = 0;
-  virtual bool sendAllMessFromSchedr(uint64_t schId, std::vector<messSchedr>& out) = 0;
+  virtual bool getTasksOfSchedr(uint64_t sId, std::vector<schedrTask>& out) = 0;
+  virtual bool getWorkersOfSchedr(uint64_t sId, std::vector<ZM_Base::worker>& out) = 0;
+  virtual bool getNewTasksForSchedr(uint64_t sId, int maxTaskCnt, std::vector<schedrTask>& out) = 0;
+  virtual bool sendAllMessFromSchedr(uint64_t sId, std::vector<messSchedr>& out) = 0;
 
   void setErrorCBack(errCBack ecb, udata ud);
   std::string getLastError();  

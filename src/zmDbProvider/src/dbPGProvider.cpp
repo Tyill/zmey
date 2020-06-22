@@ -552,12 +552,12 @@ bool DbPGProvider::addSchedr(const ZM_Base::scheduler& schedl, uint64_t& outSchI
   PQclear(res); 
   return true;
 }
-bool DbPGProvider::getSchedr(uint64_t schId, ZM_Base::scheduler& cng){
+bool DbPGProvider::getSchedr(uint64_t sId, ZM_Base::scheduler& cng){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
   ss << "SELECT cp.ipAddr, cp.port, s.state, s.capacityTask FROM tblScheduler s "
         "JOIN tblConnectPnt cp ON cp.id = s.connPnt "
-        "WHERE s.id = " << schId << " AND s.isDelete = 0;";
+        "WHERE s.id = " << sId << " AND s.isDelete = 0;";
 
   auto res = PQexec(_pg, ss.str().c_str());
   if (PQresultStatus(res) != PGRES_TUPLES_OK){
@@ -576,7 +576,7 @@ bool DbPGProvider::getSchedr(uint64_t schId, ZM_Base::scheduler& cng){
   PQclear(res); 
   return true;
 }
-bool DbPGProvider::changeSchedr(uint64_t schId, const ZM_Base::scheduler& newCng){  
+bool DbPGProvider::changeSchedr(uint64_t sId, const ZM_Base::scheduler& newCng){  
   lock_guard<mutex> lk(_mtx);
   auto connPnt = ZM_Aux::split(newCng.connectPnt, ":");
   if (connPnt.size() != 2){
@@ -587,12 +587,12 @@ bool DbPGProvider::changeSchedr(uint64_t schId, const ZM_Base::scheduler& newCng
   ss << "UPDATE tblScheduler SET "
         "state = '" << (int)newCng.state << "',"
         "capacityTask = '" << newCng.capacityTask << "' "
-        "WHERE id = " << schId << " AND isDelete = 0; "
+        "WHERE id = " << sId << " AND isDelete = 0; "
 
         "UPDATE tblConnectPnt SET "
         "ipAddr = '" << connPnt[0] << "',"
         "port = '" << connPnt[1] << "' "
-        "WHERE id = (SELECT connPnt FROM tblScheduler WHERE id = " << schId << " AND isDelete = 0);";
+        "WHERE id = (SELECT connPnt FROM tblScheduler WHERE id = " << sId << " AND isDelete = 0);";
 
   auto res = PQexec(_pg, ss.str().c_str());
   if (PQresultStatus(res) != PGRES_COMMAND_OK){
@@ -603,12 +603,12 @@ bool DbPGProvider::changeSchedr(uint64_t schId, const ZM_Base::scheduler& newCng
   PQclear(res); 
   return true;
 }
-bool DbPGProvider::delSchedr(uint64_t schId){  
+bool DbPGProvider::delSchedr(uint64_t sId){  
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
   ss << "UPDATE tblScheduler SET "
         "isDelete = 1 "
-        "WHERE id = " << schId << ";";
+        "WHERE id = " << sId << ";";
 
   auto res = PQexec(_pg, ss.str().c_str());
   if (PQresultStatus(res) != PGRES_COMMAND_OK){
@@ -619,11 +619,11 @@ bool DbPGProvider::delSchedr(uint64_t schId){
   PQclear(res); 
   return true;
 }
-bool DbPGProvider::schedrState(uint64_t schId, ZM_Base::stateType& state){
+bool DbPGProvider::schedrState(uint64_t sId, ZM_Base::stateType& state){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
   ss << "SELECT state FROM tblScheduler "
-        "WHERE id = " << schId << " AND isDelete = 0;";
+        "WHERE id = " << sId << " AND isDelete = 0;";
 
   auto res = PQexec(_pg, ss.str().c_str());
   if ((PQresultStatus(res) != PGRES_TUPLES_OK) || (PQntuples(res) != 1)){
@@ -684,12 +684,12 @@ bool DbPGProvider::addWorker(const ZM_Base::worker& worker, uint64_t& outWkrId){
   PQclear(res); 
   return true;
 }
-bool DbPGProvider::getWorker(uint64_t wkrId, ZM_Base::worker& cng){
+bool DbPGProvider::getWorker(uint64_t wId, ZM_Base::worker& cng){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
   ss << "SELECT cp.ipAddr, cp.port, w.schedr, w.executor, w.state, w.capacityTask FROM tblWorker w "
         "JOIN tblConnectPnt cp ON cp.id = w.connPnt "
-        "WHERE w.id = " << wkrId << " AND w.isDelete = 0;";
+        "WHERE w.id = " << wId << " AND w.isDelete = 0;";
 
   auto res = PQexec(_pg, ss.str().c_str());
   if (PQresultStatus(res) != PGRES_TUPLES_OK){
@@ -710,7 +710,7 @@ bool DbPGProvider::getWorker(uint64_t wkrId, ZM_Base::worker& cng){
   PQclear(res); 
   return true;
 }
-bool DbPGProvider::changeWorker(uint64_t wkrId, const ZM_Base::worker& newCng){
+bool DbPGProvider::changeWorker(uint64_t wId, const ZM_Base::worker& newCng){
   lock_guard<mutex> lk(_mtx);
   auto connPnt = ZM_Aux::split(newCng.connectPnt, ":");
   if (connPnt.size() != 2){
@@ -723,12 +723,12 @@ bool DbPGProvider::changeWorker(uint64_t wkrId, const ZM_Base::worker& newCng){
         "executor = '" << (int)newCng.exr << "',"
         "state = '" << (int)newCng.state << "',"
         "capacityTask = '" << newCng.capacityTask << "' "
-        "WHERE id = " << wkrId << " AND isDelete = 0; "
+        "WHERE id = " << wId << " AND isDelete = 0; "
 
         "UPDATE tblConnectPnt SET "
         "ipAddr = '" << connPnt[0] << "',"
         "port = '" << connPnt[1] << "' "
-        "WHERE id = (SELECT connPnt FROM tblWorker WHERE id = " << wkrId << " AND isDelete = 0);";
+        "WHERE id = (SELECT connPnt FROM tblWorker WHERE id = " << wId << " AND isDelete = 0);";
 
   auto res = PQexec(_pg, ss.str().c_str());
   if (PQresultStatus(res) != PGRES_COMMAND_OK){
@@ -739,12 +739,12 @@ bool DbPGProvider::changeWorker(uint64_t wkrId, const ZM_Base::worker& newCng){
   PQclear(res); 
   return true;
 }
-bool DbPGProvider::delWorker(uint64_t wkrId){
+bool DbPGProvider::delWorker(uint64_t wId){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
   ss << "UPDATE tblWorker SET "
         "isDelete = 1 "
-        "WHERE id = " << wkrId << ";";
+        "WHERE id = " << wId << ";";
 
   auto res = PQexec(_pg, ss.str().c_str());
   if (PQresultStatus(res) != PGRES_COMMAND_OK){
@@ -755,10 +755,10 @@ bool DbPGProvider::delWorker(uint64_t wkrId){
   PQclear(res); 
   return true;
 }
-bool DbPGProvider::workerState(const std::vector<uint64_t>& wkrId, std::vector<ZM_Base::stateType>& state){
+bool DbPGProvider::workerState(const std::vector<uint64_t>& wId, std::vector<ZM_Base::stateType>& state){
   lock_guard<mutex> lk(_mtx);
   string swId;
-  swId = accumulate(wkrId.begin(), wkrId.end(), swId,
+  swId = accumulate(wId.begin(), wId.end(), swId,
                 [](string& s, uint64_t v){
                   return s.empty() ? to_string(v) : s + "," + to_string(v);
                 }); 
@@ -772,7 +772,7 @@ bool DbPGProvider::workerState(const std::vector<uint64_t>& wkrId, std::vector<Z
     PQclear(res);
     return false;
   }
-  size_t wsz = wkrId.size();
+  size_t wsz = wId.size();
   if (PQntuples(res) != wsz){
     errorMess("workerState error: PQntuples(res) != wsz");
     PQclear(res);
@@ -785,12 +785,12 @@ bool DbPGProvider::workerState(const std::vector<uint64_t>& wkrId, std::vector<Z
   PQclear(res); 
   return true;
 }
-std::vector<uint64_t> DbPGProvider::getAllWorkers(uint64_t schId, ZM_Base::stateType state){
+std::vector<uint64_t> DbPGProvider::getAllWorkers(uint64_t sId, ZM_Base::stateType state){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
   ss << "SELECT id FROM tblWorker "
         "WHERE (state = " << (int)state << " OR " << (int)state << " = -1) "
-        "AND schedr = " << schId << " "
+        "AND schedr = " << sId << " "
         "AND isDelete = 0;";
 
   auto res = PQexec(_pg, ss.str().c_str());
@@ -1399,22 +1399,26 @@ bool DbPGProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::messSc
         ss << "UPDATE tblTaskState SET "
               "state = " << (int)ZM_Base::stateType::error << " "
               "WHERE qtask = " << m.taskId << ";"
+
               "UPDATE tblTaskTime SET "
               "stopTime = current_timestamp "
               "WHERE qtask = " << m.taskId << ";"
+              
               "UPDATE tblTaskResult SET "
-              "result = " << m.result << " "
+              "result = ARRAY" << m.result << "::TEXT[3] "
               "WHERE qtask = " << m.taskId << ";";
         break; 
       case ZM_Base::messType::taskCompleted: 
         ss << "UPDATE tblTaskState SET "
               "state = " << (int)ZM_Base::stateType::completed << " "
               "WHERE qtask = " << m.taskId << ";"
+
               "UPDATE tblTaskTime SET "
               "stopTime = current_timestamp "
               "WHERE qtask = " << m.taskId << ";"
+
               "UPDATE tblTaskResult SET "
-              "result = " << m.result << " "
+              "result = ARRAY" << m.result << "::TEXT[3] "
               "WHERE qtask = " << m.taskId << ";";
         break;  
       case ZM_Base::messType::taskStart: 
@@ -1422,9 +1426,11 @@ bool DbPGProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::messSc
         ss << "UPDATE tblTaskQueue SET "
               "worker = " << m.workerId << " "
               "WHERE id = " << m.taskId << ";"
+
               "UPDATE tblTaskState SET "
               "state = " << (int)ZM_Base::stateType::running << " "
               "WHERE qtask = " << m.taskId << ";"
+
               "UPDATE tblTaskTime SET "
               "startTime = current_timestamp "
               "WHERE qtask = " << m.taskId << " AND startTime IS NULL;";              
@@ -1438,19 +1444,23 @@ bool DbPGProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::messSc
         ss << "UPDATE tblTaskState SET "
               "state = " << (int)ZM_Base::stateType::stop << " "
               "WHERE qtask = " << m.taskId << ";"
+
               "UPDATE tblTaskTime SET "
               "stopTime = current_timestamp "
               "WHERE qtask = " << m.taskId << ";";
         break;
       case ZM_Base::messType::justStartWorker:
-        ss << "WITH taskRun AS (SELECT qtask FROM tblTaskState WHERE state BETWEEN 2 AND 3)" // pause, running
-              "UPDATE tblTaskQueue SET "
+        ss << "WITH taskUpd AS ("
+              "UPDATE tblTaskQueue tq SET "
               "schedr = NULL,"
               "worker = NULL " 
-              "WHERE taskRun.qtask = id AND worker = " << m.workerId << ";"
+              "FROM tblTaskState ts "
+              "WHERE tq.id = ts.qtask AND tq.worker = " << m.workerId << " AND (ts.state BETWEEN 2 AND 3) " // running, pause
+              "RETURNING tq.id) "
+
               "UPDATE tblTaskState SET "
               "state = " << (int)ZM_Base::stateType::ready << " "
-              "WHERE qtask = " << m.taskId << ";";
+              "WHERE qtask = (SELECT id FROM taskUpd);";
         break;
       case ZM_Base::messType::progress:
         ss << "UPDATE tblTaskState SET "
@@ -1478,14 +1488,26 @@ bool DbPGProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::messSc
               "WHERE id = " << m.workerId << ";";
         break;
       case ZM_Base::messType::workerNotResponding:
-        ss << "UPDATE tblWorker SET "
+        ss << "WITH taskUpd AS ("
+              "UPDATE tblTaskQueue tq SET "
+              "schedr = NULL,"
+              "worker = NULL " 
+              "FROM tblTaskState ts "
+              "WHERE tq.id = ts.qtask AND tq.worker = " << m.workerId << " AND (ts.state BETWEEN 2 AND 3) " // running, pause
+              "RETURNING tq.id) "
+
+              "UPDATE tblTaskState SET "
+              "state = " << (int)ZM_Base::stateType::ready << " "
+              "WHERE qtask = (SELECT id FROM taskUpd);"
+
+              "UPDATE tblWorker SET "
               "state = " << (int)ZM_Base::stateType::notResponding << " "
               "WHERE id = " << m.workerId << ";";
         break;
     }    
   }
   auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+  if (PQresultStatus(res) != PGRES_COMMAND_OK){
     errorMess(string("sendAllMessFromSchedr error: ") + PQerrorMessage(_pg));
     PQclear(res);
     return false;

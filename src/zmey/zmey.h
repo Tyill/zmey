@@ -183,30 +183,42 @@ ZMEY_API bool zmAddScheduler(zmConn, zmSchedr cng, uint64_t* outSchId);
 
 /// scheduler cng
 /// @param[in] zmConn - object connect
-/// @param[in] schId - scheduler id 
+/// @param[in] sId - scheduler id 
 /// @param[out] outCng - scheduler config
 /// @return true - ok
-ZMEY_API bool zmGetScheduler(zmConn, uint64_t schId, zmSchedr* outCng);
+ZMEY_API bool zmGetScheduler(zmConn, uint64_t sId, zmSchedr* outCng);
 
 /// change scheduler cng
 /// @param[in] zmConn - object connect
-/// @param[in] schId - scheduler id 
+/// @param[in] sId - scheduler id 
 /// @param[in] newCng - scheduler config
 /// @return true - ok
-ZMEY_API bool zmChangeScheduler(zmConn, uint64_t schId, zmSchedr newCng);
+ZMEY_API bool zmChangeScheduler(zmConn, uint64_t sId, zmSchedr newCng);
 
 /// delete scheduler
 /// @param[in] zmConn - object connect
-/// @param[in] schId - scheduler id
+/// @param[in] sId - scheduler id
 /// @return true - ok
-ZMEY_API bool zmDelScheduler(zmConn, uint64_t schId);
+ZMEY_API bool zmDelScheduler(zmConn, uint64_t sId);
+
+/// start scheduler
+/// @param[in] zmConn - object connect
+/// @param[in] sId - scheduler id
+/// @return true - ok
+ZMEY_API bool zmStartScheduler(zmConn, uint64_t sId);
+
+/// pause scheduler
+/// @param[in] zmConn - object connect
+/// @param[in] sId - scheduler id
+/// @return true - ok
+ZMEY_API bool zmPauseScheduler(zmConn, uint64_t sId);
 
 /// scheduler state
 /// @param[in] zmConn - object connect
-/// @param[in] schId - scheduler id 
+/// @param[in] sId - scheduler id 
 /// @param[out] outState - scheduler state
 /// @return true - ok
-ZMEY_API bool zmSchedulerState(zmConn, uint64_t schId, zmStateType* outState);
+ZMEY_API bool zmSchedulerState(zmConn, uint64_t sId, zmStateType* outState);
 
 /// get all schedulers
 /// @param[in] zmConn - object connect
@@ -220,7 +232,7 @@ ZMEY_API uint32_t zmGetAllSchedulers(zmConn, zmStateType state, uint64_t** outSc
 
 /// worker config
 struct zmWorker{
-  uint64_t schId;             ///< scheduler id 
+  uint64_t sId;             ///< scheduler id 
   zmExecutorType exr;         ///< executor type
   uint32_t capacityTask = 10; ///< permissible simultaneous number of tasks
   char connectPnt[255];       ///< remote connection point: IP or DNS:port   
@@ -253,6 +265,18 @@ ZMEY_API bool zmChangeWorker(zmConn, uint64_t wId, zmWorker newCng);
 /// @return true - ok
 ZMEY_API bool zmDelWorker(zmConn, uint64_t wId);
 
+/// start worker
+/// @param[in] zmConn - object connect
+/// @param[in] wId - worker id
+/// @return true - ok
+ZMEY_API bool zmStartWorker(zmConn, uint64_t wId);
+
+/// pause worker
+/// @param[in] zmConn - object connect
+/// @param[in] wId - worker id
+/// @return true - ok
+ZMEY_API bool zmPauseWorker(zmConn, uint64_t wId);
+
 /// worker state
 /// @param[in] zmConn - object connect
 /// @param[in] wId - worker id, order by id.
@@ -263,11 +287,11 @@ ZMEY_API bool zmWorkerState(zmConn, uint64_t* wId, uint32_t wCnt, zmStateType* o
 
 /// get all workers
 /// @param[in] zmConn - object connect
-/// @param[in] schId - scheduler id 
+/// @param[in] sId - scheduler id 
 /// @param[in] state - choose with current state. If the state is 'undefined', select all
 /// @param[out] outWId - worker id 
 /// @return count of schedulers
-ZMEY_API uint32_t zmGetAllWorkers(zmConn, uint64_t schId, zmStateType state, uint64_t** outWId);
+ZMEY_API uint32_t zmGetAllWorkers(zmConn, uint64_t sId, zmStateType state, uint64_t** outWId);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Pipeline of tasks
