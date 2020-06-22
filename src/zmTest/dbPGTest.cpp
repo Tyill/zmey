@@ -1631,39 +1631,39 @@ protected:
 //               (tasks[0].task.id == ttId)) << _pDb->getLastError(); 
 // }
 // TEST_F(DBTest, sendAllMessFromSchedr){
-  EXPECT_TRUE(_pDb->delAllWorkers()) << _pDb->getLastError();
-  EXPECT_TRUE(_pDb->delAllSchedrs()) << _pDb->getLastError();
+//   EXPECT_TRUE(_pDb->delAllWorkers()) << _pDb->getLastError();
+//   EXPECT_TRUE(_pDb->delAllSchedrs()) << _pDb->getLastError();
  
-  ZM_Base::scheduler schedr;
-  schedr.state = ZM_Base::stateType::ready;
-  schedr.connectPnt = "localhost:4444"; 
-  schedr.capacityTask = 105; 
-  uint64_t sId = 0;  
-  EXPECT_TRUE(_pDb->addSchedr(schedr, sId) && (sId > 0)) << _pDb->getLastError(); 
+//   ZM_Base::scheduler schedr;
+//   schedr.state = ZM_Base::stateType::ready;
+//   schedr.connectPnt = "localhost:4444"; 
+//   schedr.capacityTask = 105; 
+//   uint64_t sId = 0;  
+//   EXPECT_TRUE(_pDb->addSchedr(schedr, sId) && (sId > 0)) << _pDb->getLastError(); 
   
-  ZM_Base::worker worker{0};
-  worker.capacityTask = 10;
-  worker.sId = sId;
-  worker.state = ZM_Base::stateType::ready;
-  worker.connectPnt = "localhost:4444";  
-  worker.exr = ZM_Base::executorType::bash;
-  uint64_t wId = 0;  
-  EXPECT_TRUE(_pDb->addWorker(worker, wId) && (wId > 0)) << _pDb->getLastError();   
+//   ZM_Base::worker worker{0};
+//   worker.capacityTask = 10;
+//   worker.sId = sId;
+//   worker.state = ZM_Base::stateType::ready;
+//   worker.connectPnt = "localhost:4444";  
+//   worker.exr = ZM_Base::executorType::bash;
+//   uint64_t wId = 0;  
+//   EXPECT_TRUE(_pDb->addWorker(worker, wId) && (wId > 0)) << _pDb->getLastError();   
   
-  vector<ZM_DB::messSchedr> mess;
-  mess.push_back(ZM_DB::messSchedr{ZM_Base::messType::taskError, wId, 0, 0, "['key','=','result']"});
-  mess.push_back(ZM_DB::messSchedr{ZM_Base::messType::taskCompleted, wId, 0, 0, "['key','=','result']"});
-  mess.push_back(ZM_DB::messSchedr{ZM_Base::messType::taskStart, wId, 0, 0, "['key','=','result']"});
-  mess.push_back(ZM_DB::messSchedr{ZM_Base::messType::taskRunning, wId, 0, 0, "['key','=','result']"});
-  mess.push_back(ZM_DB::messSchedr{ZM_Base::messType::taskPause, wId, 0, 0, "['key','=','result']"});
-  mess.push_back(ZM_DB::messSchedr{ZM_Base::messType::taskStop, wId, 0, 0, "['key','=','result']"});
-  mess.push_back(ZM_DB::messSchedr{ZM_Base::messType::justStartWorker, wId, 0, 0, "['key','=','result']"});
-  mess.push_back(ZM_DB::messSchedr{ZM_Base::messType::progress, wId, 0, 0, "['key','=','result']"});
-  mess.push_back(ZM_DB::messSchedr{ZM_Base::messType::pauseSchedr, wId, 0, 0, "['key','=','result']"});
-  mess.push_back(ZM_DB::messSchedr{ZM_Base::messType::pauseWorker, wId, 0, 0, "['key','=','result']"});
-  mess.push_back(ZM_DB::messSchedr{ZM_Base::messType::startSchedr, wId, 0, 0, "['key','=','result']"});
-  mess.push_back(ZM_DB::messSchedr{ZM_Base::messType::startWorker, wId, 0, 0, "['key','=','result']"});
-  mess.push_back(ZM_DB::messSchedr{ZM_Base::messType::workerNotResponding, wId, 0, 0, "['key','=','result']"});
+//   vector<ZM_DB::messSchedr> mess;
+//   mess.push_back(ZM_DB::messSchedr{ZM_Base::messType::taskError, wId, 0, 0, "['key','=','result']"});
+//   mess.push_back(ZM_DB::messSchedr{ZM_Base::messType::taskCompleted, wId, 0, 0, "['key','=','result']"});
+//   mess.push_back(ZM_DB::messSchedr{ZM_Base::messType::taskStart, wId, 0, 0, "['key','=','result']"});
+//   mess.push_back(ZM_DB::messSchedr{ZM_Base::messType::taskRunning, wId, 0, 0, "['key','=','result']"});
+//   mess.push_back(ZM_DB::messSchedr{ZM_Base::messType::taskPause, wId, 0, 0, "['key','=','result']"});
+//   mess.push_back(ZM_DB::messSchedr{ZM_Base::messType::taskStop, wId, 0, 0, "['key','=','result']"});
+//   mess.push_back(ZM_DB::messSchedr{ZM_Base::messType::justStartWorker, wId, 0, 0, "['key','=','result']"});
+//   mess.push_back(ZM_DB::messSchedr{ZM_Base::messType::progress, wId, 0, 0, "['key','=','result']"});
+//   mess.push_back(ZM_DB::messSchedr{ZM_Base::messType::pauseSchedr, wId, 0, 0, "['key','=','result']"});
+//   mess.push_back(ZM_DB::messSchedr{ZM_Base::messType::pauseWorker, wId, 0, 0, "['key','=','result']"});
+//   mess.push_back(ZM_DB::messSchedr{ZM_Base::messType::startSchedr, wId, 0, 0, "['key','=','result']"});
+//   mess.push_back(ZM_DB::messSchedr{ZM_Base::messType::startWorker, wId, 0, 0, "['key','=','result']"});
+//   mess.push_back(ZM_DB::messSchedr{ZM_Base::messType::workerNotResponding, wId, 0, 0, "['key','=','result']"});
 
-  EXPECT_TRUE(_pDb->sendAllMessFromSchedr(sId, mess)) << _pDb->getLastError();
-}
+//   EXPECT_TRUE(_pDb->sendAllMessFromSchedr(sId, mess)) << _pDb->getLastError();
+// }

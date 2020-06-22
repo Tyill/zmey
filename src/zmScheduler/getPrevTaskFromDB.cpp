@@ -31,11 +31,10 @@ using namespace std;
 void getPrevTaskFromDB(ZM_DB::DbProvider& db, 
                        ZM_Base::scheduler& schedr,
                        ZM_Aux::QueueThrSave<sTask>& outTasks){
-
   vector<ZM_DB::schedrTask> tasks;
-  if (db.getTasksForSchedr(schedr.id, tasks)){
+  if (db.getTasksOfSchedr(schedr.id, tasks)){
     for(auto& t : tasks){
-      outTasks.push(sTask{t.first, t.second.params});
+      outTasks.push(sTask{t.qTaskId, t.base, t.params});
     }
   }
 };

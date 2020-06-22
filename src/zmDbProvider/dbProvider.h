@@ -52,7 +52,7 @@ struct messSchedr{
 };
 struct schedrTask{
   uint64_t qTaskId;
-  ZM_Base::task task;
+  ZM_Base::task base;
   std::string params;
 };
 struct taskPrsAState{

@@ -33,7 +33,7 @@ void getPrevWorkersFromDB(ZM_DB::DbProvider& db,
                           unordered_map<std::string, sWorker>& outWorkers){
   
   vector<ZM_Base::worker> workers; 
-  if (db.getWorkersForSchedr(schedr.id, workers)){
+  if (db.getWorkersOfSchedr(schedr.id, workers)){
     for(auto& w : workers){
       outWorkers[w.connectPnt] = sWorker{w, w.state == ZM_Base::stateType::running};
     }

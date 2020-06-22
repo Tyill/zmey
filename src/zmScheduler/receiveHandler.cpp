@@ -69,11 +69,9 @@ void receiveHandler(const string& cp, const string& data){
         checkFieldNum(taskId);
         checkFieldNum(activeTask);
         checkField(taskResult);
-        _workers[cp].base.activeTask = stoi(mess["activeTask"]); 
+        _workers[cp].base.activeTask = stoi(mess["activeTask"]);
         _messToDB.push(ZM_DB::messSchedr{mtype, _workers[cp].base.id,
                                                 stoull(mess["taskId"]),
-                                                _workers[cp].base.activeTask,
-                                                _schedr.activeTask, 
                                                 0,
                                                 mess["taskResult"]});
         break;
@@ -87,8 +85,6 @@ void receiveHandler(const string& cp, const string& data){
         while(mess.find("taskId" + to_string(tCnt)) != mess.end()){
           _messToDB.push(ZM_DB::messSchedr{mtype, _workers[cp].base.id,
                                            stoull(mess["taskId" + to_string(tCnt)]),
-                                           _workers[cp].base.activeTask,
-                                           _schedr.activeTask,
                                            stoi(mess["progress" + to_string(tCnt)])});
           ++tCnt;
         }

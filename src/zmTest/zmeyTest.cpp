@@ -51,5 +51,5 @@ protected:
 };
 
 TEST_F(ZmeyTest, startSchedr){
-  zmey::zmStartScheduler(_zc, 0, "localhost:")
+  zmey::zmStartScheduler(_zc, 0, (char*)string("localhost:4555").c_str());
 }

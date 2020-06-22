@@ -96,7 +96,7 @@ std::string replace(std::string& ioStr, const std::string& targ, const std::stri
   }
   return ioStr;
 }
-std::string trim(std::string &str){
+std::string trim(std::string str){
   auto itB = std::find_if(str.cbegin(), str.cend(), [](int32_t ch) -> bool { return !std::isspace(ch); });
   str.erase(str.cbegin(), itB);
 

@@ -74,28 +74,26 @@ void statusMess(const string& mess){
 }
 
 void parseArgs(int argc, char* argv[], config& outCng){ 
-   
   string sargs;
   for (int i = 1; i < argc; ++i){
     sargs += argv[i];
   }
-  sargs.erase(std::remove(sargs.begin(), sargs.end(), ' '), sargs.end());
   map<string, string> sprms;
   auto argPair = ZM_Aux::split(sargs, "-");
   for (auto& arg : argPair){
-    auto pm = ZM_Aux::split(arg, "=");
-    if (pm.size() <= 1){
-      sprms[arg] = "";
+    size_t sp = arg.find_first_of("=");
+    if (sp != std::string::npos){
+      sprms[ZM_Aux::trim(arg.substr(0, sp))] = ZM_Aux::trim(arg.substr(sp + 1));
     }else{
-      sprms[pm[0]] = pm[1];
+      sprms[ZM_Aux::trim(arg)] = "";
     }
   }
   if (sprms.find("log") != sprms.end()){
     outCng.logEna = true;
   }
 #define SET_PARAM(nm, prm) \
-  if (sprms.find("nm") != sprms.end()){ \
-    outCng.prm = sprms["nm"]; \
+  if (sprms.find(#nm) != sprms.end()){ \
+    outCng.prm = sprms[#nm]; \
   }
   SET_PARAM(cp, connectPnt);
   SET_PARAM(dbtp, dbType);
@@ -104,8 +102,8 @@ void parseArgs(int argc, char* argv[], config& outCng){
   outCng.dbConnCng.selType = ZM_DB::dbTypeFromStr(outCng.dbType);
  
 #define SET_PARAM_NUM(nm, prm) \
-  if (sprms.find("nm") != sprms.end() && ZM_Aux::isNumber(sprms["nm"])){ \
-    outCng.prm = stoi(sprms["nm"]); \
+  if (sprms.find(#nm) != sprms.end() && ZM_Aux::isNumber(sprms[#nm])){ \
+    outCng.prm = stoi(sprms[#nm]); \
   }  
   SET_PARAM_NUM(ctk, capacityTask);
   SET_PARAM_NUM(sdt, sendAllMessTOutMS);
@@ -146,7 +144,7 @@ int main(int argc, char* argv[]){
       "DB connect success: " + _cng.dbType + " " + _cng.dbConnCng.connectStr);
   }else{
     statusMess(
-      "DB connect error: " + _cng.dbType + " " + _cng.dbConnCng.connectStr);
+      "DB connect error " + db->getLastError() + ": " + _cng.dbType + " " + _cng.dbConnCng.connectStr);
     ZM_Tcp::stopServer();
     return -1;
   }
