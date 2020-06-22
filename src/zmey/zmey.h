@@ -407,53 +407,53 @@ struct zmTask{
 /// add pipeline task
 /// @param[in] zmConn - object connect
 /// @param[in] cng - pipeline task config
-/// @param[out] outTaskId - pipeline task id
+/// @param[out] outQTaskId - pipeline task id
 /// @return true - ok
-ZMEY_API bool zmAddTask(zmConn, zmTask cng, uint64_t* outTaskId);
+ZMEY_API bool zmAddTask(zmConn, zmTask cng, uint64_t* outQTaskId);
 
 /// get pipeline task config
 /// @param[in] zmConn - object connect
-/// @param[in] tId - pipeline task id
+/// @param[in] qtId - pipeline task id
 /// @param[out] outTCng - pipeline task config
 /// @return true - ok
-ZMEY_API bool zmGetTask(zmConn, uint64_t tId, zmTask* outTCng);
+ZMEY_API bool zmGetTask(zmConn, uint64_t qtId, zmTask* outTCng);
 
 /// change pipeline task config
 /// @param[in] zmConn - object connect
-/// @param[in] tId - pipeline task id
+/// @param[in] qtId - pipeline task id
 /// @param[in] newCng - pipeline task config
 /// @return true - ok
-ZMEY_API bool zmChangeTask(zmConn, uint64_t tId, zmTask newCng);
+ZMEY_API bool zmChangeTask(zmConn, uint64_t qtId, zmTask newCng);
 
 /// delete pipeline task
 /// @param[in] zmConn - object connect
-/// @param[in] tId - pipeline task id
+/// @param[in] qtId - pipeline task id
 /// @return true - ok
-ZMEY_API bool zmDelTask(zmConn, uint64_t tId);
+ZMEY_API bool zmDelTask(zmConn, uint64_t qtId);
 
 /// start pipeline task
 /// @param[in] zmConn - object connect
-/// @param[in] tId - pipeline task id
+/// @param[in] qtId - pipeline task id
 /// @return true - ok
-ZMEY_API bool zmStartTask(zmConn, uint64_t tId);
+ZMEY_API bool zmStartTask(zmConn, uint64_t qtId);
 
 /// stop pipeline task
 /// @param[in] zmConn - object connect
-/// @param[in] tId - pipeline task id
+/// @param[in] qtId - pipeline task id
 /// @return true - ok
-ZMEY_API bool zmStopTask(zmConn, uint64_t tId);
+ZMEY_API bool zmStopTask(zmConn, uint64_t qtId);
 
 /// pause pipeline task
 /// @param[in] zmConn - object connect
-/// @param[in] tId - pipeline task id
+/// @param[in] qtId - pipeline task id
 /// @return true - ok
-ZMEY_API bool zmPauseTask(zmConn, uint64_t tId);
+ZMEY_API bool zmPauseTask(zmConn, uint64_t qtId);
 
 /// continue pipeline task
 /// @param[in] zmConn - object connect
-/// @param[in] tId - pipeline task id
+/// @param[in] qtId - pipeline task id
 /// @return true - ok
-ZMEY_API bool zmContinueTask(zmConn, uint64_t tId);
+ZMEY_API bool zmContinueTask(zmConn, uint64_t qtId);
 
 /// pipeline task state
 struct zmTskState{
@@ -462,18 +462,18 @@ struct zmTskState{
 };
 /// get pipeline task state
 /// @param[in] zmConn - object connect
-/// @param[in] tId - pipeline task id, order by tId
+/// @param[in] qtId - pipeline task id, order by tId
 /// @param[in] tCnt - pipeline task id count
 /// @param[out] outTState - pipeline task state. The memory is allocated by the user
 /// @return true - ok
-ZMEY_API bool zmTaskState(zmConn, uint64_t* tId, uint32_t tCnt, zmTskState* outTState);
+ZMEY_API bool zmTaskState(zmConn, uint64_t* qtId, uint32_t tCnt, zmTskState* outTState);
 
 /// get pipeline task result
 /// @param[in] zmConn - object connect
-/// @param[in] tId - pipeline task id
+/// @param[in] qtId - pipeline task id
 /// @param[out] outTState - pipeline task result
 /// @return true - ok
-ZMEY_API bool zmTaskResult(zmConn, uint64_t tId, char** outTResult);
+ZMEY_API bool zmTaskResult(zmConn, uint64_t qtId, char** outTResult);
 
 /// pipeline task time
 struct zmTskTime{
@@ -484,18 +484,18 @@ struct zmTskTime{
 };
 /// get pipeline task time
 /// @param[in] zmConn - object connect
-/// @param[in] tId - pipeline task id
+/// @param[in] qtId - pipeline task id
 /// @param[out] outTTime - pipeline task time
 /// @return true - ok
-ZMEY_API bool zmTaskTime(zmConn, uint64_t tId, zmTskTime* outTTime);
+ZMEY_API bool zmTaskTime(zmConn, uint64_t qtId, zmTskTime* outTTime);
 
 /// get all pipeline tasks
 /// @param[in] zmConn - object connect
-/// @param[in] tId - pipeline id
+/// @param[in] pplId - pipeline id
 /// @param[in] state - choose with current state. If the state is 'undefined', select all
-/// @param[out] outTId - pipeline task id 
+/// @param[out] outQTId - pipeline task id 
 /// @return count of pipeline tasks
-ZMEY_API uint32_t zmGetAllTasks(zmConn, uint64_t pplId, zmStateType state, uint64_t** outTId);
+ZMEY_API uint32_t zmGetAllTasks(zmConn, uint64_t pplId, zmStateType state, uint64_t** outQTId);
 
 
 

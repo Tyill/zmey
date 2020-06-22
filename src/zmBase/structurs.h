@@ -111,7 +111,7 @@ namespace ZM_Base{
   };
   // tblUPipelineTask
   struct uTask{
-    uint64_t id;              // id tblUTask 
+    uint64_t id;              // id tblUPipelineTask 
     uint64_t pplId;           // id tblUPipeline
     std::string prevTasks;    // queue task id tblUTask of previous tasks to be completed: {tId,..}
     std::string nextTasks;    // queue task id tblUTask of next tasks: {tId,..}

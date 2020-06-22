@@ -990,24 +990,35 @@ TEST_F(DBTest, getTask){
   task.base.tId = ttId;
   task.base.params = "[['key1','=','value1'],['key2','=','value2'],['key3','=','value3']]";
   task.screenRect = "1, 2, 3, 4";
-  task.nextTasks = "[1, 2, 3]";
-  task.prevTasks = "[4, 5, 6]";
+  task.nextTasks = "[]";
+  task.prevTasks = "[]";
   task.base.result = "['key1','=',' ']";
-  uint64_t tId = 0;  
-  EXPECT_TRUE(_pDb->addTask(task, tId) && (tId > 0)) << _pDb->getLastError();  
+  uint64_t tId1 = 0;  
+  EXPECT_TRUE(_pDb->addTask(task, tId1) && (tId1 > 0)) << _pDb->getLastError();  
+
+  task.pplId = pId; 
+  task.base.priority = 1;
+  task.base.tId = ttId;
+  task.base.params = "[['key1','=','value1'],['key2','=','value2'],['key3','=','value3']]";
+  task.screenRect = "1, 2, 3, 4";
+  task.nextTasks = "[]";
+  task.prevTasks = "[" + to_string(tId1) + "]";
+  task.base.result = "['key1','=',' ']";
+  uint64_t tId2 = 0;  
+  EXPECT_TRUE(_pDb->addTask(task, tId2) && (tId2 > 0)) << _pDb->getLastError();  
 
   task.pplId = pId + 1; 
   task.base.priority = 2;
   task.base.tId = ttId + 1;
   task.base.params = "paramsddd";
   task.screenRect = "sdfsd fg";
-  task.nextTasks.clear();
+  task.nextTasks = "[1,2]";
   task.prevTasks.clear();
-  EXPECT_TRUE(_pDb->getTask(tId, task) && (task.pplId == pId) &&
+  EXPECT_TRUE(_pDb->getTask(tId2, task) && (task.pplId == pId) &&
                                           (task.base.priority == 1) &&
                                           (task.base.params == "[['key1','=','value1'],['key2','=','value2'],['key3','=','value3']]") &&
-                                          (task.nextTasks == "[1,2,3]") &&
-                                          (task.prevTasks == "[4,5,6]") &&
+                                          (task.nextTasks == "[]") &&
+                                          (task.prevTasks == "[" + to_string(tId1) + "]") &&
                                           (task.screenRect == "1, 2, 3, 4") &&
                                           (task.base.tId == ttId)) << _pDb->getLastError();   
 
@@ -1071,33 +1082,44 @@ TEST_F(DBTest, changeTask){
   task.base.tId = ttId1;
   task.base.params = "[['key1','=','value1'],['key2','=','value2'],['key3','=','value3']]";
   task.screenRect = "1, 2, 3, 4";
-  task.nextTasks = "[1, 2, 3]";
-  task.prevTasks = "[4, 5, 6]";
+  task.nextTasks = "[]";
+  task.prevTasks = "[]";
   task.base.result = "['key1','=',' ']";
-  uint64_t tId = 0;  
-  EXPECT_TRUE(_pDb->addTask(task, tId) && (tId > 0)) << _pDb->getLastError();   
+  uint64_t tId1 = 0;  
+  EXPECT_TRUE(_pDb->addTask(task, tId1) && (tId1 > 0)) << _pDb->getLastError();   
+
+  task.pplId = pId1; 
+  task.base.priority = 1;
+  task.base.tId = ttId1;
+  task.base.params = "[['key1','=','value1'],['key2','=','value2'],['key3','=','value3']]";
+  task.screenRect = "1, 2, 3, 4";
+  task.nextTasks = "[]";
+  task.prevTasks = "[]";
+  task.base.result = "['key1','=',' ']";
+  uint64_t tId2 = 0;  
+  EXPECT_TRUE(_pDb->addTask(task, tId2) && (tId2 > 0)) << _pDb->getLastError();   
 
   task.pplId = pId2; 
   task.base.priority = 2;
   task.base.tId = ttId2;
   task.base.params = "[['keysdf1','=','vsdfalue1'],['keygg2','=v','valjjue2'],['krruuey3','=j','valgue3']]";
   task.screenRect = "1, 2, 2, 4";
-  task.nextTasks = "[1, 2]";
-  task.prevTasks = "[6, 6]";
-  EXPECT_TRUE(_pDb->changeTask(tId, task)) << _pDb->getLastError();
+  task.nextTasks = "[]";
+  task.prevTasks = "[" + to_string(tId1) + "]";
+  EXPECT_TRUE(_pDb->changeTask(tId2, task)) << _pDb->getLastError();
 
   task.pplId = pId1; 
   task.base.priority = 1;
   task.base.tId = ttId1;
   task.base.params = "paramsddd";
   task.screenRect = "sdfsd fg";
-  task.nextTasks.clear();
+  task.nextTasks = "[11,22]";
   task.prevTasks.clear();
-  EXPECT_TRUE(_pDb->getTask(tId, task) && (task.pplId == pId2) &&
+  EXPECT_TRUE(_pDb->getTask(tId2, task) && (task.pplId == pId2) &&
                                           (task.base.priority == 2) &&
                                           (task.base.params == "[['keysdf1','=','vsdfalue1'],['keygg2','=v','valjjue2'],['krruuey3','=j','valgue3']]") &&
-                                          (task.nextTasks == "[1,2]") &&
-                                          (task.prevTasks == "[6,6]") &&
+                                          (task.nextTasks == "[]") &&
+                                          (task.prevTasks == "[" + to_string(tId1) + "]") &&
                                           (task.screenRect == "1, 2, 2, 4") &&
                                           (task.base.tId == ttId2)) << _pDb->getLastError();
 }
@@ -1141,8 +1163,8 @@ TEST_F(DBTest, delTask){
   task.base.tId = ttId;
   task.base.params = "[['key1','=','value1'],['key2','=','value2'],['key3','=','value3']]";
   task.screenRect = "1, 2, 3, 4";
-  task.nextTasks = "[1, 2, 3]";
-  task.prevTasks = "[4, 5, 6]";
+  task.nextTasks = "[]";
+  task.prevTasks = "[]";
   task.base.result = "['key1','=',' ']";
   uint64_t tId = 0;  
   EXPECT_TRUE(_pDb->addTask(task, tId) && (tId > 0)) << _pDb->getLastError();  
@@ -1154,15 +1176,15 @@ TEST_F(DBTest, delTask){
   task.base.tId = ttId + 1;
   task.base.params = "paramsddd";
   task.screenRect = "1, 2, 3, 4";
-  task.nextTasks.clear();
-  task.prevTasks.clear();
+  task.nextTasks = "[1, 2, 3]";
+  task.prevTasks = "[4, 5, 6]";
   EXPECT_TRUE(!_pDb->getTask(tId, task) && (task.pplId == pId + 1) &&
                                           (task.base.priority == 2) &&
                                           (task.base.tId == ttId + 1) &&
                                           (task.base.params == "paramsddd") &&
                                           (task.screenRect == "1, 2, 3, 4") &&
-                                          (task.nextTasks == "") &&
-                                          (task.prevTasks == "")) << _pDb->getLastError();             
+                                          (task.nextTasks == "[1, 2, 3]") &&
+                                          (task.prevTasks == "[4, 5, 6]")) << _pDb->getLastError();             
 }
 TEST_F(DBTest, startTask){
    EXPECT_TRUE(_pDb->delAllTask()) << _pDb->getLastError();
@@ -1204,8 +1226,8 @@ TEST_F(DBTest, startTask){
   task.base.tId = ttId;
   task.base.params = "[['key1','=','value1'],['key2','=','value2'],['key3','=','value3']]";
   task.screenRect = "1, 2, 3, 4";
-  task.nextTasks = "[1, 2, 3]";
-  task.prevTasks = "[4, 5, 6]";
+  task.nextTasks = "[]";
+  task.prevTasks = "[]";
   task.base.result = "['key1','=',' ']";
   uint64_t tId = 0;  
   EXPECT_TRUE(_pDb->addTask(task, tId) && (tId > 0)) << _pDb->getLastError();  
@@ -1252,8 +1274,8 @@ TEST_F(DBTest, taskState){
   task.base.tId = ttId;
   task.base.params = "[['key1','=','value1'],['key2','=','value2'],['key3','=','value3']]";
   task.screenRect = "1, 2, 3, 4";
-  task.nextTasks = "[1, 2, 3]";
-  task.prevTasks = "[4, 5, 6]";
+  task.nextTasks = "[]";
+  task.prevTasks = "[]";
   task.base.result = "['key1','=',' ']";
   uint64_t tId1 = 0;  
   EXPECT_TRUE(_pDb->addTask(task, tId1) && (tId1 > 0)) << _pDb->getLastError();  
@@ -1265,8 +1287,8 @@ TEST_F(DBTest, taskState){
   task.base.tId = ttId;
   task.base.params = "[['key1','=','value1'],['key2','=','value2'],['key3','=','value3']]";
   task.screenRect = "1, 2, 3, 4";
-  task.nextTasks = "[1, 2, 3]";
-  task.prevTasks = "[4, 5, 6]";
+  task.nextTasks = "[]";
+  task.prevTasks = "[]";
   uint64_t tId2 = 0;  
   EXPECT_TRUE(_pDb->addTask(task, tId2) && (tId2 > 0)) << _pDb->getLastError();  
 
@@ -1320,8 +1342,8 @@ TEST_F(DBTest, taskResult){
   task.base.tId = ttId;
   task.base.params = "[['key1','=','value1'],['key2','=','value2'],['key3','=','value3']]";
   task.screenRect = "1, 2, 3, 4";
-  task.nextTasks = "[1, 2, 3]";
-  task.prevTasks = "[4, 5, 6]";
+  task.nextTasks = "[]";
+  task.prevTasks = "[]";
   task.base.result = "['key1','=',' ']";
   uint64_t tId1 = 0;  
   EXPECT_TRUE(_pDb->addTask(task, tId1) && (tId1 > 0)) << _pDb->getLastError();  
@@ -1371,8 +1393,8 @@ TEST_F(DBTest, taskTime){
   task.base.tId = ttId;
   task.base.params = "[['key1','=','value1'],['key2','=','value2'],['key3','=','value3']]";
   task.screenRect = "1, 2, 3, 4";
-  task.nextTasks = "[1, 2, 3]";
-  task.prevTasks = "[4, 5, 6]";
+  task.nextTasks = "[]";
+  task.prevTasks = "[]";
   task.base.result = "['key1','=',' ']";
   uint64_t tId1 = 0;  
   EXPECT_TRUE(_pDb->addTask(task, tId1) && (tId1 > 0)) << _pDb->getLastError();  
@@ -1422,8 +1444,8 @@ TEST_F(DBTest, getAllTask){
   task.base.tId = ttId;
   task.base.params = "[['key1','=','value1'],['key2','=','value2'],['key3','=','value3']]";
   task.screenRect = "1, 2, 3, 4";
-  task.nextTasks = "[1, 2, 3]";
-  task.prevTasks = "[4, 5, 6]";
+  task.nextTasks = "[]";
+  task.prevTasks = "[]";
   task.base.result = "['key1','=',' ']";
   uint64_t tId1 = 0;  
   EXPECT_TRUE(_pDb->addTask(task, tId1) && (tId1 > 0)) << _pDb->getLastError();  
@@ -1435,8 +1457,8 @@ TEST_F(DBTest, getAllTask){
   task.base.tId = ttId;
   task.base.params = "[['key1','=','value1'],['key2','=','value2'],['key3','=','value3']]";
   task.screenRect = "1, 2, 3, 4";
-  task.nextTasks = "[1, 2, 3]";
-  task.prevTasks = "[4, 5, 6]";
+  task.nextTasks = "[]";
+  task.prevTasks = "[]";
   uint64_t tId2 = 0;  
   EXPECT_TRUE(_pDb->addTask(task, tId2) && (tId2 > 0)) << _pDb->getLastError();  
 
@@ -1573,37 +1595,40 @@ TEST_F(DBTest, getNewTasksForSchedr){
   task.base.tId = ttId;
   task.base.params = "[['key1','=','value1'],['key2','=','value2'],['key3','=','value3']]";
   task.screenRect = "1, 2, 3, 4";
-  task.nextTasks = "[1, 2, 3]";
-  task.prevTasks = "[33]";
+  task.nextTasks = "[]";
+  task.prevTasks = "[]";
   task.base.result = "['key1','=',' ']";
-  uint64_t tId = 0;  
-  EXPECT_TRUE(_pDb->addTask(task, tId) && (tId > 0)) << _pDb->getLastError();  
+  uint64_t tId1 = 0;  
+  EXPECT_TRUE(_pDb->addTask(task, tId1) && (tId1 > 0)) << _pDb->getLastError();  
 
-  EXPECT_TRUE(_pDb->startTask(tId)) << _pDb->getLastError();        
+  EXPECT_TRUE(_pDb->startTask(tId1)) << _pDb->getLastError();        
+
+  task.pplId = pId; 
+  task.base.priority = 1;
+  task.base.tId = ttId;
+  task.base.params = "[['key1','=','value1'],['key2','=','value2'],['key3','=','value3']]";
+  task.screenRect = "1, 2, 3, 4";
+  task.nextTasks = "[]";
+  task.prevTasks = "[" + to_string(tId1) + "]";
+  task.base.result = "['key1','=',' ']";
+  uint64_t tId2 = 0;  
+  EXPECT_TRUE(_pDb->addTask(task, tId2) && (tId2 > 0)) << _pDb->getLastError();  
+
+  EXPECT_TRUE(_pDb->startTask(tId2)) << _pDb->getLastError();        
 
   vector<ZM_DB::schedrTask> tasks;
   EXPECT_TRUE(_pDb->getNewTasksForSchedr(sId, 10, tasks) && 
-              (tasks.size() == 0)) << _pDb->getLastError(); 
+              (tasks.size() == 1) && (tasks[0].task.id == ttId)) << _pDb->getLastError(); 
 
   task.prevTasks = "[]";
+  uint64_t tId = 0;  
   EXPECT_TRUE(_pDb->addTask(task, tId) && (tId > 0)) << _pDb->getLastError();  
 
   EXPECT_TRUE(_pDb->startTask(tId)) << _pDb->getLastError();  
 
   EXPECT_TRUE(_pDb->getNewTasksForSchedr(sId, 10, tasks) && 
-              (tasks.size() == 1) &&
+              (tasks.size() == 2) &&
               (tasks[0].task.id == ttId)) << _pDb->getLastError(); 
-
-  task.prevTasks = "[]";
-  EXPECT_TRUE(_pDb->addTask(task, tId) && (tId > 0)) << _pDb->getLastError();  
-
-  EXPECT_TRUE(_pDb->startTask(tId)) << _pDb->getLastError();     
-
-  tasks.clear();
-  EXPECT_TRUE(_pDb->getNewTasksForSchedr(sId, 10, tasks) && 
-              (tasks.size() == 1) &&
-              (tasks[0].task.id == ttId)) << _pDb->getLastError();
-
 }
 TEST_F(DBTest, sendAllMessFromSchedr){
   EXPECT_TRUE(_pDb->delAllWorkers()) << _pDb->getLastError();

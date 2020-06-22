@@ -75,9 +75,10 @@ public:
   virtual ~DbProvider() = default; 
   DbProvider(const DbProvider& other) = delete;
   DbProvider& operator=(const DbProvider& other) = delete;
-  std::string getLastError() const{
-    return _err;
-  }  
+  std::string getLastError() const;
+  void setErrorCBack(errCBack ecb, udata ud);
+  void errorMess(const std::string&);
+  
   virtual bool createTables() = 0;
 
   // for manager
@@ -131,9 +132,6 @@ public:
   virtual bool getNewTasksForSchedr(uint64_t sId, int maxTaskCnt, std::vector<schedrTask>& out) = 0;
   virtual bool sendAllMessFromSchedr(uint64_t sId, std::vector<messSchedr>& out) = 0;
 
-  void setErrorCBack(errCBack ecb, udata ud);
-  std::string getLastError();  
-
 #ifdef DEBUG
   // for test
   virtual bool delAllUsers() = 0;
@@ -146,7 +144,6 @@ public:
 
 protected:  
   DbProvider(const connectCng&){};    
-  void errorMess(const std::string&); 
   std::string _err;
   errCBack _errCBack = nullptr;
   udata _errUData = nullptr;

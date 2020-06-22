@@ -60,7 +60,7 @@ void DbProvider::errorMess(const std::string& mess){
     _errCBack(mess.c_str(), _errUData);
   } 
 }
-std::string DbProvider::getLastError(){
+std::string DbProvider::getLastError() const{
   return _err;
-}
+}  
 }
