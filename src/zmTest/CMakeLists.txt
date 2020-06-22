@@ -11,5 +11,5 @@ if (UNIX)
 endif(UNIX)
 
 add_executable(zmTest ${SRC_zmTest})
-
-target_link_libraries(zmTest PRIVATE zmCommon zmDbProvider ${GTEST_LIBRARIES})
+ 
+target_link_libraries(zmTest PRIVATE zmCommon zmey zmDbProvider ${GTEST_LIBRARIES})

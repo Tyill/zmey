@@ -113,49 +113,45 @@ void receiveHandler(const string& cp, const string& data){
         checkField(workerConnPnt);
         map<string, string> data{
           make_pair("command", to_string((int)mtype)),
-          make_pair("taskId", mess["taskId"]),
-          make_pair("managerConnPnt", cp),
+          make_pair("taskId", mess["taskId"])
         };      
-        ZM_Tcp::sendData(mess["workerConnPnt"], ZM_Aux::serialn(data));
+        ZM_Tcp::sendData(mess["workerConnPnt"], ZM_Aux::serialn(data));        
         }
-        break;
-      case ZM_Base::messType::pingSchedr:{
-        checkFieldNum(schedId);
-        map<string, string> data{
-          make_pair("command", to_string((int)mtype)),
-          make_pair("schedId", to_string(_schedr.id))
-        };      
-        ZM_Tcp::sendData(cp, ZM_Aux::serialn(data));
-        }
-        break;
+        break;      
       case ZM_Base::messType::pauseSchedr:
         if (_schedr.state != ZM_Base::stateType::pause){
           _messToDB.push(ZM_DB::messSchedr{mtype});
         }
-        _schedr.state = ZM_Base::stateType::pause;
+        _schedr.state = ZM_Base::stateType::pause;        
+        break;
+      case ZM_Base::messType::startSchedr:
+        if (_schedr.state != ZM_Base::stateType::running){
+          _messToDB.push(ZM_DB::messSchedr{mtype});
+        }
+        _schedr.state = ZM_Base::stateType::running;        
         break;
       case ZM_Base::messType::pauseWorker:
         checkField(workerConnPnt);
         if (_workers[mess["workerConnPnt"]].base.state != ZM_Base::stateType::pause){
           _messToDB.push(ZM_DB::messSchedr{mtype, _workers[mess["workerConnPnt"]].base.id});
         }
-        _workers[mess["workerConnPnt"]].base.state = ZM_Base::stateType::pause;
-        break;
-      case ZM_Base::messType::startSchedr:
-        if (_schedr.state != ZM_Base::stateType::running){
-          _messToDB.push(ZM_DB::messSchedr{mtype});
-        }
-        _schedr.state = ZM_Base::stateType::running;
+        _workers[mess["workerConnPnt"]].base.state = ZM_Base::stateType::pause;        
         break;
       case ZM_Base::messType::startWorker:
         checkField(workerConnPnt);
         if (_workers[mess["workerConnPnt"]].base.state != ZM_Base::stateType::running){
           _messToDB.push(ZM_DB::messSchedr{mtype, _workers[mess["workerConnPnt"]].base.id});
         }
-        _workers[mess["workerConnPnt"]].base.state = ZM_Base::stateType::running;
+        _workers[mess["workerConnPnt"]].base.state = ZM_Base::stateType::running;       
         break;
       default: statusMess("receiveHandler unknown command: " + mess["command"]);
         break;
     }
+    // send to manager
+    map<string, string> data{
+      make_pair("command", to_string((int)mtype)),
+      make_pair("schedId", to_string(_schedr.id))
+    };      
+    ZM_Tcp::sendData(cp, ZM_Aux::serialn(data));
   }
 }

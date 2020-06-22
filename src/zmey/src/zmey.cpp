@@ -26,6 +26,8 @@
 #include <cstring>
 #include "zmey/zmey.h"
 #include "zmCommon/auxFunc.h"
+#include "zmCommon/tcp.h"
+#include "zmCommon/serial.h"
 #include "zmDbProvider/dbProvider.h"
 
 #define ZM_VERSION "1.0.0"
@@ -97,7 +99,7 @@ bool zmAddUser(zmConn zo, zmUser newUserCng, uint64_t* outUserId){
   ZM_Base::user us;
   us.name = newUserCng.name;
   us.passw = newUserCng.passw;
-  us.description = newUserCng.description;
+  us.description = newUserCng.description ? newUserCng.description : "";
   
   return static_cast<ZM_DB::DbProvider*>(zo)->addUser(us, *outUserId);
 }
@@ -200,10 +202,27 @@ bool zmDelScheduler(zmConn zo, uint64_t sId){
  
   return static_cast<ZM_DB::DbProvider*>(zo)->delSchedr(sId);
 }
-bool zmStartScheduler(zmConn, uint64_t sId){
+bool zmStartScheduler(zmConn zo, uint64_t sId, char* connectPnt){
+  if (!zo) return false; 
+  
+  map<string, string> data{
+          make_pair("command", to_string((int)ZM_Base::messType::startSchedr))
+        };
+  string sendData = ZM_Aux::serialn(data),
+         answer;
+  answer.resize(256);
+  
+  bool ok = ZM_Tcp::synchOnceSendData(connectPnt, sendData, answer);
+  if (ok){
+    data = ZM_Aux::deserialn(answer);
+    ok = (data.find("schedId") != data.end()) && (stoull(data["schedId"]) == sId);
+  }
+  return ok;
+}
+bool zmPauseScheduler(zmConn, uint64_t sId, char* connectPnt){
   return true;
 }
-bool zmPauseScheduler(zmConn, uint64_t sId){
+bool zmPingScheduler(zmConn, uint64_t sId, char* connectPnt){
   return true;
 }
 bool zmSchedulerState(zmConn zo, uint64_t sId, zmStateType* outState){
@@ -283,10 +302,10 @@ bool zmDelWorker(zmConn zo, uint64_t wId){
  
   return static_cast<ZM_DB::DbProvider*>(zo)->delWorker(wId);
 }
-bool zmStartWorker(zmConn, uint64_t wId){
+bool zmStartWorker(zmConn, uint64_t wId, char* connectPnt){
   return true;
 }
-bool zmPauseWorker(zmConn, uint64_t wId){
+bool zmPauseWorker(zmConn, uint64_t wId, char* connectPnt){
   return true;
 }
 bool zmWorkerState(zmConn zo, uint64_t* pWId, uint32_t wCnt, zmStateType* outState){
@@ -332,7 +351,7 @@ bool zmAddPipeline(zmConn zo, zmPipeline cng, uint64_t* outPPLId){
   ZM_Base::uPipeline pp;
   pp.uId = cng.userId;
   pp.name = cng.name;
-  pp.description = cng.description;
+  pp.description = cng.description ? cng.description : "";
   
   return static_cast<ZM_DB::DbProvider*>(zo)->addPipeline(pp, *outPPLId);
 }
@@ -394,7 +413,7 @@ bool zmAddTaskTemplate(zmConn zo, zmTaskTemplate cng, uint64_t* outTId){
   }
   ZM_Base::uTaskTemplate task;
   task.name = cng.name;
-  task.description = cng.description;
+  task.description = cng.description ? cng.description : "";
   task.uId = cng.parent;
   task.base.averDurationSec = cng.averDurationSec;
   task.base.maxDurationSec = cng.maxDurationSec;
@@ -473,31 +492,11 @@ bool zmAddTask(zmConn zo, zmTask cng, uint64_t* outQTId){
   }
   ZM_Base::uTask task;
   task.pplId = cng.pplId;
-  if (cng.params){
-    task.base.params = cng.params;
-  }else{
-    task.base.params = "[]";
-  }
-  if (cng.prevTasksId){
-    task.prevTasks = cng.prevTasksId;
-  }else{
-    task.prevTasks = "[]";
-  }
-  if (cng.nextTasksId){
-    task.nextTasks = cng.nextTasksId;
-  }else{
-    task.nextTasks = "[]";
-  }
-  if (cng.result){
-    task.base.result = cng.result;
-  }else{
-    task.base.result = "[]";
-  }
-  if (cng.screenRect){
-    task.screenRect = cng.screenRect;
-  }else{
-    task.screenRect = "0 0 0 0";
-  }
+  task.base.params = cng.params ? cng.params : "[]";
+  task.prevTasks = cng.prevTasksId ? cng.prevTasksId : "[]";
+  task.nextTasks = cng.nextTasksId ? cng.nextTasksId : "[]";
+  task.base.result = cng.result ? cng.result : "[]";
+  task.screenRect = cng.screenRect ? cng.screenRect : "";  
   task.base.priority = cng.priority;
   task.base.tId = cng.tId;
   

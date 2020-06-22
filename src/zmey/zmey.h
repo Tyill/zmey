@@ -123,7 +123,7 @@ ZMEY_API void zmGetLastError(zmConn, char* err/*sz 256*/);
 struct zmUser{  
   char name[255];    ///< unique name
   char passw[255];   ///< password  
-  char* description; ///< the memory is allocated by the user   
+  char* description; ///< the memory is allocated by the user. May be NULL  
 };
 
 /// add new user
@@ -204,14 +204,23 @@ ZMEY_API bool zmDelScheduler(zmConn, uint64_t sId);
 /// start scheduler
 /// @param[in] zmConn - object connect
 /// @param[in] sId - scheduler id
+/// @param[in] connectPnt - remote connection point: IP or DNS:port
 /// @return true - ok
-ZMEY_API bool zmStartScheduler(zmConn, uint64_t sId);
+ZMEY_API bool zmStartScheduler(zmConn, uint64_t sId, char* connectPnt);
 
 /// pause scheduler
 /// @param[in] zmConn - object connect
 /// @param[in] sId - scheduler id
+/// @param[in] connectPnt - remote connection point: IP or DNS:port
 /// @return true - ok
-ZMEY_API bool zmPauseScheduler(zmConn, uint64_t sId);
+ZMEY_API bool zmPauseScheduler(zmConn, uint64_t sId, const char* connectPnt);
+
+/// ping scheduler
+/// @param[in] zmConn - object connect
+/// @param[in] sId - scheduler id
+/// @param[in] connectPnt - remote connection point: IP or DNS:port
+/// @return true - ok
+ZMEY_API bool zmPingScheduler(zmConn, uint64_t sId, const char* connectPnt);
 
 /// scheduler state
 /// @param[in] zmConn - object connect
@@ -232,7 +241,7 @@ ZMEY_API uint32_t zmGetAllSchedulers(zmConn, zmStateType state, uint64_t** outSc
 
 /// worker config
 struct zmWorker{
-  uint64_t sId;             ///< scheduler id 
+  uint64_t sId;               ///< scheduler id 
   zmExecutorType exr;         ///< executor type
   uint32_t capacityTask = 10; ///< permissible simultaneous number of tasks
   char connectPnt[255];       ///< remote connection point: IP or DNS:port   
@@ -268,14 +277,16 @@ ZMEY_API bool zmDelWorker(zmConn, uint64_t wId);
 /// start worker
 /// @param[in] zmConn - object connect
 /// @param[in] wId - worker id
+/// @param[in] schedrConnPnt - remote connection point of scheduler: IP or DNS:port
 /// @return true - ok
-ZMEY_API bool zmStartWorker(zmConn, uint64_t wId);
+ZMEY_API bool zmStartWorker(zmConn, uint64_t wId, const char* schedrConnPnt);
 
 /// pause worker
 /// @param[in] zmConn - object connect
 /// @param[in] wId - worker id
+/// @param[in] schedrConnPnt - remote connection point of scheduler: IP or DNS:port
 /// @return true - ok
-ZMEY_API bool zmPauseWorker(zmConn, uint64_t wId);
+ZMEY_API bool zmPauseWorker(zmConn, uint64_t wId, const char* schedrConnPnt);
 
 /// worker state
 /// @param[in] zmConn - object connect
@@ -301,7 +312,7 @@ struct zmPipeline{
   uint64_t userId;         ///< user id
   uint32_t isShared;       ///< may be shared [0..1]   
   char name[255];          ///< pipeline name
-  char* description;       ///< description of pipeline. The memory is allocated by the user
+  char* description;       ///< description of pipeline. The memory is allocated by the user. May be NULL
 };
 
 /// add pipeline
@@ -349,9 +360,10 @@ struct zmTaskTemplate{
   uint32_t maxDurationSec;  ///< maximum lead time
   uint32_t isShared;        ///< may be shared [0..1]   
   char name[255];           ///< task template name
-  char* description;        ///< description of task. The memory is allocated by the user
+  char* description;        ///< description of task. The memory is allocated by the user. May be NULL
   char* script;             ///< script on bash, python or cmd. The memory is allocated by the user
 };
+
 /// add new task template
 /// @param[in] zmConn - object connect
 /// @param[in] cng - task template config
@@ -397,11 +409,11 @@ struct zmTask{
   uint64_t pplId;          ///< pipeline id
   uint64_t tId;            ///< task template id
   uint32_t priority;       ///< [1..3]
-  char* prevTasksId;       ///< pipeline task id of previous tasks to be completed: [tId,..]
-  char* nextTasksId;       ///< pipeline task id of next tasks: : [tId,..]
-  char* params;            ///< CLI params for script: [['key', 'sep', 'val'],[..]..]
-  char* result;            ///< template for result of script: ['key', 'sep', 'val']
-  char* screenRect;        ///< screenRect: x y w h
+  char* prevTasksId;       ///< pipeline task id of previous tasks to be completed: [qtId,..]. May be NULL 
+  char* nextTasksId;       ///< pipeline task id of next tasks: : [qtId,..]. May be NULL
+  char* params;            ///< CLI params for script: [['key', 'sep', 'val'],[..]..]. May be NULL
+  char* result;            ///< template for result of script: ['key', 'sep', 'val']. May be NULL
+  char* screenRect;        ///< screenRect on UI: x y w h. May be NULL
 };
 
 /// add pipeline task
@@ -471,7 +483,7 @@ ZMEY_API bool zmTaskState(zmConn, uint64_t* qtId, uint32_t tCnt, zmTskState* out
 /// get pipeline task result
 /// @param[in] zmConn - object connect
 /// @param[in] qtId - pipeline task id
-/// @param[out] outTState - pipeline task result
+/// @param[out] outTResult - pipeline task result ['key','sep','value']
 /// @return true - ok
 ZMEY_API bool zmTaskResult(zmConn, uint64_t qtId, char** outTResult);
 

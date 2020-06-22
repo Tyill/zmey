@@ -39,11 +39,17 @@ bool startServer(const std::string& connPnt, std::string& err, int innerThreadCn
 
 void stopServer();
 
-/// send data to receiver 
+/// asynchronous data sending to receiver whithout answer 
 /// [in] connPnt - connection point: IP or DNS ':' port
 /// [in] data - data for send
 /// [in] isStsCBackIfError - status send call back only if an error
 void sendData(const std::string& connPnt, const std::string& data, bool isStsCBackIfError = true);
+
+/// synchronous data sending once to receiver 
+/// [in] connPnt - connection point of receiver: IP or DNS ':' port
+/// [in] data - data for send
+/// return true - ok
+bool synchOnceSendData(const std::string& connPnt, const std::string& data, std::string& answer);
 
 /// status send data to receiver 
 /// [in] connPnt - connection point: IP or DNS ':' port

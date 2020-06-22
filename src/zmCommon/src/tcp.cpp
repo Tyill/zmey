@@ -85,6 +85,25 @@ void sendData(const std::string& connPnt, const std::string& data, bool isCBackI
   std::make_shared<TcpClient>(ioc, cp[0], cp[1])->write(data, isCBackIfError);
 };
 
+bool synchOnceSendData(const std::string& connPnt, const std::string& inData, std::string& answer){
+
+  asio::io_context io;
+
+  auto cp = ZM_Aux::split(connPnt, ":");
+
+  tcp::socket s(io);
+  tcp::resolver resolver(io);
+  asio::connect(s, resolver.resolve(cp[0], cp[1]));
+  
+  asio::error_code ec;
+  asio::write(s, asio::buffer(inData.data(), inData.size() + 1), ec);
+  
+  if (!ec){
+    asio::read(s, asio::buffer((char*)answer.data(), answer.size() + 1), ec);    
+  }
+  return !ec;
+};
+
 void setReceiveCBack(receiveDataCBack cb){
   _receiveDataCBack = cb;
 };
