@@ -47,7 +47,8 @@ namespace ZM_Base{
     pingWorker          = 12,
     pingSchedr          = 13,
     justStartWorker     = 14,
-    workerNotResponding = 15,
+    workerRating = 15,
+    workerNotResponding = 16,    
   };
   // tblExecutor
   enum class executorType{
@@ -137,4 +138,5 @@ namespace ZM_Base{
     int rating;               // manager is assigned a rating to the worker[1..10]
     std::string connectPnt;   // connection point: IP or DNS ':' port
   }; 
+  const int WORKER_RATING_MAX = 10; 
 }

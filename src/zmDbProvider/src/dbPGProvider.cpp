@@ -1487,6 +1487,11 @@ bool DbPGProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::messSc
               "state = " << (int)ZM_Base::stateType::running << " "
               "WHERE id = " << m.workerId << ";";
         break;
+      case ZM_Base::messType::workerRating:
+        ss << "UPDATE tblWorker SET "
+              "rating = " << m.workerRating << " "
+              "WHERE id = " << m.workerId << ";";
+        break;
       case ZM_Base::messType::workerNotResponding:
         ss << "WITH taskUpd AS ("
               "UPDATE tblTaskQueue tq SET "

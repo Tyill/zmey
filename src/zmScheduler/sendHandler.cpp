@@ -33,6 +33,7 @@
 using namespace std;
 
 extern ZM_Aux::QueueThrSave<sTask> _tasks;
+extern ZM_Aux::QueueThrSave<ZM_DB::messSchedr> _messToDB;
 extern unordered_map<std::string, sWorker> _workers;
 extern ZM_Base::scheduler _schedr;
 
@@ -52,7 +53,6 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
         t.base.averDurationSec = stoi(mess["averDurationSec"]);
         t.base.maxDurationSec = stoi(mess["maxDurationSec"]);
         _tasks.push(move(t));
-        statusMess("sendHandler worker not response, cp: " + cp);
         }
         break;       
       case ZM_Base::messType::taskPause:
@@ -65,13 +65,19 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
           make_pair("workerId", to_string(_workers[cp].base.id)),
           make_pair("state", to_string((int)ZM_Base::messType::workerNotResponding)),
         };  
-        ZM_Tcp::sendData(mess["managerConnPnt"], ZM_Aux::serialn(data));
-        statusMess("sendHandler worker not response, cp: " + cp);
         }
         break;
       default: // I'm OK
         break;
-    } 
+    }
+    statusMess("sendHandler worker not response, cp: " + cp);
+    if (_workers[cp].base.rating > 1){
+      _messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::workerRating,
+                                       _workers[cp].base.id,
+                                       0,
+                                       0,
+                                       _workers[cp].base.rating - 1});
+    }
     _workers[cp].base.rating = max(1, _workers[cp].base.rating - 1);
   }
   // error from manager

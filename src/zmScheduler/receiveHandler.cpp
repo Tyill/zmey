@@ -45,13 +45,13 @@ void receiveHandler(const string& cp, const string& data){
   }
 
 #define checkFieldNum(field) \
-  if ((mess.find("field") == mess.end()) || !ZM_Aux::isNumber(mess["field"])){  \
-    statusMess("receiveHandler Error mess.find(field) == mess.end()) || !ZM_Aux::isNumber(mess[field]) from: " + cp);  \
+  if ((mess.find(#field) == mess.end()) || !ZM_Aux::isNumber(mess[#field])){  \
+    statusMess(string("receiveHandler Error mess.find || !ZM_Aux::isNumber ") + #field + " from: " + cp);  \
     return;  \
   } 
 #define checkField(field) \
-  if (mess.find("field") == mess.end()){  \
-    statusMess("receiveHandler Error mess.find(field) == mess.end() from: " + cp);  \
+  if (mess.find(#field) == mess.end()){  \
+    statusMess(string("receiveHandler Error mess.find ") + #field + " from: " + cp);  \
     return;  \
   } 
 
@@ -68,10 +68,12 @@ void receiveHandler(const string& cp, const string& data){
       case ZM_Base::messType::taskStop:
         checkFieldNum(taskId);
         checkFieldNum(activeTask);
+        checkFieldNum(progress);
         checkField(taskResult);
         _workers[cp].base.activeTask = stoi(mess["activeTask"]);
         _messToDB.push(ZM_DB::messSchedr{mtype, _workers[cp].base.id,
                                                 stoull(mess["taskId"]),
+                                                0,
                                                 0,
                                                 mess["taskResult"]});
         break;
@@ -97,7 +99,15 @@ void receiveHandler(const string& cp, const string& data){
         break;
     }    
     _workers[cp].isActive = true;
-    _workers[cp].base.rating = max(10, _workers[cp].base.rating + 1);
+
+    if (_workers[cp].base.rating < ZM_Base::WORKER_RATING_MAX){
+      _messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::workerRating,
+                                       _workers[cp].base.id,
+                                       0,
+                                       0,
+                                       _workers[cp].base.rating + 1});
+    }
+    _workers[cp].base.rating = min(ZM_Base::WORKER_RATING_MAX, _workers[cp].base.rating + 1);
   }
   // from manager
   else{
@@ -143,11 +153,5 @@ void receiveHandler(const string& cp, const string& data){
       default: statusMess("receiveHandler unknown command: " + mess["command"]);
         break;
     }
-    // send to manager
-    map<string, string> data{
-      make_pair("command", to_string((int)mtype)),
-      make_pair("schedId", to_string(_schedr.id))
-    };      
-    ZM_Tcp::sendData(cp, ZM_Aux::serialn(data));
   }
 }

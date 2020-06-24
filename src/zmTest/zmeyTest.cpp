@@ -51,5 +51,12 @@ protected:
 };
 
 TEST_F(ZmeyTest, startSchedr){
-  zmey::zmStartScheduler(_zc, 0, (char*)string("localhost:4555").c_str());
+ 
+  uint64_t *sId = nullptr;
+  int scnt = zmey::zmGetAllSchedulers(_zc, zmey::zmStateType::undefined, &sId);
+
+  zmey::zmSchedr cng;
+  zmGetScheduler(_zc, sId[0], &cng);
+
+  zmey::zmStartScheduler(_zc, sId[0], cng.connectPnt);
 }

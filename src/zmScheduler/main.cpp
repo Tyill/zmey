@@ -175,7 +175,7 @@ int main(int argc, char* argv[]){
     timer.updateCycTime();   
 
     // get new tasks from DB
-    if((_tasks.size() < _schedr.capacityTask) && (_schedr.state == ZM_Base::stateType::running)){
+    if((_tasks.size() < _schedr.capacityTask) && (_schedr.state != ZM_Base::stateType::pause)){
       FUTURE_RUN(frGetNewTask, getNewTaskFromDB);
     }        
     // send task to worker    

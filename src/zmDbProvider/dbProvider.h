@@ -48,6 +48,7 @@ struct messSchedr{
   uint64_t workerId;
   uint64_t taskId;
   int progress;
+  int workerRating;
   std::string result;
 };
 struct schedrTask{
