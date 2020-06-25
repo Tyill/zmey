@@ -202,28 +202,32 @@ bool zmDelScheduler(zmConn zo, uint64_t sId){
  
   return static_cast<ZM_DB::DbProvider*>(zo)->delSchedr(sId);
 }
-bool zmStartScheduler(zmConn zo, uint64_t sId, char* connectPnt){
+bool zmStartScheduler(zmConn zo, uint64_t sId){
   if (!zo) return false; 
   
   map<string, string> data{
-          make_pair("command", to_string((int)ZM_Base::messType::startSchedr))
-        };
-  string sendData = ZM_Aux::serialn(data),
-         answer;
-  answer.resize(256);
+            make_pair("command", to_string((int)ZM_Base::messType::startSchedr))
+          };
+  zmSchedr cng;  
+  return zmGetScheduler(zo, sId, &cng) && ZM_Tcp::synchSendData(cng.connectPnt, ZM_Aux::serialn(data));
+}
+bool zmPauseScheduler(zmConn zo, uint64_t sId){
+  if (!zo) return false; 
   
-  bool ok = ZM_Tcp::synchOnceSendData(connectPnt, sendData, answer);
-  if (ok){
-    data = ZM_Aux::deserialn(answer);
-    ok = (data.find("schedId") != data.end()) && (stoull(data["schedId"]) == sId);
-  }
-  return ok;
+  map<string, string> data{
+            make_pair("command", to_string((int)ZM_Base::messType::pauseSchedr))
+          };
+  zmSchedr cng;  
+  return zmGetScheduler(zo, sId, &cng) && ZM_Tcp::synchSendData(cng.connectPnt, ZM_Aux::serialn(data));
 }
-bool zmPauseScheduler(zmConn, uint64_t sId, char* connectPnt){
-  return true;
-}
-bool zmPingScheduler(zmConn, uint64_t sId, char* connectPnt){
-  return true;
+bool zmPingScheduler(zmConn zo, uint64_t sId){
+  if (!zo) return false; 
+  
+  map<string, string> data{
+            make_pair("command", to_string((int)ZM_Base::messType::pingSchedr))
+          };
+  zmSchedr cng;  
+  return zmGetScheduler(zo, sId, &cng) && ZM_Tcp::synchSendData(cng.connectPnt, ZM_Aux::serialn(data));
 }
 bool zmSchedulerState(zmConn zo, uint64_t sId, zmStateType* outState){
   if (!zo) return false; 
@@ -302,11 +306,46 @@ bool zmDelWorker(zmConn zo, uint64_t wId){
  
   return static_cast<ZM_DB::DbProvider*>(zo)->delWorker(wId);
 }
-bool zmStartWorker(zmConn, uint64_t wId, char* connectPnt){
-  return true;
+bool zmStartWorker(zmConn zo, uint64_t wId){
+  if (!zo) return false; 
+  
+  uint64_t sId = 0; 
+  zmWorker wcng;  
+  zmSchedr scng; 
+  if (zmGetWorker(zo, wId, &wcng) && zmGetScheduler(zo, wcng.sId, &scng)){
+    map<string, string> data{
+            make_pair("command", to_string((int)ZM_Base::messType::startWorker)),
+            make_pair("workerConnPnt", wcng.connectPnt)
+          };
+    return ZM_Tcp::synchSendData(scng.connectPnt, ZM_Aux::serialn(data));
+  }else{
+    return false;
+  } 
 }
-bool zmPauseWorker(zmConn, uint64_t wId, char* connectPnt){
-  return true;
+bool zmPauseWorker(zmConn zo, uint64_t wId){
+  if (!zo) return false; 
+  
+  uint64_t sId = 0; 
+  zmWorker wcng;  
+  zmSchedr scng; 
+  if (zmGetWorker(zo, wId, &wcng) && zmGetScheduler(zo, wcng.sId, &scng)){
+    map<string, string> data{
+            make_pair("command", to_string((int)ZM_Base::messType::pauseWorker)),
+            make_pair("workerConnPnt", wcng.connectPnt)
+          };
+    return ZM_Tcp::synchSendData(scng.connectPnt, ZM_Aux::serialn(data));
+  }else{
+    return false;
+  } 
+}
+bool zmPingWorker(zmConn zo, uint64_t wId){
+  if (!zo) return false; 
+  
+  map<string, string> data{
+            make_pair("command", to_string((int)ZM_Base::messType::pingWorker))
+          };
+  zmWorker cng;  
+  return zmGetWorker(zo, wId, &cng) && ZM_Tcp::synchSendData(cng.connectPnt, ZM_Aux::serialn(data));
 }
 bool zmWorkerState(zmConn zo, uint64_t* pWId, uint32_t wCnt, zmStateType* outState){
   if (!zo) return false; 

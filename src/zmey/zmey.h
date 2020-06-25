@@ -204,23 +204,20 @@ ZMEY_API bool zmDelScheduler(zmConn, uint64_t sId);
 /// start scheduler
 /// @param[in] zmConn - object connect
 /// @param[in] sId - scheduler id
-/// @param[in] connectPnt - remote connection point: IP or DNS:port
 /// @return true - ok
-ZMEY_API bool zmStartScheduler(zmConn, uint64_t sId, char* connectPnt);
+ZMEY_API bool zmStartScheduler(zmConn, uint64_t sId);
 
 /// pause scheduler
 /// @param[in] zmConn - object connect
 /// @param[in] sId - scheduler id
-/// @param[in] connectPnt - remote connection point: IP or DNS:port
 /// @return true - ok
-ZMEY_API bool zmPauseScheduler(zmConn, uint64_t sId, const char* connectPnt);
+ZMEY_API bool zmPauseScheduler(zmConn, uint64_t sId);
 
 /// ping scheduler
 /// @param[in] zmConn - object connect
 /// @param[in] sId - scheduler id
-/// @param[in] connectPnt - remote connection point: IP or DNS:port
 /// @return true - ok
-ZMEY_API bool zmPingScheduler(zmConn, uint64_t sId, const char* connectPnt);
+ZMEY_API bool zmPingScheduler(zmConn, uint64_t sId);
 
 /// scheduler state
 /// @param[in] zmConn - object connect
@@ -277,16 +274,20 @@ ZMEY_API bool zmDelWorker(zmConn, uint64_t wId);
 /// start worker
 /// @param[in] zmConn - object connect
 /// @param[in] wId - worker id
-/// @param[in] schedrConnPnt - remote connection point of scheduler: IP or DNS:port
 /// @return true - ok
-ZMEY_API bool zmStartWorker(zmConn, uint64_t wId, const char* schedrConnPnt);
+ZMEY_API bool zmStartWorker(zmConn, uint64_t wId);
 
 /// pause worker
 /// @param[in] zmConn - object connect
 /// @param[in] wId - worker id
-/// @param[in] schedrConnPnt - remote connection point of scheduler: IP or DNS:port
 /// @return true - ok
-ZMEY_API bool zmPauseWorker(zmConn, uint64_t wId, const char* schedrConnPnt);
+ZMEY_API bool zmPauseWorker(zmConn, uint64_t wId);
+
+/// ping worker
+/// @param[in] zmConn - object connect
+/// @param[in] wId - worker id
+/// @return true - ok
+ZMEY_API bool zmPingWorker(zmConn, uint64_t wId);
 
 /// worker state
 /// @param[in] zmConn - object connect

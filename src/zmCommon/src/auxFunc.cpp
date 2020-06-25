@@ -111,10 +111,12 @@ uint64_t currDateTimeSinceEpochMs(){
   return now_ms.time_since_epoch().count();
 }
 bool isNumber(const std::string& s){
-  return !s.empty() && std::find_if(s.begin(), s.end(),
-    [](char c) {
-      return !std::isdigit(c);
-    }) == s.end();
+  for(size_t i = 0; i < s.size(); ++i){
+    if (!std::isdigit(s[i]) && ((i > 0) || (s[i] != '-'))){
+      return false; 
+    }
+  }
+  return !s.empty();
 }
 void sleepMs(uint64_t ms){
   std::this_thread::sleep_for(std::chrono::milliseconds(ms));

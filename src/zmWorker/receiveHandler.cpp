@@ -43,15 +43,19 @@ void receiveHandler(const string& cp, const string& data){
     return;
   }
 #define checkFieldNum(field) \
-  if ((mess.find("field") == mess.end()) || !ZM_Aux::isNumber(mess["field"])){  \
-    statusMess("receiveHandler Error mess.find(field) == mess.end()) || !ZM_Aux::isNumber(mess[field]) from: " + cp);  \
+  if (mess.find(#field) == mess.end()){ \
+    statusMess(string("receiveHandler Error mess.find ") + #field + " from: " + cp); \
     return;  \
-  } 
+  } \
+  if (!ZM_Aux::isNumber(mess[#field])){ \
+    statusMess("receiveHandler Error !ZM_Aux::isNumber " + mess[#field] + " from: " + cp); \
+    return; \
+  }
 #define checkField(field) \
-  if (mess.find("field") == mess.end()){  \
-    statusMess("receiveHandler Error mess.find(field) == mess.end() from: " + cp);  \
+  if (mess.find(#field) == mess.end()){  \
+    statusMess(string("receiveHandler Error mess.find ") + #field + " from: " + cp);  \
     return;  \
-  } 
+  }
   checkFieldNum(command);
   ZM_Base::messType mtype = ZM_Base::messType(stoi(mess["command"]));  
   if (mtype == ZM_Base::messType::newTask){
@@ -69,7 +73,11 @@ void receiveHandler(const string& cp, const string& data){
     _newTasks.push(wTask{t, 
                          ZM_Base::stateType::ready,
                          mess["params"]});
-  }else{
+  }
+  else if (mtype == ZM_Base::messType::pingWorker){  // only check
+    return;
+  }
+  else{
     checkFieldNum(taskId);
     uint64_t tId = stoull(mess["taskId"]);
     auto iPrc = find_if(_procs.begin(), _procs.end(), [tId](const Process& p){

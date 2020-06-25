@@ -47,14 +47,14 @@ namespace ZM_Base{
     pingWorker          = 12,
     pingSchedr          = 13,
     justStartWorker     = 14,
-    workerRating = 15,
+    workerRating        = 15,
     workerNotResponding = 16,    
   };
   // tblExecutor
   enum class executorType{
-    cmd       = 0,
-    bash      = 1,
-    python    = 2,
+    cmd                 = 0,
+    bash                = 1,
+    python              = 2,
   };  
   // tblState
   enum class stateType{

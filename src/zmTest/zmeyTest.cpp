@@ -26,6 +26,7 @@
 #include <algorithm>
 #include "prepareTest.h"
 #include "zmey/zmey.h"
+#include "zmCommon/auxFunc.h"
 
 using namespace std;
 
@@ -57,6 +58,58 @@ TEST_F(ZmeyTest, startSchedr){
 
   zmey::zmSchedr cng;
   zmGetScheduler(_zc, sId[0], &cng);
-
+ 
   zmey::zmStartScheduler(_zc, sId[0], cng.connectPnt);
+
+  ZM_Aux::sleepMs(3000);
+
+  zmey::zmStateType state;
+  zmey::zmSchedulerState(_zc, sId[0], &state);
+
+  EXPECT_TRUE(state == zmey::zmStateType::zmRunning);
 }
+TEST_F(ZmeyTest, pauseSchedr){
+ 
+  uint64_t *sId = nullptr;
+  int scnt = zmey::zmGetAllSchedulers(_zc, zmey::zmStateType::undefined, &sId);
+
+  zmey::zmSchedr cng;
+  zmGetScheduler(_zc, sId[0], &cng);
+ 
+  zmey::zmPauseScheduler(_zc, sId[0], cng.connectPnt);
+
+  ZM_Aux::sleepMs(3000);
+
+  zmey::zmStateType state;
+  zmey::zmSchedulerState(_zc, sId[0], &state);
+
+  EXPECT_TRUE(state == zmey::zmStateType::zmPause);
+}
+TEST_F(ZmeyTest, pingSchedr){
+ 
+  uint64_t *sId = nullptr;
+  int scnt = zmey::zmGetAllSchedulers(_zc, zmey::zmStateType::undefined, &sId);
+
+  zmey::zmSchedr cng;
+  zmGetScheduler(_zc, sId[0], &cng);
+   
+  EXPECT_TRUE(zmey::zmPingScheduler(_zc, sId[0], cng.connectPnt));
+}
+
+// TEST_F(ZmeyTest, startWorker){
+ 
+//   uint64_t *sId = nullptr;
+//   int scnt = zmey::zmGetAllSchedulers(_zc, zmey::zmStateType::undefined, &sId);
+
+//   zmey::zmSchedr cng;
+//   zmGetScheduler(_zc, sId[0], &cng);
+ 
+//   zmey::zmStartScheduler(_zc, sId[0], cng.connectPnt);
+
+//   ZM_Aux::sleepMs(3000);
+
+//   zmey::zmStateType state;
+//   zmey::zmSchedulerState(_zc, sId[0], &state);
+
+//   EXPECT_TRUE(state == zmey::zmStateType::zmRunning);
+// }
