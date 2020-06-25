@@ -55,7 +55,7 @@ bool _fClose = false,
 config _cng;
 
 void statusMess(const string& mess){
-  cout << ZM_Aux::currDateTime() << mess << std::endl;
+  cout << ZM_Aux::currDateTime() << " " << mess << std::endl;
   if (_pLog)
     _pLog->writeMess(mess);
 }

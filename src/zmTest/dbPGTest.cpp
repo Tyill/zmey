@@ -61,7 +61,7 @@ protected:
 
 // TEST_F(DBTest, addUser){
 //   EXPECT_TRUE(_pDb->delAllUsers()) << _pDb->getLastError();
-  
+// }
 //   ZM_Base::user usr;
 //   usr.name = "";
 //   usr.passw = "";  
