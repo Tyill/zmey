@@ -26,6 +26,7 @@
 #include <map>
 #include <algorithm>
 #include <iostream>
+#include <list>
 #include "zmCommon/tcp.h"
 #include "zmCommon/timerDelay.h"
 #include "zmCommon/auxFunc.h"
@@ -39,14 +40,14 @@ using namespace std;
 void receiveHandler(const string& cp, const string& data);
 void sendHandler(const string& cp, const string& data, const std::error_code& ec);
 void sendMessToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt, const message&);
-void progressToSchedr(const std::string& schedrConnPnt, const vector<Process>&);
+void progressToSchedr(const std::string& schedrConnPnt, const list<Process>&);
 void pingToSchedr(const std::string& schedrConnPnt);
-void updateListTasks(ZM_Aux::QueueThrSave<wTask>& newTasks, vector<Process>& procs);
+void updateListTasks(ZM_Aux::QueueThrSave<wTask>& newTasks, list<Process>& procs);
 
 unique_ptr<ZM_Aux::Logger> _pLog = nullptr;
 ZM_Aux::QueueThrSave<message> _messToSchedr;
 ZM_Aux::QueueThrSave<wTask> _newTasks;
-vector<Process> _procs;
+list<Process> _procs;
 ZM_Base::worker _worker;
 bool _fClose = false,
      _isSendAck = false;
@@ -65,32 +66,31 @@ void parseArgs(int argc, char* argv[], config& outCng){
   for (int i = 1; i < argc; ++i){
     sargs += argv[i];
   }
-  sargs.erase(std::remove(sargs.begin(), sargs.end(), ' '), sargs.end());
   map<string, string> sprms;
   auto argPair = ZM_Aux::split(sargs, "-");
   for (auto& arg : argPair){
-    auto pm = ZM_Aux::split(arg, "=");
-    if (pm.size() <= 1){
-      sprms[arg] = "";
+    size_t sp = arg.find_first_of("=");
+    if (sp != std::string::npos){
+      sprms[ZM_Aux::trim(arg.substr(0, sp))] = ZM_Aux::trim(arg.substr(sp + 1));
     }else{
-      sprms[pm[0]] = pm[1];
+      sprms[ZM_Aux::trim(arg)] = "";
     }
   }
   if (sprms.find("log") != sprms.end()){
     outCng.logEna = true;
   }  
 #define SET_PARAM(nm, prm) \
-  if (sprms.find("nm") != sprms.end()){ \
-    outCng.prm = sprms["nm"]; \
+  if (sprms.find(#nm) != sprms.end()){ \
+    outCng.prm = sprms[#nm]; \
   }
   SET_PARAM(cp, connectPnt);
   SET_PARAM(scp, schedrConnPnt);
   SET_PARAM(exr, executor);
  
 #define SET_PARAM_NUM(nm, prm) \
-  if (sprms.find("nm") != sprms.end() && ZM_Aux::isNumber(sprms["nm"])){ \
-    outCng.prm = stoi(sprms["nm"]); \
-  }  
+  if (sprms.find(#nm) != sprms.end() && ZM_Aux::isNumber(sprms[#nm])){ \
+    outCng.prm = stoi(sprms[#nm]); \
+  }
   SET_PARAM_NUM(ctk, capacityTask);
   SET_PARAM_NUM(cht, checkTasksTOutSec);
   SET_PARAM_NUM(prg, progressTasksTOutSec);

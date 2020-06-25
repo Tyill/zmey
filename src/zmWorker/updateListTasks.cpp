@@ -22,6 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+#include <list>
 #include "zmCommon/queue.h"
 #include "process.h"
 #include "structurs.h"
@@ -30,20 +31,21 @@ using namespace std;
 
 void taskStateChangeCBack(uint64_t taskdId, ZM_Base::stateType newState, const std::string& result);
 
-void updateListTasks(ZM_Aux::QueueThrSave<wTask>& newTasks, vector<Process>& procs){
+void updateListTasks(ZM_Aux::QueueThrSave<wTask>& newTasks, list<Process>& procs){
   
   wTask tsk;
   while(newTasks.tryPop(tsk)){
     procs.push_back(Process(tsk, taskStateChangeCBack));
-  }
-  
-  for (size_t i = 0; i < procs.size(); ++i){
-    ZM_Base::stateType tskState = procs[i].getTask().state;
+  }  
+  for (auto ip = procs.begin(); ip != procs.end();){
+    ZM_Base::stateType tskState = ip->getTask().state;
     if ((tskState == ZM_Base::stateType::completed) ||
         (tskState == ZM_Base::stateType::error) || 
         (tskState == ZM_Base::stateType::stop)){
-      procs.erase(procs.begin() + i);
-      --i;
+      procs.erase(ip);
+      ip = procs.begin();
+    }else{
+      ++ip;
     }
   }  
 }

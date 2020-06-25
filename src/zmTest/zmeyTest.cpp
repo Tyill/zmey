@@ -53,13 +53,18 @@ protected:
 
 TEST_F(ZmeyTest, startSchedr){
  
-  uint64_t *sId = nullptr;
+  uint64_t* sId = nullptr;
   int scnt = zmey::zmGetAllSchedulers(_zc, zmey::zmStateType::undefined, &sId);
+  
+  if (scnt == 0){
+    zmey::zmSchedr cng;
+    cng.capacityTask = 10000;
+    strcpy(cng.connectPnt, "localhost:4444");
+    sId = new uint64_t();
+    EXPECT_TRUE(zmey::zmAddScheduler(_zc, cng, sId));
+  } 
 
-  zmey::zmSchedr cng;
-  zmGetScheduler(_zc, sId[0], &cng);
- 
-  zmey::zmStartScheduler(_zc, sId[0], cng.connectPnt);
+  zmey::zmStartScheduler(_zc, sId[0]);
 
   ZM_Aux::sleepMs(3000);
 
@@ -72,11 +77,16 @@ TEST_F(ZmeyTest, pauseSchedr){
  
   uint64_t *sId = nullptr;
   int scnt = zmey::zmGetAllSchedulers(_zc, zmey::zmStateType::undefined, &sId);
+   
+  if (scnt == 0){
+    zmey::zmSchedr cng;
+    cng.capacityTask = 10000;
+    strcpy(cng.connectPnt, "localhost:4444");
+    sId = new uint64_t();
+    EXPECT_TRUE(zmey::zmAddScheduler(_zc, cng, sId));
+  } 
 
-  zmey::zmSchedr cng;
-  zmGetScheduler(_zc, sId[0], &cng);
- 
-  zmey::zmPauseScheduler(_zc, sId[0], cng.connectPnt);
+  zmey::zmPauseScheduler(_zc, sId[0]);
 
   ZM_Aux::sleepMs(3000);
 
@@ -89,27 +99,54 @@ TEST_F(ZmeyTest, pingSchedr){
  
   uint64_t *sId = nullptr;
   int scnt = zmey::zmGetAllSchedulers(_zc, zmey::zmStateType::undefined, &sId);
-
-  zmey::zmSchedr cng;
-  zmGetScheduler(_zc, sId[0], &cng);
    
-  EXPECT_TRUE(zmey::zmPingScheduler(_zc, sId[0], cng.connectPnt));
+  if (scnt == 0){
+    zmey::zmSchedr cng;
+    cng.capacityTask = 10000;
+    strcpy(cng.connectPnt, "localhost:4444");
+    sId = new uint64_t();
+    EXPECT_TRUE(zmey::zmAddScheduler(_zc, cng, sId));
+  }
+
+  EXPECT_TRUE(zmey::zmPingScheduler(_zc, sId[0]));
 }
 
-// TEST_F(ZmeyTest, startWorker){
+TEST_F(ZmeyTest, startWorker){
  
-//   uint64_t *sId = nullptr;
-//   int scnt = zmey::zmGetAllSchedulers(_zc, zmey::zmStateType::undefined, &sId);
+  uint64_t *sId = nullptr;
+  int scnt = zmey::zmGetAllSchedulers(_zc, zmey::zmStateType::undefined, &sId);
+   
+  if (scnt == 0){
+    zmey::zmSchedr cng;
+    cng.capacityTask = 10000;
+    strcpy(cng.connectPnt, "localhost:4444");
+    sId = new uint64_t();
+    EXPECT_TRUE(zmey::zmAddScheduler(_zc, cng, sId));
+  } 
 
-//   zmey::zmSchedr cng;
-//   zmGetScheduler(_zc, sId[0], &cng);
+  uint64_t *wId = nullptr;
+  int wcnt = zmey::zmGetAllWorkers(_zc, sId[0], zmey::zmStateType::undefined, &wId);
+
+  if (wcnt < 2){
+    zmey::zmWorker cng;
+    cng.capacityTask = 10;
+    strcpy(cng.connectPnt, "localhost:4445");
+    wId = new uint64_t[2];
+    EXPECT_TRUE(zmey::zmAddWorker(_zc, cng, wId));
+
+    strcpy(cng.connectPnt, "localhost:4446");
+    EXPECT_TRUE(zmey::zmAddWorker(_zc, cng, wId + 1));
+  }
+
+  zmey::zmWorker cng;
+  zmGetWorker(_zc, wId[0], &cng);
  
-//   zmey::zmStartScheduler(_zc, sId[0], cng.connectPnt);
+  zmey::zmStartWorker(_zc, wId[0]);
 
-//   ZM_Aux::sleepMs(3000);
+  ZM_Aux::sleepMs(3000);
 
-//   zmey::zmStateType state;
-//   zmey::zmSchedulerState(_zc, sId[0], &state);
+  zmey::zmStateType state[2];
+  zmey::zmWorkerState(_zc, wId, 2, state);
 
-//   EXPECT_TRUE(state == zmey::zmStateType::zmRunning);
-// }
+  EXPECT_TRUE(state[0] == zmey::zmStateType::zmRunning);
+}

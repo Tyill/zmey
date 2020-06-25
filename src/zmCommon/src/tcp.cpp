@@ -86,18 +86,17 @@ void sendData(const std::string& connPnt, const std::string& data, bool isCBackI
 };
 
 bool synchSendData(const std::string& connPnt, const std::string& inData){
-
-  asio::io_context io;
-
+  
   auto cp = ZM_Aux::split(connPnt, ":");
-
+  asio::io_context io;
   tcp::socket s(io);
   tcp::resolver resolver(io);
-  asio::connect(s, resolver.resolve(cp[0], cp[1]));
-  
+
   asio::error_code ec;
-  asio::write(s, asio::buffer(inData.data(), inData.size() + 1), ec);
-    
+  asio::connect(s, resolver.resolve(cp[0], cp[1]), ec);
+  if (!ec){  
+    asio::write(s, asio::buffer(inData.data(), inData.size() + 1), ec);
+  }
   return !ec;
 };
 

@@ -23,7 +23,7 @@
 // THE SOFTWARE.
 //
 #include <map>
-#include <vector>
+#include <list>
 #include <string>
 #include "zmBase/structurs.h"
 #include "zmCommon/tcp.h"
@@ -32,17 +32,18 @@
 
 using namespace std;
 
-void progressToSchedr(const std::string& schedrConnPnt, const vector<Process>& procs){
+void progressToSchedr(const std::string& schedrConnPnt, const list<Process>& procs){
   
   map<string, string> data{
     make_pair("command", to_string((int)ZM_Base::messType::progress)),
   };      
-  size_t psz = procs.size();
-  for (size_t i = 0; i < psz; ++i){
+  int i = 0;
+  for (auto& p : procs){
     data.insert(make_pair("taskId" + to_string(i),
-                          to_string(procs[i].getTask().base.id)));
+                          to_string(p.getTask().base.id)));
     data.insert(make_pair("progress" + to_string(i),
-                          to_string(procs[i].getProgress())));
+                          to_string(p.getProgress())));
+    ++i;
   }
   ZM_Tcp::sendData(schedrConnPnt, ZM_Aux::serialn(data));
 }

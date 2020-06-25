@@ -24,6 +24,7 @@
 //
 #include <string>
 #include <algorithm>
+#include <list>
 #include "zmCommon/serial.h"
 #include "zmCommon/auxFunc.h"
 #include "zmCommon/queue.h"
@@ -32,7 +33,7 @@
 
 using namespace std;
 
-extern vector<Process> _procs;
+extern list<Process> _procs;
 extern ZM_Aux::QueueThrSave<wTask> _newTasks;
 
 void receiveHandler(const string& cp, const string& data){
