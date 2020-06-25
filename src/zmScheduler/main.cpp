@@ -64,8 +64,7 @@ struct config{
   std::string dbType;
   std::string connectPnt;
   ZM_DB::connectCng dbConnCng;
-};
-config _cng;
+}_cng;
 
 void statusMess(const string& mess){
   cout << ZM_Aux::currDateTime() << " " << mess << std::endl;

@@ -40,8 +40,8 @@ using namespace std;
 void receiveHandler(const string& cp, const string& data);
 void sendHandler(const string& cp, const string& data, const std::error_code& ec);
 void sendMessToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt, const message&);
-void progressToSchedr(const std::string& schedrConnPnt, const list<Process>&);
-void pingToSchedr(const std::string& schedrConnPnt);
+void progressToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt, const list<Process>&);
+void pingToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt);
 void updateListTasks(ZM_Aux::QueueThrSave<wTask>& newTasks, list<Process>& procs);
 
 unique_ptr<ZM_Aux::Logger> _pLog = nullptr;
@@ -127,7 +127,9 @@ int main(int argc, char* argv[]){
   }else{
     statusMess("Tcp server error, busy -connectPnt: " + _cng.connectPnt + " " + err);
     return -1;
-  }  
+  }
+  _worker.connectPnt = _cng.connectPnt;
+  
   ZM_Aux::TimerDelay timer;
   const int minCycleTimeMS = 5;
   
@@ -142,16 +144,17 @@ int main(int argc, char* argv[]){
     }
     // update list of tasks
     updateListTasks(_newTasks, _procs);
+    _worker.activeTask = _procs.size();
 
     // progress of tasks
     if(timer.onDelTmSec(true, _cng.progressTasksTOutSec, 0)){
       timer.onDelTmSec(false, _cng.progressTasksTOutSec, 0);
-      progressToSchedr(_cng.schedrConnPnt, _procs);
+      progressToSchedr(_worker, _cng.schedrConnPnt, _procs);
     }
     // ping to schedr
     if(timer.onDelTmSec(true, _cng.pingSchedrTOutSec, 1)){
       timer.onDelTmSec(false, _cng.pingSchedrTOutSec, 1);
-      pingToSchedr(_cng.schedrConnPnt);
+      pingToSchedr(_worker, _cng.schedrConnPnt);
     }
     // added delay
     if (timer.getCTime() < minCycleTimeMS){

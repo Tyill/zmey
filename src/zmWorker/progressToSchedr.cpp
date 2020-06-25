@@ -32,10 +32,11 @@
 
 using namespace std;
 
-void progressToSchedr(const std::string& schedrConnPnt, const list<Process>& procs){
+void progressToSchedr(const ZM_Base::worker& worker, const std::string& schedrConnPnt, const list<Process>& procs){
   
   map<string, string> data{
     make_pair("command", to_string((int)ZM_Base::messType::progress)),
+    make_pair("connectPnt", worker.connectPnt),
   };      
   int i = 0;
   for (auto& p : procs){

@@ -43,26 +43,29 @@ void receiveHandler(const string& cp, const string& data){
     statusMess("receiveHandler Error deserialn data from: " + cp);
     return;
   }
-
+  string wcp = cp;
 #define checkFieldNum(field) \
   if (mess.find(#field) == mess.end()){ \
-    statusMess(string("receiveHandler Error mess.find ") + #field + " from: " + cp); \
+    statusMess(string("receiveHandler Error mess.find ") + #field + " from: " + wcp); \
     return;  \
   } \
   if (!ZM_Aux::isNumber(mess[#field])){ \
-    statusMess("receiveHandler Error !ZM_Aux::isNumber " + mess[#field] + " from: " + cp); \
+    statusMess("receiveHandler Error !ZM_Aux::isNumber " + mess[#field] + " from: " + wcp); \
     return; \
   }
 #define checkField(field) \
   if (mess.find(#field) == mess.end()){  \
-    statusMess(string("receiveHandler Error mess.find ") + #field + " from: " + cp);  \
+    statusMess(string("receiveHandler Error mess.find ") + #field + " from: " + wcp);  \
     return;  \
   }
-
+  
   checkFieldNum(command);
+  checkField(connectPnt);
   ZM_Base::messType mtype = ZM_Base::messType(stoi(mess["command"]));
+  wcp = mess["connectPnt"];
   // from worker
-  if(_workers.find(cp) != _workers.end()){
+  if(_workers.find(wcp) != _workers.end()){
+    auto& worker = _workers[wcp];
     switch (mtype){
       case ZM_Base::messType::taskError:
       case ZM_Base::messType::taskCompleted: 
@@ -74,22 +77,22 @@ void receiveHandler(const string& cp, const string& data){
         checkFieldNum(activeTask);
         checkFieldNum(progress);
         checkField(taskResult);
-        _workers[cp].base.activeTask = stoi(mess["activeTask"]);
-        _messToDB.push(ZM_DB::messSchedr{mtype, _workers[cp].base.id,
+        worker.base.activeTask = stoi(mess["activeTask"]);
+        _messToDB.push(ZM_DB::messSchedr{mtype, worker.base.id,
                                                 stoull(mess["taskId"]),
                                                 0,
                                                 0,
                                                 mess["taskResult"]});
         break;
       case ZM_Base::messType::justStartWorker:
-        _workers[cp].base.state = ZM_Base::stateType::running;
-        _workers[cp].base.activeTask = 0;
-        _messToDB.push(ZM_DB::messSchedr{mtype, _workers[cp].base.id});
+        worker.base.state = ZM_Base::stateType::running;
+        worker.base.activeTask = 0;
+        _messToDB.push(ZM_DB::messSchedr{mtype, worker.base.id});
         break;
       case ZM_Base::messType::progress:{
         int tCnt = 0;
         while(mess.find("taskId" + to_string(tCnt)) != mess.end()){
-          _messToDB.push(ZM_DB::messSchedr{mtype, _workers[cp].base.id,
+          _messToDB.push(ZM_DB::messSchedr{mtype, worker.base.id,
                                            stoull(mess["taskId" + to_string(tCnt)]),
                                            stoi(mess["progress" + to_string(tCnt)])});
           ++tCnt;
@@ -97,21 +100,21 @@ void receiveHandler(const string& cp, const string& data){
         }
         break;
       case ZM_Base::messType::pingWorker:
-        _workers[cp].isActive = true;
+        worker.isActive = true;
         break;
       default: statusMess("receiveHandler unknown command: " + mess["command"]);
         break;
     }    
-    _workers[cp].isActive = true;
+    worker.isActive = true;
 
-    if (_workers[cp].base.rating < ZM_Base::WORKER_RATING_MAX){
+    if (worker.base.rating < ZM_Base::WORKER_RATING_MAX){
       _messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::workerRating,
-                                       _workers[cp].base.id,
+                                       worker.base.id,
                                        0,
                                        0,
-                                       _workers[cp].base.rating + 1});
+                                       worker.base.rating + 1});
     }
-    _workers[cp].base.rating = min(ZM_Base::WORKER_RATING_MAX, _workers[cp].base.rating + 1);
+    worker.base.rating = min(ZM_Base::WORKER_RATING_MAX, worker.base.rating + 1);
   }
   // from manager
   else{
