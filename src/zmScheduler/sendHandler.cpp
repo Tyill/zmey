@@ -54,18 +54,6 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
         t.base.maxDurationSec = stoi(mess["maxDurationSec"]);
         _tasks.push(move(t));
         }
-        break;       
-      case ZM_Base::messType::taskPause:
-      case ZM_Base::messType::taskStart:
-      case ZM_Base::messType::taskStop:{
-        map<string, string> data{
-          make_pair("command", to_string((int)mtype)),
-          make_pair("taskId", mess["taskId"]),
-          make_pair("schedrId", to_string(_schedr.id)),
-          make_pair("workerId", to_string(_workers[cp].base.id)),
-          make_pair("state", to_string((int)ZM_Base::messType::workerNotResponding)),
-        };  
-        }
         break;
       default: // I'm OK
         break;

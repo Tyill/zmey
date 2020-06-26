@@ -28,17 +28,6 @@
 
 void statusMess(const std::string& mess);
 
-struct config{
-  bool logEna = false;
-  int capacityTask = 10;
-  int checkTasksTOutSec = 120;
-  int progressTasksTOutSec = 30;
-  int pingSchedrTOutSec = 20; 
-  std::string connectPnt = "localhost:4146";
-  std::string schedrConnPnt;
-  std::string executor = "/usr/bin/sh";
-};
-
 struct message{
   uint64_t taskId;
   ZM_Base::messType messType;

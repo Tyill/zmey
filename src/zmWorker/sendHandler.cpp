@@ -33,7 +33,7 @@ using namespace std;
 extern bool _isSendAck;
 extern ZM_Aux::QueueThrSave<message> _messToSchedr;
 
-void sendHandler(const string& cp, const string& data, const std::error_code& ec){
+void sendHandler(const string&, const string& data, const std::error_code& ec){
 
   auto mess = ZM_Aux::deserialn(data);
   ZM_Base::messType mtype = ZM_Base::messType(stoi(mess["command"]));

@@ -79,6 +79,7 @@ public:
   std::string getLastError() const;
   void setErrorCBack(errCBack ecb, udata ud);
   void errorMess(const std::string&);
+  connectCng getConnectCng();
   
   virtual bool createTables() = 0;
 
@@ -144,10 +145,11 @@ public:
 #endif
 
 protected:  
-  DbProvider(const connectCng&){};    
+  DbProvider(const connectCng& cng);    
   std::string _err;
   errCBack _errCBack = nullptr;
   udata _errUData = nullptr;
+  ZM_DB::connectCng _connCng;
 };
 
 DbProvider* makeDbProvider(const connectCng&);

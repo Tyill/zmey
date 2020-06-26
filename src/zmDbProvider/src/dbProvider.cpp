@@ -47,8 +47,10 @@ DbProvider* makeDbProvider(const ZM_DB::connectCng& connCng){
       break;
     default:
       break;
-  }
+  }  
   return ret;
+}
+DbProvider::DbProvider(const connectCng& cng) : _connCng(cng) {
 }
 void DbProvider::setErrorCBack(errCBack ecb, udata ud){
   _errCBack = ecb;
@@ -63,4 +65,7 @@ void DbProvider::errorMess(const std::string& mess){
 std::string DbProvider::getLastError() const{
   return _err;
 }  
+connectCng DbProvider::getConnectCng(){
+  return _connCng;
+}
 }

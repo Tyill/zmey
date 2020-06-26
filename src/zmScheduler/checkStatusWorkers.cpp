@@ -36,7 +36,7 @@ void checkStatusWorkers(const ZM_Base::scheduler& schedr,
                         ZM_Aux::QueueThrSave<ZM_DB::messSchedr>& messToDB){
    
   for(auto& w : workers){
-    if (!w.second.isActive && (w.second.base.state == ZM_Base::stateType::running)){            
+    if (!w.second.isActive && (w.second.base.state != ZM_Base::stateType::notResponding)){            
       messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::workerNotResponding,
                                       w.second.base.id});
       w.second.base.state = ZM_Base::stateType::notResponding;
@@ -62,7 +62,8 @@ void checkStatusWorkers(const ZM_Base::scheduler& schedr,
   while(true){   
     int i = rand() % wkrNotResp.size(); 
     map<string, string> sendData{
-      make_pair("command", to_string((int)ZM_Base::messType::pingWorker))
+      make_pair("command", to_string((int)ZM_Base::messType::pingWorker)),
+      make_pair("connectPnt", schedr.connectPnt)
     };      
     ZM_Tcp::sendData(wkrNotResp[i].base.connectPnt, ZM_Aux::serialn(sendData));
     ++cnt;

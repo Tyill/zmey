@@ -33,6 +33,7 @@ struct sTask{
   ZM_Base::task base;
   std::string params;
 };
+
 struct sWorker{
   ZM_Base::worker base;
   bool isActive;

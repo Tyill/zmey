@@ -40,7 +40,8 @@ using namespace std;
 void receiveHandler(const string& cp, const string& data);
 void sendHandler(const string& cp, const string& data, const std::error_code& ec);
 void getNewTaskFromDB(ZM_DB::DbProvider& db);
-void sendTaskToWorker(unordered_map<std::string, sWorker>&,
+void sendTaskToWorker(const ZM_Base::scheduler&,
+                      unordered_map<std::string, sWorker>&,
                       ZM_Aux::QueueThrSave<sTask>&);
 void sendAllMessToDB(ZM_DB::DbProvider& db);
 void checkStatusWorkers(const ZM_Base::scheduler&,
@@ -64,7 +65,7 @@ struct config{
   std::string dbType;
   std::string connectPnt;
   ZM_DB::connectCng dbConnCng;
-}_cng;
+};
 
 void statusMess(const string& mess){
   cout << ZM_Aux::currDateTime() << " " << mess << std::endl;
@@ -118,9 +119,10 @@ void closeHandler(int sig){
 
 int main(int argc, char* argv[]){
 
-  parseArgs(argc, argv, _cng);
+  config cng;
+  parseArgs(argc, argv, cng);
   
-  if (_cng.logEna){
+  if (cng.logEna){
     _pLog = unique_ptr<ZM_Aux::Logger>(new ZM_Aux::Logger("zmSchedr.log", ""));
   }    
  // signal(SIGHUP, initHandler);
@@ -129,28 +131,28 @@ int main(int argc, char* argv[]){
 
   // TCP server
   string err;
-  if (ZM_Tcp::startServer(_cng.connectPnt, err)){
+  if (ZM_Tcp::startServer(cng.connectPnt, err)){
     ZM_Tcp::setReceiveCBack(receiveHandler);
     ZM_Tcp::setStsSendCBack(sendHandler);
-    statusMess("Tcp server running: " + _cng.connectPnt);
+    statusMess("Tcp server running: " + cng.connectPnt);
   }else{
-    statusMess("Tcp server error, busy -connectPnt: " + _cng.connectPnt + " " + err);
+    statusMess("Tcp server error, busy -connectPnt: " + cng.connectPnt + " " + err);
     return -1;
   }
-  unique_ptr<ZM_DB::DbProvider> db(ZM_DB::makeDbProvider(_cng.dbConnCng));
+  unique_ptr<ZM_DB::DbProvider> db(ZM_DB::makeDbProvider(cng.dbConnCng));
   if (db && db->getLastError().empty()){
     statusMess(
-      "DB connect success: " + _cng.dbType + " " + _cng.dbConnCng.connectStr);
+      "DB connect success: " + cng.dbType + " " + cng.dbConnCng.connectStr);
   }else{
     statusMess(
-      "DB connect error " + db->getLastError() + ": " + _cng.dbType + " " + _cng.dbConnCng.connectStr);
+      "DB connect error " + db->getLastError() + ": " + cng.dbType + " " + cng.dbConnCng.connectStr);
     ZM_Tcp::stopServer();
     return -1;
   }
   // schedr from DB
-  db->getSchedr(_cng.connectPnt, _schedr);
+  db->getSchedr(cng.connectPnt, _schedr);
   if (_schedr.id == 0){
-    statusMess("Schedr not found in DB for connectPnt " + _cng.connectPnt);
+    statusMess("Schedr not found in DB for connectPnt " + cng.connectPnt);
     ZM_Tcp::stopServer();
     return -1;
   }
@@ -178,16 +180,16 @@ int main(int argc, char* argv[]){
       FUTURE_RUN(frGetNewTask, getNewTaskFromDB);
     }        
     // send task to worker    
-    sendTaskToWorker(_workers, _tasks);    
+    sendTaskToWorker(_schedr, _workers, _tasks);    
 
     // send all mess to DB
-    if(timer.onDelTmMS(true, _cng.sendAllMessTOutMS, 0) && !_messToDB.empty()){
-      timer.onDelTmMS(false, _cng.sendAllMessTOutMS, 0);
+    if(timer.onDelTmMS(true, cng.sendAllMessTOutMS, 0) && !_messToDB.empty()){
+      timer.onDelTmMS(false, cng.sendAllMessTOutMS, 0);
       FUTURE_RUN(frSendAllMessToDB, sendAllMessToDB);
     }    
     // check status of workers
-    if(timer.onDelTmSec(true, _cng.checkWorkerTOutSec, 1)){
-      timer.onDelTmSec(false, _cng.checkWorkerTOutSec, 1);    
+    if(timer.onDelTmSec(true, cng.checkWorkerTOutSec, 1)){
+      timer.onDelTmSec(false, cng.checkWorkerTOutSec, 1);    
       checkStatusWorkers(_schedr, _workers, _messToDB);
     }
     // added delay

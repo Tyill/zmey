@@ -35,7 +35,8 @@ using namespace std;
 ZM_Aux::CounterTick ctick;
 vector<sWorker*> refWorkers;
 
-void sendTaskToWorker(unordered_map<std::string, sWorker>& workers,
+void sendTaskToWorker(const ZM_Base::scheduler& schedr,
+                      unordered_map<std::string, sWorker>& workers,
                       ZM_Aux::QueueThrSave<sTask>& tasks){  
   
   if (refWorkers.empty()){
@@ -58,6 +59,7 @@ void sendTaskToWorker(unordered_map<std::string, sWorker>& workers,
     if(iWr != refWorkers.end()){
       map<string, string> data{
         make_pair("command",         to_string((int)ZM_Base::messType::newTask)),
+        make_pair("connectPnt",      schedr.connectPnt),
         make_pair("taskId",          to_string(t.base.id)),
         make_pair("params",          t.params), 
         make_pair("script",          t.base.script),

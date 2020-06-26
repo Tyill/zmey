@@ -57,6 +57,7 @@ void receiveHandler(const string& cp, const string& data){
     statusMess(string("receiveHandler Error mess.find ") + #field + " from: " + cp);  \
     return;  \
   }
+  checkField(connectPnt);
   checkFieldNum(command);
   ZM_Base::messType mtype = ZM_Base::messType(stoi(mess["command"]));  
   if (mtype == ZM_Base::messType::newTask){

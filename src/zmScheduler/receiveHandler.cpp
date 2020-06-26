@@ -36,36 +36,36 @@ extern ZM_Aux::QueueThrSave<ZM_DB::messSchedr> _messToDB;
 extern unordered_map<std::string, sWorker> _workers;
 extern ZM_Base::scheduler _schedr;
 
-void receiveHandler(const string& cp, const string& data){
+void receiveHandler(const string& remcp, const string& data){
  
   auto mess = ZM_Aux::deserialn(data);
   if (mess.empty()){
-    statusMess("receiveHandler Error deserialn data from: " + cp);
+    statusMess("receiveHandler Error deserialn data from: " + remcp);
     return;
-  }
-  string wcp = cp;
+  } 
 #define checkFieldNum(field) \
   if (mess.find(#field) == mess.end()){ \
-    statusMess(string("receiveHandler Error mess.find ") + #field + " from: " + wcp); \
+    statusMess(string("receiveHandler Error mess.find ") + #field + " from: " + cp); \
     return;  \
   } \
   if (!ZM_Aux::isNumber(mess[#field])){ \
-    statusMess("receiveHandler Error !ZM_Aux::isNumber " + mess[#field] + " from: " + wcp); \
+    statusMess("receiveHandler Error !ZM_Aux::isNumber " + mess[#field] + " from: " + cp); \
     return; \
   }
 #define checkField(field) \
   if (mess.find(#field) == mess.end()){  \
-    statusMess(string("receiveHandler Error mess.find ") + #field + " from: " + wcp);  \
+    statusMess(string("receiveHandler Error mess.find ") + #field + " from: " + cp);  \
     return;  \
   }
-  
+  string cp = remcp;
   checkFieldNum(command);
   checkField(connectPnt);
-  ZM_Base::messType mtype = ZM_Base::messType(stoi(mess["command"]));
-  wcp = mess["connectPnt"];
+   
   // from worker
-  if(_workers.find(wcp) != _workers.end()){
-    auto& worker = _workers[wcp];
+  ZM_Base::messType mtype = ZM_Base::messType(stoi(mess["command"]));
+  cp = mess["connectPnt"];
+  if(_workers.find(cp) != _workers.end()){
+    auto& worker = _workers[cp];
     switch (mtype){
       case ZM_Base::messType::taskError:
       case ZM_Base::messType::taskCompleted: 
@@ -126,6 +126,7 @@ void receiveHandler(const string& cp, const string& data){
         checkField(workerConnPnt);
         map<string, string> data{
           make_pair("command", to_string((int)mtype)),
+          make_pair("connectPnt", _schedr.connectPnt),
           make_pair("taskId", mess["taskId"])
         };
         ZM_Tcp::sendData(mess["workerConnPnt"], ZM_Aux::serialn(data));
