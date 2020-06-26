@@ -33,41 +33,47 @@
 Process::Process(const wTask& tsk, std::function<taskChangeType> taskStateChangeCBack):
   _task(tsk), _taskStateChangeCBack(taskStateChangeCBack){
   
-  sigset_t blockMask, origMask;
-  struct sigaction saIgnore, saOrigQuit, saOrigInt, saDefault;
+  // sigset_t blockMask, origMask;
+  // struct sigaction saIgnore, saOrigQuit, saOrigInt, saDefault;
       
-  sigemptyset(&blockMask);          /* block SIGCHLD */
-  sigaddset(&blockMask, SIGCHLD);
-  sigprocmask(SIG_BLOCK, &blockMask, &origMask);
+  // sigemptyset(&blockMask);          /* block SIGCHLD */
+  // sigaddset(&blockMask, SIGCHLD);
+  // sigprocmask(SIG_BLOCK, &blockMask, &origMask);
 
-  saIgnore.sa_handler = SIG_IGN;    /* ignor SIGINT и SIGQUIT */
-  saIgnore.sa_flags = 0;
-  sigemptyset(&saIgnore.sa_mask);
-  sigaction(SIGINT, &saIgnore, &saOrigInt);
-  sigaction(SIGQUIT, &saIgnore, &saOrigQuit);
-  
+  // saIgnore.sa_handler = SIG_IGN;    /* ignor SIGINT и SIGQUIT */
+  // saIgnore.sa_flags = 0;
+  // sigemptyset(&saIgnore.sa_mask);
+  // sigaction(SIGINT, &saIgnore, &saOrigInt);
+  // sigaction(SIGQUIT, &saIgnore, &saOrigQuit);
+    
   switch (_pid = fork()) {
+    // error
     case -1:    
-      break;                        
+      break;
+    // children                        
     case 0:                        
-      saDefault.sa_handler = SIG_DFL;
-      saDefault.sa_flags = 0;
-      sigemptyset(&saDefault.sa_mask);
-      if (saOrigInt.sa_handler != SIG_IGN)
-        sigaction(SIGINT, &saDefault, NULL);
-      if (saOrigQuit.sa_handler != SIG_IGN)
-        sigaction(SIGQUIT, &saDefault, NULL);
-      sigprocmask(SIG_SETMASK, &origMask, NULL);
+      // saDefault.sa_handler = SIG_DFL;
+      // saDefault.sa_flags = 0;
+      // sigemptyset(&saDefault.sa_mask);
+      // if (saOrigInt.sa_handler != SIG_IGN)
+      //   sigaction(SIGINT, &saDefault, NULL);
+      // if (saOrigQuit.sa_handler != SIG_IGN)
+      //   sigaction(SIGQUIT, &saDefault, NULL);
+      // sigprocmask(SIG_SETMASK, &origMask, NULL);
       //execl(application.c_str(), args.c_str(), (char *) NULL);
-      _exit(127);                  
+      _exit(127);
+    // parent                
     default:
+
+
+
       break;
  }
- int savedErrno = errno; 
- sigprocmask(SIG_SETMASK, &origMask, NULL);
- sigaction(SIGINT, &saOrigInt, NULL);
- sigaction(SIGQUIT, &saOrigQuit, NULL);
- errno = savedErrno;
+//  int savedErrno = errno; 
+//  sigprocmask(SIG_SETMASK, &origMask, NULL);
+//  sigaction(SIGINT, &saOrigInt, NULL);
+//  sigaction(SIGQUIT, &saOrigQuit, NULL);
+//  errno = savedErrno;
 }
 Process::~Process(){
 
@@ -76,7 +82,7 @@ int Process::getProgress() const{
   return 0;
 }
 wTask Process::getTask() const{
-  return wTask();
+  return _task;
 }
 void Process::pause(){
 
