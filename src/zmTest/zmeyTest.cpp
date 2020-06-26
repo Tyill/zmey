@@ -31,7 +31,7 @@
 
 using namespace std;
 
-bool tonc = true;
+bool isSchedrAndWorker = true;
 class ZmeyTest : public ::testing::Test {
 public:
   ZmeyTest() { 
@@ -44,8 +44,8 @@ public:
     if (strlen(err) > 0){    
       TEST_COUT << err << endl;
     }
-    if (!tonc){
-      tonc = true;
+    if (!isSchedrAndWorker){
+      isSchedrAndWorker = true;
       ZM_DB::connectCng cng;
       cng.selType = ZM_DB::dbType::PostgreSQL;
       cng.connectStr = "host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10";

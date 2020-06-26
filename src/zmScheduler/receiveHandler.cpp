@@ -78,11 +78,12 @@ void receiveHandler(const string& remcp, const string& data){
         checkFieldNum(progress);
         checkField(taskResult);
         worker.base.activeTask = stoi(mess["activeTask"]);
-        _messToDB.push(ZM_DB::messSchedr{mtype, worker.base.id,
-                                                stoull(mess["taskId"]),
-                                                0,
-                                                0,
-                                                mess["taskResult"]});
+        _messToDB.push(ZM_DB::messSchedr{mtype, 
+                                         worker.base.id,
+                                         stoull(mess["taskId"]),
+                                         0,
+                                         0,
+                                         mess["taskResult"]});
         break;
       case ZM_Base::messType::justStartWorker:
         worker.base.state = ZM_Base::stateType::running;
@@ -92,7 +93,8 @@ void receiveHandler(const string& remcp, const string& data){
       case ZM_Base::messType::progress:{
         int tCnt = 0;
         while(mess.find("taskId" + to_string(tCnt)) != mess.end()){
-          _messToDB.push(ZM_DB::messSchedr{mtype, worker.base.id,
+          _messToDB.push(ZM_DB::messSchedr{mtype, 
+                                           worker.base.id,
                                            stoull(mess["taskId" + to_string(tCnt)]),
                                            stoi(mess["progress" + to_string(tCnt)])});
           ++tCnt;

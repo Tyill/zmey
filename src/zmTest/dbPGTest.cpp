@@ -29,7 +29,7 @@
 #include "zmCommon/auxFunc.h"
 
 using namespace std;
-bool onc = false;
+bool isTables = true;
 class DBTest : public ::testing::Test {
 public:
   DBTest() { 
@@ -39,8 +39,8 @@ public:
 
     _pDb = ZM_DB::makeDbProvider(cng);
     
-    if (!onc){
-      onc = true;
+    if (!isTables){
+      isTables = true;
       _pDb->createTables();
     }
 

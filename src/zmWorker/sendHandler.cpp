@@ -31,18 +31,12 @@
 using namespace std;
 
 extern bool _isSendAck;
-extern ZM_Aux::QueueThrSave<message> _messToSchedr;
+extern ZM_Aux::QueueThrSave<mess2schedr> _messToScheduler;
 
 void sendHandler(const string&, const string& data, const std::error_code& ec){
-
-  auto mess = ZM_Aux::deserialn(data);
-  ZM_Base::messType mtype = ZM_Base::messType(stoi(mess["command"]));
-  if ((mtype == ZM_Base::messType::progress) || (mtype == ZM_Base::messType::pingWorker)){
-    return;
-  }
   if (!ec){
-    message mess;
-    _messToSchedr.tryPop(mess);    
-  }
-  _isSendAck = true;
+    mess2schedr mess;
+    _messToScheduler.tryPop(mess);
+    _isSendAck = true;    
+  }  
 }

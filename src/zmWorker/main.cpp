@@ -39,13 +39,13 @@ using namespace std;
 
 void receiveHandler(const string& cp, const string& data);
 void sendHandler(const string& cp, const string& data, const std::error_code& ec);
-void sendMessToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt, const message&);
+void sendMessToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt, const mess2schedr&);
 void progressToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt, const list<Process>&);
 void pingToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt);
 void updateListTasks(ZM_Aux::QueueThrSave<wTask>& newTasks, list<Process>& procs);
 
 unique_ptr<ZM_Aux::Logger> _pLog = nullptr;
-ZM_Aux::QueueThrSave<message> _messToSchedr;
+ZM_Aux::QueueThrSave<mess2schedr> _messToScheduler;
 ZM_Aux::QueueThrSave<wTask> _newTasks;
 list<Process> _procs;
 bool _fClose = false,
@@ -57,6 +57,7 @@ struct config{
   int checkTasksTOutSec = 120;
   int progressTasksTOutSec = 30;
   int pingSchedrTOutSec = 20; 
+  int sendAckTOutSec = 1; 
   std::string connectPnt = "localhost:4146";
   std::string schedrConnPnt;
   std::string executor = "/usr/bin/sh";
@@ -103,6 +104,7 @@ void parseArgs(int argc, char* argv[], config& outCng){
   SET_PARAM_NUM(cht, checkTasksTOutSec);
   SET_PARAM_NUM(prg, progressTasksTOutSec);
   SET_PARAM_NUM(png, pingSchedrTOutSec);
+  SET_PARAM_NUM(ack, sendAckTOutSec);
 
 #undef SET_PARAM
 #undef SET_PARAM_NUM
@@ -129,7 +131,7 @@ int main(int argc, char* argv[]){
   signal(SIGTERM, closeHandler);
 
   // on start
-  _messToSchedr.push(message{0, ZM_Base::messType::justStartWorker});
+  _messToScheduler.push(mess2schedr{0, ZM_Base::messType::justStartWorker});
 
   // TCP server
   string err;
@@ -152,22 +154,25 @@ int main(int argc, char* argv[]){
     timer.updateCycTime();   
 
     // send mess to schedr (send constantly until it receives)
-    if (_isSendAck && !_messToSchedr.empty()){ 
+    if (_isSendAck && !_messToScheduler.empty()){ 
       _isSendAck = false;
-      sendMessToSchedr(worker, cng.schedrConnPnt, _messToSchedr.front());
+      sendMessToSchedr(worker, cng.schedrConnPnt, _messToScheduler.front());
     }
+    else if (!_isSendAck && timer.onDelTmSec(true, cng.sendAckTOutSec, 0)){
+      _isSendAck = true;
+    } 
     // update list of tasks
     updateListTasks(_newTasks, _procs);
     worker.activeTask = _procs.size();
 
     // progress of tasks
-    if(timer.onDelTmSec(true, cng.progressTasksTOutSec, 0)){
-      timer.onDelTmSec(false, cng.progressTasksTOutSec, 0);
+    if(timer.onDelTmSec(true, cng.progressTasksTOutSec, 1)){
+      timer.onDelTmSec(false, cng.progressTasksTOutSec, 1);
       progressToSchedr(worker, cng.schedrConnPnt, _procs);
     }
     // ping to schedr
-    if(timer.onDelTmSec(true, cng.pingSchedrTOutSec, 1)){
-      timer.onDelTmSec(false, cng.pingSchedrTOutSec, 1);
+    if(timer.onDelTmSec(true, cng.pingSchedrTOutSec, 2)){
+      timer.onDelTmSec(false, cng.pingSchedrTOutSec, 2);
       pingToSchedr(worker, cng.schedrConnPnt);
     }
     // added delay

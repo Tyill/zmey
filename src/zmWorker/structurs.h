@@ -28,7 +28,7 @@
 
 void statusMess(const std::string& mess);
 
-struct message{
+struct mess2schedr{
   uint64_t taskId;
   ZM_Base::messType messType;
   std::string taskResult;
