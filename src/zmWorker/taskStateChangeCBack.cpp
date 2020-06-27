@@ -30,7 +30,7 @@
 
 using namespace std;
 
-extern ZM_Aux::QueueThrSave<message> _messToSchedr;
+extern ZM_Aux::QueueThrSave<mess2schedr> _messToScheduler;
 
 void taskStateChangeCBack(uint64_t taskdId, ZM_Base::stateType newState, const std::string& result){
   
@@ -44,5 +44,5 @@ void taskStateChangeCBack(uint64_t taskdId, ZM_Base::stateType newState, const s
     case ZM_Base::stateType::completed: mType = ZM_Base::messType::taskCompleted; break; 
     default: return;
   }
-  _messToSchedr.push(message{taskdId, mType, result});
+  _messToScheduler.push(mess2schedr{taskdId, mType, result});
 }

@@ -40,13 +40,9 @@ using namespace std;
 void receiveHandler(const string& cp, const string& data);
 void sendHandler(const string& cp, const string& data, const std::error_code& ec);
 void getNewTaskFromDB(ZM_DB::DbProvider& db);
-void sendTaskToWorker(const ZM_Base::scheduler&,
-                      unordered_map<std::string, sWorker>&,
-                      ZM_Aux::QueueThrSave<sTask>&);
+void sendTaskToWorker(const ZM_Base::scheduler&, unordered_map<std::string, sWorker>&, ZM_Aux::QueueThrSave<sTask>&);
 void sendAllMessToDB(ZM_DB::DbProvider& db);
-void checkStatusWorkers(const ZM_Base::scheduler&,
-                        unordered_map<std::string, sWorker>&,
-                        ZM_Aux::QueueThrSave<ZM_DB::messSchedr>&);
+void checkStatusWorkers(const ZM_Base::scheduler&, unordered_map<std::string, sWorker>&, ZM_Aux::QueueThrSave<ZM_DB::messSchedr>&);
 void getPrevTaskFromDB(ZM_DB::DbProvider& db, ZM_Base::scheduler&,  ZM_Aux::QueueThrSave<sTask>&);
 void getPrevWorkersFromDB(ZM_DB::DbProvider& db, ZM_Base::scheduler&, unordered_map<std::string, sWorker>&);
 
@@ -117,6 +113,15 @@ void closeHandler(int sig){
   _fClose = true;
 }
 
+unique_ptr<ZM_DB::DbProvider> createDbProvider(const config& cng){
+  unique_ptr<ZM_DB::DbProvider> db(ZM_DB::makeDbProvider(cng.dbConnCng));  
+  if (db && db->getLastError().empty()){
+    return db;
+  } else{
+    return nullptr;
+  }
+}
+
 int main(int argc, char* argv[]){
 
   config cng;
@@ -139,33 +144,35 @@ int main(int argc, char* argv[]){
     statusMess("Tcp server error, busy -connectPnt: " + cng.connectPnt + " " + err);
     return -1;
   }
-  unique_ptr<ZM_DB::DbProvider> db(ZM_DB::makeDbProvider(cng.dbConnCng));
-  if (db && db->getLastError().empty()){
+  // db providers
+  auto dbNewTask = createDbProvider(cng);
+  auto dbSendMess = createDbProvider(cng);
+  if (dbNewTask && dbSendMess){ 
     statusMess(
       "DB connect success: " + cng.dbType + " " + cng.dbConnCng.connectStr);
   }else{
     statusMess(
-      "DB connect error " + db->getLastError() + ": " + cng.dbType + " " + cng.dbConnCng.connectStr);
+      "DB connect error " + dbNewTask->getLastError() + ": " + cng.dbType + " " + cng.dbConnCng.connectStr);
     ZM_Tcp::stopServer();
     return -1;
   }
   // schedr from DB
-  db->getSchedr(cng.connectPnt, _schedr);
+  dbNewTask->getSchedr(cng.connectPnt, _schedr);
   if (_schedr.id == 0){
     statusMess("Schedr not found in DB for connectPnt " + cng.connectPnt);
     ZM_Tcp::stopServer();
     return -1;
   }
   // prev tasks and workers
-  getPrevTaskFromDB(*db, _schedr, _tasks);
-  getPrevWorkersFromDB(*db, _schedr, _workers);
+  getPrevTaskFromDB(*dbNewTask, _schedr, _tasks);
+  getPrevWorkersFromDB(*dbNewTask, _schedr, _workers);
   
   future<void> frGetNewTask,
                frSendAllMessToDB; 
   ZM_Aux::TimerDelay timer;
   const int minCycleTimeMS = 5;
 
-#define FUTURE_RUN(fut, func)                                                     \
+#define FUTURE_RUN(fut, db, func)                                                 \
   if(!fut.valid() || (fut.wait_for(chrono::seconds(0)) == future_status::ready)){ \
     fut = async(launch::async, [&db]{                                             \
       func(*db);                                                                  \
@@ -177,7 +184,7 @@ int main(int argc, char* argv[]){
 
     // get new tasks from DB
     if((_tasks.size() < _schedr.capacityTask) && (_schedr.state != ZM_Base::stateType::pause)){
-      FUTURE_RUN(frGetNewTask, getNewTaskFromDB);
+      FUTURE_RUN(frGetNewTask, dbNewTask, getNewTaskFromDB);
     }        
     // send task to worker    
     sendTaskToWorker(_schedr, _workers, _tasks);    
@@ -185,7 +192,7 @@ int main(int argc, char* argv[]){
     // send all mess to DB
     if(timer.onDelTmMS(true, cng.sendAllMessTOutMS, 0) && !_messToDB.empty()){
       timer.onDelTmMS(false, cng.sendAllMessTOutMS, 0);
-      FUTURE_RUN(frSendAllMessToDB, sendAllMessToDB);
+      FUTURE_RUN(frSendAllMessToDB, dbSendMess, sendAllMessToDB);
     }    
     // check status of workers
     if(timer.onDelTmSec(true, cng.checkWorkerTOutSec, 1)){
