@@ -113,11 +113,12 @@ void closeHandler(int sig){
   _fClose = true;
 }
 
-unique_ptr<ZM_DB::DbProvider> createDbProvider(const config& cng){
+unique_ptr<ZM_DB::DbProvider> createDbProvider(const config& cng, std::string& err){
   unique_ptr<ZM_DB::DbProvider> db(ZM_DB::makeDbProvider(cng.dbConnCng));  
   if (db && db->getLastError().empty()){
     return db;
   } else{
+    err = db ? db->getLastError() : "";
     return nullptr;
   }
 }
@@ -145,14 +146,14 @@ int main(int argc, char* argv[]){
     return -1;
   }
   // db providers
-  auto dbNewTask = createDbProvider(cng);
-  auto dbSendMess = createDbProvider(cng);
+  auto dbNewTask = createDbProvider(cng, err);
+  auto dbSendMess = dbNewTask ? createDbProvider(cng, err) : nullptr;
   if (dbNewTask && dbSendMess){ 
     statusMess(
       "DB connect success: " + cng.dbType + " " + cng.dbConnCng.connectStr);
   }else{
     statusMess(
-      "DB connect error " + dbNewTask->getLastError() + ": " + cng.dbType + " " + cng.dbConnCng.connectStr);
+      "DB connect error " + err + ": " + cng.dbType + " " + cng.dbConnCng.connectStr);
     ZM_Tcp::stopServer();
     return -1;
   }
