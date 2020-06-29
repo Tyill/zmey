@@ -345,7 +345,7 @@ bool DbPGProvider::createTables(){
         "  FOREACH t IN ARRAY task.prevTasks"
         "    LOOP"
         "      SELECT qtask INTO prqId FROM tblUPipelineTask WHERE id = t;"
-        "      CONTINUE WHEN NOT FOUND;"
+        "      CONTINUE WHEN prqId IS NULL;"
         "      SELECT prvTasks || prqId INTO prvTasks;"
         "    END LOOP;"
 
@@ -358,6 +358,42 @@ bool DbPGProvider::createTables(){
         "  WHERE id = task.id;"
 
         "  RETURN qId;"
+        "END;"
+        "$$ LANGUAGE plpgsql;";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+
+  ss.str("");
+  ss << "CREATE OR REPLACE FUNCTION "
+        "funcTasksOfSchedr(sId int) "
+        "RETURNS TABLE("
+        "  qid int,"
+        "  tid int,"
+        "  exr int,"
+        "  averDurSec int,"
+        "  maxDurSec int,"
+        "  script text,"
+        "  params text[][],"
+        "  prevTasks int[]) AS $$ "
+        "DECLARE "
+        "  t int;"
+        "BEGIN"
+        "  FOR qid, tid, exr, averDurSec, maxDurSec, script, params, prevTasks IN"
+        "    SELECT tq.id, tt.id, tt.executor, tt.averDurationSec, tt.maxDurationSec,"
+        "           tt.script, tp.params, pt.prevTasks"
+        "    FROM tblTask tt "
+        "    JOIN tblTaskQueue tq ON tq.task = tt.id "
+        "    JOIN tblTaskState ts ON ts.qtask = tq.id "
+        "    JOIN tblTaskParam tp ON tp.qtask = tq.id "
+        "    JOIN tblPrevTask pt ON pt.qtask = tq.id "
+        "    WHERE tq.schedr = sId AND (ts.state BETWEEN 1 AND 3)" // 1 - start, 2 - running, 3 - pause
+        "  LOOP"
+        "    FOREACH t IN ARRAY prevTasks"
+        "      LOOP"
+        "        SELECT params || (SELECT result FROM tblTaskResult WHERE qtask = t) INTO params;"
+        "      END LOOP;"
+               
+        "    RETURN NEXT;"
+        "  END LOOP;"
         "END;"
         "$$ LANGUAGE plpgsql;";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
@@ -1320,13 +1356,8 @@ bool DbPGProvider::getSchedr(std::string& connPnt, ZM_Base::scheduler& outCng){
 bool DbPGProvider::getTasksOfSchedr(uint64_t sId, std::vector<ZM_DB::schedrTask>& out){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
-  ss << "SELECT tq.id, t.id, t.executor, t.averDurationSec, t.maxDurationSec, t.script, tp.params "
-        "FROM tblTask t "
-        "JOIN tblTaskQueue tq ON tq.task = t.id "
-        "JOIN tblTaskState ts ON ts.qtask = tq.id "
-        "JOIN tblTaskParam tp ON tp.qtask = tq.id "
-        "WHERE tq.schedr = " << sId << " AND (ts.state BETWEEN 1 AND 3)"; // 1 - start, 2 - running, 3 - pause
-        
+  ss << "SELECT * FROM funcTasksOfSchedr(" << sId << ");";
+     
   auto resTsk = PQexec(_pg, ss.str().c_str());
   if (PQresultStatus(resTsk) != PGRES_TUPLES_OK){
     errorMess(string("getTasksOfSchedr error: ") + PQerrorMessage(_pg));
