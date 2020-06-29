@@ -311,6 +311,9 @@ bool DbPGProvider::createTables(){
         "DECLARE "
         "  task tblUPipelineTask;"
         "  qId int := 0;"
+        "  prqId int := 0;"
+        "  prvTasks int[] := ARRAY[]::INT[];"
+        "  t int;"
         "BEGIN"
         "  SELECT * INTO task "
         "  FROM tblUPipelineTask "
@@ -339,9 +342,16 @@ bool DbPGProvider::createTables(){
         "    qId,"
         "    task.result);"
 
+        "  FOREACH t IN ARRAY task.prevTasks"
+        "    LOOP"
+        "      SELECT qtask INTO prqId FROM tblUPipelineTask WHERE id = t;"
+        "      CONTINUE WHEN NOT FOUND;"
+        "      SELECT prvTasks || prqId INTO prvTasks;"
+        "    END LOOP;"
+
         "  INSERT INTO tblPrevTask (qtask, prevTasks) VALUES("
         "    qId,"
-        "    task.prevTasks);"
+        "    prvTasks);"
 
         "  UPDATE tblUPipelineTask SET"
         "    qtask = qId"
@@ -383,12 +393,13 @@ bool DbPGProvider::createTables(){
         "        PERFORM * FROM tblTaskState"
         "        WHERE qtask = t AND state = 5;" // completed
         "        CONTINUE mBegin WHEN NOT FOUND;"
+
+        "        SELECT params || (SELECT result FROM tblTaskResult WHERE qtask = t) INTO params;"
         "      END LOOP;"
         
         "    UPDATE tblTaskQueue SET"
         "      schedr = sId"
         "    WHERE id = qid AND schedr IS NULL;"
-
         "    CONTINUE mBegin WHEN NOT FOUND;"
         
         "    UPDATE tblTaskState SET"
@@ -397,7 +408,7 @@ bool DbPGProvider::createTables(){
         
         "    UPDATE tblTaskTime SET"
         "      takeInWorkTime = current_timestamp"
-        "    WHERE qtask = qid;"
+        "    WHERE qtask = qid;"        
         
         "    RETURN NEXT;"
         "  END LOOP;"
