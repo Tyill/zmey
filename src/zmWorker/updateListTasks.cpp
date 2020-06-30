@@ -31,11 +31,11 @@ using namespace std;
 
 void taskStateChangeCBack(uint64_t taskdId, ZM_Base::stateType newState, const std::string& result);
 
-void updateListTasks(ZM_Aux::QueueThrSave<wTask>& newTasks, list<Process>& procs){
+void updateListTasks(const std::string& exrPath, ZM_Aux::QueueThrSave<wTask>& newTasks, list<Process>& procs){
   
   wTask tsk;
   while(newTasks.tryPop(tsk)){
-    procs.push_back(Process(tsk, taskStateChangeCBack));
+    procs.push_back(Process(exrPath, tsk, taskStateChangeCBack));
   }  
   for (auto ip = procs.begin(); ip != procs.end();){
     ZM_Base::stateType tskState = ip->getTask().state;

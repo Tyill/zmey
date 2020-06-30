@@ -323,12 +323,12 @@ bool DbPGProvider::createTables(){
         "  END IF;"
 
         "  INSERT INTO tblTaskQueue (task, launcher) VALUES("
-        "    task.taskTempl,"       
+        "    task.taskTempl,"
         "    (SELECT usr FROM tblUPipeline WHERE id = task.pipeline)) RETURNING id INTO qId;"
 
-        "  INSERT INTO tblTaskState (qtask, state) VALUES("
-        "    qId,"
-        "    0);"  // ready
+        "  UPDATE tblUPipelineTask SET"
+        "    qtask = qId"
+        "  WHERE id = task.id;"
 
         "  INSERT INTO tblTaskTime (qtask) VALUES("
         "    qId);"
@@ -352,10 +352,10 @@ bool DbPGProvider::createTables(){
         "  INSERT INTO tblPrevTask (qtask, prevTasks) VALUES("
         "    qId,"
         "    prvTasks);"
-
-        "  UPDATE tblUPipelineTask SET"
-        "    qtask = qId"
-        "  WHERE id = task.id;"
+       
+        "  INSERT INTO tblTaskState (qtask, state) VALUES("
+        "    qId,"
+        "    0);"  // ready
 
         "  RETURN qId;"
         "END;"
@@ -390,8 +390,7 @@ bool DbPGProvider::createTables(){
         "    FOREACH t IN ARRAY prevTasks"
         "      LOOP"
         "        SELECT params || (SELECT result FROM tblTaskResult WHERE qtask = t) INTO params;"
-        "      END LOOP;"
-               
+        "      END LOOP;"               
         "    RETURN NEXT;"
         "  END LOOP;"
         "END;"
@@ -1438,40 +1437,40 @@ bool DbPGProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::messSc
   for (auto& m : mess){
     switch (m.type){
       case ZM_Base::messType::taskError:
-        ss << "UPDATE tblTaskState SET "
-              "state = " << (int)ZM_Base::stateType::error << " "
-              "WHERE qtask = " << m.taskId << ";"
-
-              "UPDATE tblTaskTime SET "
+        ss << "UPDATE tblTaskTime SET "
               "stopTime = current_timestamp "
               "WHERE qtask = " << m.taskId << ";"
               
               "UPDATE tblTaskResult SET "
               "result = ARRAY" << m.result << "::TEXT[3] "
+              "WHERE qtask = " << m.taskId << ";"
+
+              "UPDATE tblTaskState SET "
+              "state = " << (int)ZM_Base::stateType::error << " "
               "WHERE qtask = " << m.taskId << ";";
         break; 
       case ZM_Base::messType::taskCompleted: 
-        ss << "UPDATE tblTaskState SET "
-              "state = " << (int)ZM_Base::stateType::completed << " "
-              "WHERE qtask = " << m.taskId << ";"
-
-              "UPDATE tblTaskTime SET "
+        ss << "UPDATE tblTaskTime SET "
               "stopTime = current_timestamp "
               "WHERE qtask = " << m.taskId << ";"
 
               "UPDATE tblTaskResult SET "
               "result = ARRAY" << m.result << "::TEXT[3] "
+              "WHERE qtask = " << m.taskId << ";"
+              
+              "UPDATE tblTaskState SET "
+              "state = " << (int)ZM_Base::stateType::completed << " "
               "WHERE qtask = " << m.taskId << ";";
         break;  
       case ZM_Base::messType::taskStart: 
       case ZM_Base::messType::taskRunning: 
-        ss << "UPDATE tblTaskQueue SET "
-              "worker = " << m.workerId << " "
-              "WHERE id = " << m.taskId << ";"
-
-              "UPDATE tblTaskState SET "
+        ss << "UPDATE tblTaskState SET "
               "state = " << (int)ZM_Base::stateType::running << " "
               "WHERE qtask = " << m.taskId << ";"
+
+              "UPDATE tblTaskQueue SET "
+              "worker = " << m.workerId << " "
+              "WHERE id = " << m.taskId << ";"
 
               "UPDATE tblTaskTime SET "
               "startTime = current_timestamp "
@@ -1483,12 +1482,12 @@ bool DbPGProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::messSc
               "WHERE qtask = " << m.taskId << ";";
         break;        
       case ZM_Base::messType::taskStop:        
-        ss << "UPDATE tblTaskState SET "
-              "state = " << (int)ZM_Base::stateType::stop << " "
-              "WHERE qtask = " << m.taskId << ";"
-
-              "UPDATE tblTaskTime SET "
+        ss << "UPDATE tblTaskTime SET "
               "stopTime = current_timestamp "
+              "WHERE qtask = " << m.taskId << ";"
+              
+              "UPDATE tblTaskState SET "
+              "state = " << (int)ZM_Base::stateType::stop << " "
               "WHERE qtask = " << m.taskId << ";";
         break;
       case ZM_Base::messType::justStartWorker:
@@ -1542,14 +1541,14 @@ bool DbPGProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::messSc
               "FROM tblTaskState ts "
               "WHERE tq.id = ts.qtask AND tq.worker = " << m.workerId << " AND (ts.state BETWEEN 2 AND 3) " // running, pause
               "RETURNING tq.id) "
-
-              "UPDATE tblTaskState SET "
-              "state = " << (int)ZM_Base::stateType::ready << " "
-              "WHERE qtask = (SELECT id FROM taskUpd);"
-
+            
               "UPDATE tblWorker SET "
               "state = " << (int)ZM_Base::stateType::notResponding << " "
-              "WHERE id = " << m.workerId << ";";
+              "WHERE id = " << m.workerId << ";"
+              
+              "UPDATE tblTaskState SET "
+              "state = " << (int)ZM_Base::stateType::ready << " "
+              "WHERE qtask = (SELECT id FROM taskUpd);";
         break;
     }    
   }

@@ -64,12 +64,15 @@ namespace ZM_Aux {
   }
 
   std::map<std::string, std::string> deserialn(const std::string& data){
-    
+        
     char* pData = (char*)data.data();    
     int offs = 0,
         intSz = 4,
         allSz = (int)data.size();
     
+    if (allSz <= intSz * 3){ // vcnt, key, vsz
+      return map<string, string>();
+    }
     int vcnt = *((int*)pData);
     offs += intSz;
 

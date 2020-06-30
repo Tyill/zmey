@@ -42,7 +42,7 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
 void sendMessToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt, const mess2schedr&);
 void progressToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt, const list<Process>&);
 void pingToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt);
-void updateListTasks(ZM_Aux::QueueThrSave<wTask>& newTasks, list<Process>& procs);
+void updateListTasks(const std::string& exrPath, ZM_Aux::QueueThrSave<wTask>& newTasks, list<Process>& procs);
 
 unique_ptr<ZM_Aux::Logger> _pLog = nullptr;
 ZM_Aux::QueueThrSave<mess2schedr> _messToScheduler;
@@ -60,7 +60,7 @@ struct config{
   int sendAckTOutSec = 1; 
   std::string connectPnt = "localhost:4146";
   std::string schedrConnPnt;
-  std::string executor = "/usr/bin/sh";
+  std::string exrPath;
 };
 
 void statusMess(const string& mess){
@@ -92,10 +92,10 @@ void parseArgs(int argc, char* argv[], config& outCng){
   if (sprms.find(#nm) != sprms.end()){ \
     outCng.prm = sprms[#nm]; \
   }
-  SET_PARAM(cp, connectPnt);
-  SET_PARAM(scp, schedrConnPnt);
-  SET_PARAM(exr, executor);
- 
+  SET_PARAM(cp,  connectPnt);
+  SET_PARAM(scp, schedrConnPnt);    
+  SET_PARAM(exr, exrPath);
+
 #define SET_PARAM_NUM(nm, prm) \
   if (sprms.find(#nm) != sprms.end() && ZM_Aux::isNumber(sprms[#nm])){ \
     outCng.prm = stoi(sprms[#nm]); \
@@ -118,13 +118,17 @@ int main(int argc, char* argv[]){
 
   config cng;
   parseArgs(argc, argv, cng);
-  
+ 
+  if (cng.logEna){
+    _pLog = unique_ptr<ZM_Aux::Logger>(new ZM_Aux::Logger("zmWorker.log", ""));
+  }
   if (cng.schedrConnPnt.empty()){
     statusMess("Not set param '-scp' - scheduler connPnt");
     return -1;
   }
-  if (cng.logEna){
-    _pLog = unique_ptr<ZM_Aux::Logger>(new ZM_Aux::Logger("zmWorker.log", ""));
+  if (cng.exrPath.empty()){
+    statusMess("Not set param '-exr' - executor path, example for bash: /usr/bin/sh");
+    return -1;
   }
   // signal(SIGHUP, initHandler);
   signal(SIGINT, closeHandler);
@@ -162,7 +166,7 @@ int main(int argc, char* argv[]){
       _isSendAck = true;
     } 
     // update list of tasks
-    updateListTasks(_newTasks, _procs);
+    updateListTasks(cng.exrPath, _newTasks, _procs);
     worker.activeTask = _procs.size();
 
     // progress of tasks

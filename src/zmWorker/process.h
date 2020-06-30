@@ -26,16 +26,20 @@
 
 #include <string>
 #include <functional>
+#include <thread>
 #include "structurs.h"
 
 class Process{
-    pid_t _pid = -1; 
-    wTask _task;
     using taskChangeType = void(uint64_t taskdId, ZM_Base::stateType, const std::string& result);
     std::function<taskChangeType> _taskStateChangeCBack;
+    pid_t _pid = -1; 
+    wTask _task;
+    std::thread _thr;
+    bool _fClose = false;
   public:
-    Process(const wTask&, std::function<taskChangeType>);
-    ~Process();  
+    Process(const std::string& exrPath, const wTask&, std::function<taskChangeType>);
+    Process(Process&& other);
+    ~Process();     
     int getProgress() const;
     wTask getTask() const;
     void pause();

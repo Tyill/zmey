@@ -22,7 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-
+#include <utility>
 #include <unistd.h>
 #include <signal.h>
 #include <sys/wait.h>
@@ -30,7 +30,9 @@
 #include <errno.h>
 #include "process.h"
 
-Process::Process(const wTask& tsk, std::function<taskChangeType> taskStateChangeCBack):
+using namespace std;
+
+Process::Process(const std::string& exrPath, const wTask& tsk, std::function<taskChangeType> taskStateChangeCBack):
   _task(tsk), _taskStateChangeCBack(taskStateChangeCBack){
   
   // sigset_t blockMask, origMask;
@@ -65,7 +67,11 @@ Process::Process(const wTask& tsk, std::function<taskChangeType> taskStateChange
     // parent                
     default:
 
+      _thr = thread([this](){
+        while(!_fClose){
 
+        }
+      });
 
       break;
  }
@@ -75,8 +81,14 @@ Process::Process(const wTask& tsk, std::function<taskChangeType> taskStateChange
 //  sigaction(SIGQUIT, &saOrigQuit, NULL);
 //  errno = savedErrno;
 }
+Process::Process(Process&& other){
+  _thr = move(other._thr);
+}
 Process::~Process(){
-
+  _fClose = true;
+  if (_thr.joinable()){
+    _thr.join();
+  }
 }
 int Process::getProgress() const{
   return 0;
