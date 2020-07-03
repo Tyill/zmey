@@ -99,8 +99,8 @@ namespace ZM_Base{
     stateType state;
     int priority;             // [1..3]
     int progress;             // [0..100] 
-    std::string params;       // CLI params for script: {{key, sep, val},{..}..}
-    std::string result;       // result of script: {key, sep, val}
+    std::string params;       // CLI params for script: {param1,param2..}
+    std::string result;       // result of script
   };  
   // tblUTaskTemplate
   struct uTaskTemplate{

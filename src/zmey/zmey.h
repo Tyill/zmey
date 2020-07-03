@@ -412,8 +412,7 @@ struct zmTask{
   uint32_t priority;       ///< [1..3]
   char* prevTasksId;       ///< pipeline task id of previous tasks to be completed: [qtId,..]. May be NULL 
   char* nextTasksId;       ///< pipeline task id of next tasks: : [qtId,..]. May be NULL
-  char* params;            ///< CLI params for script: [['key', 'sep', 'val'],[..]..]. May be NULL
-  char* result;            ///< template for result of script: ['key', 'sep', 'val']. May be NULL
+  char* params;            ///< CLI params for script: ['param1','param2'..]. May be NULL
   char* screenRect;        ///< screenRect on UI: x y w h. May be NULL
 };
 
@@ -484,7 +483,7 @@ ZMEY_API bool zmTaskState(zmConn, uint64_t* qtId, uint32_t tCnt, zmTskState* out
 /// get pipeline task result
 /// @param[in] zmConn - object connect
 /// @param[in] qtId - pipeline task id
-/// @param[out] outTResult - pipeline task result ['key','sep','value']
+/// @param[out] outTResult - pipeline task result
 /// @return true - ok
 ZMEY_API bool zmTaskResult(zmConn, uint64_t qtId, char** outTResult);
 

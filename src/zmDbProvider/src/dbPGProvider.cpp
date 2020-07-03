@@ -170,13 +170,13 @@ bool DbPGProvider::createTables(){
   ss << "CREATE TABLE IF NOT EXISTS tblTaskParam("
         "qtask        INT PRIMARY KEY REFERENCES tblTaskQueue,"        
         "priority     INT NOT NULL DEFAULT 1 CHECK (priority BETWEEN 1 AND 3),"
-        "params       TEXT[][3] NOT NULL);"; // [['key', 'sep', 'val'],[..]..]
+        "params       TEXT[] NOT NULL);"; // ['param1', 'param2'..]
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
   ss << "CREATE TABLE IF NOT EXISTS tblTaskResult("
         "qtask        INT PRIMARY KEY REFERENCES tblTaskQueue,"
-        "result       TEXT[3] NOT NULL);"; // ['key', 'sep', 'val']
+        "result       TEXT NOT NULL);";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
@@ -216,8 +216,7 @@ bool DbPGProvider::createTables(){
         "priority     INT NOT NULL DEFAULT 1 CHECK (priority BETWEEN 1 AND 3),"
         "prevTasks    INT[] NOT NULL,"     // [..]  
         "nextTasks    INT[] NOT NULL,"     // [..]
-        "params       TEXT[][3] NOT NULL," // [[key, sep, val],[..],[..]..]
-        "result       TEXT[3] NOT NULL,"   // [[key, sep, ""]
+        "params       TEXT[] NOT NULL,"    // ['param1','param2'..]
         "screenRect   TEXT NOT NULL,"
         "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
@@ -251,14 +250,13 @@ bool DbPGProvider::createTables(){
         "    END IF;"
         "  END LOOP;"
         "  INSERT INTO tblUPipelineTask (pipeline, taskTempl, priority,"
-        "                              prevTasks, nextTasks, params, result, screenRect)"
+        "                              prevTasks, nextTasks, params, screenRect)"
         "    VALUES(task.pipeline,"
         "           task.taskTempl,"
         "           task.priority,"
         "           task.prevTasks,"
         "           task.nextTasks,"
         "           task.params,"
-        "           task.result,"
         "           task.screenRect) RETURNING id INTO tId;"
         "  RETURN tId;" 
         "END;"
@@ -293,7 +291,6 @@ bool DbPGProvider::createTables(){
         "    prevTasks = task.prevTasks,"
         "    nextTasks = task.nextTasks,"
         "    params = task.params,"
-        "    result = task.result,"
         "    screenRect = task.screenRect"
         "  WHERE id = task.id AND task.isDelete = 0;"
         "  IF NOT FOUND THEN"
@@ -340,7 +337,7 @@ bool DbPGProvider::createTables(){
 
         "  INSERT INTO tblTaskResult (qtask, result) VALUES("
         "    qId,"
-        "    task.result);"
+        "    '');"
 
         "  FOREACH t IN ARRAY task.prevTasks"
         "    LOOP"
@@ -372,7 +369,7 @@ bool DbPGProvider::createTables(){
         "  averDurSec int,"
         "  maxDurSec int,"
         "  script text,"
-        "  params text[][],"
+        "  params text[],"
         "  prevTasks int[]) AS $$ "
         "DECLARE "
         "  t int;"
@@ -407,7 +404,7 @@ bool DbPGProvider::createTables(){
         "  averDurSec int,"
         "  maxDurSec int,"
         "  script text,"
-        "  params text[][],"
+        "  params text[],"
         "  prevTasks int[]) AS $$ "
         "DECLARE "
         "  t int;"
@@ -1085,9 +1082,8 @@ bool DbPGProvider::addTask(const ZM_Base::uTask& cng, uint64_t& outTId){
             << cng.base.priority << ","
             << "ARRAY" << cng.prevTasks << "::INT[],"
             << "ARRAY" << cng.nextTasks << "::INT[],"
-            << "ARRAY" << cng.base.params << "::TEXT[][3],"
-            << "ARRAY" << cng.base.result << "::TEXT[3],"
-            << "'" << cng.screenRect << "'" << ","
+            << "ARRAY" << cng.base.params << "::TEXT[],"
+            << "'" << cng.screenRect << "',"
             << 0 << "));";
 
   auto res = PQexec(_pg, ss.str().c_str());
@@ -1109,7 +1105,7 @@ bool DbPGProvider::getTask(uint64_t tId, ZM_Base::uTask& outTCng){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
   ss << "SELECT pipeline, taskTempl, priority, prevTasks, nextTasks, "
-        "params, result, screenRect "
+        "params, screenRect "
         "FROM tblUPipelineTask "
         "WHERE id = " << tId << " AND isDelete = 0;";
 
@@ -1136,19 +1132,11 @@ bool DbPGProvider::getTask(uint64_t tId, ZM_Base::uTask& outTCng){
   ZM_Aux::replace(outTCng.nextTasks, "}", "]");
 
   outTCng.base.params = PQgetvalue(res, 0, 5);
-  ZM_Aux::replace(outTCng.base.params, "}", "]");
-  ZM_Aux::replace(outTCng.base.params, "{", "[");
-  ZM_Aux::replace(outTCng.base.params, "[[", "[['");
-  ZM_Aux::replace(outTCng.base.params, "]]", "']]");
+  ZM_Aux::replace(outTCng.base.params, "}", "']");
+  ZM_Aux::replace(outTCng.base.params, "{", "['");
   ZM_Aux::replace(outTCng.base.params, ",", "','");
-  ZM_Aux::replace(outTCng.base.params, "]','[", "'],['");
 
-  outTCng.base.result = PQgetvalue(res, 0, 6);
-  ZM_Aux::replace(outTCng.base.result, "}", "']");
-  ZM_Aux::replace(outTCng.base.result, "{", "['");
-  ZM_Aux::replace(outTCng.base.result, ",", "','");
-
-  outTCng.screenRect = PQgetvalue(res, 0, 7);
+  outTCng.screenRect = PQgetvalue(res, 0, 6);
   PQclear(res); 
   return true;
 }
@@ -1163,8 +1151,7 @@ bool DbPGProvider::changeTask(uint64_t tId, const ZM_Base::uTask& newCng){
             << newCng.base.priority << ","
             << "ARRAY" << newCng.prevTasks << "::INT[],"
             << "ARRAY" << newCng.nextTasks << "::INT[],"
-            << "ARRAY" << newCng.base.params << "::TEXT[][3],"
-            << "ARRAY" << newCng.base.result << "::TEXT[3],"
+            << "ARRAY" << newCng.base.params << "::TEXT[],"
             << "'" << newCng.screenRect << "',"
             << 0 << "));";
 
@@ -1210,7 +1197,8 @@ bool DbPGProvider::startTask(uint64_t tId){
     return false;
   }
   if (stoull(PQgetvalue(res, 0, 0)) == 0){
-    errorMess("startTask error: previously deleted task is start OR not found one or more task from prevTask or nextTasks");
+    errorMess("startTask error: previously deleted task is start OR \
+               not found one or more task from prevTask or nextTasks");
     PQclear(res);
     return false;
   }
@@ -1267,9 +1255,6 @@ bool DbPGProvider::taskResult(uint64_t tId, std::string& out){
     return false;
   } 
   out = PQgetvalue(res, 0, 0);
-  ZM_Aux::replace(out, "{", "[");
-  ZM_Aux::replace(out, "}", "]");
-  ZM_Aux::replace(out, ",", "','");
   PQclear(res); 
   return true;
 }
@@ -1442,7 +1427,7 @@ bool DbPGProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::messSc
               "WHERE qtask = " << m.taskId << ";"
               
               "UPDATE tblTaskResult SET "
-              "result = ARRAY" << m.result << "::TEXT[3] "
+              "result = '" << m.result << "' "
               "WHERE qtask = " << m.taskId << ";"
 
               "UPDATE tblTaskState SET "
@@ -1455,7 +1440,7 @@ bool DbPGProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::messSc
               "WHERE qtask = " << m.taskId << ";"
 
               "UPDATE tblTaskResult SET "
-              "result = ARRAY" << m.result << "::TEXT[3] "
+              "result = '" << m.result << "' "
               "WHERE qtask = " << m.taskId << ";"
               
               "UPDATE tblTaskState SET "
@@ -1542,13 +1527,13 @@ bool DbPGProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::messSc
               "WHERE tq.id = ts.qtask AND tq.worker = " << m.workerId << " AND (ts.state BETWEEN 2 AND 3) " // running, pause
               "RETURNING tq.id) "
             
-              "UPDATE tblWorker SET "
-              "state = " << (int)ZM_Base::stateType::notResponding << " "
-              "WHERE id = " << m.workerId << ";"
-              
               "UPDATE tblTaskState SET "
               "state = " << (int)ZM_Base::stateType::ready << " "
-              "WHERE qtask = (SELECT id FROM taskUpd);";
+              "WHERE qtask = (SELECT id FROM taskUpd);"
+
+              "UPDATE tblWorker SET "
+              "state = " << (int)ZM_Base::stateType::notResponding << " "
+              "WHERE id = " << m.workerId << ";";
         break;
     }    
   }
