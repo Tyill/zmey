@@ -86,7 +86,6 @@ void receiveHandler(const string& remcp, const string& data){
                                          mess["taskResult"]});
         break;
       case ZM_Base::messType::justStartWorker:
-        worker.base.state = ZM_Base::stateType::running;
         worker.base.activeTask = 0;
         _messToDB.push(ZM_DB::messSchedr{mtype, worker.base.id});
         break;
@@ -102,13 +101,16 @@ void receiveHandler(const string& remcp, const string& data){
         }
         break;
       case ZM_Base::messType::pingWorker:
-        worker.isActive = true;
         break;
       default: statusMess("receiveHandler unknown command: " + mess["command"]);
         break;
     }    
     worker.isActive = true;
-
+    if (worker.base.state == ZM_Base::stateType::notResponding){
+      worker.base.state = ZM_Base::stateType::running;
+      _messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::startWorker,
+                                       worker.base.id});
+    }
     if (worker.base.rating < ZM_Base::WORKER_RATING_MAX){
       _messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::workerRating,
                                        worker.base.id,

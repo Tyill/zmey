@@ -27,6 +27,7 @@
 #include "zmCommon/serial.h"
 #include "zmCommon/tcp.h"
 #include "zmCommon/queue.h"
+#include "zmCommon/auxFunc.h"
 #include "zmDbProvider/dbProvider.h"
 #include "structurs.h"
 
@@ -37,14 +38,39 @@ extern ZM_Aux::QueueThrSave<ZM_DB::messSchedr> _messToDB;
 extern unordered_map<std::string, sWorker> _workers;
 extern ZM_Base::scheduler _schedr;
 
-void sendHandler(const string& cp, const string& data, const std::error_code& ec){
+void sendHandler(const string& remcp, const string& data, const std::error_code& ec){
   
+#define checkFieldNum(field) \
+  if (mess.find(#field) == mess.end()){ \
+    statusMess(string("receiveHandler Error mess.find ") + #field + " from: " + cp); \
+    return;  \
+  } \
+  if (!ZM_Aux::isNumber(mess[#field])){ \
+    statusMess("receiveHandler Error !ZM_Aux::isNumber " + mess[#field] + " from: " + cp); \
+    return; \
+  }
+#define checkField(field) \
+  if (mess.find(#field) == mess.end()){  \
+    statusMess(string("receiveHandler Error mess.find ") + #field + " from: " + cp);  \
+    return;  \
+  }
+
   // error from worker
-  if (ec && (_workers.find(cp) != _workers.end())){    
-    auto mess = ZM_Aux::deserialn(data);
+  auto mess = ZM_Aux::deserialn(data);
+  string cp = remcp;
+  checkFieldNum(command);
+  checkField(connectPnt);
+  cp = mess["connectPnt"];
+
+  if (ec && (_workers.find(cp) != _workers.end())){
     ZM_Base::messType mtype = ZM_Base::messType(stoi(mess["command"]));
     switch (mtype){
       case ZM_Base::messType::newTask:{
+        checkFieldNum(taskId);
+        checkField(params);
+        checkField(script);
+        checkFieldNum(averDurationSec);
+        checkFieldNum(maxDurationSec);
         sTask t;
         t.base.id = stoull(mess["taskId"]);
         t.params = stoi(mess["params"]);

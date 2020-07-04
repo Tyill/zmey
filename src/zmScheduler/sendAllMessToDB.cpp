@@ -36,7 +36,10 @@ void sendAllMessToDB(ZM_DB::DbProvider& db){
   ZM_DB::messSchedr m;
   while(_messToDB.tryPop(m)){
     mess.push_back(m);
+  }  
+  if (!db.sendAllMessFromSchedr(_schedr.id, mess)){
+    for (auto& m : mess){
+      _messToDB.push(move(m));
+    }
   }
-  
-  db.sendAllMessFromSchedr(_schedr.id, mess);
 }

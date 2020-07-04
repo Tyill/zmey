@@ -40,34 +40,8 @@ void checkStatusWorkers(const ZM_Base::scheduler& schedr,
       messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::workerNotResponding,
                                       w.second.base.id});
       w.second.base.state = ZM_Base::stateType::notResponding;
-      w.second.base.activeTask = 0;
     }else{
       w.second.isActive = false;
     }
-  }
-
-  // all inactive
-  vector<sWorker> wkrNotResp;
-  for(auto& w : workers){
-    if (w.second.base.state == ZM_Base::stateType::notResponding){
-      wkrNotResp.push_back(w.second);
-    }
-  }
-  if (wkrNotResp.empty())
-    return; 
-
-  // check max10% inactive
-  int cnt = 0,
-      maxCnt = max(1, int(wkrNotResp.size() * 0.1));
-  while(true){   
-    int i = rand() % wkrNotResp.size(); 
-    map<string, string> sendData{
-      make_pair("command", to_string((int)ZM_Base::messType::pingWorker)),
-      make_pair("connectPnt", schedr.connectPnt)
-    };      
-    ZM_Tcp::sendData(wkrNotResp[i].base.connectPnt, ZM_Aux::serialn(sendData));
-    ++cnt;
-    if (cnt == maxCnt)
-      break;
-  }
+  }  
 }
