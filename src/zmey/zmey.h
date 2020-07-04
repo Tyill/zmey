@@ -62,13 +62,6 @@ enum zmStateType{
   zmNotResponding = 7,
 };
 
-/// executor type
-enum zmExecutorType{
-  zmBash =   0,
-  zmCmd =    1,
-  zmPython = 2,
-};
-
 /// database type
 enum zmDbType{
   zmPostgreSQL = 0,
@@ -239,7 +232,6 @@ ZMEY_API uint32_t zmGetAllSchedulers(zmConn, zmStateType state, uint64_t** outSc
 /// worker config
 struct zmWorker{
   uint64_t sId;               ///< scheduler id 
-  zmExecutorType exr;         ///< executor type
   uint32_t capacityTask = 10; ///< permissible simultaneous number of tasks
   char connectPnt[255];       ///< remote connection point: IP or DNS:port   
 };
@@ -356,7 +348,6 @@ ZMEY_API uint32_t zmGetAllPipelines(zmConn, uint64_t userId, uint64_t** outPPLId
 /// task template config
 struct zmTaskTemplate{
   uint64_t parent;          ///< user id
-  zmExecutorType exr;       ///< executor type
   uint32_t averDurationSec; ///< estimated lead time 
   uint32_t maxDurationSec;  ///< maximum lead time
   uint32_t isShared;        ///< may be shared [0..1]   

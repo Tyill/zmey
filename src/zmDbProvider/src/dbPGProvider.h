@@ -87,7 +87,6 @@ public:
   bool getNewTasksForSchedr(uint64_t sId, int maxTaskCnt, std::vector<ZM_DB::schedrTask>&) override;
   bool sendAllMessFromSchedr(uint64_t schedrId, std::vector<ZM_DB::messSchedr>&) override;
 
-#ifdef DEBUG
   // for test
   bool delAllUsers() override;
   bool delAllSchedrs() override;
@@ -95,7 +94,7 @@ public:
   bool delAllPipelines() override;
   bool delAllTemplateTask() override;
   bool delAllTask() override;
-#endif
+
 private:
   PGconn* _pg = nullptr; 
   std::mutex _mtx;

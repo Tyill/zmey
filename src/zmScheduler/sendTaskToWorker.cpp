@@ -52,8 +52,7 @@ void sendTaskToWorker(const ZM_Base::scheduler& schedr,
     });
     auto iWr = find_if(refWorkers.begin(), refWorkers.end(),
       [&t](const sWorker* w){
-        return (w->base.exr == t.base.exr) && 
-               (w->base.state == ZM_Base::stateType::running) && 
+        return (w->base.state == ZM_Base::stateType::running) && 
                (w->base.activeTask < w->base.capacityTask);
       }); 
     if(iWr != refWorkers.end()){
@@ -63,7 +62,6 @@ void sendTaskToWorker(const ZM_Base::scheduler& schedr,
         make_pair("taskId",          to_string(t.base.id)),
         make_pair("params",          t.params), 
         make_pair("script",          t.base.script),
-        make_pair("exr",             to_string(int(t.base.exr))),
         make_pair("averDurationSec", to_string(t.base.averDurationSec)), 
         make_pair("maxDurationSec",  to_string(t.base.maxDurationSec))
       };      

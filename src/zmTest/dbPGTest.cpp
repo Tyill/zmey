@@ -322,8 +322,7 @@ TEST_F(DBTest, addWorker){
   worker.capacityTask = 10;
   worker.sId = sId;
   worker.state = ZM_Base::stateType::ready;
-  worker.connectPnt = "localhost:4445";  
-  worker.exr = ZM_Base::executorType::bash;
+  worker.connectPnt = "localhost:4445"; 
   uint64_t wId = 0;  
   EXPECT_TRUE(_pDb->addWorker(worker, wId) && (wId > 0)) << _pDb->getLastError();   
 
@@ -347,19 +346,16 @@ TEST_F(DBTest, getWorker){
   ZM_Base::worker worker;
   worker.sId = sId;
   worker.state = ZM_Base::stateType::ready;
-  worker.connectPnt = "localhost:4444";  
-  worker.exr = ZM_Base::executorType::bash;
+  worker.connectPnt = "localhost:4444"; 
   worker.capacityTask = 105; 
   uint64_t wId = 0;  
   EXPECT_TRUE(_pDb->addWorker(worker, wId) && (wId > 0)) << _pDb->getLastError(); 
 
   worker.state = ZM_Base::stateType::error;
   worker.connectPnt = ""; 
-  worker.capacityTask = 1;   
-  worker.exr = ZM_Base::executorType::cmd;
+  worker.capacityTask = 1;
   EXPECT_TRUE(_pDb->getWorker(wId, worker) && (worker.state == ZM_Base::stateType::ready) &&
                                               (worker.connectPnt == "localhost:4444") &&
-                                              (worker.exr == ZM_Base::executorType::bash) &&
                                               (worker.capacityTask == 105)) << _pDb->getLastError(); 
 
   worker.state = ZM_Base::stateType::error;
@@ -384,24 +380,20 @@ TEST_F(DBTest, changeWorker){
   worker.sId = sId;
   worker.state = ZM_Base::stateType::ready;
   worker.connectPnt = "localhost:4444";  
-  worker.exr = ZM_Base::executorType::bash;
   worker.capacityTask = 105; 
   uint64_t wId = 0;  
   EXPECT_TRUE(_pDb->addWorker(worker, wId) && (wId > 0)) << _pDb->getLastError(); 
 
   worker.state = ZM_Base::stateType::error;
   worker.connectPnt = "localhost:1234"; 
-  worker.exr = ZM_Base::executorType::cmd;
   worker.capacityTask = 10;   
   EXPECT_TRUE(_pDb->changeWorker(wId, worker)) << _pDb->getLastError(); 
 
   worker.state = ZM_Base::stateType::ready;
   worker.connectPnt = ""; 
-  worker.exr = ZM_Base::executorType::bash;
   worker.capacityTask = 1;   
   EXPECT_TRUE(_pDb->getWorker(wId, worker) && (worker.state == ZM_Base::stateType::error) &&
                                               (worker.connectPnt == "localhost:1234") &&
-                                              (worker.exr == ZM_Base::executorType::cmd) &&
                                               (worker.capacityTask == 10)) << _pDb->getLastError(); 
 
   worker.sId = sId + 1;
@@ -422,7 +414,6 @@ TEST_F(DBTest, delWorker){
   worker.sId = sId;
   worker.state = ZM_Base::stateType::ready;
   worker.connectPnt = "localhost:4444";  
-  worker.exr = ZM_Base::executorType::bash;
   worker.capacityTask = 105; 
   uint64_t wId = 0;  
   EXPECT_TRUE(_pDb->addWorker(worker, wId) && (wId > 0)) << _pDb->getLastError(); 
@@ -446,15 +437,13 @@ TEST_F(DBTest, workerState){
   worker.sId = sId;
   worker.state = ZM_Base::stateType::pause;
   worker.connectPnt = "localhost:4444";  
-  worker.exr = ZM_Base::executorType::bash;
   worker.capacityTask = 105; 
   uint64_t wId1 = 0;  
   EXPECT_TRUE(_pDb->addWorker(worker, wId1) && (wId1 > 0)) << _pDb->getLastError(); 
 
   worker.sId = sId;
   worker.state = ZM_Base::stateType::start;
-  worker.connectPnt = "localhost:4444";  
-  worker.exr = ZM_Base::executorType::bash;
+  worker.connectPnt = "localhost:4444"; 
   worker.capacityTask = 105; 
   uint64_t wId2 = 0;  
   EXPECT_TRUE(_pDb->addWorker(worker, wId2) && (wId2 > 0)) << _pDb->getLastError(); 
@@ -481,8 +470,7 @@ TEST_F(DBTest, getAllWorkers){
   ZM_Base::worker worker;
   worker.sId = sId;
   worker.state = ZM_Base::stateType::ready;
-  worker.connectPnt = "localhost:4444";  
-  worker.exr = ZM_Base::executorType::bash;
+  worker.connectPnt = "localhost:4444"; 
   worker.capacityTask = 105; 
   uint64_t wId1 = 0;  
   EXPECT_TRUE(_pDb->addWorker(worker, wId1) && (wId1 > 0)) << _pDb->getLastError(); 
@@ -490,7 +478,6 @@ TEST_F(DBTest, getAllWorkers){
   worker.sId = sId;
   worker.state = ZM_Base::stateType::ready;
   worker.connectPnt = "localhost:4444";  
-  worker.exr = ZM_Base::executorType::bash;
   worker.capacityTask = 105; 
   uint64_t wId2 = 0;  
   EXPECT_TRUE(_pDb->addWorker(worker, wId2) && (wId2 > 0)) << _pDb->getLastError(); 
@@ -679,7 +666,6 @@ TEST_F(DBTest, addTaskTemplate){
   EXPECT_TRUE(_pDb->addUser(usr, uId) && (uId > 0)) << _pDb->getLastError();
   
   ZM_Base::task base;
-  base.exr = ZM_Base::executorType::bash;
   base.averDurationSec = 10;
   base.maxDurationSec = 100;
   base.script = "100500";
@@ -708,7 +694,6 @@ TEST_F(DBTest, getTaskTemplate){
   EXPECT_TRUE(_pDb->addUser(usr, uId) && (uId > 0)) << _pDb->getLastError();
   
   ZM_Base::task base;
-  base.exr = ZM_Base::executorType::bash;
   base.averDurationSec = 10;
   base.maxDurationSec = 100;
   base.script = "100500";
@@ -722,7 +707,6 @@ TEST_F(DBTest, getTaskTemplate){
   uint64_t tId = 0;  
   EXPECT_TRUE(_pDb->addTaskTemplate(templ, tId) && (tId > 0)) << _pDb->getLastError();   
   
-  base.exr = ZM_Base::executorType::cmd;
   base.averDurationSec = 1;
   base.maxDurationSec = 10;
   base.script = "1005";
@@ -731,8 +715,7 @@ TEST_F(DBTest, getTaskTemplate){
   templ.name = "newTk";
   templ.base = base;
   templ.isShared = 1;
-  EXPECT_TRUE(_pDb->getTaskTemplate(tId, templ) && (templ.base.exr == ZM_Base::executorType::bash) &&
-                                                   (templ.base.averDurationSec == 10) &&
+  EXPECT_TRUE(_pDb->getTaskTemplate(tId, templ) && (templ.base.averDurationSec == 10) &&
                                                    (templ.base.maxDurationSec == 100) &&
                                                    (templ.base.script == "100500") &&
                                                    (templ.uId == uId) &&
@@ -740,13 +723,12 @@ TEST_F(DBTest, getTaskTemplate){
                                                    (templ.description == "descr") &&
                                                    (templ.name == "newTask")) << _pDb->getLastError(); 
 
-  base.exr = ZM_Base::executorType::cmd;
   base.averDurationSec = 1;
   base.maxDurationSec = 10;  
   templ.base = base;
-  EXPECT_TRUE(!_pDb->getTaskTemplate(tId + 1, templ) && (templ.base.exr == ZM_Base::executorType::cmd) &&
-                                                   (templ.base.averDurationSec == 1) &&
-                                                   (templ.base.maxDurationSec == 10)) << _pDb->getLastError();           
+  EXPECT_TRUE(!_pDb->getTaskTemplate(tId + 1, templ) &&
+              (templ.base.averDurationSec == 1) &&
+              (templ.base.maxDurationSec == 10)) << _pDb->getLastError();           
 }
 TEST_F(DBTest, delTaskTemplate){
   EXPECT_TRUE(_pDb->delAllTemplateTask()) << _pDb->getLastError();
@@ -759,7 +741,6 @@ TEST_F(DBTest, delTaskTemplate){
   EXPECT_TRUE(_pDb->addUser(usr, uId) && (uId > 0)) << _pDb->getLastError();
   
   ZM_Base::task base;
-  base.exr = ZM_Base::executorType::bash;
   base.averDurationSec = 10;
   base.maxDurationSec = 100;
   base.script = "100500";
@@ -775,13 +756,12 @@ TEST_F(DBTest, delTaskTemplate){
   
   EXPECT_TRUE(_pDb->delTaskTemplate(tId)) << _pDb->getLastError();   
 
-  base.exr = ZM_Base::executorType::cmd;
   base.averDurationSec = 1;
   base.maxDurationSec = 10;  
   templ.base = base;
-  EXPECT_TRUE(!_pDb->getTaskTemplate(tId, templ) && (templ.base.exr == ZM_Base::executorType::cmd) &&
-                                                   (templ.base.averDurationSec == 1) &&
-                                                   (templ.base.maxDurationSec == 10)) << _pDb->getLastError();           
+  EXPECT_TRUE(!_pDb->getTaskTemplate(tId, templ) && 
+              (templ.base.averDurationSec == 1) &&
+              (templ.base.maxDurationSec == 10)) << _pDb->getLastError();           
 }
 TEST_F(DBTest, changeTaskTemplate){
   EXPECT_TRUE(_pDb->delAllTemplateTask()) << _pDb->getLastError();
@@ -799,7 +779,6 @@ TEST_F(DBTest, changeTaskTemplate){
   EXPECT_TRUE(_pDb->addUser(usr, uId2) && (uId2 > 0)) << _pDb->getLastError();
   
   ZM_Base::task base;
-  base.exr = ZM_Base::executorType::bash;
   base.averDurationSec = 10;
   base.maxDurationSec = 100;
   base.script = "100500";
@@ -813,7 +792,6 @@ TEST_F(DBTest, changeTaskTemplate){
   uint64_t tId = 0;  
   EXPECT_TRUE(_pDb->addTaskTemplate(templ, tId) && (tId > 0)) << _pDb->getLastError();   
   
-  base.exr = ZM_Base::executorType::cmd;
   base.averDurationSec = 1;
   base.maxDurationSec = 10;
   base.script = "100";
@@ -825,7 +803,6 @@ TEST_F(DBTest, changeTaskTemplate){
   uint64_t tIdNew = 0;  
   EXPECT_TRUE(_pDb->changeTaskTemplate(tId, templ, tIdNew) && (tIdNew > 0)) << _pDb->getLastError();   
 
-  base.exr = ZM_Base::executorType::bash;
   base.averDurationSec = 10;
   base.maxDurationSec = 100;
   base.script = "100500";
@@ -834,14 +811,14 @@ TEST_F(DBTest, changeTaskTemplate){
   templ.name = "newTask";
   templ.isShared = 0;
   templ.base = base;
-  EXPECT_TRUE(_pDb->getTaskTemplate(tIdNew, templ) && (templ.base.exr == ZM_Base::executorType::cmd) &&
-                                                   (templ.base.averDurationSec == 1) &&
-                                                   (templ.base.maxDurationSec == 10) &&
-                                                   (templ.base.script == "100") &&
-                                                   (templ.uId == uId2) &&
-                                                   (templ.description == "de") &&
-                                                   (templ.isShared == 1) &&
-                                                   (templ.name == "new")) << _pDb->getLastError();           
+  EXPECT_TRUE(_pDb->getTaskTemplate(tIdNew, templ) && 
+             (templ.base.averDurationSec == 1) &&
+             (templ.base.maxDurationSec == 10) &&
+             (templ.base.script == "100") &&
+             (templ.uId == uId2) &&
+             (templ.description == "de") &&
+             (templ.isShared == 1) &&
+             (templ.name == "new")) << _pDb->getLastError();           
 }
 TEST_F(DBTest, getAllTaskTemplate){
   EXPECT_TRUE(_pDb->delAllTemplateTask()) << _pDb->getLastError();
@@ -862,7 +839,6 @@ TEST_F(DBTest, getAllTaskTemplate){
   EXPECT_TRUE(_pDb->addUser(usr, uId2) && (uId2 > 0)) << _pDb->getLastError();
   
   ZM_Base::task base;
-  base.exr = ZM_Base::executorType::bash;
   base.averDurationSec = 10;
   base.maxDurationSec = 100;
   base.script = "100500";
@@ -876,7 +852,6 @@ TEST_F(DBTest, getAllTaskTemplate){
   uint64_t tId1 = 0;  
   EXPECT_TRUE(_pDb->addTaskTemplate(templ, tId1) && (tId1 > 0)) << _pDb->getLastError();  
 
-  base.exr = ZM_Base::executorType::bash;
   base.averDurationSec = 10;
   base.maxDurationSec = 100;
   base.script = "100500";
@@ -920,7 +895,6 @@ TEST_F(DBTest, addTask){
   EXPECT_TRUE(_pDb->addPipeline(ppline, pId) && (pId > 0)) << _pDb->getLastError(); 
     
   ZM_Base::task base;
-  base.exr = ZM_Base::executorType::bash;
   base.averDurationSec = 10;
   base.maxDurationSec = 100;
   base.script = "100500";
@@ -970,7 +944,6 @@ TEST_F(DBTest, getTask){
   EXPECT_TRUE(_pDb->addPipeline(ppline, pId) && (pId > 0)) << _pDb->getLastError(); 
     
   ZM_Base::task base;
-  base.exr = ZM_Base::executorType::bash;
   base.averDurationSec = 10;
   base.maxDurationSec = 100;
   base.script = "100500";
@@ -1050,7 +1023,6 @@ TEST_F(DBTest, changeTask){
   EXPECT_TRUE(_pDb->addPipeline(ppline, pId2) && (pId2 > 0)) << _pDb->getLastError(); 
     
   ZM_Base::task base;
-  base.exr = ZM_Base::executorType::bash;
   base.averDurationSec = 10;
   base.maxDurationSec = 100;
   base.script = "100500";
@@ -1064,7 +1036,6 @@ TEST_F(DBTest, changeTask){
   uint64_t ttId1 = 0;  
   EXPECT_TRUE(_pDb->addTaskTemplate(templ, ttId1) && (ttId1 > 0)) << _pDb->getLastError();
 
-  base.exr = ZM_Base::executorType::bash;
   base.averDurationSec = 10;
   base.maxDurationSec = 100;
   base.script = "100500";
@@ -1143,7 +1114,6 @@ TEST_F(DBTest, delTask){
   EXPECT_TRUE(_pDb->addPipeline(ppline, pId) && (pId > 0)) << _pDb->getLastError(); 
     
   ZM_Base::task base;
-  base.exr = ZM_Base::executorType::bash;
   base.averDurationSec = 10;
   base.maxDurationSec = 100;
   base.script = "100500";
@@ -1206,7 +1176,6 @@ TEST_F(DBTest, startTask){
   EXPECT_TRUE(_pDb->addPipeline(ppline, pId) && (pId > 0)) << _pDb->getLastError(); 
     
   ZM_Base::task base;
-  base.exr = ZM_Base::executorType::bash;
   base.averDurationSec = 10;
   base.maxDurationSec = 100;
   base.script = "100500";
@@ -1254,7 +1223,6 @@ TEST_F(DBTest, taskState){
   EXPECT_TRUE(_pDb->addPipeline(ppline, pId) && (pId > 0)) << _pDb->getLastError(); 
     
   ZM_Base::task base;
-  base.exr = ZM_Base::executorType::bash;
   base.averDurationSec = 10;
   base.maxDurationSec = 100;
   base.script = "100500";
@@ -1322,7 +1290,6 @@ TEST_F(DBTest, taskResult){
   EXPECT_TRUE(_pDb->addPipeline(ppline, pId) && (pId > 0)) << _pDb->getLastError(); 
     
   ZM_Base::task base;
-  base.exr = ZM_Base::executorType::bash;
   base.averDurationSec = 10;
   base.maxDurationSec = 100;
   base.script = "100500";
@@ -1373,7 +1340,6 @@ TEST_F(DBTest, taskTime){
   EXPECT_TRUE(_pDb->addPipeline(ppline, pId) && (pId > 0)) << _pDb->getLastError(); 
     
   ZM_Base::task base;
-  base.exr = ZM_Base::executorType::bash;
   base.averDurationSec = 10;
   base.maxDurationSec = 100;
   base.script = "100500";
@@ -1424,7 +1390,6 @@ TEST_F(DBTest, getAllTask){
   EXPECT_TRUE(_pDb->addPipeline(ppline, pId) && (pId > 0)) << _pDb->getLastError(); 
     
   ZM_Base::task base;
-  base.exr = ZM_Base::executorType::bash;
   base.averDurationSec = 10;
   base.maxDurationSec = 100;
   base.script = "100500";
@@ -1537,7 +1502,6 @@ TEST_F(DBTest, getTaskOfSchedr){
   EXPECT_TRUE(_pDb->addPipeline(ppline, pId) && (pId > 0)) << _pDb->getLastError(); 
     
   ZM_Base::task base;
-  base.exr = ZM_Base::executorType::bash;
   base.averDurationSec = 10;
   base.maxDurationSec = 100;
   base.script = "100500";
@@ -1619,8 +1583,7 @@ TEST_F(DBTest, getWorkerOfSchedr){
   worker.capacityTask = 10;
   worker.sId = sId;
   worker.state = ZM_Base::stateType::ready;
-  worker.connectPnt = "localhost:4444";  
-  worker.exr = ZM_Base::executorType::bash;
+  worker.connectPnt = "localhost:4444";
   uint64_t wId = 0;  
   EXPECT_TRUE(_pDb->addWorker(worker, wId) && (wId > 0)) << _pDb->getLastError();   
  
@@ -1657,7 +1620,6 @@ TEST_F(DBTest, getNewTasksForSchedr){
   EXPECT_TRUE(_pDb->addPipeline(ppline, pId) && (pId > 0)) << _pDb->getLastError(); 
     
   ZM_Base::task base;
-  base.exr = ZM_Base::executorType::bash;
   base.averDurationSec = 10;
   base.maxDurationSec = 100;
   base.script = "100500";
@@ -1729,8 +1691,7 @@ TEST_F(DBTest, sendAllMessFromSchedr){
   worker.capacityTask = 10;
   worker.sId = sId;
   worker.state = ZM_Base::stateType::ready;
-  worker.connectPnt = "localhost:4444";  
-  worker.exr = ZM_Base::executorType::bash;
+  worker.connectPnt = "localhost:4444";
   uint64_t wId = 0;  
   EXPECT_TRUE(_pDb->addWorker(worker, wId) && (wId > 0)) << _pDb->getLastError();   
   

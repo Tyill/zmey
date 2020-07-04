@@ -290,7 +290,6 @@ bool zmGetWorker(zmConn zo, uint64_t wId, zmWorker* outWCng){
   ZM_Base::worker wcng;
   if (static_cast<ZM_DB::DbProvider*>(zo)->getWorker(wId, wcng)){    
     outWCng->sId = wcng.sId;
-    outWCng->exr = (zmey::zmExecutorType)wcng.exr;
     outWCng->capacityTask = wcng.capacityTask;
     strcpy(outWCng->connectPnt, wcng.connectPnt.c_str());
     return true;
@@ -302,7 +301,6 @@ bool zmChangeWorker(zmConn zo, uint64_t wId, zmWorker newCng){
 
   ZM_Base::worker wcng;
   wcng.sId = newCng.sId;
-  wcng.exr = (ZM_Base::executorType)newCng.exr;
   wcng.capacityTask = newCng.capacityTask;
   wcng.connectPnt = newCng.connectPnt;
   
@@ -469,7 +467,6 @@ bool zmAddTaskTemplate(zmConn zo, zmTaskTemplate cng, uint64_t* outTId){
   task.uId = cng.parent;
   task.base.averDurationSec = cng.averDurationSec;
   task.base.maxDurationSec = cng.maxDurationSec;
-  task.base.exr = (ZM_Base::executorType)cng.exr;
   task.base.script = cng.script;
   
   return static_cast<ZM_DB::DbProvider*>(zo)->addTaskTemplate(task, *outTId);
@@ -486,7 +483,6 @@ bool zmGetTaskTemplate(zmConn zo, uint64_t tId, zmTaskTemplate* outTCng){
     strcpy(outTCng->name, task.name.c_str());  
     outTCng->description = (char*)realloc(outTCng->description, task.description.size() + 1);
     strcpy(outTCng->description, task.description.c_str());
-    outTCng->exr = (zmey::zmExecutorType)task.base.exr;
     outTCng->averDurationSec = task.base.averDurationSec;
     outTCng->maxDurationSec = task.base.maxDurationSec;
     outTCng->parent = task.uId;
@@ -509,7 +505,6 @@ bool zmChangeTaskTemplateCng(zmConn zo, uint64_t tId, zmTaskTemplate newCng, uin
   task.uId = newCng.parent;
   task.base.averDurationSec = newCng.averDurationSec;
   task.base.maxDurationSec = newCng.maxDurationSec;
-  task.base.exr = (ZM_Base::executorType)newCng.exr;
   task.base.script = newCng.script;
   return static_cast<ZM_DB::DbProvider*>(zo)->changeTaskTemplate(tId, task, *outTId);
 }

@@ -50,12 +50,6 @@ namespace ZM_Base{
     workerRating        = 15,
     workerNotResponding = 16,    
   };
-  // tblExecutor
-  enum class executorType{
-    cmd                 = 0,
-    bash                = 1,
-    python              = 2,
-  };  
   // tblState
   enum class stateType{
     undefined           = -1,
@@ -86,7 +80,6 @@ namespace ZM_Base{
   // tblTask
   struct task{
     uint64_t id;              // id tblTask
-    executorType exr;
     int averDurationSec;      // estimated lead time
     int maxDurationSec;       // maximum lead time
     std::string script;       // script on bash, python or cmd
@@ -131,8 +124,7 @@ namespace ZM_Base{
   struct worker{
     uint64_t id;              // id tblWorker
     uint64_t sId;             // id tblScheduler
-    stateType state;
-    executorType exr;     
+    stateType state;  
     int capacityTask;         // the number of tasks that can be performed simultaneously  
     int activeTask;           // number of running tasks
     int rating;               // manager is assigned a rating to the worker[1..10]

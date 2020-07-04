@@ -68,7 +68,6 @@ void receiveHandler(const string& cp, const string& data){
     checkFieldNum(maxDurationSec);
     ZM_Base::task t;
     t.id = stoull(mess["taskId"]);
-    t.exr = (ZM_Base::executorType)stoi(mess["exr"]);
     t.averDurationSec = stoi(mess["averDurationSec"]);
     t.maxDurationSec = stoi(mess["maxDurationSec"]);
     t.script = mess["script"];

@@ -67,11 +67,7 @@ Process::Process(const std::string& exrPath, const wTask& tsk, std::function<tas
     // parent                
     default:
 
-      _thr = thread([this](){
-        while(!_fClose){
-
-        }
-      });
+      
 
       break;
  }
@@ -81,14 +77,7 @@ Process::Process(const std::string& exrPath, const wTask& tsk, std::function<tas
 //  sigaction(SIGQUIT, &saOrigQuit, NULL);
 //  errno = savedErrno;
 }
-Process::Process(Process&& other){
-  _thr = move(other._thr);
-}
 Process::~Process(){
-  _fClose = true;
-  if (_thr.joinable()){
-    _thr.join();
-  }
 }
 int Process::getProgress() const{
   return 0;

@@ -34,11 +34,8 @@ class Process{
     std::function<taskChangeType> _taskStateChangeCBack;
     pid_t _pid = -1; 
     wTask _task;
-    std::thread _thr;
-    bool _fClose = false;
   public:
     Process(const std::string& exrPath, const wTask&, std::function<taskChangeType>);
-    Process(Process&& other);
     ~Process();     
     int getProgress() const;
     wTask getTask() const;

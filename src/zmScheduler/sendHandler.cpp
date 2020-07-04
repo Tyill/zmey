@@ -49,7 +49,6 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
         t.base.id = stoull(mess["taskId"]);
         t.params = stoi(mess["params"]);
         t.base.script = stoi(mess["script"]);
-        t.base.exr = (ZM_Base::executorType)stoi(mess["exr"]);
         t.base.averDurationSec = stoi(mess["averDurationSec"]);
         t.base.maxDurationSec = stoi(mess["maxDurationSec"]);
         _tasks.push(move(t));

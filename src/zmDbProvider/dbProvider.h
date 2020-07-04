@@ -134,7 +134,6 @@ public:
   virtual bool getNewTasksForSchedr(uint64_t sId, int maxTaskCnt, std::vector<schedrTask>& out) = 0;
   virtual bool sendAllMessFromSchedr(uint64_t sId, std::vector<messSchedr>& out) = 0;
 
-#ifdef DEBUG
   // for test
   virtual bool delAllUsers() = 0;
   virtual bool delAllSchedrs() = 0;
@@ -142,7 +141,6 @@ public:
   virtual bool delAllPipelines() = 0;
   virtual bool delAllTemplateTask() = 0;
   virtual bool delAllTask() = 0;
-#endif
 
 protected:  
   DbProvider(const connectCng& cng);    
