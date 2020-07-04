@@ -22,62 +22,20 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#include <utility>
 #include <unistd.h>
 #include <signal.h>
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <errno.h>
-#include "process.h"
 
-using namespace std;
-
-static struct sigaction saDefault;
-
-void childHandler(int sig);
-
-Process::Process(const wTask& tsk, std::function<taskChangeType> taskStateChangeCBack):
-  _task(tsk), _taskStateChangeCBack(taskStateChangeCBack){
- 
-  if (!saDefault.sa_handler){
-    saDefault.sa_handler = childHandler;         
-    saDefault.sa_flags = 0;
-    sigemptyset(&saDefault.sa_mask); 
-    sigaddset(&saDefault.sa_mask, SIGCHLD);
-    sigaction(SIGCHLD, &saDefault, NULL);
-  }
-  switch (_pid = fork()){
-    // error
-    case -1:    
-      break;
-    // children                        
-    case 0:
-      signal(SIGCHLD, SIG_DFL);
-     // execl(application.c_str(), args.c_str(), (char*) NULL);
-      _exit(127);
-    // parent                
-    default:
-
-      
-
-      break;
- }
-
-}
-Process::~Process(){
-}
-int Process::getProgress() const{
-  return 0;
-}
-wTask Process::getTask() const{
-  return _task;
-}
-void Process::pause(){
-
-}
-void Process::start(){
-
-}
-void Process::stop(){
+void childHandler(int sig){
   
+  int savedErrno = errno; 
+  pid_t pid;
+  int sts = 0;
+  while ((pid = waitpid(-1, &sts, WNOHANG)) > 0){
+    
+    
+  }
+  errno = savedErrno;
 }

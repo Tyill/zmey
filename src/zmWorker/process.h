@@ -35,7 +35,7 @@ class Process{
     pid_t _pid = -1; 
     wTask _task;
   public:
-    Process(const std::string& exrPath, const wTask&, std::function<taskChangeType>);
+    Process(const wTask&, std::function<taskChangeType>);
     ~Process();     
     int getProgress() const;
     wTask getTask() const;

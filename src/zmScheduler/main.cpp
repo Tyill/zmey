@@ -131,9 +131,10 @@ int main(int argc, char* argv[]){
   if (cng.logEna){
     _pLog = unique_ptr<ZM_Aux::Logger>(new ZM_Aux::Logger("zmSchedr.log", ""));
   }    
- // signal(SIGHUP, initHandler);
+  //signal(SIGHUP, initHandler);
   signal(SIGINT, closeHandler);
   signal(SIGTERM, closeHandler);
+  signal(SIGQUIT, closeHandler);
 
   // TCP server
   string err;
@@ -206,6 +207,7 @@ int main(int argc, char* argv[]){
     }
   }
   ZM_Tcp::stopServer();
+  sendAllMessToDB(*dbSendMess);
 
   return 0;
 }

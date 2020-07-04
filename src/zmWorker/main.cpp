@@ -42,7 +42,7 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
 void sendMessToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt, const mess2schedr&);
 void progressToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt, const list<Process>&);
 void pingToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt);
-void updateListTasks(const std::string& exrPath, ZM_Aux::QueueThrSave<wTask>& newTasks, list<Process>& procs);
+void updateListTasks(ZM_Aux::QueueThrSave<wTask>& newTasks, list<Process>& procs);
 
 unique_ptr<ZM_Aux::Logger> _pLog = nullptr;
 ZM_Aux::QueueThrSave<mess2schedr> _messToScheduler;
@@ -60,7 +60,6 @@ struct config{
   int sendAckTOutSec = 1; 
   std::string connectPnt = "localhost:4146";
   std::string schedrConnPnt;
-  std::string exrPath;
 };
 
 void statusMess(const string& mess){
@@ -93,8 +92,7 @@ void parseArgs(int argc, char* argv[], config& outCng){
     outCng.prm = sprms[#nm]; \
   }
   SET_PARAM(cp,  connectPnt);
-  SET_PARAM(scp, schedrConnPnt);    
-  SET_PARAM(exr, exrPath);
+  SET_PARAM(scp, schedrConnPnt);
 
 #define SET_PARAM_NUM(nm, prm) \
   if (sprms.find(#nm) != sprms.end() && ZM_Aux::isNumber(sprms[#nm])){ \
@@ -125,14 +123,11 @@ int main(int argc, char* argv[]){
   if (cng.schedrConnPnt.empty()){
     statusMess("Not set param '-scp' - scheduler connPnt");
     return -1;
-  }
-  if (cng.exrPath.empty()){
-    statusMess("Not set param '-exr' - executor path, example for bash: /usr/bin/sh");
-    return -1;
-  }
+  }  
   // signal(SIGHUP, initHandler);
   signal(SIGINT, closeHandler);
   signal(SIGTERM, closeHandler);
+  signal(SIGQUIT, closeHandler);
 
   // on start
   _messToScheduler.push(mess2schedr{0, ZM_Base::messType::justStartWorker});
@@ -166,7 +161,7 @@ int main(int argc, char* argv[]){
       _isSendAck = true;
     } 
     // update list of tasks
-    updateListTasks(cng.exrPath, _newTasks, _procs);
+    updateListTasks(_newTasks, _procs);
     worker.activeTask = _procs.size();
 
     // progress of tasks
@@ -183,6 +178,7 @@ int main(int argc, char* argv[]){
     if (timer.getCTime() < minCycleTimeMS){
       ZM_Aux::sleepMs(minCycleTimeMS - timer.getCTime());
     }
-  }  
+  } 
+  ZM_Tcp::stopServer();
   return 0;
 }
