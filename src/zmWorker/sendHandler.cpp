@@ -31,12 +31,12 @@
 using namespace std;
 
 extern bool _isSendAck;
-extern ZM_Aux::QueueThrSave<mess2schedr> _messToScheduler;
+extern ZM_Aux::QueueThrSave<mess2schedr> _messForSchedr;
 
 void sendHandler(const string&, const string& data, const std::error_code& ec){
   if (!ec){
     mess2schedr mess;
-    _messToScheduler.tryPop(mess);
+    _messForSchedr.tryPop(mess);
     _isSendAck = true;    
   }  
 }

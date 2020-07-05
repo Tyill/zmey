@@ -1,0 +1,108 @@
+//
+// zmey Project
+// Copyright (C) 2018 by Contributors <https://github.com/Tyill/zmey>
+//
+// This code is licensed under the MIT License.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files(the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions :
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+//
+#include <unistd.h>
+#include <sys/wait.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <list>
+#include <algorithm>
+
+#include "zmCommon/auxFunc.h"
+#include "zmCommon/queue.h"
+#include "process.h"
+
+using namespace std;
+
+void waitProcess(const list<Process>& procs, ZM_Aux::QueueThrSave<mess2schedr>& messForSchedr){
+  
+  pid_t pid;
+  int sts = 0;
+  while ((pid = waitpid(-1, &sts, WNOHANG | WUNTRACED | WCONTINUED)) > 0){
+
+    auto itPrc = find_if(procs.begin(), procs.end(),[pid](const Process& p){
+        return p.getPid() == pid;
+      });    
+    if (itPrc == procs.end()){
+      statusMess("waitProcess error not found process " + to_string(pid));
+      continue;
+    }
+    // completed or error
+    if (WIFEXITED(sts) || WIFSIGNALED(sts)){
+                
+      auto tId = itPrc->getTask().base.id;
+    
+      string resultFile = to_string(tId) + ".result",
+             result;
+      int fdRes = open(resultFile.c_str(), O_RDONLY);
+      if (fdRes >= 0){
+        off_t fsz = lseek(fdRes, 0, SEEK_END);
+        lseek(fdRes, 0, SEEK_SET);
+        result.resize(fsz);
+
+        if (read(fdRes, (char*)result.data(), fsz) == -1){
+          statusMess("waitProcess error read " + resultFile);
+        }
+        close(fdRes);
+      }
+      else{
+        statusMess("waitProcess error open " + resultFile);
+      }
+
+      ZM_Base::messType mt = ZM_Base::messType::taskCompleted;
+      if (WIFEXITED(sts)){
+        sts = WEXITSTATUS(sts);
+        if (sts != 0){
+          mt = ZM_Base::messType::taskError;
+        }
+      }else{
+        mt = ZM_Base::messType::taskError;
+      }
+
+      messForSchedr.push(mess2schedr{itPrc->getTask().base.id,
+                                      mt,
+                                      result});
+      if (remove(resultFile.c_str()) == -1){
+        statusMess("waitProcess error remove " + resultFile);
+      }
+      string scriptFile = to_string(tId) + ".script";
+      if (remove(scriptFile.c_str()) == -1){
+        statusMess("waitProcess error remove " + scriptFile);
+      }    
+    }    
+    // stop
+    else if (WIFSTOPPED(sts)){
+      messForSchedr.push(mess2schedr{itPrc->getTask().base.id,
+                                      ZM_Base::messType::taskPause,
+                                      ""});
+    } 
+    // continue
+    else if (WIFCONTINUED(sts)){
+      messForSchedr.push(mess2schedr{itPrc->getTask().base.id,
+                                      ZM_Base::messType::taskRunning,
+                                      ""});    
+    } 
+  }
+}

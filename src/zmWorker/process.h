@@ -30,15 +30,14 @@
 #include "structurs.h"
 
 class Process{
-    using taskChangeType = void(uint64_t taskdId, ZM_Base::stateType, const std::string& result);
-    std::function<taskChangeType> _taskStateChangeCBack;
     pid_t _pid = -1; 
     wTask _task;
   public:
-    Process(const wTask&, std::function<taskChangeType>);
+    Process(const wTask&);
     ~Process();     
     int getProgress() const;
     wTask getTask() const;
+    pid_t getPid() const;
     void pause();
     void start();
     void stop();

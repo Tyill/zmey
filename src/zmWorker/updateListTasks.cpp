@@ -29,19 +29,16 @@
 
 using namespace std;
 
-void taskStateChangeCBack(uint64_t taskdId, ZM_Base::stateType newState, const std::string& result);
-
 void updateListTasks(ZM_Aux::QueueThrSave<wTask>& newTasks, list<Process>& procs){
   
   wTask tsk;
   while(newTasks.tryPop(tsk)){
-    procs.push_back(Process(tsk, taskStateChangeCBack));
+    procs.push_back(Process(tsk));
   }  
   for (auto ip = procs.begin(); ip != procs.end();){
     ZM_Base::stateType tskState = ip->getTask().state;
     if ((tskState == ZM_Base::stateType::completed) ||
-        (tskState == ZM_Base::stateType::error) || 
-        (tskState == ZM_Base::stateType::stop)){
+        (tskState == ZM_Base::stateType::error)){
       procs.erase(ip);
       ip = procs.begin();
     }else{

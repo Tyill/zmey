@@ -43,9 +43,10 @@ void sendMessToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt, 
 void progressToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt, const list<Process>&);
 void pingToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt);
 void updateListTasks(ZM_Aux::QueueThrSave<wTask>& newTasks, list<Process>& procs);
+void waitProcess(const list<Process>& procs, ZM_Aux::QueueThrSave<mess2schedr>& messForSchedr);
 
 unique_ptr<ZM_Aux::Logger> _pLog = nullptr;
-ZM_Aux::QueueThrSave<mess2schedr> _messToScheduler;
+ZM_Aux::QueueThrSave<mess2schedr> _messForSchedr;
 ZM_Aux::QueueThrSave<wTask> _newTasks;
 list<Process> _procs;
 bool _fClose = false,
@@ -57,15 +58,15 @@ struct config{
   int checkTasksTOutSec = 120;
   int progressTasksTOutSec = 30;
   int pingSchedrTOutSec = 20; 
-  int sendAckTOutSec = 1; 
   std::string connectPnt = "localhost:4146";
   std::string schedrConnPnt;
 };
 
 void statusMess(const string& mess){
   cout << ZM_Aux::currDateTime() << " " << mess << std::endl;
-  if (_pLog)
+  if (_pLog){
     _pLog->writeMess(mess);
+  }
 }
 
 void parseArgs(int argc, char* argv[], config& outCng){
@@ -102,7 +103,6 @@ void parseArgs(int argc, char* argv[], config& outCng){
   SET_PARAM_NUM(cht, checkTasksTOutSec);
   SET_PARAM_NUM(prg, progressTasksTOutSec);
   SET_PARAM_NUM(png, pingSchedrTOutSec);
-  SET_PARAM_NUM(ack, sendAckTOutSec);
 
 #undef SET_PARAM
 #undef SET_PARAM_NUM
@@ -119,7 +119,7 @@ int main(int argc, char* argv[]){
  
   if (cng.logEna){
     _pLog = unique_ptr<ZM_Aux::Logger>(new ZM_Aux::Logger("zmWorker.log", ""));
-  }
+  }    
   if (cng.schedrConnPnt.empty()){
     statusMess("Not set param '-scp' - scheduler connPnt");
     return -1;
@@ -130,7 +130,7 @@ int main(int argc, char* argv[]){
   signal(SIGQUIT, closeHandler);
 
   // on start
-  _messToScheduler.push(mess2schedr{0, ZM_Base::messType::justStartWorker});
+  _messForSchedr.push(mess2schedr{0, ZM_Base::messType::justStartWorker});
 
   // TCP server
   string err;
@@ -147,37 +147,37 @@ int main(int argc, char* argv[]){
     
   ZM_Aux::TimerDelay timer;
   const int minCycleTimeMS = 5;
-  
+   
   // main cycle
   while (!_fClose){
     timer.updateCycTime();   
 
     // send mess to schedr (send constantly until it receives)
-    if (_isSendAck && !_messToScheduler.empty()){ 
+    if (_isSendAck && !_messForSchedr.empty()){ 
       _isSendAck = false;
-      sendMessToSchedr(worker, cng.schedrConnPnt, _messToScheduler.front());
+      sendMessToSchedr(worker, cng.schedrConnPnt, _messForSchedr.front());
     }
-    else if (!_isSendAck && timer.onDelTmSec(true, cng.sendAckTOutSec, 0)){
-      _isSendAck = true;
-    } 
     // update list of tasks
     updateListTasks(_newTasks, _procs);
     worker.activeTask = _procs.size();
 
     // progress of tasks
-    if(timer.onDelTmSec(true, cng.progressTasksTOutSec, 1)){
-      timer.onDelTmSec(false, cng.progressTasksTOutSec, 1);
+    if(timer.onDelTmSec(true, cng.progressTasksTOutSec, 0)){
+      timer.onDelTmSec(false, cng.progressTasksTOutSec, 0);
       progressToSchedr(worker, cng.schedrConnPnt, _procs);
     }
     // ping to schedr
-    if(timer.onDelTmSec(true, cng.pingSchedrTOutSec, 2)){
-      timer.onDelTmSec(false, cng.pingSchedrTOutSec, 2);
+    if(timer.onDelTmSec(true, cng.pingSchedrTOutSec, 1)){
+      timer.onDelTmSec(false, cng.pingSchedrTOutSec, 1);
       pingToSchedr(worker, cng.schedrConnPnt);
     }
+    // check child process
+    waitProcess(_procs, _messForSchedr);
+    
     // added delay
     if (timer.getCTime() < minCycleTimeMS){
       ZM_Aux::sleepMs(minCycleTimeMS - timer.getCTime());
-    }
+    }    
   } 
   ZM_Tcp::stopServer();
   return 0;
