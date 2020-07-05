@@ -31,7 +31,6 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <cstring>
-#include <list>
 
 #include "zmCommon/auxFunc.h"
 #include "zmCommon/queue.h"
@@ -46,9 +45,12 @@ Process::Process(const wTask& tsk):
 
   switch (_pid = fork()){
     // error
-    case -1:    
+    case -1:{    
       _task.state = ZM_Base::stateType::error;
-      statusMess("Process child error fork: " + string(strerror(errno)));
+      string err = "Process child error fork: " + string(strerror(errno));
+      _messForSchedr.push(mess2schedr{tsk.base.id, ZM_Base::messType::taskError, err});
+      statusMess(err);
+    }
       break;
     // children                        
     case 0:{
