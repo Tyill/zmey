@@ -34,7 +34,7 @@
 
 using namespace std;
 
-bool isSchedrAndWorker = true;
+bool isSchedrAndWorker = false;
 class ZmeyTest : public ::testing::Test {
 public:
   ZmeyTest() { 
@@ -44,49 +44,52 @@ public:
     _zc = zmey::zmCreateConnection(zmey::zmConnect{ zmey::zmDbType::zmPostgreSQL,
                                                     (char*)connStr.c_str() },
                                                     err);
+    ZM_DB::connectCng cng;
+    cng.selType = ZM_DB::dbType::PostgreSQL;
+    cng.connectStr = "host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10";
+    _pDb = ZM_DB::makeDbProvider(cng);
+
     if (strlen(err) > 0){    
       TEST_COUT << err << endl;
     }
     if (!isSchedrAndWorker){
-      isSchedrAndWorker = true;
-      ZM_DB::connectCng cng;
-      cng.selType = ZM_DB::dbType::PostgreSQL;
-      cng.connectStr = "host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10";
-      ZM_DB::DbProvider* pDb = ZM_DB::makeDbProvider(cng);
+      isSchedrAndWorker = true;     
+     
+      uint64_t* outSchId = nullptr;      
+      auto sCnt = zmey::zmGetAllSchedulers(_zc, zmey::zmStateType::undefined, &outSchId);
+      if (sCnt == 0){ 
+        zmey::zmSchedr scng;
+        scng.capacityTask = 10000;
+        strcpy(scng.connectPnt, "localhost:4444");
+        uint64_t sId = 0;
+        EXPECT_TRUE(zmey::zmAddScheduler(_zc, scng, &sId));
+    
+        scng = zmey::zmSchedr();
+        zmey::zmGetScheduler(_zc, sId, &scng);
+        EXPECT_TRUE(scng.capacityTask == 10000 && 
+                    strcmp(scng.connectPnt, "localhost:4444") == 0);
 
-      EXPECT_TRUE(pDb->delAllSchedrs()) << pDb->getLastError();
-      EXPECT_TRUE(pDb->delAllWorkers()) << pDb->getLastError();
-      delete pDb;
+        zmey::zmWorker wcng;
+        wcng.capacityTask = 10;
+        wcng.sId = sId;
+        strcpy(wcng.connectPnt, "localhost:4445");
+        uint64_t wId = 0;
+        EXPECT_TRUE(zmey::zmAddWorker(_zc, wcng, &wId));
 
-      zmey::zmSchedr scng;
-      scng.capacityTask = 10000;
-      strcpy(scng.connectPnt, "localhost:4444");
-      uint64_t sId = 0;
-      EXPECT_TRUE(zmey::zmAddScheduler(_zc, scng, &sId));
-  
-      scng = zmey::zmSchedr();
-      zmey::zmGetScheduler(_zc, sId, &scng);
-      EXPECT_TRUE(scng.capacityTask == 10000 && 
-                  strcmp(scng.connectPnt, "localhost:4444") == 0);
-
-      zmey::zmWorker wcng;
-      wcng.capacityTask = 10;
-      wcng.sId = sId;
-      strcpy(wcng.connectPnt, "localhost:4445");
-      uint64_t wId = 0;
-      EXPECT_TRUE(zmey::zmAddWorker(_zc, wcng, &wId));
-
-      wcng = zmey::zmWorker();
-      zmGetWorker(_zc, wId, &wcng);
-      EXPECT_TRUE(wcng.sId == sId && 
-                  wcng.capacityTask == 10 && 
-                  strcmp(wcng.connectPnt, "localhost:4445") == 0);
+        wcng = zmey::zmWorker();
+        zmGetWorker(_zc, wId, &wcng);
+        EXPECT_TRUE(wcng.sId == sId && 
+                    wcng.capacityTask == 10 && 
+                    strcmp(wcng.connectPnt, "localhost:4445") == 0);
+        perror("repeate zmeyTest");
+      }
     }
   }
   ~ZmeyTest() {
     zmey::zmDisconnect(_zc);
   }
 protected:
+  ZM_DB::DbProvider* _pDb = nullptr;
   zmey::zmConn _zc = nullptr; 
 };
 
@@ -169,6 +172,91 @@ TEST_F(ZmeyTest, pingWorker){
   int wcnt = zmey::zmGetAllWorkers(_zc, sId[0], zmey::zmStateType::undefined, &wId);
   
   EXPECT_TRUE(zmey::zmPingWorker(_zc, wId[0]));
+}
+
+TEST_F(ZmeyTest, startTask){
+
+  EXPECT_TRUE(_pDb->delAllTask()) << _pDb->getLastError();
+  EXPECT_TRUE(_pDb->delAllPipelines()) << _pDb->getLastError();
+  EXPECT_TRUE(_pDb->delAllUsers()) << _pDb->getLastError();
+  
+  zmey::zmUser usr;
+  strcpy(usr.name, "usr");
+  strcpy(usr.passw, "123");
+  usr.description = nullptr;  
+  uint64_t uId = 0;  
+  EXPECT_TRUE(zmey::zmAddUser(_zc, usr, &uId) && (uId > 0));
+    
+  zmey::zmPipeline ppline;
+  strcpy(ppline.name, "newPP");
+  ppline.isShared = 0;
+  ppline.userId = uId;
+  ppline.description = nullptr;
+  uint64_t ppId = 0;  
+  EXPECT_TRUE(zmey::zmAddPipeline(_zc, ppline, &ppId) && (ppId > 0)); 
+   
+  
+  zmey::zmTaskTemplate ttempl;
+  strcpy(ttempl.name, "ttempl");
+  ttempl.isShared = 0;
+  ttempl.userId = uId;
+  ttempl.description = nullptr;
+  ttempl.averDurationSec = 10;
+  ttempl.maxDurationSec = 100;
+  ttempl.script = "!#/bin/sh \n echo $0 $1 $2 $3;";
+    
+  uint64_t ttId = 0;  
+  EXPECT_TRUE(zmey::zmAddTaskTemplate(_zc, ttempl, &ttId) && (ttId > 0)); 
+ 
+  char err[256]{0}; 
+  zmey::zmGetLastError(_zc, err);
+  if (strlen(err) > 0){    
+    TEST_COUT << err << endl;
+  }
+
+  zmey::zmTask task;
+  task.pplId = ppId; 
+  task.priority = 1;
+  task.ttId = ttId;
+  task.params = "['param11','param12','param13']";
+  task.screenRect = "11, 12, 13, 14";
+  task.nextTasksId = "[]";
+  task.prevTasksId = "[]";
+  
+  uint64_t tId1 = 0;  
+  EXPECT_TRUE(zmey::zmAddTask(_zc, task, &tId1) && (tId1 > 0));  
+
+  task.pplId = ppId; 
+  task.priority = 1;
+  task.ttId = ttId;
+  task.params = "['param21','param22','param23']";
+  task.screenRect = "21, 22, 23, 24";
+  task.nextTasksId = "[]";
+  task.prevTasksId = (char*)("[" + to_string(tId1) + "]").c_str();
+  
+  uint64_t tId2 = 0;  
+  EXPECT_TRUE(zmey::zmAddTask(_zc, task, &tId2) && (tId2 > 0));  
+
+  EXPECT_TRUE(zmey::zmStartTask(_zc, tId1));     
+
+  EXPECT_TRUE(zmey::zmStartTask(_zc, tId2));   
+
+  sleep(10);
+  
+  uint64_t tId[2]{tId1, tId2};
+
+  zmey::zmTskState tst[2];
+  EXPECT_TRUE(zmey::zmTaskState(_zc, tId, 2, tst) && 
+              (tst[0].state == zmey::zmStateType::zmCompleted) &&
+              (tst[1].state == zmey::zmStateType::zmCompleted));
+
+  char* res1 = nullptr;
+  EXPECT_TRUE(zmey::zmTaskResult(_zc, tId1, &res1));
+
+  char* res2 = nullptr;
+  EXPECT_TRUE(zmey::zmTaskResult(_zc, tId2, &res2));
+
+  bool ok  = false;
 }
 
 #endif // ZMEYTEST

@@ -402,6 +402,7 @@ bool zmAddPipeline(zmConn zo, zmPipeline cng, uint64_t* outPPLId){
   pp.uId = cng.userId;
   pp.name = cng.name;
   pp.description = cng.description ? cng.description : "";
+  pp.isShared = cng.isShared;
   
   return static_cast<ZM_DB::DbProvider*>(zo)->addPipeline(pp, *outPPLId);
 }
@@ -417,7 +418,8 @@ bool zmGetPipeline(zmConn zo, uint64_t pplId, zmPipeline* outPPLCng){
     outPPLCng->userId = pp.uId;
     strcpy(outPPLCng->name, pp.name.c_str());
     outPPLCng->description = (char*)realloc(outPPLCng->description, pp.description.size() + 1);
-    strcpy(outPPLCng->description, pp.description.c_str());   
+    strcpy(outPPLCng->description, pp.description.c_str());  
+    outPPLCng->isShared = pp.isShared; 
     return true;
   }
   return false;
@@ -429,7 +431,8 @@ bool zmChangePipeline(zmConn zo, uint64_t pplId, zmPipeline newCng){
   pp.uId = newCng.userId;
   pp.name = newCng.name;
   pp.description = newCng.description;
-  
+  pp.isShared = newCng.isShared;
+
   return static_cast<ZM_DB::DbProvider*>(zo)->changePipeline(pplId, pp);
 }
 bool zmDelPipeline(zmConn zo, uint64_t pplId){
@@ -458,25 +461,26 @@ bool zmAddTaskTemplate(zmConn zo, zmTaskTemplate cng, uint64_t* outTId){
   if (!zo) return false;
 
   if (!outTId || !cng.script){
-     static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmAddTaskTemplate error: !outTId || !cng.script");
-     return false;
+    static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmAddTaskTemplate error: !outTId || !cng.script");
+    return false;
   }
   ZM_Base::uTaskTemplate task;
   task.name = cng.name;
   task.description = cng.description ? cng.description : "";
-  task.uId = cng.parent;
+  task.uId = cng.userId;
   task.base.averDurationSec = cng.averDurationSec;
   task.base.maxDurationSec = cng.maxDurationSec;
   task.base.script = cng.script;
-  
+  task.isShared = cng.isShared;
+
   return static_cast<ZM_DB::DbProvider*>(zo)->addTaskTemplate(task, *outTId);
 }
 bool zmGetTaskTemplate(zmConn zo, uint64_t tId, zmTaskTemplate* outTCng){
   if (!zo) return false; 
 
   if (!outTCng){
-     static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmGetTaskTemplateCng error: !outTCng");
-     return false;
+    static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmGetTaskTemplateCng error: !outTCng");
+    return false;
   }
   ZM_Base::uTaskTemplate task;
   if (static_cast<ZM_DB::DbProvider*>(zo)->getTaskTemplate(tId, task)){  
@@ -485,7 +489,8 @@ bool zmGetTaskTemplate(zmConn zo, uint64_t tId, zmTaskTemplate* outTCng){
     strcpy(outTCng->description, task.description.c_str());
     outTCng->averDurationSec = task.base.averDurationSec;
     outTCng->maxDurationSec = task.base.maxDurationSec;
-    outTCng->parent = task.uId;
+    outTCng->isShared = task.isShared;
+    outTCng->userId = task.uId;
     outTCng->script = (char*)realloc(outTCng->script, task.base.script.size() + 1);
     strcpy(outTCng->script, task.base.script.c_str());
     return true;
@@ -496,15 +501,16 @@ bool zmChangeTaskTemplateCng(zmConn zo, uint64_t tId, zmTaskTemplate newCng, uin
   if (!zo) return false; 
 
   if (!outTId){
-     static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmChangeTaskTemplateCng error: !outTId");
-     return false;
+    static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmChangeTaskTemplateCng error: !outTId");
+    return false;
   }
   ZM_Base::uTaskTemplate task;
   task.name = newCng.name;
   task.description = newCng.description;
-  task.uId = newCng.parent;
+  task.uId = newCng.userId;
   task.base.averDurationSec = newCng.averDurationSec;
   task.base.maxDurationSec = newCng.maxDurationSec;
+  task.isShared = newCng.isShared;
   task.base.script = newCng.script;
   return static_cast<ZM_DB::DbProvider*>(zo)->changeTaskTemplate(tId, task, *outTId);
 }
@@ -544,7 +550,7 @@ bool zmAddTask(zmConn zo, zmTask cng, uint64_t* outQTId){
   task.nextTasks = cng.nextTasksId ? cng.nextTasksId : "[]";
   task.screenRect = cng.screenRect ? cng.screenRect : "";  
   task.base.priority = cng.priority;
-  task.base.tId = cng.tId;
+  task.base.tId = cng.ttId;
   
   return static_cast<ZM_DB::DbProvider*>(zo)->addTask(task, *outQTId);
 }
@@ -552,13 +558,13 @@ bool zmGetTask(zmConn zo, uint64_t qtId, zmTask* outCng){
   if (!zo) return false;
   
   if (!outCng){
-     static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmGetTaskCng error: !outCng");
-     return false;
+    static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmGetTaskCng error: !outCng");
+    return false;
   }
   ZM_Base::uTask task;
   if (static_cast<ZM_DB::DbProvider*>(zo)->getTask(qtId, task)){
     outCng->pplId = task.pplId;
-    outCng->tId = task.base.tId;
+    outCng->ttId = task.base.tId;
     outCng->priority = task.base.priority;
 
     outCng->prevTasksId = (char*)realloc(outCng->prevTasksId, task.prevTasks.size() + 1);
@@ -581,7 +587,7 @@ bool zmChangeTask(zmConn zo, uint64_t qtId, zmTask newCng){
   
   ZM_Base::uTask task;
   task.pplId = newCng.pplId;
-  task.base.tId = newCng.tId;
+  task.base.tId = newCng.ttId;
   task.base.priority = newCng.priority;
   task.prevTasks = newCng.prevTasksId;
   task.nextTasks = newCng.nextTasksId;

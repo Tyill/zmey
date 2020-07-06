@@ -71,7 +71,8 @@ Process::Process(const wTask& tsk):
       CHECK(fdRes, "create");
       CHECK(dup2(fdRes, 1), "dup2(fdRes, 1)");// stdout -> fdRes
       CHECK(dup2(1, 2), "dup2(1, 2)");        // stderr -> stdout
-     
+      CHECK(chmod(resultFile.c_str(), S_IRUSR | S_IWUSR), "chmod");
+      
       string params;
       if (!tsk.params.empty()){
         params = string(tsk.params.data() + 1, tsk.params.size() - 2); // remove '{' and '}'

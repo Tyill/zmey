@@ -130,7 +130,7 @@ bool DbPGProvider::createTables(){
   ss << "CREATE TABLE IF NOT EXISTS tblTaskQueue("
         "id           SERIAL PRIMARY KEY,"
         "task         INT NOT NULL REFERENCES tblTask,"       
-        "launcher     INT NOT NULL REFERENCES tblUser,"
+        "usr          INT NOT NULL REFERENCES tblUser,"
         "schedr       INT REFERENCES tblScheduler,"
         "worker       INT REFERENCES tblWorker);";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
@@ -185,7 +185,7 @@ bool DbPGProvider::createTables(){
   ss.str("");
   ss << "CREATE TABLE IF NOT EXISTS tblUTaskTemplate("
         "task         INT PRIMARY KEY REFERENCES tblTask,"
-        "parent       INT NOT NULL REFERENCES tblUser,"
+        "usr          INT NOT NULL REFERENCES tblUser,"
         "name         TEXT NOT NULL CHECK (name <> ''),"
         "description  TEXT NOT NULL,"
         "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1),"
@@ -304,7 +304,7 @@ bool DbPGProvider::createTables(){
         "    RETURN 0;"
         "  END IF;"
 
-        "  INSERT INTO tblTaskQueue (task, launcher) VALUES("
+        "  INSERT INTO tblTaskQueue (task, usr) VALUES("
         "    task.taskTempl,"
         "    (SELECT usr FROM tblUPipeline WHERE id = task.pipeline)) RETURNING id INTO qId;"
 
@@ -937,7 +937,7 @@ bool DbPGProvider::addTaskTemplate(const ZM_Base::uTaskTemplate& cng, uint64_t& 
         "'" << cng.base.script << "',"
         "'" << cng.base.averDurationSec << "',"
         "'" << cng.base.maxDurationSec << "') RETURNING id) "
-        "INSERT INTO tblUTaskTemplate (task, parent, name, description, isShared) VALUES("
+        "INSERT INTO tblUTaskTemplate (task, usr, name, description, isShared) VALUES("
         "(SELECT id FROM ntsk),"
         "'" << cng.uId << "',"
         "'" << cng.name << "',"
@@ -957,7 +957,7 @@ bool DbPGProvider::addTaskTemplate(const ZM_Base::uTaskTemplate& cng, uint64_t& 
 bool DbPGProvider::getTaskTemplate(uint64_t tId, ZM_Base::uTaskTemplate& outTCng){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
-  ss << "SELECT tt.parent, tt.name, tt.description, tt.isShared, t.script, t.averDurationSec, t.maxDurationSec "
+  ss << "SELECT tt.usr, tt.name, tt.description, tt.isShared, t.script, t.averDurationSec, t.maxDurationSec "
         "FROM tblUTaskTemplate tt "
         "JOIN tblTask t ON t.id = tt.task "
         "WHERE t.id = " << tId << " AND isDelete = 0;";
@@ -993,7 +993,7 @@ bool DbPGProvider::changeTaskTemplate(uint64_t tId, const ZM_Base::uTaskTemplate
         "'" << newTCng.base.script << "',"
         "'" << newTCng.base.averDurationSec << "',"
         "'" << newTCng.base.maxDurationSec << "') RETURNING id) "
-        "INSERT INTO tblUTaskTemplate (task, parent, name, description, isShared) VALUES("
+        "INSERT INTO tblUTaskTemplate (task, usr, name, description, isShared) VALUES("
         "(SELECT id FROM ntsk),"
         "'" << newTCng.uId << "',"
         "'" << newTCng.name << "',"
@@ -1026,11 +1026,11 @@ bool DbPGProvider::delTaskTemplate(uint64_t tId){
   PQclear(res); 
   return true;
 }
-std::vector<uint64_t> DbPGProvider::getAllTaskTemplates(uint64_t parent){
+std::vector<uint64_t> DbPGProvider::getAllTaskTemplates(uint64_t usr){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
   ss << "SELECT task FROM tblUTaskTemplate "
-        "WHERE parent = " << parent << " AND isDelete = 0;";
+        "WHERE usr = " << usr << " AND isDelete = 0;";
 
   auto res = PQexec(_pg, ss.str().c_str());
   if (PQresultStatus(res) != PGRES_TUPLES_OK){

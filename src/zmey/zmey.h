@@ -347,7 +347,7 @@ ZMEY_API uint32_t zmGetAllPipelines(zmConn, uint64_t userId, uint64_t** outPPLId
 
 /// task template config
 struct zmTaskTemplate{
-  uint64_t parent;          ///< user id
+  uint64_t userId;          ///< user id
   uint32_t averDurationSec; ///< estimated lead time 
   uint32_t maxDurationSec;  ///< maximum lead time
   uint32_t isShared;        ///< may be shared [0..1]   
@@ -399,7 +399,7 @@ ZMEY_API uint32_t zmGetAllTaskTemplates(zmConn, uint64_t parent, uint64_t** outT
 /// pipeline task config
 struct zmTask{
   uint64_t pplId;          ///< pipeline id
-  uint64_t tId;            ///< task template id
+  uint64_t ttId;           ///< task template id
   uint32_t priority;       ///< [1..3]
   char* prevTasksId;       ///< pipeline task id of previous tasks to be completed: [qtId,..]. May be NULL 
   char* nextTasksId;       ///< pipeline task id of next tasks: : [qtId,..]. May be NULL

@@ -10,7 +10,7 @@ if (UNIX)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 endif(UNIX)
 
-add_definitions(-DZMEYTEST)
+#add_definitions(-DZMEYTEST)
 #add_definitions(-DPGTEST)
 
 add_executable(zmTest ${SRC_zmTest})

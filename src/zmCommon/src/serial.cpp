@@ -78,11 +78,17 @@ namespace ZM_Aux {
 
     map<string, string> out;    
     while(offs < allSz){
-      int ksz = abs(*((int*)(pData + offs))); offs += intSz; if (offs + ksz >= allSz) break;
-      string key(pData + offs, ksz);          offs += ksz;   
+      if (offs + intSz >= allSz) break;
+      int ksz = *((int*)(pData + offs)); offs += intSz;
 
-      int vsz = abs(*((int*)(pData + offs))); offs += intSz; if (offs + vsz > allSz) break;
-      string val(pData + offs, vsz);          offs += vsz;   
+      if (offs + ksz >= allSz) break;
+      string key(pData + offs, ksz);     offs += ksz;   
+
+      if (offs + intSz >= allSz) break;
+      int vsz = *((int*)(pData + offs)); offs += intSz; 
+      
+      if (offs + vsz > allSz) break;
+      string val(pData + offs, vsz);     offs += vsz;   
 
       out[key] = val;
     }
