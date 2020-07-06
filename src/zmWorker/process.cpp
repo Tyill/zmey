@@ -93,8 +93,8 @@ Process::Process(const wTask& tsk):
     // parent                
     default:
       _timer.updateCycTime();
-      _task.state = ZM_Base::stateType::running;
-      _messForSchedr.push(mess2schedr{tsk.base.id, ZM_Base::messType::taskRunning, ""});
+      _task.state = ZM_Base::stateType::start;
+      _messForSchedr.push(mess2schedr{tsk.base.id, ZM_Base::messType::taskStart, ""});
       break;
  }
 
@@ -124,9 +124,9 @@ void Process::pause(){
     statusMess("Process error pause: " + string(strerror(errno)));
   }
 }
-void Process::start(){
+void Process::contin(){
   if (kill(_pid, SIGCONT) == -1){
-    statusMess("Process error start: " + string(strerror(errno)));
+    statusMess("Process error continue: " + string(strerror(errno)));
   }
 }
 void Process::stop(){

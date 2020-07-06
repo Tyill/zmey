@@ -1457,8 +1457,7 @@ bool DbPGProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::messSc
               "FROM tblTaskQueue tq "
               "WHERE ts.qtask = " << m.taskId << " AND tq.worker = " << m.workerId << ";";
         break;  
-      case ZM_Base::messType::taskStart: 
-      case ZM_Base::messType::taskRunning: 
+      case ZM_Base::messType::taskStart: // when first launched 
         ss << "UPDATE tblTaskState SET "
               "state = " << (int)ZM_Base::stateType::running << " "
               "WHERE qtask = " << m.taskId << ";"
@@ -1469,7 +1468,12 @@ bool DbPGProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::messSc
 
               "UPDATE tblTaskTime SET "
               "startTime = current_timestamp "
-              "WHERE qtask = " << m.taskId << " AND startTime IS NULL;";              
+              "WHERE qtask = " << m.taskId << ";";              
+        break;         
+      case ZM_Base::messType::taskRunning: // when continue
+        ss << "UPDATE tblTaskState SET "
+              "state = " << (int)ZM_Base::stateType::running << " "
+              "WHERE qtask = " << m.taskId << ";";                          
         break;         
       case ZM_Base::messType::taskPause:
         ss << "UPDATE tblTaskState ts SET "
@@ -1632,6 +1636,11 @@ bool DbPGProvider::delAllTask(){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
   ss << "TRUNCATE tblUPipelineTask CASCADE;"
+        "TRUNCATE tblTaskState CASCADE;"
+        "TRUNCATE tblTaskTime CASCADE;"
+        "TRUNCATE tblTaskResult CASCADE;"
+        "TRUNCATE tblPrevTask CASCADE;"
+        "TRUNCATE tblTaskParam CASCADE;"
         "TRUNCATE tblTaskQueue CASCADE;";
   
   auto res = PQexec(_pg, ss.str().c_str());

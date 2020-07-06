@@ -172,7 +172,7 @@ int main(int argc, char* argv[]){
   future<void> frGetNewTask,
                frSendAllMessToDB; 
   ZM_Aux::TimerDelay timer;
-  const int minCycleTimeMS = 5;
+  const int minCycleTimeMS = 10;
 
 #define FUTURE_RUN(fut, db, func)                                                 \
   if(!fut.valid() || (fut.wait_for(chrono::seconds(0)) == future_status::ready)){ \

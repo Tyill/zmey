@@ -84,7 +84,7 @@ namespace ZM_Aux {
       if (offs + ksz >= allSz) break;
       string key(pData + offs, ksz);     offs += ksz;   
 
-      if (offs + intSz >= allSz) break;
+      if (offs + intSz > allSz) break;
       int vsz = *((int*)(pData + offs)); offs += intSz; 
       
       if (offs + vsz > allSz) break;

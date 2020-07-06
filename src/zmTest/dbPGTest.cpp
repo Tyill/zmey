@@ -1813,7 +1813,7 @@ TEST_F(DBTest, sendAllMessFromSchedr){
   worker.capacityTask = 10;
   worker.sId = sId;
   worker.state = ZM_Base::stateType::ready;
-  worker.connectPnt = "localhost:4444";
+  worker.connectPnt = "localhost:4445";
   uint64_t wId = 0;  
   EXPECT_TRUE(_pDb->addWorker(worker, wId) && (wId > 0)) << _pDb->getLastError();   
   

@@ -179,6 +179,10 @@ TEST_F(ZmeyTest, startTask){
   EXPECT_TRUE(_pDb->delAllTask()) << _pDb->getLastError();
   EXPECT_TRUE(_pDb->delAllPipelines()) << _pDb->getLastError();
   EXPECT_TRUE(_pDb->delAllUsers()) << _pDb->getLastError();
+
+  zmey::zmSetErrorCBack(_zc, [](const char* mess, zmey::zmUData){
+    TEST_COUT << mess << endl;
+  }, nullptr);
   
   zmey::zmUser usr;
   strcpy(usr.name, "usr");
@@ -203,17 +207,11 @@ TEST_F(ZmeyTest, startTask){
   ttempl.description = nullptr;
   ttempl.averDurationSec = 10;
   ttempl.maxDurationSec = 100;
-  ttempl.script = "!#/bin/sh \n echo $0 $1 $2 $3;";
+  ttempl.script = "#!/bin/sh \n echo $0 $1 $2 $3 $4;";
     
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmey::zmAddTaskTemplate(_zc, ttempl, &ttId) && (ttId > 0)); 
- 
-  char err[256]{0}; 
-  zmey::zmGetLastError(_zc, err);
-  if (strlen(err) > 0){    
-    TEST_COUT << err << endl;
-  }
-
+   
   zmey::zmTask task;
   task.pplId = ppId; 
   task.priority = 1;
@@ -225,7 +223,7 @@ TEST_F(ZmeyTest, startTask){
   
   uint64_t tId1 = 0;  
   EXPECT_TRUE(zmey::zmAddTask(_zc, task, &tId1) && (tId1 > 0));  
-
+  
   task.pplId = ppId; 
   task.priority = 1;
   task.ttId = ttId;
@@ -236,10 +234,10 @@ TEST_F(ZmeyTest, startTask){
   
   uint64_t tId2 = 0;  
   EXPECT_TRUE(zmey::zmAddTask(_zc, task, &tId2) && (tId2 > 0));  
-
+  
   EXPECT_TRUE(zmey::zmStartTask(_zc, tId1));     
 
-  EXPECT_TRUE(zmey::zmStartTask(_zc, tId2));   
+  EXPECT_TRUE(zmey::zmStartTask(_zc, tId2));  
 
   sleep(10);
   

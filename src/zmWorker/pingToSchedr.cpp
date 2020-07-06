@@ -32,10 +32,10 @@ using namespace std;
 
 void pingToSchedr(const ZM_Base::worker& worker, const std::string& schedrConnPnt){
   
-  // map<string, string> data{
-  //   make_pair("command", to_string((int)ZM_Base::messType::pingWorker)),
-  //   make_pair("connectPnt", worker.connectPnt)
-  // };      
-  // ZM_Tcp::sendData(schedrConnPnt, ZM_Aux::serialn(data));
+  map<string, string> data{
+    make_pair("command", to_string((int)ZM_Base::messType::pingWorker)),
+    make_pair("connectPnt", worker.connectPnt)
+  };      
+  ZM_Tcp::sendData(schedrConnPnt, ZM_Aux::serialn(data));
 }
 

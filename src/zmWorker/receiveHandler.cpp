@@ -92,9 +92,9 @@ void receiveHandler(const string& remcp, const string& data){
       });
       if (iPrc != _procs.end()){
         switch (mtype){
-          case ZM_Base::messType::taskPause: iPrc->pause(); break;
-          case ZM_Base::messType::taskStart: iPrc->start(); break;
-          case ZM_Base::messType::taskStop:  iPrc->stop(); break;
+          case ZM_Base::messType::taskPause:   iPrc->pause(); break;
+          case ZM_Base::messType::taskRunning: iPrc->contin(); break;
+          case ZM_Base::messType::taskStop:    iPrc->stop(); break;
           default: statusMess("receiveHandler unknown command: " + mess["command"]);
           break;
         }

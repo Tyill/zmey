@@ -42,6 +42,6 @@ class Process{
     pid_t getPid() const;
     void setTaskState(ZM_Base::stateType);
     void pause();
-    void start();
+    void contin();
     void stop();
 };

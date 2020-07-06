@@ -148,7 +148,7 @@ int main(int argc, char* argv[]){
   worker.connectPnt = cng.connectPnt;
     
   ZM_Aux::TimerDelay timer;
-  const int minCycleTimeMS = 5;
+  const int minCycleTimeMS = 10;
    
   // main cycle
   while (!_fClose){

@@ -44,14 +44,13 @@ void sendTaskToWorker(const ZM_Base::scheduler& schedr,
       refWorkers.push_back(&w.second);
     }
   }
-  vector<sTask> buffTask; 
   sTask t;
   while (tasks.tryPop(t)){
     sort(refWorkers.begin(), refWorkers.end(), [](sWorker* l, sWorker* r){
-      return (float)l->base.activeTask/max(1, l->base.rating) < (float)r->base.activeTask/max(1, r->base.rating);
+      return (float)l->base.activeTask / l->base.rating < (float)r->base.activeTask / r->base.rating;
     });
     auto iWr = find_if(refWorkers.begin(), refWorkers.end(),
-      [&t](const sWorker* w){
+      [](const sWorker* w){
         return (w->base.state == ZM_Base::stateType::running) && 
                (w->base.activeTask < w->base.capacityTask);
       }); 
@@ -59,7 +58,7 @@ void sendTaskToWorker(const ZM_Base::scheduler& schedr,
       map<string, string> data{
         make_pair("command",         to_string((int)ZM_Base::messType::newTask)),
         make_pair("connectPnt",      schedr.connectPnt),
-        make_pair("taskId",          to_string(t.base.id)),
+        make_pair("taskId",          to_string(t.qTaskId)),
         make_pair("params",          t.params), 
         make_pair("script",          t.base.script),
         make_pair("averDurationSec", to_string(t.base.averDurationSec)), 
@@ -67,21 +66,13 @@ void sendTaskToWorker(const ZM_Base::scheduler& schedr,
       };      
       ++(*iWr)->base.activeTask;
       ZM_Tcp::sendData((*iWr)->base.connectPnt, ZM_Aux::serialn(data));
-    }else{
-      buffTask.push_back(t);
     }
-  }
-  if (!buffTask.empty()){ 
-    // every 1000 cycle
-    if (ctick(1000)){
-      string sTskId;
-      for(auto& t : buffTask){
-        sTskId += to_string(t.base.id) + " ";
-      }
-      statusMess("Not found available worker for tasks: " + sTskId);
-    }
-    for(auto& t : buffTask){
+    else{      
       tasks.push(move(t));
-    }   
+      if (ctick(1000)){ // every 1000 cycle
+        statusMess("Not found available worker");
+      }
+      break;
+    }
   }
 }

@@ -123,7 +123,7 @@ void receiveHandler(const string& remcp, const string& data){
   else{
     switch (mtype){
       case ZM_Base::messType::taskPause:
-      case ZM_Base::messType::taskStart:
+      case ZM_Base::messType::taskRunning:
       case ZM_Base::messType::taskStop:{
         checkFieldNum(taskId);
         checkField(workerConnPnt);
