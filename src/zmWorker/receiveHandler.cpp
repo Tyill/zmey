@@ -36,7 +36,7 @@ using namespace std;
 
 extern list<Process> _procs;
 extern ZM_Aux::QueueThrSave<wTask> _newTasks;
-extern mutex _mtx;
+extern mutex _mtxPrc;
 
 void receiveHandler(const string& remcp, const string& data){
     
@@ -85,7 +85,7 @@ void receiveHandler(const string& remcp, const string& data){
   else{
     checkFieldNum(taskId);
     uint64_t tId = stoull(mess["taskId"]);
-    { std::lock_guard<std::mutex> lock(_mtx);
+    { std::lock_guard<std::mutex> lock(_mtxPrc);
       
       auto iPrc = find_if(_procs.begin(), _procs.end(), [tId](const Process& p){
         return p.getTask().base.id == tId;

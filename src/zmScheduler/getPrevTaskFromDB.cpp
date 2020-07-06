@@ -36,5 +36,7 @@ void getPrevTaskFromDB(ZM_DB::DbProvider& db,
     for(auto& t : tasks){
       outTasks.push(sTask{t.qTaskId, t.base, t.params});
     }
+  }else{
+    statusMess("getPrevTaskFromDB db error: " + db.getLastError());
   }
 };

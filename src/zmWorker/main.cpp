@@ -50,9 +50,9 @@ unique_ptr<ZM_Aux::Logger> _pLog = nullptr;
 ZM_Aux::QueueThrSave<mess2schedr> _messForSchedr;
 ZM_Aux::QueueThrSave<wTask> _newTasks;
 list<Process> _procs;
+mutex _mtxPrc, _mtxSts;
 bool _fClose = false,
      _isSendAck = true;
-mutex _mtx;
 
 struct config{
   bool logEna = false;
@@ -65,7 +65,8 @@ struct config{
 };
 
 void statusMess(const string& mess){
-  cout << ZM_Aux::currDateTime() << " " << mess << std::endl;
+  lock_guard<std::mutex> lock(_mtxSts);
+  cout << ZM_Aux::currDateTimeMs() << " " << mess << std::endl;
   if (_pLog){
     _pLog->writeMess(mess);
   }

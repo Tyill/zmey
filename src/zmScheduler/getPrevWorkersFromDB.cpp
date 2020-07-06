@@ -37,5 +37,7 @@ void getPrevWorkersFromDB(ZM_DB::DbProvider& db,
     for(auto& w : workers){
       outWorkers[w.connectPnt] = sWorker{w, w.state != ZM_Base::stateType::notResponding};
     }
+  }else{
+    statusMess("getPrevWorkersFromDB db error: " + db.getLastError());
   }
 }

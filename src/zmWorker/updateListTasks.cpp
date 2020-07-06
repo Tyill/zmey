@@ -30,10 +30,10 @@
 
 using namespace std;
 
-extern mutex _mtx;
+extern mutex _mtxPrc;
 
 void updateListTasks(ZM_Aux::QueueThrSave<wTask>& newTasks, list<Process>& procs){
-  std::lock_guard<std::mutex> lock(_mtx);
+  lock_guard<std::mutex> lock(_mtxPrc);
 
   wTask tsk;
   while(newTasks.tryPop(tsk)){

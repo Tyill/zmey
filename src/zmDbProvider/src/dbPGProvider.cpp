@@ -148,7 +148,7 @@ bool DbPGProvider::createTables(){
         "createTime     TIMESTAMP NOT NULL DEFAULT current_timestamp,"
         "takeInWorkTime TIMESTAMP CHECK (takeInWorkTime > createTime),"
         "startTime      TIMESTAMP CHECK (startTime > takeInWorkTime),"
-        "stopTime       TIMESTAMP CHECK (stopTime > startTime));";
+        "stopTime       TIMESTAMP CHECK (stopTime >= startTime));";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
@@ -1190,9 +1190,10 @@ bool DbPGProvider::taskState(const std::vector<uint64_t>& tId, std::vector<ZM_DB
                   return s.empty() ? to_string(v) : s + "," + to_string(v);
                 }); 
   stringstream ss;
-  ss << "WITH tblQTaskId AS (SELECT qtask FROM tblUPipelineTask WHERE id IN (" << stId << ") AND isDelete = 0) "
-        "SELECT ts.state, ts.progress FROM tblTaskState ts "
-        "JOIN tblQTaskId qt ON qt.qtask = ts.qtask;";
+  ss << "SELECT ts.state, ts.progress FROM tblTaskState ts "
+        "JOIN tblTaskQueue qt ON qt.id = ts.qtask "
+        "JOIN tblUPipelineTask pt ON pt.qtask = qt.id "
+        "WHERE pt.id IN (" << stId << ") AND pt.isDelete = 0;";
 
   auto res = PQexec(_pg, ss.str().c_str());
   if (PQresultStatus(res) != PGRES_TUPLES_OK){
@@ -1208,8 +1209,8 @@ bool DbPGProvider::taskState(const std::vector<uint64_t>& tId, std::vector<ZM_DB
   }
   outState.resize(tsz);
   for (auto& s : outState){
-    s.progress = atoi(PQgetvalue(res, 0, 0));
-    s.state = (ZM_Base::stateType)atoi(PQgetvalue(res, 0, 1));
+    s.state = (ZM_Base::stateType)atoi(PQgetvalue(res, 0, 0));
+    s.progress = atoi(PQgetvalue(res, 0, 1));    
   }
   PQclear(res); 
   return true;

@@ -24,10 +24,12 @@
 //
 #include "zmDbProvider/dbProvider.h"
 #include "zmCommon/queue.h"
+#include "zmCommon/auxFunc.h"
 #include "structurs.h"
 
 using namespace std;
 
+ZM_Aux::CounterTick ctickNT;
 extern ZM_Base::scheduler _schedr;
 extern ZM_Aux::QueueThrSave<sTask> _tasks;
 
@@ -41,5 +43,8 @@ void getNewTaskFromDB(ZM_DB::DbProvider& db){
       _tasks.push(sTask{t.qTaskId, t.base, t.params});
     }
     _schedr.activeTask = _tasks.size();
+  }
+  else if (ctickNT(1000)){ // every 1000 cycle
+    statusMess("getNewTaskFromDB db error: " + db.getLastError());
   }
 };

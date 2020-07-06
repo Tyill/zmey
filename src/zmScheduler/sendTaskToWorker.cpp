@@ -32,7 +32,7 @@
 
 using namespace std;
 
-ZM_Aux::CounterTick ctick;
+ZM_Aux::CounterTick ctickTW;
 vector<sWorker*> refWorkers;
 
 void sendTaskToWorker(const ZM_Base::scheduler& schedr,
@@ -69,7 +69,7 @@ void sendTaskToWorker(const ZM_Base::scheduler& schedr,
     }
     else{      
       tasks.push(move(t));
-      if (ctick(1000)){ // every 1000 cycle
+      if (ctickTW(1000)){ // every 1000 cycle
         statusMess("Not found available worker");
       }
       break;

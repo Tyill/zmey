@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <iostream>
 #include <unordered_map>
+#include <mutex>
 #include "zmCommon/tcp.h"
 #include "zmCommon/timerDelay.h"
 #include "zmCommon/queue.h"
@@ -51,6 +52,7 @@ ZM_Aux::QueueThrSave<sTask> _tasks;
 ZM_Aux::QueueThrSave<ZM_DB::messSchedr> _messToDB;
 unique_ptr<ZM_Aux::Logger> _pLog = nullptr;
 ZM_Base::scheduler _schedr;
+mutex _mtxSts;
 bool _fClose = false;
 
 struct config{
@@ -64,7 +66,8 @@ struct config{
 };
 
 void statusMess(const string& mess){
-  cout << ZM_Aux::currDateTime() << " " << mess << std::endl;
+  lock_guard<std::mutex> lock(_mtxSts);
+  cout << ZM_Aux::currDateTimeMs() << " " << mess << std::endl;
   if (_pLog)
     _pLog->writeMess(mess);
 }
