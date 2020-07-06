@@ -202,8 +202,8 @@ int main(int argc, char* argv[]){
       checkStatusWorkers(_schedr, _workers, _messToDB);
     }
     // added delay
-    if (timer.getCTime() < minCycleTimeMS){
-      ZM_Aux::sleepMs(minCycleTimeMS - timer.getCTime());
+    if (timer.getDeltaTimeMS() < minCycleTimeMS){
+      ZM_Aux::sleepMs(minCycleTimeMS - timer.getDeltaTimeMS());
     }
   }
   ZM_Tcp::stopServer();

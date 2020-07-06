@@ -126,7 +126,8 @@ public:
   virtual bool taskResult(uint64_t tId, std::string&) = 0;
   virtual bool taskTime(uint64_t tId, taskTime& out) = 0;
   virtual std::vector<uint64_t> getAllTasks(uint64_t pplId, ZM_Base::stateType) = 0;
-  
+  virtual bool getSchedrAndWorkerByTask(uint64_t tId, uint64_t& qtId, ZM_Base::scheduler& scng, ZM_Base::worker& wcng) = 0;
+
   // for zmSchedr
   virtual bool getSchedr(std::string& connPnt, ZM_Base::scheduler& outSchedl) = 0;
   virtual bool getTasksOfSchedr(uint64_t sId, std::vector<schedrTask>& out) = 0;

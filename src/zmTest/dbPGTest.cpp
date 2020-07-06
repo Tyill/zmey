@@ -22,6 +22,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+#ifdef PGTEST
+
 #include <vector>
 #include <algorithm>
 #include "prepareTest.h"
@@ -1738,3 +1740,4 @@ TEST_F(DBTest, sendAllMessFromSchedr){
 
   EXPECT_TRUE(_pDb->sendAllMessFromSchedr(sId, mess)) << _pDb->getLastError();
 }
+#endif //PGTEST

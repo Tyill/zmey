@@ -46,7 +46,7 @@ class TimerDelay {
 public:
   TimerDelay();
   void updateCycTime();
-  uint64_t getCTime();
+  uint64_t getDeltaTimeMS();
   bool onDelTmSec(bool start, int delay, int id);
   bool offDelTmSec(bool start, int delay, int id);
   bool onDelTmMS(bool start, int delay, int id);

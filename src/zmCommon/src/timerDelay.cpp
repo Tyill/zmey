@@ -50,7 +50,7 @@ void TimerDelay::updateCycTime(){
   _secOnc = (lct->tm_sec != _prevTm.tm_sec);
   _prevTm = *lct;
 }
-uint64_t TimerDelay::getCTime(){
+uint64_t TimerDelay::getDeltaTimeMS(){
   return currDateTimeSinceEpochMs() - _prevCycTm;
 }
 bool TimerDelay::onDelTmSec(bool start, int delay, int id){

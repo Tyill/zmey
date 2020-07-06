@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <iostream>
 #include <list>
+#include <mutex> 
 #include "zmCommon/tcp.h"
 #include "zmCommon/timerDelay.h"
 #include "zmCommon/auxFunc.h"
@@ -43,7 +44,7 @@ void sendMessToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt, 
 void progressToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt, const list<Process>&);
 void pingToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt);
 void updateListTasks(ZM_Aux::QueueThrSave<wTask>& newTasks, list<Process>& procs);
-void waitProcess(const list<Process>& procs, ZM_Aux::QueueThrSave<mess2schedr>& messForSchedr);
+void waitProcess(list<Process>& procs, ZM_Aux::QueueThrSave<mess2schedr>& messForSchedr);
 
 unique_ptr<ZM_Aux::Logger> _pLog = nullptr;
 ZM_Aux::QueueThrSave<mess2schedr> _messForSchedr;
@@ -51,6 +52,7 @@ ZM_Aux::QueueThrSave<wTask> _newTasks;
 list<Process> _procs;
 bool _fClose = false,
      _isSendAck = true;
+mutex _mtx;
 
 struct config{
   bool logEna = false;
@@ -115,8 +117,7 @@ void closeHandler(int sig){
 int main(int argc, char* argv[]){
 
   config cng;
-  parseArgs(argc, argv, cng);
- 
+  parseArgs(argc, argv, cng); 
   if (cng.logEna){
     _pLog = unique_ptr<ZM_Aux::Logger>(new ZM_Aux::Logger("zmWorker.log", ""));
   }    
@@ -124,6 +125,7 @@ int main(int argc, char* argv[]){
     statusMess("Not set param '-scp' - scheduler connPnt");
     return -1;
   }  
+  
   // signal(SIGHUP, initHandler);
   signal(SIGINT, closeHandler);
   signal(SIGTERM, closeHandler);
@@ -175,8 +177,8 @@ int main(int argc, char* argv[]){
     waitProcess(_procs, _messForSchedr);
     
     // added delay
-    if (timer.getCTime() < minCycleTimeMS){
-      ZM_Aux::sleepMs(minCycleTimeMS - timer.getCTime());
+    if (timer.getDeltaTimeMS() < minCycleTimeMS){
+      ZM_Aux::sleepMs(minCycleTimeMS - timer.getDeltaTimeMS());
     }    
   } 
   ZM_Tcp::stopServer();

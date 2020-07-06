@@ -23,18 +23,22 @@
 // THE SOFTWARE.
 //
 #include <list>
+#include <mutex>
 #include "zmCommon/queue.h"
 #include "process.h"
 #include "structurs.h"
 
 using namespace std;
 
+extern mutex _mtx;
+
 void updateListTasks(ZM_Aux::QueueThrSave<wTask>& newTasks, list<Process>& procs){
-  
+  std::lock_guard<std::mutex> lock(_mtx);
+
   wTask tsk;
   while(newTasks.tryPop(tsk)){
     procs.push_back(Process(tsk));
-  }  
+  }
   for (auto ip = procs.begin(); ip != procs.end();){
     ZM_Base::stateType tskState = ip->getTask().state;
     if ((tskState == ZM_Base::stateType::completed) ||

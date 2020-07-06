@@ -91,6 +91,7 @@ Process::Process(const wTask& tsk):
       break;
     // parent                
     default:
+      _timer.updateCycTime();
       _task.state = ZM_Base::stateType::running;
       _messForSchedr.push(mess2schedr{tsk.base.id, ZM_Base::messType::taskRunning, ""});
       break;
@@ -100,7 +101,12 @@ Process::Process(const wTask& tsk):
 Process::~Process(){
 }
 int Process::getProgress() const{
-  return 0;
+  if (!_isPause){
+    _cdeltaTime += _timer.getDeltaTimeMS();
+  }
+  _timer.updateCycTime();
+  int dt = (int)_cdeltaTime / 1000;
+  return min(100, int((dt * 100.0)/ max(1, _task.base.averDurationSec)));
 }
 wTask Process::getTask() const{
   return _task;
@@ -108,12 +114,22 @@ wTask Process::getTask() const{
 pid_t Process::getPid() const{
   return _pid;
 }
+void Process::setTaskState(ZM_Base::stateType st){
+  _task.state = st;
+  _isPause = (st == ZM_Base::stateType::pause);
+}
 void Process::pause(){
-
+  if (kill(_pid, SIGSTOP) == -1){
+    statusMess("Process error pause: " + string(strerror(errno)));
+  }
 }
 void Process::start(){
-
+  if (kill(_pid, SIGCONT) == -1){
+    statusMess("Process error start: " + string(strerror(errno)));
+  }
 }
 void Process::stop(){
-  
+  if (kill(_pid, SIGTERM) == -1){
+    statusMess("Process error stop: " + string(strerror(errno)));
+  }
 }

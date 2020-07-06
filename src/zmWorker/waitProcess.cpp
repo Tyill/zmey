@@ -27,6 +27,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <errno.h>
+#include <cstring>
 #include <list>
 #include <algorithm>
 
@@ -36,7 +38,7 @@
 
 using namespace std;
 
-void waitProcess(const list<Process>& procs, ZM_Aux::QueueThrSave<mess2schedr>& messForSchedr){
+void waitProcess( list<Process>& procs, ZM_Aux::QueueThrSave<mess2schedr>& messForSchedr){
   
   pid_t pid;
   int sts = 0;
@@ -63,43 +65,48 @@ void waitProcess(const list<Process>& procs, ZM_Aux::QueueThrSave<mess2schedr>& 
         result.resize(fsz);
 
         if (read(fdRes, (char*)result.data(), fsz) == -1){
-          statusMess("waitProcess error read " + resultFile);
+          statusMess("waitProcess error read " + resultFile + ": " + string(strerror(errno)));
         }
         close(fdRes);
       }
       else{
-        statusMess("waitProcess error open " + resultFile);
+        statusMess("waitProcess error open " + resultFile + ": " + string(strerror(errno)));
       }
 
       ZM_Base::messType mt = ZM_Base::messType::taskCompleted;
+      ZM_Base::stateType st = ZM_Base::stateType::completed;
       if (WIFEXITED(sts)){
         sts = WEXITSTATUS(sts);
         if (sts != 0){
           mt = ZM_Base::messType::taskError;
+          st = ZM_Base::stateType::error;
         }
       }else{
         mt = ZM_Base::messType::taskError;
+        st = ZM_Base::stateType::error;
       }
-
+      itPrc->setTaskState(st);
       messForSchedr.push(mess2schedr{itPrc->getTask().base.id,
                                       mt,
                                       result});
       if (remove(resultFile.c_str()) == -1){
-        statusMess("waitProcess error remove " + resultFile);
+        statusMess("waitProcess error remove " + resultFile + ": " + string(strerror(errno)));
       }
       string scriptFile = to_string(tId) + ".script";
       if (remove(scriptFile.c_str()) == -1){
-        statusMess("waitProcess error remove " + scriptFile);
+        statusMess("waitProcess error remove " + scriptFile + ": " + string(strerror(errno)));
       }    
     }    
     // stop
     else if (WIFSTOPPED(sts)){
+      itPrc->setTaskState(ZM_Base::stateType::pause);
       messForSchedr.push(mess2schedr{itPrc->getTask().base.id,
                                       ZM_Base::messType::taskPause,
                                       ""});
     } 
     // continue
     else if (WIFCONTINUED(sts)){
+      itPrc->setTaskState(ZM_Base::stateType::running);
       messForSchedr.push(mess2schedr{itPrc->getTask().base.id,
                                       ZM_Base::messType::taskRunning,
                                       ""});    

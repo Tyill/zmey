@@ -24,20 +24,23 @@
 //
 #pragma once
 
-#include <string>
-#include <functional>
-#include <thread>
 #include "structurs.h"
+#include "zmCommon/timerDelay.h"
+#include "zmBase/structurs.h"
 
 class Process{
-    pid_t _pid = -1; 
+    pid_t _pid = 1; 
     wTask _task;
+    mutable ZM_Aux::TimerDelay _timer;
+    mutable uint64_t _cdeltaTime = 0;
+    bool _isPause = false;
   public:
     Process(const wTask&);
     ~Process();     
     int getProgress() const;
     wTask getTask() const;
     pid_t getPid() const;
+    void setTaskState(ZM_Base::stateType);
     void pause();
     void start();
     void stop();

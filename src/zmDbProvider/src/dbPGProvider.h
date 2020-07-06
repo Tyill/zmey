@@ -79,6 +79,7 @@ public:
   bool taskResult(uint64_t tId, std::string&) override;
   bool taskTime(uint64_t tId, ZM_DB::taskTime& out) override;
   std::vector<uint64_t> getAllTasks(uint64_t pplId, ZM_Base::stateType) override;
+  bool getSchedrAndWorkerByTask(uint64_t tId, uint64_t& qtId, ZM_Base::scheduler& scng, ZM_Base::worker& wcng) override;
 
   // for zmSchedr
   bool getSchedr(std::string& connPnt, ZM_Base::scheduler& outSchedl) override;

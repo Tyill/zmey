@@ -1281,6 +1281,36 @@ std::vector<uint64_t> DbPGProvider::getAllTasks(uint64_t pplId, ZM_Base::stateTy
   PQclear(res);
   return ret;
 }
+bool DbPGProvider::getSchedrAndWorkerByTask(uint64_t tId, uint64_t& qtId, ZM_Base::scheduler& scng, ZM_Base::worker& wcng){
+  lock_guard<mutex> lk(_mtx);
+  stringstream ss;
+  ss << "SELECT tq.id, sch.id, sch.connPnt, wkr.id, wkr.connPnt "
+        "FROM tblTaskQueue tq "
+        "JOIN tblUPipelineTask tpp ON tpp.qtask = tq.id "
+        "JOIN tblScheduler sch ON sch.id = tq.schedr "
+        "JOIN tblWorker wkr ON wkr.id = tq.worker "
+        "WHERE tpp.id = " << tId << ";";
+
+  auto res = PQexec(_pg, ss.str().c_str());
+  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+    errorMess(string("getSchedrAndWorkerByTask error: ") + PQerrorMessage(_pg));
+    PQclear(res);
+    return false;
+  }
+  if (PQntuples(res) != 1){
+    errorMess(string("getSchedrAndWorkerByTask error: such task does not exist"));
+    PQclear(res);
+    return false;
+  }
+  qtId = stoull(PQgetvalue(res, 0, 0));
+  scng.id = stoull(PQgetvalue(res, 0, 1));
+  scng.connectPnt = PQgetvalue(res, 0, 2);
+  wcng.id = stoull(PQgetvalue(res, 0, 3));
+  wcng.connectPnt = PQgetvalue(res, 0, 4);
+
+  PQclear(res); 
+  return true;
+}
 
 // for zmSchedr
 bool DbPGProvider::getSchedr(std::string& connPnt, ZM_Base::scheduler& outCng){
