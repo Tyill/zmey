@@ -48,7 +48,7 @@ namespace ZM_Base{
     justStartWorker     = 14,
     workerRating        = 15,
     workerNotResponding = 16,
-    alarm               = 17,      
+    error               = 17,      
   };
   // tblState
   enum class stateType{

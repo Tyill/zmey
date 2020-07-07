@@ -36,27 +36,31 @@ using namespace std;
 
 extern list<Process> _procs;
 extern ZM_Aux::QueueThrSave<wTask> _newTasks;
+ZM_Aux::QueueThrSave<string> _errMess;
 extern mutex _mtxPrc;
 
 void receiveHandler(const string& remcp, const string& data){
-    
+#define ERROR_MESS(mstr) \
+  statusMess(mstr);      \
+  _errMess.push(mstr);   \
+
   auto mess = ZM_Aux::deserialn(data);
   if (mess.empty()){
-    statusMess("receiveHandler Error deserialn data from: " + remcp);
+    ERROR_MESS("receiveHandler error deserialn data from: " + remcp);
     return;
-  }
+  }  
 #define checkFieldNum(field) \
   if (mess.find(#field) == mess.end()){ \
-    statusMess(string("receiveHandler Error mess.find ") + #field + " from: " + cp); \
+    ERROR_MESS(string("receiveHandler error mess.find ") + #field + " from: " + cp); \
     return;  \
   } \
   if (!ZM_Aux::isNumber(mess[#field])){ \
-    statusMess("receiveHandler Error !ZM_Aux::isNumber " + mess[#field] + " from: " + cp); \
+    ERROR_MESS("receiveHandler error !ZM_Aux::isNumber " + mess[#field] + " from: " + cp); \
     return; \
   }
 #define checkField(field) \
   if (mess.find(#field) == mess.end()){  \
-    statusMess(string("receiveHandler Error mess.find ") + #field + " from: " + cp);  \
+    ERROR_MESS(string("receiveHandler error mess.find ") + #field + " from: " + cp); \
     return;  \
   }
   string cp = remcp;
@@ -95,11 +99,13 @@ void receiveHandler(const string& remcp, const string& data){
           case ZM_Base::messType::taskPause:   iPrc->pause(); break;
           case ZM_Base::messType::taskRunning: iPrc->contin(); break;
           case ZM_Base::messType::taskStop:    iPrc->stop(); break;
-          default: statusMess("receiveHandler unknown command: " + mess["command"]);
+          default:{
+            ERROR_MESS("receiveHandler unknown command: " + mess["command"]);
+          }
           break;
         }
       }else{
-        statusMess("receiveHandler iPrc == _procs.end() for taskId: " + mess["taskId"]);
+        ERROR_MESS("receiveHandler iPrc == _procs.end() for taskId: " + mess["taskId"]);
       }
     }
   }

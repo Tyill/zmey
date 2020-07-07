@@ -51,7 +51,7 @@ typedef void* zmConn;
 
 /// state
 enum zmStateType{
-  undefined       = -1,
+  zmUndefined     = -1,
   zmReady         = 0,
   zmStart         = 1,
   zmRunning       = 2,
@@ -503,16 +503,24 @@ ZMEY_API bool zmTaskTime(zmConn, uint64_t qtId, zmTskTime* outTTime);
 ZMEY_API uint32_t zmGetAllTasks(zmConn, uint64_t pplId, zmStateType state, uint64_t** outQTId);
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Alarms
+/// Internal errors
 
-/// get alarms
+/// error
+struct zmErrorType{
+  uint64_t sId;        ///< scheduler id 
+  uint64_t wId;        ///< worker id 
+  char createTime[32];
+  char message[256];
+};
+
+/// get errors
 /// @param[in] zmConn - object connect
 /// @param[in] sId - scheduler id. If '0' then all
 /// @param[in] wId - worker id. If '0' then all
 /// @param[in] mCnt - last mess max count. If '0' then all 
-/// @param[out] outAlarms - alarms through ';'
-/// @return true - ok
-ZMEY_API bool zmGetAlarms(zmConn, uint64_t sId, uint64_t wId, uint32_t mCnt, char** outAlarms);
+/// @param[out] outErrors - errors through ';'
+/// @return count of errors
+ZMEY_API uint32_t zmGetErrors(zmConn, uint64_t sId, uint64_t wId, uint32_t mCnt, zmErrorType** outErrors);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// free resouces

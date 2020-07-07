@@ -81,7 +81,7 @@ public:
   std::vector<uint64_t> getAllTasks(uint64_t pplId, ZM_Base::stateType) override;
   bool getSchedrAndWorkerByTask(uint64_t tId, uint64_t& qtId, ZM_Base::scheduler& scng, ZM_Base::worker& wcng) override;
 
-  bool getAlarms(uint64_t sId, uint64_t wId, uint32_t mCnt, std::string& out) override;
+  std::vector<ZM_DB::messError> getErrors(uint64_t sId, uint64_t wId, uint32_t mCnt) override;
 
   // for zmSchedr
   bool getSchedr(std::string& connPnt, ZM_Base::scheduler& outSchedl) override;

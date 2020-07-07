@@ -733,11 +733,11 @@ uint32_t zmGetAllTasks(zmConn zo, uint64_t pplId, zmStateType state, uint64_t** 
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Alarms
+/// Internal errors
 
-bool zmGetAlarms(zmConn zo, uint64_t sId, uint64_t wId, uint32_t mCnt, char** outAlarms){
+uint32_t zmGetErrors(zmConn, uint64_t sId, uint64_t wId, uint32_t mCnt, zmErrorType** outErrors){
 
-  
+  return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -49,7 +49,13 @@ struct messSchedr{
   uint64_t taskId;
   int progress;
   int workerRating;
-  std::string result; // type is 'alarm' then alarmMess
+  std::string result; // type is 'error' then errorMess
+};
+struct messError{
+  uint64_t schedrId;
+  uint64_t workerId;
+  std::string createTime;
+  std::string message;
 };
 struct schedrTask{
   uint64_t qTaskId;
@@ -128,7 +134,7 @@ public:
   virtual std::vector<uint64_t> getAllTasks(uint64_t pplId, ZM_Base::stateType) = 0;
   virtual bool getSchedrAndWorkerByTask(uint64_t tId, uint64_t& qtId, ZM_Base::scheduler& scng, ZM_Base::worker& wcng) = 0;
 
-  virtual bool getAlarms(uint64_t sId, uint64_t wId, uint32_t mCnt, std::string& out) = 0;
+  virtual std::vector<messError> getErrors(uint64_t sId, uint64_t wId, uint32_t mCnt) = 0;
 
   // for zmSchedr
   virtual bool getSchedr(std::string& connPnt, ZM_Base::scheduler& outSchedl) = 0;

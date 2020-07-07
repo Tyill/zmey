@@ -127,7 +127,7 @@ bool DbPGProvider::createTables(){
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
-  ss << "CREATE TABLE IF NOT EXISTS tblAlarms("
+  ss << "CREATE TABLE IF NOT EXISTS tblErrors("
         "id           SERIAL PRIMARY KEY,"
         "schedr       INT REFERENCES tblScheduler,"
         "worker       INT REFERENCES tblWorker,"
@@ -1322,9 +1322,9 @@ bool DbPGProvider::getSchedrAndWorkerByTask(uint64_t tId, uint64_t& qtId, ZM_Bas
   return true;
 }
 
-bool DbPGProvider::getAlarms(uint64_t sId, uint64_t wId, uint32_t mCnt, std::string& out){
+std::vector<ZM_DB::messError> DbPGProvider::getErrors(uint64_t sId, uint64_t wId, uint32_t mCnt){
   
-  return true;
+  return std::vector<ZM_DB::messError>();
 }
 
 // for zmSchedr

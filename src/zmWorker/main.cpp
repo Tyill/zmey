@@ -33,6 +33,7 @@
 #include "zmCommon/auxFunc.h"
 #include "zmCommon/logger.h"
 #include "zmCommon/queue.h"
+#include "zmCommon/serial.h"
 #include "structurs.h"
 #include "process.h"
 
@@ -43,12 +44,14 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
 void sendMessToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt, const mess2schedr&);
 void progressToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt, const list<Process>&);
 void pingToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt);
+void errorToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt, ZM_Aux::QueueThrSave<string>& );
 void updateListTasks(ZM_Aux::QueueThrSave<wTask>& newTasks, list<Process>& procs);
 void waitProcess(list<Process>& procs, ZM_Aux::QueueThrSave<mess2schedr>& messForSchedr);
 
 unique_ptr<ZM_Aux::Logger> _pLog = nullptr;
 ZM_Aux::QueueThrSave<mess2schedr> _messForSchedr;
 ZM_Aux::QueueThrSave<wTask> _newTasks;
+ZM_Aux::QueueThrSave<string> _errMess;
 list<Process> _procs;
 mutex _mtxPrc, _mtxSts;
 bool _fClose = false,
@@ -176,6 +179,11 @@ int main(int argc, char* argv[]){
     }
     // check child process
     waitProcess(_procs, _messForSchedr);
+    
+    // errors
+    if (!_errMess.empty()){ 
+      errorToSchedr(worker, cng.schedrConnPnt, _errMess);
+    }
     
     // added delay
     if (timer.getDeltaTimeMS() < minCycleTimeMS){
