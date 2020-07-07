@@ -49,14 +49,14 @@ struct messSchedr{
   uint64_t taskId;
   int progress;
   int workerRating;
-  std::string result;
+  std::string result; // type is 'alarm' then alarmMess
 };
 struct schedrTask{
   uint64_t qTaskId;
   ZM_Base::task base;
   std::string params;
 };
-struct taskPrsAState{
+struct tskState{
   uint32_t progress;
   ZM_Base::stateType state;
 };
@@ -122,11 +122,13 @@ public:
   virtual bool changeTask(uint64_t tId, const ZM_Base::uTask& newTCng) = 0;
   virtual bool delTask(uint64_t tId) = 0;
   virtual bool startTask(uint64_t tId) = 0;
-  virtual bool taskState(const std::vector<uint64_t>& tId, std::vector<taskPrsAState>&) = 0;
+  virtual bool taskState(const std::vector<uint64_t>& tId, std::vector<tskState>&) = 0;
   virtual bool taskResult(uint64_t tId, std::string&) = 0;
   virtual bool taskTime(uint64_t tId, taskTime& out) = 0;
   virtual std::vector<uint64_t> getAllTasks(uint64_t pplId, ZM_Base::stateType) = 0;
   virtual bool getSchedrAndWorkerByTask(uint64_t tId, uint64_t& qtId, ZM_Base::scheduler& scng, ZM_Base::worker& wcng) = 0;
+
+  virtual bool getAlarms(uint64_t sId, uint64_t wId, uint32_t mCnt, std::string& out) = 0;
 
   // for zmSchedr
   virtual bool getSchedr(std::string& connPnt, ZM_Base::scheduler& outSchedl) = 0;

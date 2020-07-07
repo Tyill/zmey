@@ -22,7 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-//#define PGTEST
+#define PGTEST
 #ifdef PGTEST
 
 #include <vector>
@@ -1266,7 +1266,7 @@ TEST_F(DBTest, taskState){
   EXPECT_TRUE(_pDb->startTask(tId2)) << _pDb->getLastError();  
 
   vector<uint64_t> tIds {tId1, tId2};
-  vector<ZM_DB::taskPrsAState> tState;
+  vector<ZM_DB::tskState> tState;
   EXPECT_TRUE(_pDb->taskState(tIds, tState) && 
               (tState[0].progress == 0) &&
               (tState[0].state == ZM_Base::stateType::ready) &&
@@ -1565,7 +1565,7 @@ TEST_F(DBTest, getTaskOfSchedr){
              (tasks[0].base.id == ttId)) << _pDb->getLastError(); 
 
   vector<ZM_DB::messSchedr> mess;
-  mess.push_back(ZM_DB::messSchedr{ZM_Base::messType::taskRunning, wId, tasks[0].qTaskId, 0, 10, "result"});
+  mess.push_back(ZM_DB::messSchedr{ZM_Base::messType::taskStart, wId, tasks[0].qTaskId, 0, 10, "result"});
   EXPECT_TRUE(_pDb->sendAllMessFromSchedr(sId, mess)) << _pDb->getLastError();
 
   mess.clear();

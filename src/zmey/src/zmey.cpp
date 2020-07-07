@@ -75,14 +75,18 @@ bool zmCreateTables(zmConn zo){
 
   static_cast<ZM_DB::DbProvider*>(zo)->createTables();
 }
-void zmSetErrorCBack(zmConn zo, zmErrorCBack ecb, zmUData ud){
-  if (!zo) return;
+bool zmSetErrorCBack(zmConn zo, zmErrorCBack ecb, zmUData ud){
+  if (!zo) return false;
 
   static_cast<ZM_DB::DbProvider*>(zo)->setErrorCBack(ecb, ud);
+  return true;
 }
-void zmGetLastError(zmConn zo, char* err/*sz 256*/){
+bool zmGetLastError(zmConn zo, char* err/*sz 256*/){
   if (zo && err){
     strncpy(err, static_cast<ZM_DB::DbProvider*>(zo)->getLastError().c_str(), 256);
+    return true;
+  }else{
+    return false;
   }
 }
 
@@ -144,7 +148,7 @@ bool zmDelUser(zmConn zo, uint64_t userId){
   return static_cast<ZM_DB::DbProvider*>(zo)->delUser(userId);
 }
 uint32_t zmGetAllUsers(zmConn zo, uint64_t** outUserId){
-  if (!zo) return false; 
+  if (!zo) return 0; 
 
   auto users = static_cast<ZM_DB::DbProvider*>(zo)->getAllUsers();
   size_t usz = users.size();
@@ -250,7 +254,7 @@ bool zmSchedulerState(zmConn zo, uint64_t sId, zmStateType* outState){
   return false;
 }
 uint32_t zmGetAllSchedulers(zmConn zo, zmStateType state, uint64_t** outSchId){
-  if (!zo) return false; 
+  if (!zo) return 0; 
 
   auto schedrs = static_cast<ZM_DB::DbProvider*>(zo)->getAllSchedrs((ZM_Base::stateType)state);
   size_t ssz = schedrs.size();
@@ -375,7 +379,7 @@ bool zmWorkerState(zmConn zo, uint64_t* pWId, uint32_t wCnt, zmStateType* outSta
   return false;
 }
 uint32_t zmGetAllWorkers(zmConn zo, uint64_t sId, zmStateType state, uint64_t** outWId){
-  if (!zo) return false; 
+  if (!zo) return 0; 
 
   auto workers = static_cast<ZM_DB::DbProvider*>(zo)->getAllWorkers(sId, (ZM_Base::stateType)state);
   size_t wsz = workers.size();
@@ -441,7 +445,7 @@ bool zmDelPipeline(zmConn zo, uint64_t pplId){
   return static_cast<ZM_DB::DbProvider*>(zo)->delPipeline(pplId);
 }
 uint32_t zmGetAllPipelines(zmConn zo, uint64_t userId, uint64_t** outPPLId){
-  if (!zo) return false; 
+  if (!zo) return 0; 
 
   auto ppls = static_cast<ZM_DB::DbProvider*>(zo)->getAllPipelines(userId);
   size_t psz = ppls.size();
@@ -520,7 +524,7 @@ bool zmDelTaskTemplate(zmConn zo, uint64_t tId){
   return static_cast<ZM_DB::DbProvider*>(zo)->delTaskTemplate(tId);
 }
 uint32_t zmGetAllTaskTemplates(zmConn zo, uint64_t parent, uint64_t** outTId){
-  if (!zo) return false; 
+  if (!zo) return 0; 
 
   auto tasks = static_cast<ZM_DB::DbProvider*>(zo)->getAllTaskTemplates(parent);
   size_t tsz = tasks.size();
@@ -672,11 +676,11 @@ bool zmTaskState(zmConn zo, uint64_t* qtId, uint32_t tCnt, zmTskState* outQTStat
   }
   vector<uint64_t> qtaskId(tCnt);
   memcpy(qtaskId.data(), qtId, tCnt * sizeof(uint64_t));
-  vector<ZM_DB::taskPrsAState> prsAState;
-  if (static_cast<ZM_DB::DbProvider*>(zo)->taskState(qtaskId, prsAState)){  
+  vector<ZM_DB::tskState> state;
+  if (static_cast<ZM_DB::DbProvider*>(zo)->taskState(qtaskId, state)){  
     for (size_t i = 0; i < tCnt; ++i){
-      outQTState[i].progress = prsAState[i].progress;
-      outQTState[i].state = (zmStateType)prsAState[i].state;
+      outQTState[i].progress = state[i].progress;
+      outQTState[i].state = (zmStateType)state[i].state;
     }    
     return true;
   }
@@ -715,7 +719,7 @@ bool zmTaskTime(zmConn zo, uint64_t qtId, zmTskTime* outTTime){
   return false;
 }
 uint32_t zmGetAllTasks(zmConn zo, uint64_t pplId, zmStateType state, uint64_t** outQTId){
-  if (!zo) return false; 
+  if (!zo) return 0; 
 
   auto tasks = static_cast<ZM_DB::DbProvider*>(zo)->getAllTasks(pplId, (ZM_Base::stateType)state);
   size_t tsz = tasks.size();
@@ -726,6 +730,14 @@ uint32_t zmGetAllTasks(zmConn zo, uint64_t pplId, zmStateType state, uint64_t** 
     *outQTId = nullptr;
   }
   return (uint32_t)tsz;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// Alarms
+
+bool zmGetAlarms(zmConn zo, uint64_t sId, uint64_t wId, uint32_t mCnt, char** outAlarms){
+
+  
 }
 
 ///////////////////////////////////////////////////////////////////////////////

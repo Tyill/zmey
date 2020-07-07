@@ -111,13 +111,13 @@ void receiveHandler(const string& remcp, const string& data){
                                        worker.base.id});
     }
     if (worker.base.rating < ZM_Base::WORKER_RATING_MAX){
+      ++worker.base.rating;
       _messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::workerRating,
                                        worker.base.id,
                                        0,
                                        0,
-                                       worker.base.rating + 1});
-    }
-    worker.base.rating = min(ZM_Base::WORKER_RATING_MAX, worker.base.rating + 1);
+                                       worker.base.rating});      
+    }    
   }
   // from manager
   else{

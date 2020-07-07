@@ -127,6 +127,15 @@ bool DbPGProvider::createTables(){
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
+  ss << "CREATE TABLE IF NOT EXISTS tblAlarms("
+        "id           SERIAL PRIMARY KEY,"
+        "schedr       INT REFERENCES tblScheduler,"
+        "worker       INT REFERENCES tblWorker,"
+        "createTime   TIMESTAMP NOT NULL DEFAULT current_timestamp,"
+        "message      TEXT NOT NULL);";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+
+  ss.str("");
   ss << "CREATE TABLE IF NOT EXISTS tblTaskQueue("
         "id           SERIAL PRIMARY KEY,"
         "task         INT NOT NULL REFERENCES tblTask,"       
@@ -1182,7 +1191,7 @@ bool DbPGProvider::startTask(uint64_t tId){
   PQclear(res); 
   return true;
 }
-bool DbPGProvider::taskState(const std::vector<uint64_t>& tId, std::vector<ZM_DB::taskPrsAState>& outState){
+bool DbPGProvider::taskState(const std::vector<uint64_t>& tId, std::vector<ZM_DB::tskState>& outState){
   lock_guard<mutex> lk(_mtx);
   string stId;
   stId = accumulate(tId.begin(), tId.end(), stId,
@@ -1310,6 +1319,11 @@ bool DbPGProvider::getSchedrAndWorkerByTask(uint64_t tId, uint64_t& qtId, ZM_Bas
   wcng.connectPnt = PQgetvalue(res, 0, 4);
 
   PQclear(res); 
+  return true;
+}
+
+bool DbPGProvider::getAlarms(uint64_t sId, uint64_t wId, uint32_t mCnt, std::string& out){
+  
   return true;
 }
 

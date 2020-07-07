@@ -101,13 +101,15 @@ typedef void(*zmErrorCBack)(const char* mess, zmUData);    ///< error callback
 /// set error callback
 /// @param[in] zmConn - object connect
 /// @param[in] zmErrorCBack - error callback
-/// @param[in] zmUData - user data    
-ZMEY_API void zmSetErrorCBack(zmConn, zmErrorCBack, zmUData);
+/// @param[in] zmUData - user data   
+/// @return true - ok 
+ZMEY_API bool zmSetErrorCBack(zmConn, zmErrorCBack, zmUData);
 
 /// last error str
 /// @param[in] zmConn - object connect
 /// @param[out] err - error string. The memory is allocated by the user
-ZMEY_API void zmGetLastError(zmConn, char* err/*sz 256*/);
+/// @return true - ok
+ZMEY_API bool zmGetLastError(zmConn, char* err/*sz 256*/);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// User
@@ -500,7 +502,17 @@ ZMEY_API bool zmTaskTime(zmConn, uint64_t qtId, zmTskTime* outTTime);
 /// @return count of pipeline tasks
 ZMEY_API uint32_t zmGetAllTasks(zmConn, uint64_t pplId, zmStateType state, uint64_t** outQTId);
 
+///////////////////////////////////////////////////////////////////////////////
+/// Alarms
 
+/// get alarms
+/// @param[in] zmConn - object connect
+/// @param[in] sId - scheduler id. If '0' then all
+/// @param[in] wId - worker id. If '0' then all
+/// @param[in] mCnt - last mess max count. If '0' then all 
+/// @param[out] outAlarms - alarms through ';'
+/// @return true - ok
+ZMEY_API bool zmGetAlarms(zmConn, uint64_t sId, uint64_t wId, uint32_t mCnt, char** outAlarms);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// free resouces

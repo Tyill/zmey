@@ -26,7 +26,6 @@
 #pragma once
         
 #include <string>
-#include <vector>
 
 namespace ZM_Base{
 
@@ -48,7 +47,8 @@ namespace ZM_Base{
     pingSchedr          = 13,
     justStartWorker     = 14,
     workerRating        = 15,
-    workerNotResponding = 16,    
+    workerNotResponding = 16,
+    alarm               = 17,      
   };
   // tblState
   enum class stateType{

@@ -85,13 +85,13 @@ void sendHandler(const string& remcp, const string& data, const std::error_code&
     }
     statusMess("sendHandler worker not response, cp: " + cp);
     if (_workers[cp].base.rating > 1){
+      --_workers[cp].base.rating;
       _messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::workerRating,
                                        _workers[cp].base.id,
                                        0,
                                        0,
-                                       _workers[cp].base.rating - 1});
-    }
-    _workers[cp].base.rating = max(1, _workers[cp].base.rating - 1);
+                                       _workers[cp].base.rating});      
+    }    
   }
   // error from manager
   else if (ec){
