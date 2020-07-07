@@ -38,7 +38,7 @@
 
 using namespace std;
 
-ZM_Aux::QueueThrSave<string> _errMess;
+extern ZM_Aux::QueueThrSave<string> _errMess;
 
 void waitProcess( list<Process>& procs, ZM_Aux::QueueThrSave<mess2schedr>& messForSchedr){
   
@@ -54,7 +54,7 @@ void waitProcess( list<Process>& procs, ZM_Aux::QueueThrSave<mess2schedr>& messF
         return p.getPid() == pid;
       });    
     if (itPrc == procs.end()){
-      ERROR_MESS("waitProcess error not found process " + to_string(pid));
+      ERROR_MESS("worker::waitProcess error not found process " + to_string(pid));
       continue;
     }
     // completed or error
@@ -71,12 +71,12 @@ void waitProcess( list<Process>& procs, ZM_Aux::QueueThrSave<mess2schedr>& messF
         result.resize(fsz);
 
         if (read(fdRes, (char*)result.data(), fsz) == -1){
-          ERROR_MESS("waitProcess error read " + resultFile + ": " + string(strerror(errno))); 
+          ERROR_MESS("worker::waitProcess error read " + resultFile + ": " + string(strerror(errno))); 
         }
         close(fdRes);
       }
       else{
-        ERROR_MESS("waitProcess error open " + resultFile + ": " + string(strerror(errno)));
+        ERROR_MESS("worker::waitProcess error open " + resultFile + ": " + string(strerror(errno)));
       }
 
       ZM_Base::messType mt = ZM_Base::messType::taskCompleted;
@@ -96,11 +96,11 @@ void waitProcess( list<Process>& procs, ZM_Aux::QueueThrSave<mess2schedr>& messF
                                       mt,
                                       result});
       if (remove(resultFile.c_str()) == -1){
-        ERROR_MESS("waitProcess error remove " + resultFile + ": " + string(strerror(errno)));
+        ERROR_MESS("worker::waitProcess error remove " + resultFile + ": " + string(strerror(errno)));
       }
       string scriptFile = to_string(tId) + ".script";
       if (remove(scriptFile.c_str()) == -1){
-        ERROR_MESS("waitProcess error remove " + scriptFile + ": " + string(strerror(errno)));
+        ERROR_MESS("worker::waitProcess error remove " + scriptFile + ": " + string(strerror(errno)));
       }    
     }    
     // stop

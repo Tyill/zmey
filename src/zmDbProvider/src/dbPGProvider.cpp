@@ -127,7 +127,7 @@ bool DbPGProvider::createTables(){
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
-  ss << "CREATE TABLE IF NOT EXISTS tblErrors("
+  ss << "CREATE TABLE IF NOT EXISTS tblError("
         "id           SERIAL PRIMARY KEY,"
         "schedr       INT REFERENCES tblScheduler,"
         "worker       INT REFERENCES tblWorker,"
@@ -1439,7 +1439,7 @@ bool DbPGProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::messSc
 
   stringstream ss;
   for (auto& m : mess){
-    switch (m.type){
+    switch (m.type){      
       case ZM_Base::messType::taskError:
         ss << "UPDATE tblTaskTime tt SET "
               "stopTime = current_timestamp "
@@ -1567,6 +1567,12 @@ bool DbPGProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::messSc
               "UPDATE tblWorker SET "
               "state = " << (int)ZM_Base::stateType::notResponding << " "
               "WHERE id = " << m.workerId << ";";
+        break;
+      case ZM_Base::messType::error:
+        ss << "INSERT INTO tblError (schedr, worker, message) VALUES("
+              "'" << sId << "',"
+              "'" << m.workerId << "',"
+              "'" << m.result << "');";
         break;
     }    
   }

@@ -28,6 +28,7 @@
 #include "zmCommon/serial.h"
 #include "zmCommon/queue.h"
 #include "zmCommon/auxFunc.h"
+#include "zmDbProvider/dbProvider.h"
 #include "structurs.h"
 
 using namespace std;
@@ -37,8 +38,17 @@ vector<sWorker*> refWorkers;
 
 void sendTaskToWorker(const ZM_Base::scheduler& schedr,
                       unordered_map<std::string, sWorker>& workers,
-                      ZM_Aux::QueueThrSave<sTask>& tasks){  
-  
+                      ZM_Aux::QueueThrSave<sTask>& tasks, 
+                      ZM_Aux::QueueThrSave<ZM_DB::messSchedr>& messToDB){  
+#define ERROR_MESS(mess, wId)                               \
+  messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::error, \
+                                  wId,                      \
+                                  0,                        \
+                                  0,                        \
+                                  0,                        \
+                                  mess});                   \
+  statusMess(mess);
+
   if (refWorkers.empty()){
     for (auto& w : workers){
       refWorkers.push_back(&w.second);
@@ -66,11 +76,12 @@ void sendTaskToWorker(const ZM_Base::scheduler& schedr,
       };      
       ++(*iWr)->base.activeTask;
       ZM_Tcp::sendData((*iWr)->base.connectPnt, ZM_Aux::serialn(data));
+      ctickTW.reset();
     }
     else{      
       tasks.push(move(t));
       if (ctickTW(1000)){ // every 1000 cycle
-        statusMess("Not found available worker");
+        ERROR_MESS("schedr::sendTaskToWorker not found available worker", 0);
       }
       break;
     }

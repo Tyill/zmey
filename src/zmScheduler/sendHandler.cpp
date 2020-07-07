@@ -39,30 +39,40 @@ extern unordered_map<std::string, sWorker> _workers;
 extern ZM_Base::scheduler _schedr;
 
 void sendHandler(const string& remcp, const string& data, const std::error_code& ec){
-  
+#define ERROR_MESS(mess, wId)                                \
+  _messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::error, \
+                                   wId,                      \
+                                   0,                        \
+                                   0,                        \
+                                   0,                        \
+                                   mess});                   \
+  statusMess(mess);
+
 #define checkFieldNum(field) \
   if (mess.find(#field) == mess.end()){ \
-    statusMess(string("receiveHandler Error mess.find ") + #field + " from: " + cp); \
+    ERROR_MESS(string("schedr::sendHandler Error mess.find ") + #field + " from: " + cp, wId); \
     return;  \
   } \
   if (!ZM_Aux::isNumber(mess[#field])){ \
-    statusMess("receiveHandler Error !ZM_Aux::isNumber " + mess[#field] + " from: " + cp); \
+    ERROR_MESS("schedr::sendHandler Error !ZM_Aux::isNumber " + mess[#field] + " from: " + cp, wId); \
     return; \
   }
 #define checkField(field) \
   if (mess.find(#field) == mess.end()){  \
-    statusMess(string("receiveHandler Error mess.find ") + #field + " from: " + cp);  \
+    ERROR_MESS(string("schedr::sendHandler Error mess.find ") + #field + " from: " + cp, wId);  \
     return;  \
   }
 
   // error from worker
   auto mess = ZM_Aux::deserialn(data);
+  uint64_t wId = 0;
   string cp = remcp;
   checkFieldNum(command);
   checkField(connectPnt);
   cp = mess["connectPnt"];
 
   if (ec && (_workers.find(cp) != _workers.end())){
+    wId =_workers[cp].base.id;
     ZM_Base::messType mtype = ZM_Base::messType(stoi(mess["command"]));
     switch (mtype){
       case ZM_Base::messType::newTask:{
@@ -83,7 +93,7 @@ void sendHandler(const string& remcp, const string& data, const std::error_code&
       default: // I'm OK
         break;
     }
-    statusMess("sendHandler worker not response, cp: " + cp);
+    ERROR_MESS("schedr::sendHandler worker not response, cp: " + cp, wId);
     if (_workers[cp].base.rating > 1){
       --_workers[cp].base.rating;
       _messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::workerRating,
@@ -95,6 +105,6 @@ void sendHandler(const string& remcp, const string& data, const std::error_code&
   }
   // error from manager
   else if (ec){
-    statusMess("sendHandler manager not response, cp: " + cp);
+    ERROR_MESS("schedr::sendHandler manager not response, cp: " + cp, 0);
   }  
 }

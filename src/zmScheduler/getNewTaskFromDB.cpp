@@ -43,6 +43,7 @@ void getNewTaskFromDB(ZM_DB::DbProvider& db){
       _tasks.push(sTask{t.qTaskId, t.base, t.params});
     }
     _schedr.activeTask = _tasks.size();
+    ctickNT.reset();
   }
   else if (ctickNT(1000)){ // every 1000 cycle
     statusMess("getNewTaskFromDB db error: " + db.getLastError());

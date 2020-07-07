@@ -37,26 +37,36 @@ extern unordered_map<std::string, sWorker> _workers;
 extern ZM_Base::scheduler _schedr;
 
 void receiveHandler(const string& remcp, const string& data){
- 
+
+#define ERROR_MESS(mess, wId)                                \
+  _messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::error, \
+                                   wId,                      \
+                                   0,                        \
+                                   0,                        \
+                                   0,                        \
+                                   mess});                   \
+  statusMess(mess);
+
   auto mess = ZM_Aux::deserialn(data);
   if (mess.empty()){
-    statusMess("receiveHandler Error deserialn data from: " + remcp);
+    ERROR_MESS("schedr::receiveHandler error deserialn data from: " + remcp, 0);    
     return;
   } 
 #define checkFieldNum(field) \
   if (mess.find(#field) == mess.end()){ \
-    statusMess(string("receiveHandler Error mess.find ") + #field + " from: " + cp); \
+    ERROR_MESS(string("schedr::receiveHandler error mess.find ") + #field + " from: " + cp, wId); \
     return;  \
   } \
   if (!ZM_Aux::isNumber(mess[#field])){ \
-    statusMess("receiveHandler Error !ZM_Aux::isNumber " + mess[#field] + " from: " + cp); \
+    ERROR_MESS("schedr::receiveHandler error !ZM_Aux::isNumber " + mess[#field] + " from: " + cp, wId); \
     return; \
   }
 #define checkField(field) \
   if (mess.find(#field) == mess.end()){  \
-    statusMess(string("receiveHandler Error mess.find ") + #field + " from: " + cp);  \
+    ERROR_MESS(string("schedr::receiveHandler error mess.find ") + #field + " from: " + cp, wId);  \
     return;  \
   }
+  uint64_t wId = 0;
   string cp = remcp;
   checkFieldNum(command);
   checkField(connectPnt);
@@ -66,6 +76,7 @@ void receiveHandler(const string& remcp, const string& data){
   cp = mess["connectPnt"];
   if(_workers.find(cp) != _workers.end()){
     auto& worker = _workers[cp];
+    wId = worker.base.id;
     switch (mtype){
       case ZM_Base::messType::taskError:
       case ZM_Base::messType::taskCompleted: 
@@ -78,7 +89,7 @@ void receiveHandler(const string& remcp, const string& data){
         checkField(taskResult);
         worker.base.activeTask = stoi(mess["activeTask"]);
         _messToDB.push(ZM_DB::messSchedr{mtype, 
-                                         worker.base.id,
+                                         wId,
                                          stoull(mess["taskId"]),
                                          0,
                                          0,
@@ -86,22 +97,28 @@ void receiveHandler(const string& remcp, const string& data){
         break;
       case ZM_Base::messType::justStartWorker:
         worker.base.activeTask = 0;
-        _messToDB.push(ZM_DB::messSchedr{mtype, worker.base.id});
+        _messToDB.push(ZM_DB::messSchedr{mtype, wId});
         break;
       case ZM_Base::messType::progress:{
         int tCnt = 0;
         while(mess.find("taskId" + to_string(tCnt)) != mess.end()){
           _messToDB.push(ZM_DB::messSchedr{mtype, 
-                                           worker.base.id,
+                                           wId,
                                            stoull(mess["taskId" + to_string(tCnt)]),
                                            stoi(mess["progress" + to_string(tCnt)])});
           ++tCnt;
         }
         }
         break;
+      case ZM_Base::messType::error:{
+        checkField(message);
+        ERROR_MESS(mess["message"], wId);
+        }
+        break;
       case ZM_Base::messType::pingWorker:
         break;
-      default: statusMess("receiveHandler unknown command: " + mess["command"]);
+      default:
+        ERROR_MESS("schedr::receiveHandler unknown command from worker: " + mess["command"], wId);
         break;
     }    
     worker.isActive = true;
@@ -113,7 +130,7 @@ void receiveHandler(const string& remcp, const string& data){
     if (worker.base.rating < ZM_Base::WORKER_RATING_MAX){
       ++worker.base.rating;
       _messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::workerRating,
-                                       worker.base.id,
+                                       wId,
                                        0,
                                        0,
                                        worker.base.rating});      
@@ -163,7 +180,8 @@ void receiveHandler(const string& remcp, const string& data){
         }
         _workers[mess["workerConnPnt"]].base.state = ZM_Base::stateType::running;
         break;
-      default: statusMess("receiveHandler unknown command: " + mess["command"]);
+      default:
+        ERROR_MESS("schedr::receiveHandler unknown command from manager: " + mess["command"], 0);
         break;
     }
   }

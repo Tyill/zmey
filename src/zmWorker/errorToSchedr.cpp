@@ -27,10 +27,11 @@
 #include "zmBase/structurs.h"
 #include "zmCommon/tcp.h"
 #include "zmCommon/serial.h"
+#include "zmCommon/queue.h" 
 
 using namespace std;
 
-void errorToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt, ZM_Aux::QueueThrSave<string>& err){
+void errorToSchedr(const ZM_Base::worker& worker, const std::string& schedrConnPnt, ZM_Aux::QueueThrSave<string>& err){
 
   string mess;
   while(err.tryPop(mess)){

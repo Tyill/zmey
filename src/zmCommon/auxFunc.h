@@ -54,15 +54,18 @@ void sleepMs(uint64_t ms);
 std::string trim(std::string str);
 
 class CounterTick{
-  int _valmem = 0;
+  int _valmem = -1;
 public:
   bool operator()(int val){
     if (_valmem >= val){
-      _valmem = 0;
+      _valmem = -1;
       return true;
     }
     ++_valmem;
-    return false;
+    return _valmem == 0;
+  };
+  void reset(){
+    _valmem = -1;
   };
 };
 }

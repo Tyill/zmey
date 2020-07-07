@@ -41,7 +41,7 @@ using namespace std;
 void receiveHandler(const string& cp, const string& data);
 void sendHandler(const string& cp, const string& data, const std::error_code& ec);
 void getNewTaskFromDB(ZM_DB::DbProvider& db);
-void sendTaskToWorker(const ZM_Base::scheduler&, unordered_map<std::string, sWorker>&, ZM_Aux::QueueThrSave<sTask>&);
+void sendTaskToWorker(const ZM_Base::scheduler&, unordered_map<std::string, sWorker>&, ZM_Aux::QueueThrSave<sTask>&, ZM_Aux::QueueThrSave<ZM_DB::messSchedr>& messToDB);
 void sendAllMessToDB(ZM_DB::DbProvider& db);
 void checkStatusWorkers(const ZM_Base::scheduler&, unordered_map<std::string, sWorker>&, ZM_Aux::QueueThrSave<ZM_DB::messSchedr>&);
 void getPrevTaskFromDB(ZM_DB::DbProvider& db, ZM_Base::scheduler&,  ZM_Aux::QueueThrSave<sTask>&);
@@ -192,7 +192,7 @@ int main(int argc, char* argv[]){
       FUTURE_RUN(frGetNewTask, dbNewTask, getNewTaskFromDB);
     }        
     // send task to worker    
-    sendTaskToWorker(_schedr, _workers, _tasks);    
+    sendTaskToWorker(_schedr, _workers, _tasks, _messToDB);    
 
     // send all mess to DB
     if(timer.onDelTmMS(true, cng.sendAllMessTOutMS, 0) && !_messToDB.empty()){

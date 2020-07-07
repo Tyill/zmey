@@ -47,5 +47,7 @@ void sendAllMessToDB(ZM_DB::DbProvider& db){
     if (ctickAD(10)){ // every 10 cycle
       statusMess("sendAllMessToDB db error: " + db.getLastError());
     }
+  }else{
+    ctickAD.reset();
   }
 }
