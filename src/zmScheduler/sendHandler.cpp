@@ -38,7 +38,7 @@ extern ZM_Aux::QueueThrSave<ZM_DB::messSchedr> _messToDB;
 extern unordered_map<std::string, sWorker> _workers;
 extern ZM_Base::scheduler _schedr;
 
-void sendHandler(const string& remcp, const string& data, const std::error_code& ec){
+void sendHandler(const string& cp, const string& data, const std::error_code& ec){
 #define ERROR_MESS(mess, wId)                                \
   _messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::error, \
                                    wId,                      \
@@ -66,10 +66,7 @@ void sendHandler(const string& remcp, const string& data, const std::error_code&
   // error from worker
   auto mess = ZM_Aux::deserialn(data);
   uint64_t wId = 0;
-  string cp = remcp;
   checkFieldNum(command);
-  checkField(connectPnt);
-  cp = mess["connectPnt"];
 
   if (ec && (_workers.find(cp) != _workers.end())){
     wId =_workers[cp].base.id;
@@ -83,14 +80,15 @@ void sendHandler(const string& remcp, const string& data, const std::error_code&
         checkFieldNum(maxDurationSec);
         sTask t;
         t.base.id = stoull(mess["taskId"]);
-        t.params = stoi(mess["params"]);
-        t.base.script = stoi(mess["script"]);
+        t.params = mess["params"];
+        t.base.script = mess["script"];
         t.base.averDurationSec = stoi(mess["averDurationSec"]);
         t.base.maxDurationSec = stoi(mess["maxDurationSec"]);
         _tasks.push(move(t));
         }
         break;
-      default: // I'm OK
+      default:
+        ERROR_MESS("schedr::sendHandler wrong command mtype: " + mess["command"] + ", cp: " + cp, wId);
         break;
     }
     ERROR_MESS("schedr::sendHandler worker not response, cp: " + cp, wId);
@@ -103,8 +101,7 @@ void sendHandler(const string& remcp, const string& data, const std::error_code&
                                        _workers[cp].base.rating});      
     }    
   }
-  // error from manager
-  else if (ec){
-    ERROR_MESS("schedr::sendHandler manager not response, cp: " + cp, 0);
+  else {
+    ERROR_MESS("schedr::sendHandler wrong receiver: " + cp, 0);
   }  
 }

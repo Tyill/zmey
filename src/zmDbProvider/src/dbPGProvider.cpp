@@ -127,7 +127,7 @@ bool DbPGProvider::createTables(){
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
-  ss << "CREATE TABLE IF NOT EXISTS tblError("
+  ss << "CREATE TABLE IF NOT EXISTS tblInternError("
         "id           SERIAL PRIMARY KEY,"
         "schedr       INT REFERENCES tblScheduler,"
         "worker       INT REFERENCES tblWorker,"
@@ -1291,13 +1291,12 @@ std::vector<uint64_t> DbPGProvider::getAllTasks(uint64_t pplId, ZM_Base::stateTy
   PQclear(res);
   return ret;
 }
-bool DbPGProvider::getSchedrAndWorkerByTask(uint64_t tId, uint64_t& qtId, ZM_Base::scheduler& scng, ZM_Base::worker& wcng){
+bool DbPGProvider::getWorkerByTask(uint64_t tId, uint64_t& qtId, ZM_Base::worker& wcng){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
-  ss << "SELECT tq.id, sch.id, sch.connPnt, wkr.id, wkr.connPnt "
+  ss << "SELECT tq.id, wkr.id, wkr.connPnt "
         "FROM tblTaskQueue tq "
         "JOIN tblUPipelineTask tpp ON tpp.qtask = tq.id "
-        "JOIN tblScheduler sch ON sch.id = tq.schedr "
         "JOIN tblWorker wkr ON wkr.id = tq.worker "
         "WHERE tpp.id = " << tId << ";";
 
@@ -1313,18 +1312,40 @@ bool DbPGProvider::getSchedrAndWorkerByTask(uint64_t tId, uint64_t& qtId, ZM_Bas
     return false;
   }
   qtId = stoull(PQgetvalue(res, 0, 0));
-  scng.id = stoull(PQgetvalue(res, 0, 1));
-  scng.connectPnt = PQgetvalue(res, 0, 2);
-  wcng.id = stoull(PQgetvalue(res, 0, 3));
-  wcng.connectPnt = PQgetvalue(res, 0, 4);
+  wcng.id = stoull(PQgetvalue(res, 0, 1));
+  wcng.connectPnt = PQgetvalue(res, 0, 2);
 
   PQclear(res); 
   return true;
 }
 
-std::vector<ZM_DB::messError> DbPGProvider::getErrors(uint64_t sId, uint64_t wId, uint32_t mCnt){
-  
-  return std::vector<ZM_DB::messError>();
+vector<ZM_DB::messError> DbPGProvider::getInternErrors(uint64_t sId, uint64_t wId, uint32_t mCnt){
+  lock_guard<mutex> lk(_mtx);
+  if (mCnt == 0){
+    mCnt = INT32_MAX;
+  }
+  stringstream ss;
+  ss << "SELECT message, createTime "
+        "FROM tblInternError "
+        "WHERE (schedr = " << sId << " OR " << sId << " = 0)" << " AND "
+        "      (worker = " << wId << " OR " << wId << " = 0) ORDER BY createTime LIMIT " << mCnt << ";";
+
+  auto res = PQexec(_pg, ss.str().c_str());
+  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+    errorMess(string("getInternErrors error: ") + PQerrorMessage(_pg));
+    PQclear(res);
+    return vector<ZM_DB::messError>();
+  }  
+  int rows = PQntuples(res);
+  std::vector<ZM_DB::messError> ret(rows);
+  for (int i = 0; i < rows; ++i){
+    ret[i].schedrId = sId;
+    ret[i].workerId = wId;
+    ret[i].message = PQgetvalue(res, i, 0);
+    ret[i].createTime = PQgetvalue(res, i, 1);
+  }
+  PQclear(res);
+  return ret;
 }
 
 // for zmSchedr
@@ -1569,10 +1590,16 @@ bool DbPGProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::messSc
               "WHERE id = " << m.workerId << ";";
         break;
       case ZM_Base::messType::error:
-        ss << "INSERT INTO tblError (schedr, worker, message) VALUES("
+        if (m.workerId){
+          ss << "INSERT INTO tblInternError (schedr, worker, message) VALUES("
+                "'" << sId << "',"
+                "'" << m.workerId << "',"
+                "'" << m.result << "');";
+        }else{
+          ss << "INSERT INTO tblInternError (schedr, message) VALUES("
               "'" << sId << "',"
-              "'" << m.workerId << "',"
               "'" << m.result << "');";
+        }
         break;
     }    
   }

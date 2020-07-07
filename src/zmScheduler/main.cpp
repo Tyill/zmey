@@ -138,18 +138,9 @@ int main(int argc, char* argv[]){
   signal(SIGINT, closeHandler);
   signal(SIGTERM, closeHandler);
   signal(SIGQUIT, closeHandler);
-
-  // TCP server
-  string err;
-  if (ZM_Tcp::startServer(cng.connectPnt, err)){
-    ZM_Tcp::setReceiveCBack(receiveHandler);
-    ZM_Tcp::setStsSendCBack(sendHandler);
-    statusMess("Tcp server running: " + cng.connectPnt);
-  }else{
-    statusMess("Tcp server error, busy -connectPnt: " + cng.connectPnt + " " + err);
-    return -1;
-  }
+  
   // db providers
+  string err;
   auto dbNewTask = createDbProvider(cng, err);
   auto dbSendMess = dbNewTask ? createDbProvider(cng, err) : nullptr;
   if (dbNewTask && dbSendMess){ 
@@ -171,18 +162,29 @@ int main(int argc, char* argv[]){
   // prev tasks and workers
   getPrevTaskFromDB(*dbNewTask, _schedr, _tasks);
   getPrevWorkersFromDB(*dbNewTask, _schedr, _workers);
-  
+ 
+  // TCP server
+  ZM_Tcp::setReceiveCBack(receiveHandler);
+  ZM_Tcp::setStsSendCBack(sendHandler);
+  if (ZM_Tcp::startServer(cng.connectPnt, err)){
+    statusMess("Tcp server running: " + cng.connectPnt);
+  }else{
+    statusMess("Tcp server error, busy -connectPnt: " + cng.connectPnt + " " + err);
+    return -1;
+  }
+  ///////////////////////////////////////////////////////
+
   future<void> frGetNewTask,
                frSendAllMessToDB; 
   ZM_Aux::TimerDelay timer;
   const int minCycleTimeMS = 10;
 
-#define FUTURE_RUN(fut, db, func)                                                 \
-  if(!fut.valid() || (fut.wait_for(chrono::seconds(0)) == future_status::ready)){ \
-    fut = async(launch::async, [&db]{                                             \
-      func(*db);                                                                  \
-    });                                                                           \
-  }
+  #define FUTURE_RUN(fut, db, func)                                                 \
+    if(!fut.valid() || (fut.wait_for(chrono::seconds(0)) == future_status::ready)){ \
+      fut = async(launch::async, [&db]{                                             \
+        func(*db);                                                                  \
+      });                                                                           \
+    }
   // main cycle
   while (!_fClose){
     timer.updateCycTime();   

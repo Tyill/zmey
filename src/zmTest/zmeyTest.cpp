@@ -56,7 +56,7 @@ public:
       isSchedrAndWorker = true;     
      
       uint64_t* outSchId = nullptr;      
-      auto sCnt = zmey::zmGetAllSchedulers(_zc, zmey::zmStateType::undefined, &outSchId);
+      auto sCnt = zmey::zmGetAllSchedulers(_zc, zmey::zmStateType::zmUndefined, &outSchId);
       if (sCnt == 0){ 
         zmey::zmSchedr scng;
         scng.capacityTask = 10000;
@@ -82,6 +82,7 @@ public:
                     wcng.capacityTask == 10 && 
                     strcmp(wcng.connectPnt, "localhost:4445") == 0);
         perror("repeate zmeyTest");
+        exit(0);
       }
     }
   }
@@ -96,7 +97,7 @@ protected:
 TEST_F(ZmeyTest, pauseSchedr){
  
   uint64_t *sId = nullptr;
-  int scnt = zmey::zmGetAllSchedulers(_zc, zmey::zmStateType::undefined, &sId);
+  int scnt = zmey::zmGetAllSchedulers(_zc, zmey::zmStateType::zmUndefined, &sId);
      
   zmey::zmPauseScheduler(_zc, sId[0]);
 
@@ -110,7 +111,7 @@ TEST_F(ZmeyTest, pauseSchedr){
 TEST_F(ZmeyTest, startSchedr){
  
   uint64_t* sId = nullptr;
-  int scnt = zmey::zmGetAllSchedulers(_zc, zmey::zmStateType::undefined, &sId);
+  int scnt = zmey::zmGetAllSchedulers(_zc, zmey::zmStateType::zmUndefined, &sId);
  
   zmey::zmStartScheduler(_zc, sId[0]);
 
@@ -124,7 +125,7 @@ TEST_F(ZmeyTest, startSchedr){
 TEST_F(ZmeyTest, pingSchedr){
  
   uint64_t *sId = nullptr;
-  int scnt = zmey::zmGetAllSchedulers(_zc, zmey::zmStateType::undefined, &sId);
+  int scnt = zmey::zmGetAllSchedulers(_zc, zmey::zmStateType::zmUndefined, &sId);
      
   EXPECT_TRUE(zmey::zmPingScheduler(_zc, sId[0]));
 }
@@ -132,10 +133,10 @@ TEST_F(ZmeyTest, pingSchedr){
 TEST_F(ZmeyTest, pauseWorker){
  
   uint64_t *sId = nullptr;
-  int scnt = zmey::zmGetAllSchedulers(_zc, zmey::zmStateType::undefined, &sId);
+  int scnt = zmey::zmGetAllSchedulers(_zc, zmey::zmStateType::zmUndefined, &sId);
    
   uint64_t* wId = nullptr;
-  int wcnt = zmey::zmGetAllWorkers(_zc, sId[0], zmey::zmStateType::undefined, &wId);
+  int wcnt = zmey::zmGetAllWorkers(_zc, sId[0], zmey::zmStateType::zmUndefined, &wId);
   
   zmey::zmPauseWorker(_zc, wId[0]);
 
@@ -149,10 +150,10 @@ TEST_F(ZmeyTest, pauseWorker){
 TEST_F(ZmeyTest, startWorker){
  
   uint64_t *sId = nullptr;
-  int scnt = zmey::zmGetAllSchedulers(_zc, zmey::zmStateType::undefined, &sId);
+  int scnt = zmey::zmGetAllSchedulers(_zc, zmey::zmStateType::zmUndefined, &sId);
 
   uint64_t* wId = nullptr;
-  int wcnt = zmey::zmGetAllWorkers(_zc, sId[0], zmey::zmStateType::undefined, &wId);
+  int wcnt = zmey::zmGetAllWorkers(_zc, sId[0], zmey::zmStateType::zmUndefined, &wId);
  
   zmey::zmStartWorker(_zc, wId[0]);
 
@@ -166,10 +167,10 @@ TEST_F(ZmeyTest, startWorker){
 TEST_F(ZmeyTest, pingWorker){
  
   uint64_t *sId = nullptr;
-  int scnt = zmey::zmGetAllSchedulers(_zc, zmey::zmStateType::undefined, &sId);
+  int scnt = zmey::zmGetAllSchedulers(_zc, zmey::zmStateType::zmUndefined, &sId);
    
   uint64_t* wId = nullptr;
-  int wcnt = zmey::zmGetAllWorkers(_zc, sId[0], zmey::zmStateType::undefined, &wId);
+  int wcnt = zmey::zmGetAllWorkers(_zc, sId[0], zmey::zmStateType::zmUndefined, &wId);
   
   EXPECT_TRUE(zmey::zmPingWorker(_zc, wId[0]));
 }
@@ -254,7 +255,10 @@ TEST_F(ZmeyTest, startTask){
   char* res2 = nullptr;
   EXPECT_TRUE(zmey::zmTaskResult(_zc, tId2, &res2));
 
-  bool ok  = false;
+  zmey::zmInternError* errs = nullptr;
+  uint32_t errCnt = zmey::zmGetInternErrors(_zc, 0, 0, 10, &errs);
+  
+  EXPECT_TRUE(errCnt == 10) << _pDb->getLastError();
 }
 
 #endif // ZMEYTEST

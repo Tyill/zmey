@@ -613,57 +613,51 @@ bool zmStartTask(zmConn zo, uint64_t qtId){
 bool zmStopTask(zmConn zo, uint64_t tId){
   if (!zo) return false;
     
-  ZM_Base::scheduler scng;
   ZM_Base::worker wcng;  
   uint64_t qtId = 0;
-  if (static_cast<ZM_DB::DbProvider*>(zo)->getSchedrAndWorkerByTask(tId, qtId, scng, wcng)){
+  if (static_cast<ZM_DB::DbProvider*>(zo)->getWorkerByTask(tId, qtId, wcng)){
     auto connCng = static_cast<ZM_DB::DbProvider*>(zo)->getConnectCng();  
     map<string, string> data{
             make_pair("command", to_string((int)ZM_Base::messType::taskStop)),
             make_pair("connectPnt", connCng.connectStr),
-            make_pair("taskId", to_string(qtId)),
-            make_pair("workerConnPnt", wcng.connectPnt),
+            make_pair("taskId", to_string(qtId))
           };
 
-    return ZM_Tcp::synchSendData(scng.connectPnt, ZM_Aux::serialn(data));
+    return ZM_Tcp::synchSendData(wcng.connectPnt, ZM_Aux::serialn(data));
   }
   return false;
 }
 bool zmPauseTask(zmConn zo, uint64_t tId){
   if (!zo) return false;
     
-  ZM_Base::scheduler scng;
   ZM_Base::worker wcng;  
   uint64_t qtId = 0;
-  if (static_cast<ZM_DB::DbProvider*>(zo)->getSchedrAndWorkerByTask(tId, qtId, scng, wcng)){
+  if (static_cast<ZM_DB::DbProvider*>(zo)->getWorkerByTask(tId, qtId, wcng)){
     auto connCng = static_cast<ZM_DB::DbProvider*>(zo)->getConnectCng();  
     map<string, string> data{
             make_pair("command", to_string((int)ZM_Base::messType::taskPause)),
             make_pair("connectPnt", connCng.connectStr),
-            make_pair("taskId", to_string(qtId)),
-            make_pair("workerConnPnt", wcng.connectPnt),
+            make_pair("taskId", to_string(qtId))
           };
 
-    return ZM_Tcp::synchSendData(scng.connectPnt, ZM_Aux::serialn(data));
+    return ZM_Tcp::synchSendData(wcng.connectPnt, ZM_Aux::serialn(data));
   }
   return false;
 }
 bool zmContinueTask(zmConn zo, uint64_t tId){
   if (!zo) return false;
     
-  ZM_Base::scheduler scng;
   ZM_Base::worker wcng;  
   uint64_t qtId = 0;
-  if (static_cast<ZM_DB::DbProvider*>(zo)->getSchedrAndWorkerByTask(tId, qtId, scng, wcng)){
+  if (static_cast<ZM_DB::DbProvider*>(zo)->getWorkerByTask(tId, qtId, wcng)){
     auto connCng = static_cast<ZM_DB::DbProvider*>(zo)->getConnectCng();  
     map<string, string> data{
             make_pair("command", to_string((int)ZM_Base::messType::taskRunning)),
             make_pair("connectPnt", connCng.connectStr),
-            make_pair("taskId", to_string(qtId)),
-            make_pair("workerConnPnt", wcng.connectPnt),
+            make_pair("taskId", to_string(qtId))
           };
 
-    return ZM_Tcp::synchSendData(scng.connectPnt, ZM_Aux::serialn(data));
+    return ZM_Tcp::synchSendData(wcng.connectPnt, ZM_Aux::serialn(data));
   }
   return false;
 }
@@ -735,9 +729,24 @@ uint32_t zmGetAllTasks(zmConn zo, uint64_t pplId, zmStateType state, uint64_t** 
 ///////////////////////////////////////////////////////////////////////////////
 /// Internal errors
 
-uint32_t zmGetErrors(zmConn, uint64_t sId, uint64_t wId, uint32_t mCnt, zmErrorType** outErrors){
+uint32_t zmGetInternErrors(zmConn zo, uint64_t sId, uint64_t wId, uint32_t mCnt, zmInternError** outErrors){
+  if (!zo) return 0; 
 
-  return 0;
+  auto errs = static_cast<ZM_DB::DbProvider*>(zo)->getInternErrors(sId, wId, mCnt);
+  size_t esz = errs.size();
+  if (esz > 0){
+    int ss = esz * sizeof(zmInternError);
+    *outErrors = (zmInternError*)realloc(*outErrors, esz * sizeof(zmInternError));
+    for(int i = 0; i < esz; ++i){
+      (*outErrors)[i].sId = sId;
+      (*outErrors)[i].wId = wId;
+      strncpy((*outErrors)[i].createTime, errs[i].createTime.c_str(), 32);
+      strncpy((*outErrors)[i].message, errs[i].message.c_str(), 256);
+    }    
+  }else{
+    *outErrors = nullptr;
+  }
+  return (uint32_t)esz;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

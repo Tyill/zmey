@@ -1705,7 +1705,7 @@ TEST_F(DBTest, getNewTasksForSchedr){
               (tasks[0].params == "{param21,param22,param23,result1}") &&
               (tasks[0].base.id == ttId)) << _pDb->getLastError();    
 }
-TEST_F(DBTest, getSchedrAndWorkerByTask){
+TEST_F(DBTest, getWorkerByTask){
   EXPECT_TRUE(_pDb->delAllSchedrs()) << _pDb->getLastError();
   EXPECT_TRUE(_pDb->delAllTask()) << _pDb->getLastError();
   EXPECT_TRUE(_pDb->delAllPipelines()) << _pDb->getLastError();
@@ -1794,8 +1794,8 @@ TEST_F(DBTest, getSchedrAndWorkerByTask){
   
   tasks.clear();
   uint64_t qId = 0;
-  EXPECT_TRUE(_pDb->getSchedrAndWorkerByTask(tId1, qId, schedr, worker) && 
-              (schedr.id == sId) && 
+  worker.id = 0;
+  EXPECT_TRUE(_pDb->getWorkerByTask(tId1, qId, worker) && 
               (worker.id == wId)) << _pDb->getLastError();      
 }
 TEST_F(DBTest, sendAllMessFromSchedr){
@@ -1834,5 +1834,6 @@ TEST_F(DBTest, sendAllMessFromSchedr){
 
   EXPECT_TRUE(_pDb->sendAllMessFromSchedr(sId, mess)) << _pDb->getLastError();
 }
+
 
 #endif //PGTEST

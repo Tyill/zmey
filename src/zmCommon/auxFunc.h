@@ -58,7 +58,7 @@ class CounterTick{
 public:
   bool operator()(int val){
     if (_valmem >= val){
-      _valmem = -1;
+      _valmem = 0;
       return true;
     }
     ++_valmem;

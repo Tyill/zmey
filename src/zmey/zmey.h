@@ -506,7 +506,7 @@ ZMEY_API uint32_t zmGetAllTasks(zmConn, uint64_t pplId, zmStateType state, uint6
 /// Internal errors
 
 /// error
-struct zmErrorType{
+struct zmInternError{
   uint64_t sId;        ///< scheduler id 
   uint64_t wId;        ///< worker id 
   char createTime[32];
@@ -518,9 +518,9 @@ struct zmErrorType{
 /// @param[in] sId - scheduler id. If '0' then all
 /// @param[in] wId - worker id. If '0' then all
 /// @param[in] mCnt - last mess max count. If '0' then all 
-/// @param[out] outErrors - errors through ';'
+/// @param[out] outErrors
 /// @return count of errors
-ZMEY_API uint32_t zmGetErrors(zmConn, uint64_t sId, uint64_t wId, uint32_t mCnt, zmErrorType** outErrors);
+ZMEY_API uint32_t zmGetInternErrors(zmConn, uint64_t sId, uint64_t wId, uint32_t mCnt, zmInternError** outErrors);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// free resouces

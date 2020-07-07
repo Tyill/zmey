@@ -123,7 +123,11 @@ void receiveHandler(const string& remcp, const string& data){
     }    
     worker.isActive = true;
     if (worker.base.state == ZM_Base::stateType::notResponding){
-      worker.base.state = ZM_Base::stateType::running;
+      if (worker.stateMem != ZM_Base::stateType::notResponding){ 
+        worker.base.state = worker.stateMem;
+      }else{
+        worker.base.state = worker.stateMem = ZM_Base::stateType::running;
+      }
       _messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::startWorker,
                                        worker.base.id});
     }
@@ -139,19 +143,6 @@ void receiveHandler(const string& remcp, const string& data){
   // from manager
   else{
     switch (mtype){
-      case ZM_Base::messType::taskPause:
-      case ZM_Base::messType::taskRunning:
-      case ZM_Base::messType::taskStop:{
-        checkFieldNum(taskId);
-        checkField(workerConnPnt);
-        map<string, string> data{
-          make_pair("command", to_string((int)mtype)),
-          make_pair("connectPnt", _schedr.connectPnt),
-          make_pair("taskId", mess["taskId"])
-        };
-        ZM_Tcp::sendData(mess["workerConnPnt"], ZM_Aux::serialn(data));
-        }
-        break;   
       case ZM_Base::messType::pingSchedr:     // only check
         break;
       case ZM_Base::messType::pauseSchedr:
@@ -166,22 +157,24 @@ void receiveHandler(const string& remcp, const string& data){
         }
         _schedr.state = ZM_Base::stateType::running;
         break;
-      case ZM_Base::messType::pauseWorker:
+      case ZM_Base::messType::pauseWorker:{
         checkField(workerConnPnt);
-        if (_workers[mess["workerConnPnt"]].base.state != ZM_Base::stateType::pause){
-          _messToDB.push(ZM_DB::messSchedr{mtype, _workers[mess["workerConnPnt"]].base.id});
+        auto& worker = _workers[mess["workerConnPnt"]];
+        if (worker.base.state != ZM_Base::stateType::pause){
+          _messToDB.push(ZM_DB::messSchedr{mtype, worker.base.id});
         }
-        _workers[mess["workerConnPnt"]].base.state = ZM_Base::stateType::pause;        
-        break;
-      case ZM_Base::messType::startWorker:
+        worker.base.state = worker.stateMem = ZM_Base::stateType::pause;
+        } break;
+      case ZM_Base::messType::startWorker:{
         checkField(workerConnPnt);
-        if (_workers[mess["workerConnPnt"]].base.state != ZM_Base::stateType::running){
-          _messToDB.push(ZM_DB::messSchedr{mtype, _workers[mess["workerConnPnt"]].base.id});
+        auto& worker = _workers[mess["workerConnPnt"]];
+        if (worker.base.state != ZM_Base::stateType::running){
+          _messToDB.push(ZM_DB::messSchedr{mtype, worker.base.id});
         }
-        _workers[mess["workerConnPnt"]].base.state = ZM_Base::stateType::running;
-        break;
+        worker.base.state = worker.stateMem = ZM_Base::stateType::running;
+        } break;
       default:
-        ERROR_MESS("schedr::receiveHandler unknown command from manager: " + mess["command"], 0);
+        ERROR_MESS("schedr::receiveHandler wrong command from manager: " + mess["command"], 0);
         break;
     }
   }

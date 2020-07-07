@@ -39,6 +39,7 @@ void checkStatusWorkers(const ZM_Base::scheduler& schedr,
     if (!w.second.isActive && (w.second.base.state != ZM_Base::stateType::notResponding)){            
       messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::workerNotResponding,
                                       w.second.base.id});
+      w.second.stateMem = w.second.base.state;
       w.second.base.state = ZM_Base::stateType::notResponding;
     }else{
       w.second.isActive = false;
