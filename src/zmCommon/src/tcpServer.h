@@ -75,6 +75,7 @@ class TcpServer{
 public:
   TcpServer(asio::io_context& ioc, const std::string& addr, int port)
     : _acceptor(ioc, *tcp::resolver(ioc).resolve(addr, std::to_string(port)).begin()){
+    ioctl(_acceptor.native_handle(), FIOCLEX); //  FD_CLOEXEC
     accept();
   }
   

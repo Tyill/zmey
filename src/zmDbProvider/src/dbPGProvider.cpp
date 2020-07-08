@@ -1532,17 +1532,23 @@ bool DbPGProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::messSc
               "WHERE ts.qtask = " << m.taskId << " AND tq.worker = " << m.workerId << ";";
         break;
       case ZM_Base::messType::justStartWorker:
-        ss << "WITH taskUpd AS ("
+        ss << "UPDATE tblTaskTime SET "
+              "takeInWorkTime = NULL, "
+              "startTime = NULL "
+              "FROM tblTaskState ts, tblTaskQueue tq "
+              "WHERE tq.id = ts.qtask AND tq.worker = " << m.workerId << " AND (ts.state BETWEEN 2 AND 3);"
+              
+              "WITH taskUpd AS ("
               "UPDATE tblTaskQueue tq SET "
               "schedr = NULL,"
               "worker = NULL " 
               "FROM tblTaskState ts "
               "WHERE tq.id = ts.qtask AND tq.worker = " << m.workerId << " AND (ts.state BETWEEN 2 AND 3) " // running, pause
               "RETURNING tq.id) "
-
+                         
               "UPDATE tblTaskState SET "
               "state = " << (int)ZM_Base::stateType::ready << " "
-              "WHERE qtask = (SELECT id FROM taskUpd);";
+              "WHERE qtask IN (SELECT id FROM taskUpd);";
         break;
       case ZM_Base::messType::progress:
         ss << "UPDATE tblTaskState ts SET "
@@ -1576,17 +1582,24 @@ bool DbPGProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::messSc
               "WHERE id = " << m.workerId << ";";
         break;
       case ZM_Base::messType::workerNotResponding:
-        ss << "WITH taskUpd AS ("
+
+        ss << "UPDATE tblTaskTime tt SET "
+              "takeInWorkTime = NULL, "
+              "startTime = NULL "
+              "FROM tblTaskState ts, tblTaskQueue tq "
+              "WHERE tq.id = ts.qtask AND tq.worker = " << m.workerId << " AND (ts.state BETWEEN 2 AND 3);"
+              
+              "WITH taskUpd AS ("
               "UPDATE tblTaskQueue tq SET "
               "schedr = NULL,"
               "worker = NULL " 
               "FROM tblTaskState ts "
               "WHERE tq.id = ts.qtask AND tq.worker = " << m.workerId << " AND (ts.state BETWEEN 2 AND 3) " // running, pause
               "RETURNING tq.id) "
-            
+                         
               "UPDATE tblTaskState SET "
               "state = " << (int)ZM_Base::stateType::ready << " "
-              "WHERE qtask = (SELECT id FROM taskUpd);"
+              "WHERE qtask IN (SELECT id FROM taskUpd);"
 
               "UPDATE tblWorker SET "
               "state = " << (int)ZM_Base::stateType::notResponding << " "

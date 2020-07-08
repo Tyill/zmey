@@ -134,7 +134,7 @@ int main(int argc, char* argv[]){
   ZM_Tcp::setReceiveCBack(receiveHandler);
   ZM_Tcp::setStsSendCBack(sendHandler);
   string err;
-  CHECK(!ZM_Tcp::startServer(cng.connectPnt, err, 1), "Tcp server error, busy: " + cng.connectPnt + " " + err);
+  CHECK(!ZM_Tcp::startServer(cng.connectPnt, err, 1), "Tcp server error: " + cng.connectPnt + " " + err);
   statusMess("Tcp server running: " + cng.connectPnt);
   
   ///////////////////////////////////////////////////////
