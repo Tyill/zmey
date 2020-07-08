@@ -36,7 +36,7 @@ void checkStatusWorkers(const ZM_Base::scheduler& schedr,
                         ZM_Aux::QueueThrSave<ZM_DB::messSchedr>& messToDB){
   vector<sWorker*> wkrNotResp; 
   for(auto& w : workers){
-    if (!w.second.isActive && (w.second.base.state != ZM_Base::stateType::notResponding)){            
+    if (!w.second.isActive){            
       wkrNotResp.push_back(&w.second);
     }else{
       w.second.isActive = false;
@@ -44,10 +44,12 @@ void checkStatusWorkers(const ZM_Base::scheduler& schedr,
   }
   if (wkrNotResp.size() < workers.size()){ 
     for(auto w : wkrNotResp){
-      messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::workerNotResponding,
-                                      w->base.id});
-      w->stateMem = w->base.state;
-      w->base.state = ZM_Base::stateType::notResponding; 
+      if (w->base.state != ZM_Base::stateType::notResponding){
+        messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::workerNotResponding,
+                                        w->base.id});
+        w->stateMem = w->base.state;
+        w->base.state = ZM_Base::stateType::notResponding;
+      } 
     }
   }else{
     string mess = "schedr::checkStatusWorkers error all workers are not available, no network";

@@ -38,21 +38,14 @@ class TimerDelay {
   std::vector<tmBase> _tmrs;
   int _tmSz;	
   uint64_t _prevCycTm;
-  uint64_t _cycleTm;
-  tm _prevTm;
-  bool _secOnc = false, 
-       _minOnc = false,
-       _hourOnc = false;
+  uint64_t _cycleTm;  
 public:
   TimerDelay();
   void updateCycTime();
   uint64_t getDeltaTimeMS();
-  bool onDelTmSec(bool start, int delay, int id);
-  bool offDelTmSec(bool start, int delay, int id);
-  bool onDelTmMS(bool start, int delay, int id);
-  bool offDelTmMS(bool start, int delay, int id);
-  bool secOnc();
-  bool minOnc();
-  bool hourOnc();
+  bool onDelaySec(bool start, int delay, int id);
+  bool offDelaySec(bool start, int delay, int id);
+  bool onDelayMS(bool start, int delay, int id);
+  bool offDelayMS(bool start, int delay, int id);
 };
 }

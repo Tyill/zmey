@@ -100,7 +100,7 @@ void receiveHandler(const string& remcp, const string& data){
           case ZM_Base::messType::taskRunning: iPrc->contin(); break;
           case ZM_Base::messType::taskStop:    iPrc->stop(); break;
           default:{
-            ERROR_MESS("worker::receiveHandler unknown command: " + mess["command"]);
+            ERROR_MESS("worker::receiveHandler wrong command: " + mess["command"]);
           }
           break;
         }

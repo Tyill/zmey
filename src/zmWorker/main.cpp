@@ -61,7 +61,7 @@ struct config{
   int progressTasksTOutSec = 30;
   int pingSchedrTOutSec = 20; 
   int sendAckTOutSec = 1; 
-  std::string connectPnt = "localhost:4146";
+  std::string connectPnt;
   std::string schedrConnPnt;
 };
 
@@ -111,18 +111,22 @@ void parseArgs(int argc, char* argv[], config& outCng){
 #undef SET_PARAM_NUM
 }
 
+#define CHECK(fun, mess) \
+  if (fun){              \
+    statusMess(mess);    \
+    return -1;           \
+  }
+
 int main(int argc, char* argv[]){
 
   config cng;
   parseArgs(argc, argv, cng); 
   if (cng.logEna){
     _pLog = unique_ptr<ZM_Aux::Logger>(new ZM_Aux::Logger("zmWorker.log", ""));
-  }    
-  if (cng.schedrConnPnt.empty()){
-    statusMess("Not set param '-scp' - scheduler connPnt");
-    return -1;
-  }
- 
+  } 
+  CHECK(cng.connectPnt.empty(), "Not set param '-cp' - worker connection point: IP or DNS:port");
+  CHECK(cng.schedrConnPnt.empty(), "Not set param '-scp' - scheduler connection point: IP or DNS:port");
+    
   // on start
   _messForSchedr.push(mess2schedr{0, ZM_Base::messType::justStartWorker});
 
@@ -130,12 +134,9 @@ int main(int argc, char* argv[]){
   ZM_Tcp::setReceiveCBack(receiveHandler);
   ZM_Tcp::setStsSendCBack(sendHandler);
   string err;
-  if (ZM_Tcp::startServer(cng.connectPnt, err, 1)){
-    statusMess("Tcp server running: " + cng.connectPnt);
-  }else{
-    statusMess("Tcp server error, busy: " + cng.connectPnt + " " + err);
-    return -1;
-  }
+  CHECK(!ZM_Tcp::startServer(cng.connectPnt, err, 1), "Tcp server error, busy: " + cng.connectPnt + " " + err);
+  statusMess("Tcp server running: " + cng.connectPnt);
+  
   ///////////////////////////////////////////////////////
   
   ZM_Base::worker worker;
@@ -153,7 +154,7 @@ int main(int argc, char* argv[]){
       _isSendAck = false;
       sendMessToSchedr(worker, cng.schedrConnPnt, _messForSchedr.front());
     }
-    else if (!_isSendAck && timer.onDelTmSec(true, cng.sendAckTOutSec, 0)){
+    else if (!_isSendAck && timer.onDelaySec(true, cng.sendAckTOutSec, 0)){
       _isSendAck = true;
     } 
     // update list of tasks
@@ -161,13 +162,13 @@ int main(int argc, char* argv[]){
     worker.activeTask = _procs.size();
 
     // progress of tasks
-    if(timer.onDelTmSec(true, cng.progressTasksTOutSec, 1)){
-      timer.onDelTmSec(false, cng.progressTasksTOutSec, 1);
+    if(timer.onDelaySec(true, cng.progressTasksTOutSec, 1)){
+      timer.onDelaySec(false, cng.progressTasksTOutSec, 1);
       progressToSchedr(worker, cng.schedrConnPnt, _procs);
     }
     // ping to schedr
-    if(timer.onDelTmSec(true, cng.pingSchedrTOutSec, 2)){
-      timer.onDelTmSec(false, cng.pingSchedrTOutSec, 2);
+    if(timer.onDelaySec(true, cng.pingSchedrTOutSec, 2)){
+      timer.onDelaySec(false, cng.pingSchedrTOutSec, 2);
       pingToSchedr(worker, cng.schedrConnPnt);
     }
     // check child process

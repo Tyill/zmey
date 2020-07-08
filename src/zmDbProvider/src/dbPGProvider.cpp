@@ -1457,7 +1457,10 @@ bool DbPGProvider::getNewTasksForSchedr(uint64_t sId, int maxTaskCnt, std::vecto
 }
 bool DbPGProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::messSchedr>& mess){
   lock_guard<mutex> lk(_mtx);
-
+  
+  if(mess.empty()){
+    return true;
+  }
   stringstream ss;
   for (auto& m : mess){
     switch (m.type){      

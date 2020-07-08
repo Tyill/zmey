@@ -116,7 +116,8 @@ void closeHandler(int sig){
   _fClose = true;
 }
 
-unique_ptr<ZM_DB::DbProvider> createDbProvider(const config& cng, std::string& err){
+unique_ptr<ZM_DB::DbProvider> 
+createDbProvider(const config& cng, std::string& err){
   unique_ptr<ZM_DB::DbProvider> db(ZM_DB::makeDbProvider(cng.dbConnCng));  
   if (db && db->getLastError().empty()){
     return db;
@@ -126,14 +127,24 @@ unique_ptr<ZM_DB::DbProvider> createDbProvider(const config& cng, std::string& e
   }
 }
 
+#define CHECK(fun, mess) \
+  if (fun){              \
+    statusMess(mess);    \
+    return -1;           \
+  }
+
 int main(int argc, char* argv[]){
 
   config cng;
   parseArgs(argc, argv, cng);
-  
+
   if (cng.logEna){
     _pLog = unique_ptr<ZM_Aux::Logger>(new ZM_Aux::Logger("zmSchedr.log", ""));
-  }    
+  }
+  CHECK(cng.connectPnt.empty(), "Not set param '-cp' - scheduler connection point: IP or DNS:port");
+  CHECK(cng.dbConnCng.selType == ZM_DB::dbType::undefined, "Check param '-dbtp', such db type is not defined");
+  CHECK(cng.dbConnCng.connectStr.empty(), "Not set param '-dbcs' - db connection string");
+ 
   signal(SIGHUP, closeHandler);
   signal(SIGINT, closeHandler);
   signal(SIGTERM, closeHandler);
@@ -143,20 +154,13 @@ int main(int argc, char* argv[]){
   string err;
   auto dbNewTask = createDbProvider(cng, err);
   auto dbSendMess = dbNewTask ? createDbProvider(cng, err) : nullptr;
-  if (dbNewTask && dbSendMess){ 
-    statusMess(
-      "DB connect success: " + cng.dbType + " " + cng.dbConnCng.connectStr);
-  }else{
-    statusMess(
-      "DB connect error " + err + ": " + cng.dbType + " " + cng.dbConnCng.connectStr);
-    return -1;
-  }
+  CHECK(!dbNewTask || !dbSendMess, "DB connect error " + err + ": " + cng.dbType + " " + cng.dbConnCng.connectStr); 
+  statusMess("DB connect success: " + cng.dbType + " " + cng.dbConnCng.connectStr);
+  
   // schedr from DB
   dbNewTask->getSchedr(cng.connectPnt, _schedr);
-  if (_schedr.id == 0){
-    statusMess("Schedr not found in DB for connectPnt " + cng.connectPnt);
-    return -1;
-  }
+  CHECK(_schedr.id == 0, "Schedr not found in DB for connectPnt " + cng.connectPnt);
+      
   // prev tasks and workers
   getPrevTaskFromDB(*dbNewTask, _schedr, _tasks);
   getPrevWorkersFromDB(*dbNewTask, _schedr, _workers);
@@ -164,12 +168,9 @@ int main(int argc, char* argv[]){
   // TCP server
   ZM_Tcp::setReceiveCBack(receiveHandler);
   ZM_Tcp::setStsSendCBack(sendHandler);
-  if (ZM_Tcp::startServer(cng.connectPnt, err)){
-    statusMess("Tcp server running: " + cng.connectPnt);
-  }else{
-    statusMess("Tcp server error, busy -connectPnt: " + cng.connectPnt + " " + err);
-    return -1;
-  }
+  CHECK(!ZM_Tcp::startServer(cng.connectPnt, err), "Tcp server error, busy -connectPnt: " + cng.connectPnt + " " + err);
+  statusMess("Tcp server running: " + cng.connectPnt);
+  
   ///////////////////////////////////////////////////////
 
   future<void> frGetNewTask,
@@ -195,13 +196,13 @@ int main(int argc, char* argv[]){
     sendTaskToWorker(_schedr, _workers, _tasks, _messToDB);    
 
     // send all mess to DB
-    if(timer.onDelTmMS(true, cng.sendAllMessTOutMS, 0) && !_messToDB.empty()){
-      timer.onDelTmMS(false, cng.sendAllMessTOutMS, 0);
+    if(timer.onDelayMS(true, cng.sendAllMessTOutMS, 0) && !_messToDB.empty()){
+      timer.onDelayMS(false, cng.sendAllMessTOutMS, 0);
       FUTURE_RUN(frSendAllMessToDB, dbSendMess, sendAllMessToDB);
     }    
     // check status of workers
-    if(timer.onDelTmSec(true, cng.checkWorkerTOutSec, 1)){
-      timer.onDelTmSec(false, cng.checkWorkerTOutSec, 1);    
+    if(timer.onDelaySec(true, cng.checkWorkerTOutSec, 1)){
+      timer.onDelaySec(false, cng.checkWorkerTOutSec, 1);    
       checkStatusWorkers(_schedr, _workers, _messToDB);
     }
     // added delay
@@ -211,6 +212,5 @@ int main(int argc, char* argv[]){
   }
   ZM_Tcp::stopServer();
   sendAllMessToDB(*dbSendMess);
-
   return 0;
 }

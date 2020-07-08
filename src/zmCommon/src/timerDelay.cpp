@@ -31,7 +31,6 @@ TimerDelay::TimerDelay(){
   _prevCycTm = currDateTimeSinceEpochMs();
   _cycleTm = 0;
   _tmSz = 0;
-  _secOnc = _minOnc = _hourOnc = false;
 }
 void TimerDelay::updateCycTime(){
   uint64_t ct = currDateTimeSinceEpochMs();
@@ -42,18 +41,12 @@ void TimerDelay::updateCycTime(){
       _tmrs[i].tmCnt = 0;
     }
     _tmrs[i].tmActiv = false;
-  }
-  time_t t = time(nullptr);
-  tm* lct = localtime(&t);
-  _hourOnc = (lct->tm_hour != _prevTm.tm_hour);
-  _minOnc = (lct->tm_min != _prevTm.tm_min);
-  _secOnc = (lct->tm_sec != _prevTm.tm_sec);
-  _prevTm = *lct;
+  }  
 }
 uint64_t TimerDelay::getDeltaTimeMS(){
   return currDateTimeSinceEpochMs() - _prevCycTm;
 }
-bool TimerDelay::onDelTmSec(bool start, int delay, int id){
+bool TimerDelay::onDelaySec(bool start, int delay, int id){
   if (id >= _tmSz){
     _tmrs.resize(id + 1, tmBase{0, false});
     _tmSz = id + 1;
@@ -70,7 +63,7 @@ bool TimerDelay::onDelTmSec(bool start, int delay, int id){
   _tmrs[id].tmActiv = true;
   return res;
 }
-bool TimerDelay::offDelTmSec(bool start, int delay, int id){
+bool TimerDelay::offDelaySec(bool start, int delay, int id){
   if (id >= _tmSz){
     _tmrs.resize(id + 1, tmBase{0, false});
     _tmSz = id + 1;
@@ -86,7 +79,7 @@ bool TimerDelay::offDelTmSec(bool start, int delay, int id){
   _tmrs[id].tmActiv = true;
   return (start || res);
 }
-bool TimerDelay::onDelTmMS(bool start, int delay, int id){
+bool TimerDelay::onDelayMS(bool start, int delay, int id){
   if (id >= _tmSz){
     _tmrs.resize(id + 1, tmBase{0, false});
     _tmSz = id + 1;
@@ -103,7 +96,7 @@ bool TimerDelay::onDelTmMS(bool start, int delay, int id){
   _tmrs[id].tmActiv = true;
   return res;
 }
-bool TimerDelay::offDelTmMS(bool start, int delay, int id){    
+bool TimerDelay::offDelayMS(bool start, int delay, int id){    
   if (id >= _tmSz){
     _tmrs.resize(id + 1, tmBase{0, false});
     _tmSz = id + 1;
@@ -119,13 +112,4 @@ bool TimerDelay::offDelTmMS(bool start, int delay, int id){
   _tmrs[id].tmActiv = true;
   return (start || res);
 }
-bool TimerDelay::secOnc(){
-  return _secOnc;
-}
-bool TimerDelay::minOnc(){
-  return _minOnc;
-}
-bool TimerDelay::hourOnc(){
-  return _hourOnc;
-}  
 }

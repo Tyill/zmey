@@ -64,6 +64,7 @@ void waitProcess(list<Process>& procs, ZM_Aux::QueueThrSave<mess2schedr>& messFo
     
       string resultFile = to_string(tId) + ".result",
              result;
+      bool isRes = true;       
       int fdRes = open(resultFile.c_str(), O_RDONLY);
       if (fdRes >= 0){
         off_t fsz = lseek(fdRes, 0, SEEK_END);
@@ -72,16 +73,18 @@ void waitProcess(list<Process>& procs, ZM_Aux::QueueThrSave<mess2schedr>& messFo
 
         if (read(fdRes, (char*)result.data(), fsz) == -1){
           ERROR_MESS("worker::waitProcess error read " + resultFile + ": " + string(strerror(errno))); 
+          isRes = false;
         }
         close(fdRes);
       }
       else{
         ERROR_MESS("worker::waitProcess error open " + resultFile + ": " + string(strerror(errno)));
+        isRes = false;
       }
 
       ZM_Base::messType mt = ZM_Base::messType::taskCompleted;
       ZM_Base::stateType st = ZM_Base::stateType::completed;
-      if (WIFEXITED(sts)){
+      if (WIFEXITED(sts) && isRes){
         sts = WEXITSTATUS(sts);
         if (sts != 0){
           mt = ZM_Base::messType::taskError;
