@@ -22,7 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#include <unordered_map>
+#include <map>
 #include "zmDbProvider/dbProvider.h"
 #include "zmCommon/queue.h"
 #include "zmCommon/tcp.h"
@@ -32,17 +32,31 @@
 using namespace std;
 
 void checkStatusWorkers(const ZM_Base::scheduler& schedr,
-                        unordered_map<std::string, sWorker>& workers,
+                        map<std::string, sWorker>& workers,
                         ZM_Aux::QueueThrSave<ZM_DB::messSchedr>& messToDB){
-   
+  vector<sWorker*> wkrNotResp; 
   for(auto& w : workers){
     if (!w.second.isActive && (w.second.base.state != ZM_Base::stateType::notResponding)){            
-      messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::workerNotResponding,
-                                      w.second.base.id});
-      w.second.stateMem = w.second.base.state;
-      w.second.base.state = ZM_Base::stateType::notResponding;
+      wkrNotResp.push_back(&w.second);
     }else{
       w.second.isActive = false;
     }
-  }  
+  }
+  if (wkrNotResp.size() < workers.size()){ 
+    for(auto w : wkrNotResp){
+      messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::workerNotResponding,
+                                      w->base.id});
+      w->stateMem = w->base.state;
+      w->base.state = ZM_Base::stateType::notResponding; 
+    }
+  }else{
+    string mess = "schedr::checkStatusWorkers error all workers are not available, no network";
+    messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::error,
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    mess});                                     
+    statusMess(mess);
+  }
 }

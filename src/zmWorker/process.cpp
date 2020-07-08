@@ -39,6 +39,7 @@
 using namespace std;
 
 extern ZM_Aux::QueueThrSave<mess2schedr> _messForSchedr;
+extern ZM_Aux::QueueThrSave<string> _errMess;
 
 Process::Process(const wTask& tsk):
   _task(tsk){
@@ -47,9 +48,10 @@ Process::Process(const wTask& tsk):
     // error
     case -1:{    
       _task.state = ZM_Base::stateType::error;
-      string err = "Process child error fork: " + string(strerror(errno));
-      _messForSchedr.push(mess2schedr{tsk.base.id, ZM_Base::messType::taskError, err});
-      statusMess(err);
+      string mstr = "Process child error fork: " + string(strerror(errno));
+      _messForSchedr.push(mess2schedr{tsk.base.id, ZM_Base::messType::taskError, mstr});
+      statusMess(mstr);
+      _errMess.push(move(mstr));
     }
       break;
     // children                        
@@ -101,19 +103,27 @@ Process::Process(const wTask& tsk):
 }
 Process::~Process(){
 }
-int Process::getProgress() const{
-  if (!_isPause){
-    _cdeltaTime += _timer.getDeltaTimeMS();
-  }
-  _timer.updateCycTime();
-  int dt = (int)_cdeltaTime / 1000;
-  return min(100, int((dt * 100.0)/ max(1, _task.base.averDurationSec)));
-}
+
 wTask Process::getTask() const{
   return _task;
 }
 pid_t Process::getPid() const{
   return _pid;
+}
+int Process::getProgress(){
+  if (!_isPause){
+    _cdeltaTime += _timer.getDeltaTimeMS();
+  }
+  _timer.updateCycTime();
+  int dt = (int)_cdeltaTime / 1000;
+  return min(100, dt * 100 / max(1, _task.base.averDurationSec));
+}
+bool Process::checkMaxRunTime(){
+  if (!_isPause){
+    _cdeltaTime += _timer.getDeltaTimeMS();
+  }
+  _timer.updateCycTime();
+  return int(_cdeltaTime / 1000) > _task.base.maxDurationSec;
 }
 void Process::setTaskState(ZM_Base::stateType st){
   _task.state = st;
@@ -121,16 +131,22 @@ void Process::setTaskState(ZM_Base::stateType st){
 }
 void Process::pause(){
   if (kill(_pid, SIGSTOP) == -1){
-    statusMess("Process error pause: " + string(strerror(errno)));
+    string mstr = "worker::Process error pause: " + string(strerror(errno));
+    statusMess(mstr);
+    _errMess.push(move(mstr));
   }
 }
 void Process::contin(){
   if (kill(_pid, SIGCONT) == -1){
-    statusMess("Process error continue: " + string(strerror(errno)));
+    string mstr = "worker::Process error continue: " + string(strerror(errno));
+    statusMess(mstr);
+    _errMess.push(move(mstr));
   }
 }
 void Process::stop(){
   if (kill(_pid, SIGTERM) == -1){
-    statusMess("Process error stop: " + string(strerror(errno)));
+    string mstr = "worker::Process error stop: " + string(strerror(errno));
+    statusMess(mstr);
+    _errMess.push(move(mstr));
   }
 }

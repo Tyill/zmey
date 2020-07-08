@@ -30,7 +30,7 @@ using namespace std;
 
 void getPrevWorkersFromDB(ZM_DB::DbProvider& db, 
                           ZM_Base::scheduler& schedr,
-                          unordered_map<std::string, sWorker>& outWorkers){
+                          map<std::string, sWorker>& outWorkers){
   
   vector<ZM_Base::worker> workers; 
   if (db.getWorkersOfSchedr(schedr.id, workers)){

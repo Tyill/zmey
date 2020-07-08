@@ -26,7 +26,7 @@
 #include <future>
 #include <algorithm>
 #include <iostream>
-#include <unordered_map>
+#include <map>
 #include <mutex>
 #include "zmCommon/tcp.h"
 #include "zmCommon/timerDelay.h"
@@ -41,13 +41,13 @@ using namespace std;
 void receiveHandler(const string& cp, const string& data);
 void sendHandler(const string& cp, const string& data, const std::error_code& ec);
 void getNewTaskFromDB(ZM_DB::DbProvider& db);
-void sendTaskToWorker(const ZM_Base::scheduler&, unordered_map<std::string, sWorker>&, ZM_Aux::QueueThrSave<sTask>&, ZM_Aux::QueueThrSave<ZM_DB::messSchedr>& messToDB);
+void sendTaskToWorker(const ZM_Base::scheduler&, map<std::string, sWorker>&, ZM_Aux::QueueThrSave<sTask>&, ZM_Aux::QueueThrSave<ZM_DB::messSchedr>& messToDB);
 void sendAllMessToDB(ZM_DB::DbProvider& db);
-void checkStatusWorkers(const ZM_Base::scheduler&, unordered_map<std::string, sWorker>&, ZM_Aux::QueueThrSave<ZM_DB::messSchedr>&);
+void checkStatusWorkers(const ZM_Base::scheduler&, map<std::string, sWorker>&, ZM_Aux::QueueThrSave<ZM_DB::messSchedr>&);
 void getPrevTaskFromDB(ZM_DB::DbProvider& db, ZM_Base::scheduler&,  ZM_Aux::QueueThrSave<sTask>&);
-void getPrevWorkersFromDB(ZM_DB::DbProvider& db, ZM_Base::scheduler&, unordered_map<std::string, sWorker>&);
+void getPrevWorkersFromDB(ZM_DB::DbProvider& db, ZM_Base::scheduler&, map<std::string, sWorker>&);
 
-unordered_map<std::string, sWorker> _workers;   // key - connectPnt
+map<std::string, sWorker> _workers;   // key - connectPnt
 ZM_Aux::QueueThrSave<sTask> _tasks;
 ZM_Aux::QueueThrSave<ZM_DB::messSchedr> _messToDB;
 unique_ptr<ZM_Aux::Logger> _pLog = nullptr;
@@ -134,7 +134,7 @@ int main(int argc, char* argv[]){
   if (cng.logEna){
     _pLog = unique_ptr<ZM_Aux::Logger>(new ZM_Aux::Logger("zmSchedr.log", ""));
   }    
-  //signal(SIGHUP, initHandler);
+  signal(SIGHUP, closeHandler);
   signal(SIGINT, closeHandler);
   signal(SIGTERM, closeHandler);
   signal(SIGQUIT, closeHandler);

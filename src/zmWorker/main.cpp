@@ -42,7 +42,7 @@ using namespace std;
 void receiveHandler(const string& cp, const string& data);
 void sendHandler(const string& cp, const string& data, const std::error_code& ec);
 void sendMessToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt, const mess2schedr&);
-void progressToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt, const list<Process>&);
+void progressToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt, list<Process>&);
 void pingToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt);
 void errorToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt, ZM_Aux::QueueThrSave<string>& );
 void updateListTasks(ZM_Aux::QueueThrSave<wTask>& newTasks, list<Process>& procs);
@@ -54,8 +54,7 @@ ZM_Aux::QueueThrSave<wTask> _newTasks;
 ZM_Aux::QueueThrSave<string> _errMess;
 list<Process> _procs;
 mutex _mtxPrc, _mtxSts;
-bool _fClose = false,
-     _isSendAck = true;
+bool _isSendAck = true;
 
 struct config{
   bool logEna = false;
@@ -116,10 +115,6 @@ void parseArgs(int argc, char* argv[], config& outCng){
 #undef SET_PARAM_NUM
 }
 
-void closeHandler(int sig){
-  _fClose = true;
-}
-
 int main(int argc, char* argv[]){
 
   config cng;
@@ -130,13 +125,8 @@ int main(int argc, char* argv[]){
   if (cng.schedrConnPnt.empty()){
     statusMess("Not set param '-scp' - scheduler connPnt");
     return -1;
-  }  
-  
-  // signal(SIGHUP, initHandler);
-  signal(SIGINT, closeHandler);
-  signal(SIGTERM, closeHandler);
-  signal(SIGQUIT, closeHandler);
-
+  }
+ 
   // on start
   _messForSchedr.push(mess2schedr{0, ZM_Base::messType::justStartWorker});
 
@@ -159,7 +149,7 @@ int main(int argc, char* argv[]){
   const int minCycleTimeMS = 10;
    
   // main cycle
-  while (!_fClose){
+  while (1){
     timer.updateCycTime();   
 
     // send mess to schedr (send constantly until it receives)
@@ -196,7 +186,6 @@ int main(int argc, char* argv[]){
     if (timer.getDeltaTimeMS() < minCycleTimeMS){
       ZM_Aux::sleepMs(minCycleTimeMS - timer.getDeltaTimeMS());
     }    
-  } 
-  ZM_Tcp::stopServer();
+  }
   return 0;
 }

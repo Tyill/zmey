@@ -1325,7 +1325,7 @@ vector<ZM_DB::messError> DbPGProvider::getInternErrors(uint64_t sId, uint64_t wI
     mCnt = INT32_MAX;
   }
   stringstream ss;
-  ss << "SELECT message, createTime "
+  ss << "SELECT schedr, worker, message, createTime "
         "FROM tblInternError "
         "WHERE (schedr = " << sId << " OR " << sId << " = 0)" << " AND "
         "      (worker = " << wId << " OR " << wId << " = 0) ORDER BY createTime LIMIT " << mCnt << ";";
@@ -1339,10 +1339,10 @@ vector<ZM_DB::messError> DbPGProvider::getInternErrors(uint64_t sId, uint64_t wI
   int rows = PQntuples(res);
   std::vector<ZM_DB::messError> ret(rows);
   for (int i = 0; i < rows; ++i){
-    ret[i].schedrId = sId;
-    ret[i].workerId = wId;
-    ret[i].message = PQgetvalue(res, i, 0);
-    ret[i].createTime = PQgetvalue(res, i, 1);
+    ret[i].schedrId = stoull(PQgetvalue(res, i, 0));
+    ret[i].workerId = stoull(PQgetvalue(res, i, 1));
+    ret[i].message = PQgetvalue(res, i, 2);
+    ret[i].createTime = PQgetvalue(res, i, 3);
   }
   PQclear(res);
   return ret;
@@ -1597,8 +1597,8 @@ bool DbPGProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::messSc
                 "'" << m.result << "');";
         }else{
           ss << "INSERT INTO tblInternError (schedr, message) VALUES("
-              "'" << sId << "',"
-              "'" << m.result << "');";
+                "'" << sId << "',"
+                "'" << m.result << "');";
         }
         break;
     }    

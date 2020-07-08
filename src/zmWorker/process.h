@@ -31,17 +31,18 @@
 class Process{
     pid_t _pid = 1; 
     wTask _task;
-    mutable ZM_Aux::TimerDelay _timer;
-    mutable uint64_t _cdeltaTime = 0;
+    ZM_Aux::TimerDelay _timer;
+    uint64_t _cdeltaTime = 0;
     bool _isPause = false;
   public:
     Process(const wTask&);
-    ~Process();     
-    int getProgress() const;
+    ~Process();  
     wTask getTask() const;
     pid_t getPid() const;
+    int getProgress();
+    bool checkMaxRunTime();
     void setTaskState(ZM_Base::stateType);
     void pause();
     void contin();
-    void stop();
+    void stop();    
 };

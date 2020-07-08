@@ -40,7 +40,7 @@ using namespace std;
 
 extern ZM_Aux::QueueThrSave<string> _errMess;
 
-void waitProcess( list<Process>& procs, ZM_Aux::QueueThrSave<mess2schedr>& messForSchedr){
+void waitProcess(list<Process>& procs, ZM_Aux::QueueThrSave<mess2schedr>& messForSchedr){
   
 #define ERROR_MESS(mstr) \
   statusMess(mstr);      \
@@ -117,5 +117,11 @@ void waitProcess( list<Process>& procs, ZM_Aux::QueueThrSave<mess2schedr>& messF
                                       ZM_Base::messType::taskRunning,
                                       ""});    
     } 
+  }  
+  // check max run time
+  for(auto& p : procs){
+    if (p.checkMaxRunTime()){
+      p.stop();
+    }
   }
 }

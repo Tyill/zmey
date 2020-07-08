@@ -22,7 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#include <unordered_map>
+#include <map>
 #include <system_error>
 #include "zmCommon/serial.h"
 #include "zmCommon/tcp.h"
@@ -35,7 +35,7 @@ using namespace std;
 
 extern ZM_Aux::QueueThrSave<sTask> _tasks;
 extern ZM_Aux::QueueThrSave<ZM_DB::messSchedr> _messToDB;
-extern unordered_map<std::string, sWorker> _workers;
+extern map<std::string, sWorker> _workers;
 extern ZM_Base::scheduler _schedr;
 
 void sendHandler(const string& cp, const string& data, const std::error_code& ec){

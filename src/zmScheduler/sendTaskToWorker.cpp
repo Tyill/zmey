@@ -23,7 +23,7 @@
 // THE SOFTWARE.
 //
 #include <algorithm>
-#include <unordered_map>
+#include <map>
 #include "zmCommon/tcp.h"
 #include "zmCommon/serial.h"
 #include "zmCommon/queue.h"
@@ -37,7 +37,7 @@ ZM_Aux::CounterTick ctickTW;
 vector<sWorker*> refWorkers;
 
 void sendTaskToWorker(const ZM_Base::scheduler& schedr,
-                      unordered_map<std::string, sWorker>& workers,
+                      map<std::string, sWorker>& workers,
                       ZM_Aux::QueueThrSave<sTask>& tasks, 
                       ZM_Aux::QueueThrSave<ZM_DB::messSchedr>& messToDB){  
 #define ERROR_MESS(mess, wId)                               \

@@ -55,6 +55,8 @@ namespace ZM_Aux {
     public:
       Logger(const std::string &nameFile, const std::string &pathFile);			
       ~Logger();
+      Logger(const Logger& other) = delete;
+      Logger& operator=(const Logger& other) = delete;
       void writeMess(const std::string &mess);
   };
 }
