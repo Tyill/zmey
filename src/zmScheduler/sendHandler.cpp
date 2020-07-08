@@ -39,13 +39,13 @@ extern map<std::string, sWorker> _workers;
 extern ZM_Base::scheduler _schedr;
 
 void sendHandler(const string& cp, const string& data, const std::error_code& ec){
-#define ERROR_MESS(mess, wId)                                \
-  _messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::error, \
-                                   wId,                      \
-                                   0,                        \
-                                   0,                        \
-                                   0,                        \
-                                   mess});                   \
+#define ERROR_MESS(mess, wId)                                      \
+  _messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::internError, \
+                                   wId,                            \
+                                   0,                              \
+                                   0,                              \
+                                   0,                              \
+                                   mess});                         \
   statusMess(mess);
 
 #define checkFieldNum(field) \

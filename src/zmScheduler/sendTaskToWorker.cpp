@@ -40,13 +40,13 @@ void sendTaskToWorker(const ZM_Base::scheduler& schedr,
                       map<std::string, sWorker>& workers,
                       ZM_Aux::QueueThrSave<sTask>& tasks, 
                       ZM_Aux::QueueThrSave<ZM_DB::messSchedr>& messToDB){  
-#define ERROR_MESS(mess, wId)                               \
-  messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::error, \
-                                  wId,                      \
-                                  0,                        \
-                                  0,                        \
-                                  0,                        \
-                                  mess});                   \
+#define ERROR_MESS(mess, wId)                                     \
+  messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::internError, \
+                                  wId,                            \
+                                  0,                              \
+                                  0,                              \
+                                  0,                              \
+                                  mess});                         \
   statusMess(mess);
 
   if (refWorkers.empty()){

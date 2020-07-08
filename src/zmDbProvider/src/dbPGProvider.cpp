@@ -1589,7 +1589,7 @@ bool DbPGProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::messSc
               "state = " << (int)ZM_Base::stateType::notResponding << " "
               "WHERE id = " << m.workerId << ";";
         break;
-      case ZM_Base::messType::error:
+      case ZM_Base::messType::internError:
         if (m.workerId){
           ss << "INSERT INTO tblInternError (schedr, worker, message) VALUES("
                 "'" << sId << "',"

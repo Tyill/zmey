@@ -149,14 +149,12 @@ int main(int argc, char* argv[]){
   }else{
     statusMess(
       "DB connect error " + err + ": " + cng.dbType + " " + cng.dbConnCng.connectStr);
-    ZM_Tcp::stopServer();
     return -1;
   }
   // schedr from DB
   dbNewTask->getSchedr(cng.connectPnt, _schedr);
   if (_schedr.id == 0){
     statusMess("Schedr not found in DB for connectPnt " + cng.connectPnt);
-    ZM_Tcp::stopServer();
     return -1;
   }
   // prev tasks and workers

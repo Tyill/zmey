@@ -38,13 +38,13 @@ extern ZM_Base::scheduler _schedr;
 
 void receiveHandler(const string& remcp, const string& data){
 
-#define ERROR_MESS(mess, wId)                                \
-  _messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::error, \
-                                   wId,                      \
-                                   0,                        \
-                                   0,                        \
-                                   0,                        \
-                                   mess});                   \
+#define ERROR_MESS(mess, wId)                                      \
+  _messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::internError, \
+                                   wId,                            \
+                                   0,                              \
+                                   0,                              \
+                                   0,                              \
+                                   mess});                         \
   statusMess(mess);
 
   auto mess = ZM_Aux::deserialn(data);
@@ -110,7 +110,7 @@ void receiveHandler(const string& remcp, const string& data){
         }
         }
         break;
-      case ZM_Base::messType::error:{
+      case ZM_Base::messType::internError:{
         checkField(message);
         ERROR_MESS(mess["message"], wId);
         }

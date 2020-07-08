@@ -58,8 +58,6 @@ bool _isSendAck = true;
 
 struct config{
   bool logEna = false;
-  int capacityTask = 10;
-  int checkTasksTOutSec = 120;
   int progressTasksTOutSec = 30;
   int pingSchedrTOutSec = 20; 
   int sendAckTOutSec = 1; 
@@ -105,8 +103,6 @@ void parseArgs(int argc, char* argv[], config& outCng){
   if (sprms.find(#nm) != sprms.end() && ZM_Aux::isNumber(sprms[#nm])){ \
     outCng.prm = stoi(sprms[#nm]); \
   }
-  SET_PARAM_NUM(ctk, capacityTask);
-  SET_PARAM_NUM(cht, checkTasksTOutSec);
   SET_PARAM_NUM(prg, progressTasksTOutSec);
   SET_PARAM_NUM(png, pingSchedrTOutSec);
   SET_PARAM_NUM(ack, sendAckTOutSec);
