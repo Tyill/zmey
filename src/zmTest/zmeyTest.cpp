@@ -44,53 +44,25 @@ public:
     _zc = zmey::zmCreateConnection(zmey::zmConnect{ zmey::zmDbType::zmPostgreSQL,
                                                     (char*)connStr.c_str() },
                                                     err);
-   // EXPECT_TRUE(zmey::zmCreateTables(_zc));
+    if (strlen(err) > 0){    
+      TEST_COUT << err << endl;
+    }   
+    EXPECT_TRUE(zmey::zmCreateTables(_zc));
+    
+    zmey::zmSetErrorCBack(_zc, [](const char* mess, zmey::zmUData){
+      TEST_COUT << mess << endl;
+    }, nullptr);    
 
     ZM_DB::connectCng cng;
     cng.selType = ZM_DB::dbType::PostgreSQL;
     cng.connectStr = "host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10";
     _pDb = ZM_DB::makeDbProvider(cng);
-
-      // EXPECT_TRUE(_pDb->delAllTask()) << _pDb->getLastError();
-      // EXPECT_TRUE(_pDb->delAllPipelines()) << _pDb->getLastError();
-      // EXPECT_TRUE(_pDb->delAllUsers()) << _pDb->getLastError();
-
-    if (strlen(err) > 0){    
-      TEST_COUT << err << endl;
-    }
-    if (!isSchedrAndWorker){
-      isSchedrAndWorker = true;   
-
-      uint64_t* outSchId = nullptr;      
-      auto sCnt = zmey::zmGetAllSchedulers(_zc, zmey::zmStateType::zmUndefined, &outSchId);
-      if (sCnt == 0){ 
-        zmey::zmSchedr scng;
-        scng.capacityTask = 10000;
-        strcpy(scng.connectPnt, "localhost:4444");
-        uint64_t sId = 0;
-        EXPECT_TRUE(zmey::zmAddScheduler(_zc, scng, &sId));
     
-        scng = zmey::zmSchedr();
-        zmey::zmGetScheduler(_zc, sId, &scng);
-        EXPECT_TRUE(scng.capacityTask == 10000 && 
-                    strcmp(scng.connectPnt, "localhost:4444") == 0);
-
-        zmey::zmWorker wcng;
-        wcng.capacityTask = 10;
-        wcng.sId = sId;
-        strcpy(wcng.connectPnt, "localhost:4445");
-        uint64_t wId = 0;
-        EXPECT_TRUE(zmey::zmAddWorker(_zc, wcng, &wId));
-
-        wcng = zmey::zmWorker();
-        zmGetWorker(_zc, wId, &wcng);
-        EXPECT_TRUE(wcng.sId == sId && 
-                    wcng.capacityTask == 10 && 
-                    strcmp(wcng.connectPnt, "localhost:4445") == 0);
-        perror("repeate zmeyTest");
-        exit(0);
-      }
-    }
+    EXPECT_TRUE(_pDb->delAllTask()) << _pDb->getLastError();
+    EXPECT_TRUE(_pDb->delAllPipelines()) << _pDb->getLastError();
+    EXPECT_TRUE(_pDb->delAllUsers()) << _pDb->getLastError();
+    EXPECT_TRUE(_pDb->delAllSchedrs()) << _pDb->getLastError();
+    EXPECT_TRUE(_pDb->delAllWorkers()) << _pDb->getLastError();
   }
   ~ZmeyTest() {
     zmey::zmDisconnect(_zc);
@@ -100,174 +72,21 @@ protected:
   zmey::zmConn _zc = nullptr; 
 };
 
-TEST_F(ZmeyTest, pauseSchedr){
+TEST_F(ZmeyTest, addTask){
+
+  zmey::zmSchedr scng;
+  scng.capacityTask = 10000;
+  strcpy(scng.connectPnt, "localhost:4444");
+  uint64_t sId = 0;
+  EXPECT_TRUE(zmey::zmAddScheduler(_zc, scng, &sId));
  
-  uint64_t *sId = nullptr;
-  int scnt = zmey::zmGetAllSchedulers(_zc, zmey::zmStateType::zmUndefined, &sId);
-     
-  zmey::zmPauseScheduler(_zc, sId[0]);
+  zmey::zmWorker wcng;
+  wcng.capacityTask = 10;
+  wcng.sId = sId;
+  strcpy(wcng.connectPnt, "localhost:4445");
+  uint64_t wId = 0;
+  EXPECT_TRUE(zmey::zmAddWorker(_zc, wcng, &wId));
 
-  ZM_Aux::sleepMs(3000);
-
-  zmey::zmStateType state;
-  zmey::zmSchedulerState(_zc, sId[0], &state);
-
-  EXPECT_TRUE(state == zmey::zmStateType::zmPause);
-}
-TEST_F(ZmeyTest, startSchedr){
- 
-  uint64_t* sId = nullptr;
-  int scnt = zmey::zmGetAllSchedulers(_zc, zmey::zmStateType::zmUndefined, &sId);
- 
-  zmey::zmStartScheduler(_zc, sId[0]);
-
-  ZM_Aux::sleepMs(3000);
-
-  zmey::zmStateType state;
-  zmey::zmSchedulerState(_zc, sId[0], &state);
-
-  EXPECT_TRUE(state == zmey::zmStateType::zmRunning);
-}
-TEST_F(ZmeyTest, pingSchedr){
- 
-  uint64_t *sId = nullptr;
-  int scnt = zmey::zmGetAllSchedulers(_zc, zmey::zmStateType::zmUndefined, &sId);
-     
-  EXPECT_TRUE(zmey::zmPingScheduler(_zc, sId[0]));
-}
-
-TEST_F(ZmeyTest, pauseWorker){
- 
-  uint64_t *sId = nullptr;
-  int scnt = zmey::zmGetAllSchedulers(_zc, zmey::zmStateType::zmUndefined, &sId);
-   
-  uint64_t* wId = nullptr;
-  int wcnt = zmey::zmGetAllWorkers(_zc, sId[0], zmey::zmStateType::zmUndefined, &wId);
-  
-  zmey::zmPauseWorker(_zc, wId[0]);
-
-  ZM_Aux::sleepMs(3000);
-
-  zmey::zmStateType state;
-  zmey::zmWorkerState(_zc, wId, 1, &state);
-
-  EXPECT_TRUE(state == zmey::zmStateType::zmPause);
-}
-TEST_F(ZmeyTest, startWorker){
- 
-  uint64_t *sId = nullptr;
-  int scnt = zmey::zmGetAllSchedulers(_zc, zmey::zmStateType::zmUndefined, &sId);
-
-  uint64_t* wId = nullptr;
-  int wcnt = zmey::zmGetAllWorkers(_zc, sId[0], zmey::zmStateType::zmUndefined, &wId);
- 
-  zmey::zmStartWorker(_zc, wId[0]);
-
-  ZM_Aux::sleepMs(3000);
-
-  zmey::zmStateType state;
-  zmey::zmWorkerState(_zc, wId, 1, &state);
-
-  EXPECT_TRUE(state == zmey::zmStateType::zmRunning);
-}
-TEST_F(ZmeyTest, pingWorker){
- 
-  uint64_t *sId = nullptr;
-  int scnt = zmey::zmGetAllSchedulers(_zc, zmey::zmStateType::zmUndefined, &sId);
-   
-  uint64_t* wId = nullptr;
-  int wcnt = zmey::zmGetAllWorkers(_zc, sId[0], zmey::zmStateType::zmUndefined, &wId);
-  
-  EXPECT_TRUE(zmey::zmPingWorker(_zc, wId[0]));
-}
-
-TEST_F(ZmeyTest, startTask){
-  
-  // zmey::zmSetErrorCBack(_zc, [](const char* mess, zmey::zmUData){
-  //   TEST_COUT << mess << endl;
-  // }, nullptr);
-  
-  // zmey::zmUser usr;
-  // strcpy(usr.name, "usr");
-  // strcpy(usr.passw, "123");
-  // usr.description = nullptr;  
-  // uint64_t uId = 0;  
-  // EXPECT_TRUE(zmey::zmAddUser(_zc, usr, &uId) && (uId > 0));
-    
-  // zmey::zmPipeline ppline;
-  // strcpy(ppline.name, "newPP");
-  // ppline.isShared = 0;
-  // ppline.userId = uId;
-  // ppline.description = nullptr;
-  // uint64_t ppId = 0;  
-  // EXPECT_TRUE(zmey::zmAddPipeline(_zc, ppline, &ppId) && (ppId > 0)); 
-   
-  
-  // zmey::zmTaskTemplate ttempl;
-  // strcpy(ttempl.name, "ttempl");
-  // ttempl.isShared = 0;
-  // ttempl.userId = uId;
-  // ttempl.description = nullptr;
-  // ttempl.averDurationSec = 10;
-  // ttempl.maxDurationSec = 100;
-  // ttempl.script = "#!/bin/sh \n echo $0 $1 $2 $3 $4;";
-    
-  // uint64_t ttId = 0;  
-  // EXPECT_TRUE(zmey::zmAddTaskTemplate(_zc, ttempl, &ttId) && (ttId > 0)); 
-   
-  // zmey::zmTask task;
-  // task.pplId = ppId; 
-  // task.priority = 1;
-  // task.ttId = ttId;
-  // task.params = "['param11','param12','param13']";
-  // task.screenRect = "11, 12, 13, 14";
-  // task.nextTasksId = "[]";
-  // task.prevTasksId = "[]";
-  
-  // uint64_t tId1 = 0;  
-  // EXPECT_TRUE(zmey::zmAddTask(_zc, task, &tId1) && (tId1 > 0));  
-  
-  // task.pplId = ppId; 
-  // task.priority = 1;
-  // task.ttId = ttId;
-  // task.params = "['param21','param22','param23']";
-  // task.screenRect = "21, 22, 23, 24";
-  // task.nextTasksId = "[]";
-  // task.prevTasksId = (char*)("[" + to_string(tId1) + "]").c_str();
-  
-  // uint64_t tId2 = 0;  
-  // EXPECT_TRUE(zmey::zmAddTask(_zc, task, &tId2) && (tId2 > 0));  
-  
-  // EXPECT_TRUE(zmey::zmStartTask(_zc, tId1));     
-
-  // EXPECT_TRUE(zmey::zmStartTask(_zc, tId2));  
-
-  // sleep(3);
-  
-  // uint64_t tId[2]{tId1, tId2};
-
-  // zmey::zmTskState tst[2];
-  // EXPECT_TRUE(zmey::zmTaskState(_zc, tId, 2, tst) && 
-  //             (tst[0].state == zmey::zmStateType::zmCompleted) &&
-  //             (tst[1].state == zmey::zmStateType::zmCompleted));
-
-  // char* res1 = nullptr;
-  // EXPECT_TRUE(zmey::zmTaskResult(_zc, tId1, &res1));
-
-  // char* res2 = nullptr;
-  // EXPECT_TRUE(zmey::zmTaskResult(_zc, tId2, &res2));
-
-  // zmey::zmInternError* errs = nullptr;
-  // uint32_t errCnt = zmey::zmGetInternErrors(_zc, 0, 0, 10, &errs);
-  
-  // EXPECT_TRUE(errCnt == 10) << _pDb->getLastError();
-}
-TEST_F(ZmeyTest, rejectTask){
-  
-  zmey::zmSetErrorCBack(_zc, [](const char* mess, zmey::zmUData){
-    TEST_COUT << mess << endl;
-  }, nullptr);
-  
   zmey::zmUser usr;
   strcpy(usr.name, "usr");
   strcpy(usr.passw, "123");
@@ -291,7 +110,7 @@ TEST_F(ZmeyTest, rejectTask){
   ttempl.description = nullptr;
   ttempl.averDurationSec = 10;
   ttempl.maxDurationSec = 100;
-  ttempl.script = "#!/bin/sh \n sleep 600;";
+  ttempl.script = "#!/bin/sh \n echo $0 $1 $2 $3 $4 $5 $6 $7 $8 $9 $10;";
     
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmey::zmAddTaskTemplate(_zc, ttempl, &ttId) && (ttId > 0)); 
@@ -300,7 +119,7 @@ TEST_F(ZmeyTest, rejectTask){
   task.pplId = ppId; 
   task.priority = 1;
   task.ttId = ttId;
-  task.params = "['param11','param12','param13']";
+  task.params = "['par am11','param12','param13']";
   task.screenRect = "11, 12, 13, 14";
   task.nextTasksId = "[]";
   task.prevTasksId = "[]";
@@ -314,7 +133,7 @@ TEST_F(ZmeyTest, rejectTask){
   task.params = "['param21','param22','param23']";
   task.screenRect = "21, 22, 23, 24";
   task.nextTasksId = "[]";
-  task.prevTasksId = "[]";
+  task.prevTasksId = (char*)("[" + to_string(tId1) + "]").c_str();
   
   uint64_t tId2 = 0;  
   EXPECT_TRUE(zmey::zmAddTask(_zc, task, &tId2) && (tId2 > 0));  
@@ -323,6 +142,5 @@ TEST_F(ZmeyTest, rejectTask){
 
   EXPECT_TRUE(zmey::zmStartTask(_zc, tId2));  
 }
-
 
 #endif // ZMEYTEST

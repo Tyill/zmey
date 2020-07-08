@@ -80,9 +80,9 @@ Process::Process(const wTask& tsk):
         params = string(tsk.params.data() + 1, tsk.params.size() - 2); // remove '{' and '}'
       }
       auto prmVec = ZM_Aux::split(params, ",");
-      char** argVec = new char*[prmVec.size() + 2];
-      argVec[0] = (char*)scriptFile.c_str();
       size_t psz = prmVec.size();
+      char** argVec = new char*[psz + 2];
+      argVec[0] = (char*)scriptFile.c_str();
       for (size_t i = 0; i < psz; ++i){
         argVec[i + 1] = (char*)prmVec[i].data();
       } 

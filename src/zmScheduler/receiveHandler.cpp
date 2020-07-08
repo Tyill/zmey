@@ -122,7 +122,12 @@ void receiveHandler(const string& remcp, const string& data){
         break;
     }    
     worker.isActive = true;
-    if (worker.base.state == ZM_Base::stateType::notResponding){
+    if (worker.base.state == ZM_Base::stateType::ready){
+      worker.base.state = worker.stateMem = ZM_Base::stateType::running;
+      _messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::startWorker,
+                                       worker.base.id});
+    }
+    else if (worker.base.state == ZM_Base::stateType::notResponding){
       if (worker.stateMem != ZM_Base::stateType::notResponding){ 
         worker.base.state = worker.stateMem;
       }else{

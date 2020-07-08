@@ -237,16 +237,13 @@ TEST_F(DBTest, changeSchedr){
   uint64_t sId = 0;  
   EXPECT_TRUE(_pDb->addSchedr(schedr, sId) && (sId > 0)) << _pDb->getLastError(); 
 
-  schedr.state = ZM_Base::stateType::error;
   schedr.connectPnt = "localhost:1234"; 
   schedr.capacityTask = 10;   
   EXPECT_TRUE(_pDb->changeSchedr(sId, schedr)) << _pDb->getLastError(); 
 
-  schedr.state = ZM_Base::stateType::ready;
   schedr.connectPnt = ""; 
   schedr.capacityTask = 1;   
-  EXPECT_TRUE(_pDb->getSchedr(sId, schedr) && (schedr.state == ZM_Base::stateType::error) &&
-                                              (schedr.connectPnt == "localhost:1234") &&
+  EXPECT_TRUE(_pDb->getSchedr(sId, schedr) && (schedr.connectPnt == "localhost:1234") &&
                                               (schedr.capacityTask == 10)) << _pDb->getLastError();                                                      
 }
 TEST_F(DBTest, delSchedr){
@@ -387,16 +384,13 @@ TEST_F(DBTest, changeWorker){
   uint64_t wId = 0;  
   EXPECT_TRUE(_pDb->addWorker(worker, wId) && (wId > 0)) << _pDb->getLastError(); 
 
-  worker.state = ZM_Base::stateType::error;
   worker.connectPnt = "localhost:1234"; 
   worker.capacityTask = 10;   
   EXPECT_TRUE(_pDb->changeWorker(wId, worker)) << _pDb->getLastError(); 
 
-  worker.state = ZM_Base::stateType::ready;
   worker.connectPnt = ""; 
   worker.capacityTask = 1;   
-  EXPECT_TRUE(_pDb->getWorker(wId, worker) && (worker.state == ZM_Base::stateType::error) &&
-                                              (worker.connectPnt == "localhost:1234") &&
+  EXPECT_TRUE(_pDb->getWorker(wId, worker) && (worker.connectPnt == "localhost:1234") &&
                                               (worker.capacityTask == 10)) << _pDb->getLastError(); 
 
   worker.sId = sId + 1;
