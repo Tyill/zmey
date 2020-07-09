@@ -27,7 +27,7 @@
 
 #include <vector>
 #include <algorithm>
-#include "prepareTest.h"
+#include "prepare.h"
 #include "zmey/zmey.h"
 #include "zmCommon/auxFunc.h"
 #include "zmDbProvider/dbProvider.h"
