@@ -49,7 +49,7 @@ struct messSchedr{
   uint64_t taskId;
   int progress;
   int workerRating;
-  std::string result; // type is 'error' then errorMess
+  std::string result; // if type is 'error', then errorMess
 };
 struct messError{
   uint64_t schedrId;
@@ -60,7 +60,7 @@ struct messError{
 struct schedrTask{
   uint64_t qTaskId;
   ZM_Base::task base;
-  std::string params;
+  std::string params; // through ','
 };
 struct tskState{
   uint32_t progress;

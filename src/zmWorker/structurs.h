@@ -37,5 +37,5 @@ struct mess2schedr{
 struct wTask{
   ZM_Base::task base;
   ZM_Base::stateType state;
-  std::string params;
+  std::string params; // through ','
 };

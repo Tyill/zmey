@@ -43,7 +43,7 @@ public:
     char err[256];
     _zc = zmey::zmCreateConnection(zmey::zmConnect{ zmey::zmDbType::zmPostgreSQL,
                                                     (char*)connStr.c_str() },
-                                                    err);
+                                                   err);
     if (strlen(err) > 0){    
       TEST_COUT << err << endl;
     }   
@@ -110,7 +110,7 @@ TEST_F(ZmeyTest, addTask){
   ttempl.description = nullptr;
   ttempl.averDurationSec = 10;
   ttempl.maxDurationSec = 100;
-  ttempl.script = "#!/bin/sh \n echo $0 $1 $2 $3 $4 $5 $6 $7 $8 $9 $10;";
+  ttempl.script = "#!/bin/sh \n echo $1 $2 $3 $4;";
     
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmey::zmAddTaskTemplate(_zc, ttempl, &ttId) && (ttId > 0)); 

@@ -75,11 +75,7 @@ Process::Process(const wTask& tsk):
       CHECK(dup2(1, 2), "dup2(1, 2)");        // stderr -> stdout
       CHECK(chmod(resultFile.c_str(), S_IRUSR | S_IWUSR), "chmod");
       
-      string params;
-      if (!tsk.params.empty()){
-        params = string(tsk.params.data() + 1, tsk.params.size() - 2); // remove '{' and '}'
-      }
-      auto prmVec = ZM_Aux::split(params, ",");
+      auto prmVec = ZM_Aux::split(tsk.params, ",");
       size_t psz = prmVec.size();
       char** argVec = new char*[psz + 2];
       argVec[0] = (char*)scriptFile.c_str();

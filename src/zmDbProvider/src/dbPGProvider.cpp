@@ -1384,23 +1384,28 @@ bool DbPGProvider::getTasksOfSchedr(uint64_t sId, std::vector<ZM_DB::schedrTask>
   stringstream ss;
   ss << "SELECT * FROM funcTasksOfSchedr(" << sId << ");";
      
-  auto resTsk = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(resTsk) != PGRES_TUPLES_OK){
+  auto res = PQexec(_pg, ss.str().c_str());
+  if (PQresultStatus(res) != PGRES_TUPLES_OK){
     errorMess(string("getTasksOfSchedr error: ") + PQerrorMessage(_pg));
-    PQclear(resTsk);
+    PQclear(res);
     return false;
   }
-  int tsz = PQntuples(resTsk);
-  for (int i = 0; i < tsz; ++i){    
-    out.push_back(ZM_DB::schedrTask{stoull(PQgetvalue(resTsk, i, 0)),
-                                    ZM_Base::task{stoull(PQgetvalue(resTsk, i, 1)),
-                                                  atoi(PQgetvalue(resTsk, i, 2)),
-                                                  atoi(PQgetvalue(resTsk, i, 3)),
-                                                  PQgetvalue(resTsk, i, 4)
+  int tsz = PQntuples(res);
+  for (int i = 0; i < tsz; ++i){   
+
+    string params = PQgetvalue(res, i, 5);
+    ZM_Aux::replace(params, "\"", "");
+    params = string(params.data() + 1, params.size() - 2); // remove '{' and '}'
+
+    out.push_back(ZM_DB::schedrTask{stoull(PQgetvalue(res, i, 0)),
+                                    ZM_Base::task{stoull(PQgetvalue(res, i, 1)),
+                                                  atoi(PQgetvalue(res, i, 2)),
+                                                  atoi(PQgetvalue(res, i, 3)),
+                                                  PQgetvalue(res, i, 4)
                                                 },
-                                    PQgetvalue(resTsk, i, 5)});
+                                    params});
   }
-  PQclear(resTsk);
+  PQclear(res);
   return true;
 }
 bool DbPGProvider::getWorkersOfSchedr(uint64_t sId, std::vector<ZM_Base::worker>& out){
@@ -1442,14 +1447,19 @@ bool DbPGProvider::getNewTasksForSchedr(uint64_t sId, int maxTaskCnt, std::vecto
     return false;
   }
   int tsz = PQntuples(res);
-  for (int i = 0; i < tsz; ++i){    
+  for (int i = 0; i < tsz; ++i){  
+
+    string params = PQgetvalue(res, i, 5);
+    ZM_Aux::replace(params, "\"", "");
+    params = string(params.data() + 1, params.size() - 2); // remove '{' and '}'
+    
     out.push_back(ZM_DB::schedrTask{stoull(PQgetvalue(res, i, 0)),
                                     ZM_Base::task{stoull(PQgetvalue(res, i, 1)),
                                                   atoi(PQgetvalue(res, i, 2)),
                                                   atoi(PQgetvalue(res, i, 3)),
                                                   PQgetvalue(res, i, 4)
                                                 },
-                                    PQgetvalue(res, i, 5)});
+                                    params});
   }
   PQclear(res);
   return true;

@@ -31,7 +31,7 @@ void statusMess(const std::string& mess);
 struct sTask{
   uint64_t qTaskId;
   ZM_Base::task base;
-  std::string params;
+  std::string params; // through ','
 };
 
 struct sWorker{
