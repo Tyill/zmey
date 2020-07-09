@@ -44,6 +44,8 @@ void receiveHandler(const string& remcp, const string& data){
                                    0,                              \
                                    0,                              \
                                    0,                              \
+                                   0,                              \
+                                   0,                              \
                                    mess});                         \
   statusMess(mess);
 
@@ -93,10 +95,11 @@ void receiveHandler(const string& remcp, const string& data){
                                          stoull(mess["taskId"]),
                                          0,
                                          0,
+                                         _schedr.activeTask,
+                                         worker.base.activeTask,
                                          mess["taskResult"]});
         break;
       case ZM_Base::messType::justStartWorker:
-        worker.base.activeTask = 0;
         _messToDB.push(ZM_DB::messSchedr{mtype, wId});
         break;
       case ZM_Base::messType::progress:{
@@ -136,7 +139,7 @@ void receiveHandler(const string& remcp, const string& data){
       _messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::startWorker,
                                        worker.base.id});
     }
-    if (worker.base.rating < ZM_Base::WORKER_RATING_MAX){
+    if (worker.base.rating < ZM_Base::worker::RATING_MAX){
       ++worker.base.rating;
       _messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::workerRating,
                                        wId,

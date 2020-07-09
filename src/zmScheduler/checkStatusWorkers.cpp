@@ -58,6 +58,8 @@ void checkStatusWorkers(const ZM_Base::scheduler& schedr,
                                     0,
                                     0,
                                     0,
+                                    0,
+                                    0,
                                     mess});                                     
     statusMess(mess);
   }

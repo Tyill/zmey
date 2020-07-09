@@ -45,7 +45,7 @@ void sendMessToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt, 
 void progressToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt, list<Process>&);
 void pingToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt);
 void errorToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt, ZM_Aux::QueueThrSave<string>& );
-void updateListTasks(ZM_Aux::QueueThrSave<wTask>& newTasks, list<Process>& procs);
+void updateListTasks(ZM_Base::worker& iow, ZM_Aux::QueueThrSave<wTask>& newTasks, list<Process>& procs);
 void waitProcess(list<Process>& procs, ZM_Aux::QueueThrSave<mess2schedr>& messForSchedr);
 
 unique_ptr<ZM_Aux::Logger> _pLog = nullptr;
@@ -60,7 +60,7 @@ struct config{
   bool logEna = false;
   int progressTasksTOutSec = 30;
   int pingSchedrTOutSec = 20; 
-  int sendAckTOutSec = 1; 
+  const int sendAckTOutSec = 1; 
   std::string connectPnt;
   std::string schedrConnPnt;
 };
@@ -105,7 +105,6 @@ void parseArgs(int argc, char* argv[], config& outCng){
   }
   SET_PARAM_NUM(prg, progressTasksTOutSec);
   SET_PARAM_NUM(png, pingSchedrTOutSec);
-  SET_PARAM_NUM(ack, sendAckTOutSec);
 
 #undef SET_PARAM
 #undef SET_PARAM_NUM
@@ -158,9 +157,8 @@ int main(int argc, char* argv[]){
       _isSendAck = true;
     } 
     // update list of tasks
-    updateListTasks(_newTasks, _procs);
-    worker.activeTask = _procs.size();
-
+    updateListTasks(worker, _newTasks, _procs);
+    
     // progress of tasks
     if(timer.onDelaySec(true, cng.progressTasksTOutSec, 1)){
       timer.onDelaySec(false, cng.progressTasksTOutSec, 1);

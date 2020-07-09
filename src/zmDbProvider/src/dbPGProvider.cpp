@@ -1488,7 +1488,15 @@ bool DbPGProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::messSc
               "UPDATE tblTaskState ts SET "
               "state = " << (int)ZM_Base::stateType::error << " "
               "FROM tblTaskQueue tq "
-              "WHERE ts.qtask = " << m.taskId << " AND tq.worker = " << m.workerId << ";";
+              "WHERE ts.qtask = " << m.taskId << " AND tq.worker = " << m.workerId << ";"
+
+              "UPDATE tblScheduler SET "
+              "activeTask = " << m.schedrActiveTask << " "
+              "WHERE id = " << sId << ";"
+
+              "UPDATE tblWorker SET "
+              "activeTask = " << m.workerActiveTask << " "
+              "WHERE id = " << m.workerId << ";";
         break; 
       case ZM_Base::messType::taskCompleted: 
         ss << "UPDATE tblTaskTime tt SET "
@@ -1504,7 +1512,15 @@ bool DbPGProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::messSc
               "UPDATE tblTaskState ts SET "
               "state = " << (int)ZM_Base::stateType::completed << " "
               "FROM tblTaskQueue tq "
-              "WHERE ts.qtask = " << m.taskId << " AND tq.worker = " << m.workerId << ";";
+              "WHERE ts.qtask = " << m.taskId << " AND tq.worker = " << m.workerId << ";"
+
+              "UPDATE tblScheduler SET "
+              "activeTask = " << m.schedrActiveTask << " "
+              "WHERE id = " << sId << ";"
+
+              "UPDATE tblWorker SET "
+              "activeTask = " << m.workerActiveTask << " "
+              "WHERE id = " << m.workerId << ";";
         break;  
       case ZM_Base::messType::taskStart: // when first launched 
         ss << "UPDATE tblTaskState SET "

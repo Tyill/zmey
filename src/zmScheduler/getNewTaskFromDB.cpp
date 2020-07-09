@@ -32,17 +32,22 @@ using namespace std;
 ZM_Aux::CounterTick ctickNT;
 extern ZM_Base::scheduler _schedr;
 extern ZM_Aux::QueueThrSave<sTask> _tasks;
+extern map<std::string, sWorker> _workers;
 
 void getNewTaskFromDB(ZM_DB::DbProvider& db){
-
-  size_t cSz = _tasks.size(),
-         capSz = _schedr.capacityTask;
-  vector<ZM_DB::schedrTask> tasks;
-  if (db.getNewTasksForSchedr(_schedr.id, capSz - cSz, tasks)){
-    for(auto& t : tasks){
+  
+  int actSz = 0,
+      capSz = _schedr.capacityTask;
+  for (auto& w : _workers){
+    actSz += w.second.base.activeTask;
+  }
+  actSz += _tasks.size();
+  vector<ZM_DB::schedrTask> newTasks;
+  if (db.getNewTasksForSchedr(_schedr.id, capSz - actSz, newTasks)){
+    for(auto& t : newTasks){
       _tasks.push(sTask{t.qTaskId, t.base, t.params});
     }
-    _schedr.activeTask = _tasks.size();
+    _schedr.activeTask = actSz + newTasks.size();
     ctickNT.reset();
   }
   else if (ctickNT(1000)){ // every 1000 cycle

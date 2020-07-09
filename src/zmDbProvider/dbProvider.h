@@ -49,6 +49,8 @@ struct messSchedr{
   uint64_t taskId;
   int progress;
   int workerRating;
+  int schedrActiveTask;
+  int workerActiveTask;
   std::string result; // if type is 'error', then errorMess
 };
 struct messError{

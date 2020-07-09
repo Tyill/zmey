@@ -117,7 +117,7 @@ namespace ZM_Base{
     uint64_t id;              // id tblScheduler
     stateType state;
     int capacityTask;         // the number of tasks that can be performed simultaneously  
-    int activeTask;           // number of running tasks
+    int activeTask;           // number of running tasks (approximate quantity)
     std::string connectPnt;   // connection point: IP or DNS ':' port
   };
   // tblWorker
@@ -126,9 +126,9 @@ namespace ZM_Base{
     uint64_t sId;             // id tblScheduler
     stateType state;  
     int capacityTask;         // the number of tasks that can be performed simultaneously  
-    int activeTask;           // number of running tasks
+    int activeTask;           // number of running tasks (approximate quantity)
     int rating;               // manager is assigned a rating to the worker[1..10]
     std::string connectPnt;   // connection point: IP or DNS ':' port
-  }; 
-  const int WORKER_RATING_MAX = 10; 
+    static const int RATING_MAX = 10;
+  };
 }
