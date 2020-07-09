@@ -504,7 +504,7 @@ bool zmGetTaskTemplate(zmConn zo, uint64_t tId, zmTaskTemplate* outTCng){
   }
   return false;
 }
-bool zmChangeTaskTemplateCng(zmConn zo, uint64_t tId, zmTaskTemplate newCng, uint64_t* outTId){
+bool zmChangeTaskTemplate(zmConn zo, uint64_t tId, zmTaskTemplate newCng, uint64_t* outTId){
   if (!zo) return false; 
 
   if (!outTId){
@@ -707,10 +707,10 @@ bool zmTaskTime(zmConn zo, uint64_t qtId, zmTskTime* outTTime){
   }
   ZM_DB::taskTime tskTime;
   if (static_cast<ZM_DB::DbProvider*>(zo)->taskTime(qtId, tskTime)){  
-    strcpy(outTTime->createTime, tskTime.createTime.c_str());
-    strcpy(outTTime->takeInWorkTime, tskTime.takeInWorkTime.c_str());
-    strcpy(outTTime->startTime, tskTime.startTime.c_str());
-    strcpy(outTTime->stopTime, tskTime.stopTime.c_str());
+    strncpy(outTTime->createTime, tskTime.createTime.c_str(), 32);
+    strncpy(outTTime->takeInWorkTime, tskTime.takeInWorkTime.c_str(), 32);
+    strncpy(outTTime->startTime, tskTime.startTime.c_str(), 32);
+    strncpy(outTTime->stopTime, tskTime.stopTime.c_str(), 32);
     return true;
   }
   return false;

@@ -68,8 +68,9 @@ struct config{
 void statusMess(const string& mess){
   lock_guard<std::mutex> lock(_mtxSts);
   cout << ZM_Aux::currDateTimeMs() << " " << mess << std::endl;
-  if (_pLog)
+  if (_pLog){
     _pLog->writeMess(mess);
+  }
 }
 
 void parseArgs(int argc, char* argv[], config& outCng){ 

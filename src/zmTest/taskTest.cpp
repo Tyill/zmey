@@ -22,8 +22,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#define ZMEYTEST
-#ifdef ZMEYTEST
+//#define TASKTEST
+#ifdef TASKTEST
 
 #include <vector>
 #include <algorithm>
@@ -34,7 +34,7 @@
 
 using namespace std;
 
-bool isSchedrAndWorker = false;
+extern bool isTables;
 class ZmeyTest : public ::testing::Test {
 public:
   ZmeyTest() { 
@@ -46,9 +46,12 @@ public:
                                                    err);
     if (strlen(err) > 0){    
       TEST_COUT << err << endl;
+      exit(-1);
     }   
-    EXPECT_TRUE(zmey::zmCreateTables(_zc));
-    
+    if (!isTables){
+      isTables = true;
+      EXPECT_TRUE(zmey::zmCreateTables(_zc));
+    }    
     zmey::zmSetErrorCBack(_zc, [](const char* mess, zmey::zmUData){
       TEST_COUT << mess << endl;
     }, nullptr);    
@@ -56,19 +59,20 @@ public:
     ZM_DB::connectCng cng;
     cng.selType = ZM_DB::dbType::PostgreSQL;
     cng.connectStr = "host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10";
-    _pDb = ZM_DB::makeDbProvider(cng);
-    
-    EXPECT_TRUE(_pDb->delAllTask()) << _pDb->getLastError();
-    EXPECT_TRUE(_pDb->delAllPipelines()) << _pDb->getLastError();
-    EXPECT_TRUE(_pDb->delAllUsers()) << _pDb->getLastError();
-    EXPECT_TRUE(_pDb->delAllSchedrs()) << _pDb->getLastError();
-    EXPECT_TRUE(_pDb->delAllWorkers()) << _pDb->getLastError();
+    auto pDb = ZM_DB::makeDbProvider(cng);
+    if (pDb){
+      EXPECT_TRUE(pDb->delAllSchedrs())   << pDb->getLastError();
+      EXPECT_TRUE(pDb->delAllTask())      << pDb->getLastError();
+      EXPECT_TRUE(pDb->delAllPipelines()) << pDb->getLastError();
+      EXPECT_TRUE(pDb->delAllUsers())     << pDb->getLastError();
+      EXPECT_TRUE(pDb->delAllWorkers())   << pDb->getLastError();
+      delete pDb;
+    }
   }
   ~ZmeyTest() {
     zmey::zmDisconnect(_zc);
   }
-protected:
-  ZM_DB::DbProvider* _pDb = nullptr;
+protected:  
   zmey::zmConn _zc = nullptr; 
 };
 
@@ -143,4 +147,4 @@ TEST_F(ZmeyTest, addTask){
   EXPECT_TRUE(zmey::zmStartTask(_zc, tId2));  
 }
 
-#endif // ZMEYTEST
+#endif // TASKTEST

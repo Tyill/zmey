@@ -1247,7 +1247,8 @@ bool DbPGProvider::taskResult(uint64_t tId, std::string& out){
 bool DbPGProvider::taskTime(uint64_t tId, ZM_DB::taskTime& out){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
-  ss << "SELECT createTime, takeInWorkTime, startTime, stopTime FROM tblTaskTime "
+  ss << "SELECT createTime, takeInWorkTime, startTime, stopTime "
+        "FROM tblTaskTime "
         "WHERE qtask = (SELECT qtask FROM tblUPipelineTask WHERE id = " << tId << " AND isDelete = 0);";
 
   auto res = PQexec(_pg, ss.str().c_str());
