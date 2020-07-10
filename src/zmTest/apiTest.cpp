@@ -22,7 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#define APITEST
+//#define APITEST
 #ifdef APITEST
 
 #include <vector>
@@ -992,7 +992,7 @@ TEST_F(APITest, changeTask){
   
   task.pplId = pId; 
   task.priority = 2;
-  strcpy(task.params, "['paramm1','paramm2','paramm3']");
+  strcpy(task.params, "['par amm1','paramm2','paramm3']");
   strcpy(task.screenRect, "1, 2, 2, 4");
   strcpy(task.nextTasksId, "[]");
   strcpy(task.prevTasksId, ("[" + to_string(tId1) + "]").c_str());
@@ -1008,7 +1008,7 @@ TEST_F(APITest, changeTask){
   EXPECT_TRUE(zmGetTask(_zc, tId2, &task) &&
              (task.pplId == pId) &&
              (task.priority == 2) &&
-             (strcmp(task.params, "['paramm1','paramm2','paramm3']") == 0) &&
+             (strcmp(task.params, "['par amm1','paramm2','paramm3']") == 0) &&
              (strcmp(task.nextTasksId, "[]") == 0) &&
              (strcmp(task.prevTasksId, ("[" + to_string(tId1) + "]").c_str()) == 0) &&
              (strcmp(task.screenRect, "1, 2, 2, 4") == 0) &&

@@ -62,18 +62,16 @@ Process::Process(const wTask& tsk):
                   _exit(127);  \
                 }    
       string scriptFile = to_string(tsk.base.id) + ".script";
-      int fdSct = open(scriptFile.c_str(), O_CREAT | O_TRUNC | O_WRONLY);
+      int fdSct = open(scriptFile.c_str(), O_CREAT | O_TRUNC | O_WRONLY, S_IRUSR | S_IXUSR);
       CHECK(fdSct, "create");
       CHECK(write(fdSct, tsk.base.script.data(), tsk.base.script.size()), "write");
       CHECK(close(fdSct), "close");
-      CHECK(chmod(scriptFile.c_str(), S_IRUSR | S_IXUSR), "chmod");
-
+      
       string resultFile = to_string(tsk.base.id) + ".result";
-      int fdRes = open(resultFile.c_str(), O_CREAT | O_TRUNC | O_RDWR);
+      int fdRes = open(resultFile.c_str(), O_CREAT | O_TRUNC | O_RDWR, S_IRUSR | S_IWUSR);
       CHECK(fdRes, "create");
       CHECK(dup2(fdRes, 1), "dup2(fdRes, 1)");// stdout -> fdRes
       CHECK(dup2(1, 2), "dup2(1, 2)");        // stderr -> stdout
-      CHECK(chmod(resultFile.c_str(), S_IRUSR | S_IWUSR), "chmod");
       
       auto prmVec = ZM_Aux::split(tsk.params, ",");
       size_t psz = prmVec.size();

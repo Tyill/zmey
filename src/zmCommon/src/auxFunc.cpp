@@ -97,10 +97,16 @@ std::string replace(std::string& ioStr, const std::string& targ, const std::stri
   return ioStr;
 }
 std::string trim(std::string str){
-  auto itB = std::find_if(str.cbegin(), str.cend(), [](int32_t ch) -> bool { return !std::isspace(ch); });
+  auto itB = std::find_if(str.cbegin(), str.cend(), 
+                          [](int32_t ch) -> bool {
+                            return !std::isspace(ch);
+                          });
   str.erase(str.cbegin(), itB);
 
-  auto itE = std::find_if(str.crbegin(), str.crend(), [](int32_t ch) -> bool { return !std::isspace(ch); });
+  auto itE = std::find_if(str.crbegin(), str.crend(),
+                          [](int32_t ch) -> bool {
+                            return !std::isspace(ch);
+                          });
   str.erase(itE.base(), str.cend());
 
   return str;
@@ -112,7 +118,7 @@ uint64_t currDateTimeSinceEpochMs(){
 }
 bool isNumber(const std::string& s){
   for(size_t i = 0; i < s.size(); ++i){
-    if (!std::isdigit(s[i]) && ((i > 0) || (s[i] != '-'))){
+    if (!std::isdigit(s[i])){
       return false; 
     }
   }

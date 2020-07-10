@@ -1138,6 +1138,7 @@ bool DbPGProvider::getTask(uint64_t tId, ZM_Base::uTask& outTCng){
   ZM_Aux::replace(outTCng.nextTasks, "}", "]");
 
   outTCng.base.params = PQgetvalue(res, 0, 5);
+  ZM_Aux::replace(outTCng.base.params, "\"", "");
   ZM_Aux::replace(outTCng.base.params, "}", "']");
   ZM_Aux::replace(outTCng.base.params, "{", "['");
   ZM_Aux::replace(outTCng.base.params, ",", "','");

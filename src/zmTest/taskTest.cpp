@@ -22,7 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-//#define TASKTEST
+#define TASKTEST
 #ifdef TASKTEST
 
 #include <vector>
@@ -34,7 +34,6 @@
 
 using namespace std;
 
-extern bool isTables;
 class ZmeyTest : public ::testing::Test {
 public:
   ZmeyTest() { 
@@ -48,10 +47,8 @@ public:
       TEST_COUT << err << endl;
       exit(-1);
     }   
-    if (!isTables){
-      isTables = true;
-      EXPECT_TRUE(zmey::zmCreateTables(_zc));
-    }    
+    EXPECT_TRUE(zmey::zmCreateTables(_zc));
+
     zmey::zmSetErrorCBack(_zc, [](const char* mess, zmey::zmUData){
       TEST_COUT << mess << endl;
     }, nullptr);    
