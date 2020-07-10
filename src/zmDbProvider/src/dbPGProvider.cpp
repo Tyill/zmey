@@ -61,11 +61,11 @@ bool DbPGProvider::createTables(){
   
   stringstream ss;
   ss << "CREATE TABLE IF NOT EXISTS tblUser("
-        "id          SERIAL PRIMARY KEY,"
-        "name        TEXT NOT NULL UNIQUE CHECK (name <> ''),"
-        "passwHash   TEXT NOT NULL,"
-        "description TEXT NOT NULL,"
-        "isDelete    INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
+        "id           SERIAL PRIMARY KEY,"
+        "name         TEXT NOT NULL UNIQUE CHECK (name <> ''),"
+        "passwHash    TEXT NOT NULL,"
+        "description  TEXT NOT NULL,"
+        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   /////////////////////////////////////////////////////////////////////////////
@@ -217,7 +217,13 @@ bool DbPGProvider::createTables(){
   
   ///////////////////////////////////////////////////////////////////////////
   /// INDEXES
-
+  ss.str(""); 
+  ss << "CREATE INDEX inxTSState ON tblTaskState(state);"
+        "CREATE INDEX inxPPTQTask ON tblUPipelineTask(qtask);"
+        "CREATE INDEX inxPPTQTaskTempl ON tblUPipelineTask(taskTempl);"
+        "CREATE INDEX inxTQWorker ON tblTaskQueue(worker);"
+        "CREATE INDEX inxIECreateTime ON tblInternError(createTime);"
+        "CREATE INDEX inxTTCreateTime ON tblTaskTime(createTime);";
 
   ///////////////////////////////////////////////////////////////////////////
   /// FUNCTIONS
@@ -996,6 +1002,7 @@ bool DbPGProvider::changeTaskTemplate(uint64_t tId, const ZM_Base::uTaskTemplate
   ss << "UPDATE tblUTaskTemplate SET "
         "isDelete = 1 "
         "WHERE task = " << tId << ";"
+        
         "WITH ntsk AS (INSERT INTO tblTask (script, averDurationSec, maxDurationSec) VALUES("
         "'" << newTCng.base.script << "',"
         "'" << newTCng.base.averDurationSec << "',"
@@ -1015,6 +1022,21 @@ bool DbPGProvider::changeTaskTemplate(uint64_t tId, const ZM_Base::uTaskTemplate
   }
   outTId = stoull(PQgetvalue(res, 0, 0));
   PQclear(res); 
+
+  ////////////////////////////////////////////////////////////////////////
+
+  ss.str(""); 
+  ss << "UPDATE tblUPipelineTask SET "
+        "taskTempl = "<< outTId << " "
+        "WHERE taskTempl = " << tId << ";";
+  
+  res = PQexec(_pg, ss.str().c_str());
+  if (PQresultStatus(res) != PGRES_COMMAND_OK){
+      errorMess(string("changeTaskTemplate error: ") + PQerrorMessage(_pg));
+      PQclear(res);
+      return false;
+  }
+  PQclear(res);
   return true;
 }
 bool DbPGProvider::delTaskTemplate(uint64_t tId){
