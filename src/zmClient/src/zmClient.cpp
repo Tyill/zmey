@@ -24,7 +24,7 @@
 //
 
 #include <cstring>
-#include "zmey/zmey.h"
+#include "zmClient/zmClient.h"
 #include "zmCommon/auxFunc.h"
 #include "zmCommon/tcp.h"
 #include "zmCommon/serial.h"

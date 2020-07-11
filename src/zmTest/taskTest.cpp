@@ -28,7 +28,7 @@
 #include <vector>
 #include <algorithm>
 #include "prepare.h"
-#include "zmey/zmey.h"
+#include "zmClient/zmClient.h"
 #include "zmCommon/auxFunc.h"
 #include "zmDbProvider/dbProvider.h"
 

@@ -81,7 +81,7 @@ struct zmConnect{
 };
 
 /// create connection
-/// @param[in] zmConnectCng - connection config
+/// @param[in] zmConnect - connection config
 /// @param[out] err - error string. The memory is allocated by the user
 /// @return object connect
 ZMEY_API zmConn zmCreateConnection(zmConnect, char* err /*sz 256*/);
