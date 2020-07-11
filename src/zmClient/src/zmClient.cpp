@@ -754,7 +754,7 @@ uint32_t zmGetInternErrors(zmConn zo, uint64_t sId, uint64_t wId, uint32_t mCnt,
 
 ///////////////////////////////////////////////////////////////////////////////
 /// free resouces
-void zmFreeResouces(uint64_t* pUInt, char* pChar){
+void zmFreeResources(uint64_t* pUInt, char* pChar){
   if (pUInt){
     free(pUInt);
   } 
