@@ -166,8 +166,8 @@ ZMEY_API uint32_t zmGetAllUsers(zmConn, uint64_t** outUserId);
 
 /// scheduler config
 struct zmSchedr{
-  char connectPnt[255];          ///< remote connection point: IP or DNS:port
   uint32_t capacityTask = 10000; ///< permissible simultaneous number of tasks 
+  char connectPnt[255];          ///< remote connection point: IP or DNS:port  
 };
 /// add new scheduler
 /// @param[in] zmConn - object connect

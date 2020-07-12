@@ -22,7 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#include <signal.h>
+#include <unistd.h>
 #include <map>
 #include <algorithm>
 #include <iostream>
@@ -121,7 +121,9 @@ int main(int argc, char* argv[]){
   config cng;
   parseArgs(argc, argv, cng); 
   if (cng.logEna){
-    _pLog = unique_ptr<ZM_Aux::Logger>(new ZM_Aux::Logger("zmWorker.log", ""));
+    _pLog = unique_ptr<ZM_Aux::Logger>(
+      new ZM_Aux::Logger("zmWorker" + to_string(getpid()) + ".log", "")
+    );
   } 
   CHECK(cng.connectPnt.empty(), "Not set param '-cp' - worker connection point: IP or DNS:port");
   CHECK(cng.schedrConnPnt.empty(), "Not set param '-scp' - scheduler connection point: IP or DNS:port");

@@ -23,6 +23,7 @@
 // THE SOFTWARE.
 //
 #include <signal.h>
+#include <unistd.h>
 #include <future>
 #include <algorithm>
 #include <iostream>
@@ -123,7 +124,7 @@ createDbProvider(const config& cng, std::string& err){
   if (db && db->getLastError().empty()){
     return db;
   } else{
-    err = db ? db->getLastError() : "";
+    err = db ? db->getLastError() : "db undefined";
     return nullptr;
   }
 }
@@ -140,7 +141,9 @@ int main(int argc, char* argv[]){
   parseArgs(argc, argv, cng);
 
   if (cng.logEna){
-    _pLog = unique_ptr<ZM_Aux::Logger>(new ZM_Aux::Logger("zmSchedr.log", ""));
+    _pLog = unique_ptr<ZM_Aux::Logger>(
+      new ZM_Aux::Logger("zmSchedr" + to_string(getpid()) + ".log", "")
+    );
   }
   CHECK(cng.connectPnt.empty(), "Not set param '-cp' - scheduler connection point: IP or DNS:port");
   CHECK(cng.dbConnCng.selType == ZM_DB::dbType::undefined, "Check param '-dbtp', such db type is not defined");

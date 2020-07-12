@@ -71,6 +71,32 @@ class schedr:
     self.state = state
     self.connectPnt = connectPnt     # remote connection point: IP or DNS:port
     self.capacityTask = capacityTask # permissible simultaneous number of tasks 
+class worker: 
+  """Worker config""" 
+  def __init__(self,
+               id : int = 0,
+               sId : int = 0, 
+               state : stateType = stateType.ready,
+               connectPnt : str = "",
+               capacityTask : int = 10000):
+    self.id = id
+    self.sId = sId                   # schedr id
+    self.state = state
+    self.connectPnt = connectPnt     # remote connection point: IP or DNS:port
+    self.capacityTask = capacityTask # permissible simultaneous number of tasks 
+class pipeline: 
+  """Pipeline config""" 
+  def __init__(self,
+               id : int = 0,
+               uId : int = 0,
+               isShared : int = 0,
+               name : str = "",
+               description : str = ""):
+    self.id = id
+    self.uId = uId                   # user id
+    self.isShared = isShared
+    self.name = name    
+    self.description = description 
 
 def _c_str(string : str) -> ctypes.c_char_p:
     """Create ctypes char * from a Python string."""
@@ -79,9 +105,6 @@ def _c_str(string : str) -> ctypes.c_char_p:
     else:
       py_str = lambda x: x
     return ctypes.c_char_p(py_str(string)) 
-_uint64_p = lambda x : ctypes.cast(x, ctypes.POINTER(ctypes.c_uint64))
-_int32_p = lambda x : ctypes.cast(x, ctypes.POINTER(ctypes.c_int32))
-_errCBackType = ctypes.CFUNCTYPE(None, ctypes.c_char_p, ctypes.c_void_p)    
 class _connectCng(ctypes.Structure):
   _fields_ = [('dbType', ctypes.c_int32),
               ('connStr', ctypes.c_char_p)]
@@ -89,11 +112,25 @@ class _userCng(ctypes.Structure):
   _fields_ = [('name', ctypes.c_char * 255),
               ('passw', ctypes.c_char * 255),
               ('description', ctypes.c_char_p)]
-_userCng_p = lambda x : ctypes.cast(x, ctypes.POINTER(_userCng))
 class _schedrCng(ctypes.Structure):
-  _fields_ = [('connectPnt', ctypes.c_char * 255),
-              ('capacityTask', ctypes.c_uint32)]
+  _fields_ = [('capacityTask', ctypes.c_uint32),
+              ('connectPnt', ctypes.c_char * 255)]
+class _workerCng(ctypes.Structure):
+  _fields_ = [('schedrId', ctypes.c_uint64),
+              ('capacityTask', ctypes.c_uint32),
+              ('connectPnt', ctypes.c_char * 255)]
+class _pipelineCng(ctypes.Structure):
+  _fields_ = [('userId', ctypes.c_uint64),
+              ('isShared', ctypes.c_uint32),
+              ('name', ctypes.c_char * 255),
+              ('description', ctypes.c_char_p)]
+_userCng_p = lambda x : ctypes.cast(x, ctypes.POINTER(_userCng))
 _schedrCng_p = lambda x : ctypes.cast(x, ctypes.POINTER(_schedrCng))  
+_workerCng_p = lambda x : ctypes.cast(x, ctypes.POINTER(_workerCng))  
+_pipelineCng_p = lambda x : ctypes.cast(x, ctypes.POINTER(_pipelineCng))  
+_uint64_p = lambda x : ctypes.cast(x, ctypes.POINTER(ctypes.c_uint64))
+_int32_p = lambda x : ctypes.cast(x, ctypes.POINTER(ctypes.c_int32))
+_errCBackType = ctypes.CFUNCTYPE(None, ctypes.c_char_p, ctypes.c_void_p)    
 
 def version() -> str:
   """
@@ -197,9 +234,9 @@ class ZMObj:
       pfun = _LIB.zmAddUser
       pfun.argtypes = (ctypes.c_void_p, _userCng, ctypes.POINTER(ctypes.c_uint64))
       pfun.restype = ctypes.c_bool
-      ok = pfun(self._zmConn, ucng, _uint64_p(ctypes.addressof(uid)))
-      iousr.id = uid.value
-      return ok
+      if (pfun(self._zmConn, ucng, _uint64_p(ctypes.addressof(uid)))):
+        iousr.id = uid.value
+        return True
     return False
   def getUserId(self, iousr : user)-> bool:
     """
@@ -218,9 +255,9 @@ class ZMObj:
       pfun = _LIB.zmGetUserId
       pfun.argtypes = (ctypes.c_void_p, _userCng, ctypes.POINTER(ctypes.c_uint64))
       pfun.restype = ctypes.c_bool
-      ok = pfun(self._zmConn, ucng, _uint64_p(ctypes.addressof(uid)))
-      iousr.id = uid.value
-      return ok
+      if (pfun(self._zmConn, ucng, _uint64_p(ctypes.addressof(uid)))):
+        iousr.id = uid.value
+        return True
     return False
   def getUserCng(self, iousr : user) -> bool:
     """
@@ -236,12 +273,11 @@ class ZMObj:
       pfun = _LIB.zmGetUserCng
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(_userCng))
       pfun.restype = ctypes.c_bool
-      ok = pfun(self._zmConn, uid, _userCng_p(ctypes.addressof(ucng)))
-      
-      iousr.name = ucng.name.decode('utf-8')
-      iousr.passw = ucng.passw.decode('utf-8')
-      iousr.description = ucng.description.decode('utf-8')
-      return ok
+      if (pfun(self._zmConn, uid, _userCng_p(ctypes.addressof(ucng)))):      
+        iousr.name = ucng.name.decode('utf-8')
+        iousr.passw = ucng.passw.decode('utf-8')
+        iousr.description = ucng.description.decode('utf-8')
+        return True
     return False
   def changeUser(self, iusr : user) -> bool:
     """
@@ -320,9 +356,9 @@ class ZMObj:
       pfun = _LIB.zmAddScheduler
       pfun.argtypes = (ctypes.c_void_p, _schedrCng, ctypes.POINTER(ctypes.c_uint64))
       pfun.restype = ctypes.c_bool
-      ok = pfun(self._zmConn, scng, _uint64_p(ctypes.addressof(sid)))
-      iosch.id = sid.value
-      return ok
+      if (pfun(self._zmConn, scng, _uint64_p(ctypes.addressof(sid)))):
+        iosch.id = sid.value
+        return True
     return False
   def getScheduler(self, iosch : schedr) -> bool:
     """
@@ -338,11 +374,10 @@ class ZMObj:
       pfun = _LIB.zmGetScheduler
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(_schedrCng))
       pfun.restype = ctypes.c_bool
-      ok = pfun(self._zmConn, sid, _schedrCng_p(ctypes.addressof(scng)))
-      
-      iosch.connectPnt = scng.connectPnt.decode('utf-8')
-      iosch.capacityTask = scng.capacityTask
-      return ok
+      if (pfun(self._zmConn, sid, _schedrCng_p(ctypes.addressof(scng)))):      
+        iosch.connectPnt = scng.connectPnt.decode('utf-8')
+        iosch.capacityTask = scng.capacityTask
+      return True
     return False
   def changeScheduler(self, isch : schedr) -> bool:
     """
@@ -432,14 +467,14 @@ class ZMObj:
       pfun = _LIB.zmSchedulerState
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(ctypes.c_int32))
       pfun.restype = ctypes.c_bool
-      ok = pfun(self._zmConn, sid, _int32_p(ctypes.addressof(sstate)))
-      
-      iosch.state = stateType(sstate.value) 
-      return ok
+      if (pfun(self._zmConn, sid, _int32_p(ctypes.addressof(sstate)))):      
+        iosch.state = stateType(sstate.value) 
+        return True
     return False
   def getAllSchedulers(self, state : stateType) -> [schedr]:
     """
     Get all schedrs
+    :param state: choose with current state. If the state is 'undefined', select all
     :return: list of schedr id
     """
     if (self._zmConn):
@@ -463,135 +498,286 @@ class ZMObj:
         self.getScheduler(s)
         osch.append(s)
       return osch
+    return []
+
+  #####################################################################
+  ### Worker
+
+  def addWorker(self, iowkr : worker) -> bool:
+    """
+    Add new worker
+    :param iowkr: new worker config
+    :return: True - ok
+    """
+    if (self._zmConn):
+      wcng = _workerCng()
+      wcng.schedrId = iowkr.sId
+      wcng.connectPnt = iowkr.connectPnt.encode('utf-8')
+      wcng.capacityTask = iowkr.capacityTask
+      
+      wid = ctypes.c_uint64(0)
+      
+      pfun = _LIB.zmAddWorker
+      pfun.argtypes = (ctypes.c_void_p, _workerCng, ctypes.POINTER(ctypes.c_uint64))
+      pfun.restype = ctypes.c_bool
+      if (pfun(self._zmConn, wcng, _uint64_p(ctypes.addressof(wid)))):
+        iowkr.id = wid.value
+        return True
     return False
+  def getWorker(self, iowkr : worker) -> bool:
+    """
+    Get worker config by ID
+    :param iowkr: worker config
+    :return: True - ok
+    """
+    if (self._zmConn):
+      wcng = _workerCng()
 
+      wid = ctypes.c_uint64(iowkr.id)
+      
+      pfun = _LIB.zmGetWorker
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(_workerCng))
+      pfun.restype = ctypes.c_bool
+      if (pfun(self._zmConn, wid, _workerCng_p(ctypes.addressof(wcng)))):
+        iowkr.sId = wcng.schedrId
+        iowkr.connectPnt = wcng.connectPnt.decode('utf-8')
+        iowkr.capacityTask = wcng.capacityTask
+        return True
+    return False
+  def changeWorker(self, iwkr : worker) -> bool:
+    """
+    Change worker config
+    :param iwkr: new worker config
+    :return: True - ok
+    """
+    if (self._zmConn):
+      wid = ctypes.c_uint64(iwkr.id)
+      wcng = _workerCng()
+      wcng.schedrId = iwkr.sId
+      wcng.connectPnt = iwkr.connectPnt.encode('utf-8')
+      wcng.capacityTask = iwkr.capacityTask
+      
+      pfun = _LIB.zmChangeWorker
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, _workerCng)
+      pfun.restype = ctypes.c_bool
+      return pfun(self._zmConn, wid, wcng)
+    return False
+  def delWorker(self, wkrId) -> bool:
+    """
+    Delete worker
+    :param wkrId: worker id
+    :return: True - ok
+    """
+    if (self._zmConn):
+      wid = ctypes.c_uint64(wkrId)
+            
+      pfun = _LIB.zmDelWorker
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
+      pfun.restype = ctypes.c_bool
+      return pfun(self._zmConn, wid)
+    return False
+  def startWorker(self, wkrId) -> bool:
+    """
+    Start worker
+    :param wkrId: worker id
+    :return: True - ok
+    """
+    if (self._zmConn):
+      wid = ctypes.c_uint64(wkrId)
+            
+      pfun = _LIB.zmStartWorker
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
+      pfun.restype = ctypes.c_bool
+      return pfun(self._zmConn, wid)
+    return False
+  def pauseWorker(self, wkrId) -> bool:
+    """
+    Pause worker
+    :param wkrId: worker id
+    :return: True - ok
+    """
+    if (self._zmConn):
+      wid = ctypes.c_uint64(wkrId)
+            
+      pfun = _LIB.zmPauseWorker
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
+      pfun.restype = ctypes.c_bool
+      return pfun(self._zmConn, wid)
+    return False
+  def pingWorker(self, wkrId) -> bool:
+    """
+    Ping worker
+    :param wkrId: worker id
+    :return: True - ok
+    """
+    if (self._zmConn):
+      wid = ctypes.c_uint64(wkrId)
+            
+      pfun = _LIB.zmPingWorker
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
+      pfun.restype = ctypes.c_bool
+      return pfun(self._zmConn, wid)
+    return False
+  def workerState(self, iowkrs : [worker]) -> bool:
+    """
+    Worker state
+    :param iowkrs: workers config
+    :return: True - ok
+    """
+    if (self._zmConn):
+      wsz = len(iowkrs)
+      cwsz = ctypes.c_uint32(wsz)
+          
+      idBuffer = (ctypes.c_uint64 * wsz)(*[iowkrs[i].id for i in range(wsz)])
+      stateBuffer = (ctypes.c_int32 * wsz)()
 
-obj = ZMObj(dbType.PostgreSQL, "host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10")
+      pfun = _LIB.zmWorkerState
+      pfun.argtypes = (ctypes.c_void_p, ctypes.POINTER(ctypes.c_uint64), ctypes.c_uint32, ctypes.POINTER(ctypes.c_int32))
+      pfun.restype = ctypes.c_bool
 
-sch = schedr  
-sch.connectPnt = "localhost:4444"
-sch.capacityTask = 10000
-ok = obj.addScheduler(sch)
+      if (pfun(self._zmConn, idBuffer, cwsz, stateBuffer)):      
+        for i in range(wsz):
+          iowkrs[i].state = stateType(stateBuffer[i])
+        return True
+    return False
+  def getAllWorkers(self, schId : int, state : stateType) -> [schedr]:
+    """
+    Get all workers
+    :param schId: schedr id
+    :param state: choose with current state. If the state is 'undefined', select all
+    :return: list of worker id
+    """
+    if (self._zmConn):
+      sId = ctypes.c_uint64(schId)
+      sstate = ctypes.c_int32(state.value)
 
-allUsr = obj.getAllSchedulers(stateType.ready)
+      pfun = _LIB.zmGetAllWorkers
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.c_int32, ctypes.POINTER(ctypes.POINTER(ctypes.c_uint64)))
+      pfun.restype = ctypes.c_uint32
+      dbuffer = ctypes.POINTER(ctypes.c_uint64)()
+      osz = pfun(self._zmConn, sId, sstate, ctypes.byref(dbuffer))
+      oid = [dbuffer[i] for i in range(osz)]
+      
+      pfun = _LIB.zmFreeResources
+      pfun.restype = None
+      pfun.argtypes = (ctypes.POINTER(ctypes.c_uint64), ctypes.c_char_p)
+      pfun(dbuffer, ctypes.c_char_p(0))
 
-ok = False
-
-  # ///////////////////////////////////////////////////////////////////////////////
-  # /// Worker
-
-  # /// worker config
-  # struct zmWorker{
-  #   uint64_t sId;               ///< scheduler id 
-  #   uint32_t capacityTask = 10; ///< permissible simultaneous number of tasks
-  #   char connectPnt[255];       ///< remote connection point: IP or DNS:port   
-  # };
-    
-  # /// add new worker
-  # /// @param[in] zmConn - object connect
-  # /// @param[in] cng - worker config
-  # /// @param[out] outWId - new worker id
-  # /// @return true - ok
-  # ZMEY_API bool zmAddWorker(zmConn, zmWorker cng, uint64_t* outWId);
-
-  # /// worker cng
-  # /// @param[in] zmConn - object connect
-  # /// @param[in] wId - worker id
-  # /// @param[out] outCng - worker config
-  # /// @return true - ok
-  # ZMEY_API bool zmGetWorker(zmConn, uint64_t wId, zmWorker* outCng);
-
-  # /// change worker cng
-  # /// @param[in] zmConn - object connect
-  # /// @param[in] wId - worker id
-  # /// @param[in] newCng - worker config
-  # /// @return true - ok
-  # ZMEY_API bool zmChangeWorker(zmConn, uint64_t wId, zmWorker newCng);
-
-  # /// delete worker
-  # /// @param[in] zmConn - object connect
-  # /// @param[in] wId - worker id
-  # /// @return true - ok
-  # ZMEY_API bool zmDelWorker(zmConn, uint64_t wId);
-
-  # /// start worker
-  # /// @param[in] zmConn - object connect
-  # /// @param[in] wId - worker id
-  # /// @return true - ok
-  # ZMEY_API bool zmStartWorker(zmConn, uint64_t wId);
-
-  # /// pause worker
-  # /// @param[in] zmConn - object connect
-  # /// @param[in] wId - worker id
-  # /// @return true - ok
-  # ZMEY_API bool zmPauseWorker(zmConn, uint64_t wId);
-
-  # /// ping worker
-  # /// @param[in] zmConn - object connect
-  # /// @param[in] wId - worker id
-  # /// @return true - ok
-  # ZMEY_API bool zmPingWorker(zmConn, uint64_t wId);
-
-  # /// worker state
-  # /// @param[in] zmConn - object connect
-  # /// @param[in] wId - worker id, order by id.
-  # /// @param[in] wCnt - worker count
-  # /// @param[out] outState - worker state. The memory is allocated by the user
-  # /// @return true - ok
-  # ZMEY_API bool zmWorkerState(zmConn, uint64_t* wId, uint32_t wCnt, zmStateType* outState);
-
-  # /// get all workers
-  # /// @param[in] zmConn - object connect
-  # /// @param[in] sId - scheduler id 
-  # /// @param[in] state - choose with current state. If the state is 'undefined', select all
-  # /// @param[out] outWId - worker id 
-  # /// @return count of schedulers
-  # ZMEY_API uint32_t zmGetAllWorkers(zmConn, uint64_t sId, zmStateType state, uint64_t** outWId);
-
+      owkr = []
+      for i in range(osz):
+        w = worker(oid[i])
+        self.getWorker(w)
+        owkr.append(w)
+      return owkr
+    return []
+  
   # ///////////////////////////////////////////////////////////////////////////////
   # /// Pipeline of tasks
+  
+  def addPipeline(self, ioppl : pipeline) -> bool:
+    """
+    Add new pipeline
+    :param ioppl: new pipeline config
+    :return: True - ok
+    """
+    if (self._zmConn):
+      pcng = _pipelineCng()
+      pcng.userId = ioppl.uId
+      pcng.isShared = ioppl.isShared
+      pcng.name = ioppl.name.encode('utf-8')
+      pcng.description = ioppl.description.encode('utf-8')
+      
+      pplid = ctypes.c_uint64(0)
+      
+      pfun = _LIB.zmAddPipeline
+      pfun.argtypes = (ctypes.c_void_p, _pipelineCng, ctypes.POINTER(ctypes.c_uint64))
+      pfun.restype = ctypes.c_bool
+      if (pfun(self._zmConn, pcng, _uint64_p(ctypes.addressof(pplid)))):
+        ioppl.id = pplid.value
+        return True
+    return False
+  def getPipeline(self, ioppl : pipeline) -> bool:
+    """
+    Get pipeline config by ID
+    :param ioppl: pipeline config
+    :return: True - ok
+    """
+    if (self._zmConn):
+      pcng = _pipelineCng()
 
-  # /// pipeline config
-  # struct zmPipeline{
-  #   uint64_t userId;         ///< user id
-  #   uint32_t isShared;       ///< may be shared [0..1]   
-  #   char name[255];          ///< pipeline name
-  #   char* description;       ///< description of pipeline. The memory is allocated by the user. May be NULL
-  # };
+      pplid = ctypes.c_uint64(ioppl.id)
+      
+      pfun = _LIB.zmGetPipeline
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(_pipelineCng))
+      pfun.restype = ctypes.c_bool
+      if (pfun(self._zmConn, pplid, _pipelineCng_p(ctypes.addressof(pcng)))):      
+        ioppl.uId = pcng.userId
+        ioppl.isShared = pcng.isShared
+        ioppl.name = pcng.name.decode('utf-8')
+        ioppl.description = pcng.description.decode('utf-8')
+        return True
+    return False
+  def changePipeline(self, ippl : user) -> bool:
+    """
+    Change pipeline config
+    :param ippl: new pipeline config
+    :return: True - ok
+    """
+    if (self._zmConn):
+      pplid = ctypes.c_uint64(ippl.id)
+      pcng = _pipelineCng()
+      pcng.userId = ippl.uId
+      pcng.isShared = ippl.isShared
+      pcng.name = ippl.name.encode('utf-8')
+      pcng.description = ippl.description.encode('utf-8')
+      
+      pfun = _LIB.zmChangePipeline
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, _pipelineCng)
+      pfun.restype = ctypes.c_bool
+      return pfun(self._zmConn, pplid, pcng)
+    return False
+  def delPipeline(self, pplId : int) -> bool:
+    """
+    Delete pipeline
+    :param pplId: pipeline id
+    :return: True - ok
+    """
+    if (self._zmConn):
+      pid = ctypes.c_uint64(pplId)
+            
+      pfun = _LIB.zmDelPipeline
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
+      pfun.restype = ctypes.c_bool
+      return pfun(self._zmConn, pid)
+    return False
+  def getAllPipelines(self, userId : int) -> [pipeline]:
+    """
+    Get all pipelines
+    :param userId: user id
+    :return: list of pipeline id
+    """
+    if (self._zmConn):
+      uId = ctypes.c_uint64(userId)
 
-  # /// add pipeline
-  # /// @param[in] zmConn - object connect
-  # /// @param[in] cng - pipeline config
-  # /// @param[out] outPPLId - pipeline id
-  # /// @return true - ok
-  # ZMEY_API bool zmAddPipeline(zmConn, zmPipeline cng, uint64_t* outPPLId);
+      pfun = _LIB.zmGetAllPipelines
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(ctypes.POINTER(ctypes.c_uint64)))
+      pfun.restype = ctypes.c_uint32
+      dbuffer = ctypes.POINTER(ctypes.c_uint64)()
+      osz = pfun(self._zmConn, uId, ctypes.byref(dbuffer))
+      oid = [dbuffer[i] for i in range(osz)]
+      
+      pfun = _LIB.zmFreeResources
+      pfun.restype = None
+      pfun.argtypes = (ctypes.POINTER(ctypes.c_uint64), ctypes.c_char_p)
+      pfun(dbuffer, ctypes.c_char_p(0))
 
-  # /// get pipeline config
-  # /// @param[in] zmConn - object connect
-  # /// @param[in] pplId - pipeline id
-  # /// @param[out] outCng - pipeline config
-  # /// @return true - ok
-  # ZMEY_API bool zmGetPipeline(zmConn, uint64_t pplId, zmPipeline* outCng);
-
-  # /// change pipeline config
-  # /// @param[in] zmConn - object connect
-  # /// @param[in] pplId - pipeline id
-  # /// @param[in] newCng - pipeline config
-  # /// @return true - ok
-  # ZMEY_API bool zmChangePipeline(zmConn, uint64_t pplId, zmPipeline newCng);
-
-  # /// delete pipeline
-  # /// @param[in] zmConn - object connect
-  # /// @param[in] pplId - pipeline
-  # /// @return true - ok
-  # ZMEY_API bool zmDelPipeline(zmConn, uint64_t pplId);
-
-  # /// get all pipelines
-  # /// @param[in] zmConn - object connect
-  # /// @param[in] userId - user id
-  # /// @param[out] outPPLId - pipeline id 
-  # /// @return count of pipelines
-  # ZMEY_API uint32_t zmGetAllPipelines(zmConn, uint64_t userId, uint64_t** outPPLId);
+      oppl = []
+      for i in range(osz):
+        p = pipeline(oid[i])
+        self.getPipeline(p)
+        oppl.append(p)
+      return oppl
+    return []
 
   # ///////////////////////////////////////////////////////////////////////////////
   # /// Task template 
@@ -613,6 +799,15 @@ ok = False
   # /// @param[out] outTId - new task id
   # /// @return true - ok
   # ZMEY_API bool zmAddTaskTemplate(zmConn, zmTaskTemplate cng, uint64_t* outTId);
+
+
+obj = ZMObj(dbType.PostgreSQL, "host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10")
+
+allUsr = obj.getAllUsers()
+
+ok = obj.getAllPipelines(allUsr[0].id)
+
+err = obj.getLastError()
 
   # /// get task template cng
   # /// @param[in] zmConn - object connect
