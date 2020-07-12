@@ -32,7 +32,7 @@ from enum import Enum
 
 _LIB = ctypes.CDLL(os.path.expanduser("~") + '/cpp/zmey/build/Release/libzmClient.so')
 
-#####################################################################
+#############################################################################
 ### Common
 
 class stateType(Enum):
@@ -97,14 +97,59 @@ class pipeline:
     self.isShared = isShared
     self.name = name    
     self.description = description 
-
-def _c_str(string : str) -> ctypes.c_char_p:
-    """Create ctypes char * from a Python string."""
-    if sys.version_info[0] > 2:
-      py_str = lambda x: x.encode('utf-8')
-    else:
-      py_str = lambda x: x
-    return ctypes.c_char_p(py_str(string)) 
+class taskTemplate: 
+  """TaskTemplate config""" 
+  def __init__(self,
+               id : int = 0,
+               uId : int = 0,
+               averDurationSec : int = 0,
+               maxDurationSec : int = 0,
+               isShared : int = 0,
+               name : str = "",
+               description : str = "",
+               script: str = ""):
+    self.id = id
+    self.uId = uId                   # user id
+    self.averDurationSec = averDurationSec
+    self.maxDurationSec = maxDurationSec
+    self.isShared = isShared
+    self.name = name    
+    self.description = description
+    self.script = script 
+class task: 
+  """Task config""" 
+  def __init__(self,
+               id : int = 0,
+               pplId : int = 0,
+               ttId : int = 0,
+               priority : int = 0,
+               prevTasksId : str = "",
+               nextTasksId : str = "",
+               params : str = "",
+               screenRect : str = "",
+               state : stateType = stateType.ready, 
+               progress : int = 0,
+               result : str = "",
+               createTime : str = "",
+               takeInWorkTime : str = "",
+               startTime : str = "",
+               stopTime : str = ""):
+    self.id = id
+    self.pplId = pplId                 # pipeline id    
+    self.ttId = ttId                   # taskTemplate id
+    self.priority = priority           # [1..3]
+    self.prevTasksId = prevTasksId     # pipeline task id of previous tasks to be completed: [qtId,..] 
+    self.nextTasksId = nextTasksId     # pipeline task id of next tasks: : [qtId,..]
+    self.params = params               # CLI params for script: ['param1','param2'..]
+    self.screenRect = screenRect       # screenRect on UI: x y w h
+    self.state = state
+    self.progress = progress
+    self.result = result
+    self.createTime = createTime
+    self.takeInWorkTime = takeInWorkTime
+    self.startTime = startTime
+    self.stopTime = stopTime
+  
 class _connectCng(ctypes.Structure):
   _fields_ = [('dbType', ctypes.c_int32),
               ('connStr', ctypes.c_char_p)]
@@ -124,13 +169,35 @@ class _pipelineCng(ctypes.Structure):
               ('isShared', ctypes.c_uint32),
               ('name', ctypes.c_char * 255),
               ('description', ctypes.c_char_p)]
-_userCng_p = lambda x : ctypes.cast(x, ctypes.POINTER(_userCng))
-_schedrCng_p = lambda x : ctypes.cast(x, ctypes.POINTER(_schedrCng))  
-_workerCng_p = lambda x : ctypes.cast(x, ctypes.POINTER(_workerCng))  
-_pipelineCng_p = lambda x : ctypes.cast(x, ctypes.POINTER(_pipelineCng))  
-_uint64_p = lambda x : ctypes.cast(x, ctypes.POINTER(ctypes.c_uint64))
-_int32_p = lambda x : ctypes.cast(x, ctypes.POINTER(ctypes.c_int32))
-_errCBackType = ctypes.CFUNCTYPE(None, ctypes.c_char_p, ctypes.c_void_p)    
+class _taskTemplCng(ctypes.Structure):
+  _fields_ = [('userId', ctypes.c_uint64),
+              ('averDurationSec', ctypes.c_uint32),
+              ('maxDurationSec', ctypes.c_uint32),
+              ('isShared', ctypes.c_uint32),
+              ('name', ctypes.c_char * 255),
+              ('description', ctypes.c_char_p),
+              ('script', ctypes.c_char_p)]
+class _taskCng(ctypes.Structure):
+  _fields_ = [('pplId', ctypes.c_uint64),
+              ('ttId', ctypes.c_uint64),
+              ('priority', ctypes.c_uint32),
+              ('prevTasksId', ctypes.c_char_p),
+              ('nextTasksId', ctypes.c_char_p),
+              ('params', ctypes.c_char_p),
+              ('screenRect', ctypes.c_char_p)]
+class _taskState(ctypes.Structure):
+  _fields_ = [('progress', ctypes.c_uint32),
+              ('state', ctypes.c_int32)]
+class _taskTime(ctypes.Structure):
+  _fields_ = [('createTime', ctypes.c_char * 32),
+              ('takeInWorkTime', ctypes.c_char * 32),
+              ('startTime', ctypes.c_char * 32),
+              ('stopTime', ctypes.c_char * 32)]
+class _internError(ctypes.Structure):
+  _fields_ = [('schedrId', ctypes.c_uint64),
+              ('workerId', ctypes.c_uint64),
+              ('createTime', ctypes.c_char * 32),
+              ('message', ctypes.c_char * 256)]
 
 def version() -> str:
   """
@@ -149,16 +216,16 @@ class ZMObj:
   """Connection object"""
   
   _zmConn = 0
-  _userErrCBack : _errCBackType = 0
+  _userErrCBack : ctypes.CFUNCTYPE(None, ctypes.c_char_p, ctypes.c_void_p) = 0
   _cerr : str = ""
      
-  #####################################################################
+  #############################################################################
   ### Connection with DB
 
   def __init__(self, db : dbType, connStr : str):
     cng = _connectCng()
     cng.dbType = db.value
-    cng.connStr = _c_str(connStr)
+    cng.connStr = connStr.encode("utf-8")
 
     pfun = _LIB.zmCreateConnection
     pfun.argtypes = (_connectCng, ctypes.c_char_p)
@@ -183,11 +250,12 @@ class ZMObj:
       def c_ecb(err: ctypes.c_char_p, udata: ctypes.c_void_p):
         ucb(err.decode("utf-8"))
       
-      self._userErrCBack = _errCBackType(c_ecb)
+      errCBackType = ctypes.CFUNCTYPE(None, ctypes.c_char_p, ctypes.c_void_p)    
+      self._userErrCBack = errCBackType(c_ecb)
 
       pfun = _LIB.zmSetErrorCBack
       pfun.restype = ctypes.c_bool
-      pfun.argtypes = (ctypes.c_void_p, _errCBackType, ctypes.c_void_p)
+      pfun.argtypes = (ctypes.c_void_p, errCBackType, ctypes.c_void_p)
       return pfun(self._zmConn, self._userErrCBack, 0)
   def getLastError(self) -> str:
     """
@@ -214,7 +282,7 @@ class ZMObj:
       return pfun(self._zmConn)
     return False
 
-  #####################################################################
+  #############################################################################
   ### User
   
   def addUser(self, iousr : user) -> bool:
@@ -234,7 +302,7 @@ class ZMObj:
       pfun = _LIB.zmAddUser
       pfun.argtypes = (ctypes.c_void_p, _userCng, ctypes.POINTER(ctypes.c_uint64))
       pfun.restype = ctypes.c_bool
-      if (pfun(self._zmConn, ucng, _uint64_p(ctypes.addressof(uid)))):
+      if (pfun(self._zmConn, ucng, ctypes.byref(uid))):
         iousr.id = uid.value
         return True
     return False
@@ -255,7 +323,7 @@ class ZMObj:
       pfun = _LIB.zmGetUserId
       pfun.argtypes = (ctypes.c_void_p, _userCng, ctypes.POINTER(ctypes.c_uint64))
       pfun.restype = ctypes.c_bool
-      if (pfun(self._zmConn, ucng, _uint64_p(ctypes.addressof(uid)))):
+      if (pfun(self._zmConn, ucng, ctypes.byref(uid))):
         iousr.id = uid.value
         return True
     return False
@@ -273,7 +341,7 @@ class ZMObj:
       pfun = _LIB.zmGetUserCng
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(_userCng))
       pfun.restype = ctypes.c_bool
-      if (pfun(self._zmConn, uid, _userCng_p(ctypes.addressof(ucng)))):      
+      if (pfun(self._zmConn, uid, ctypes.byref(ucng))):      
         iousr.name = ucng.name.decode('utf-8')
         iousr.passw = ucng.passw.decode('utf-8')
         iousr.description = ucng.description.decode('utf-8')
@@ -337,7 +405,7 @@ class ZMObj:
       return ousr
     return []
 
-  #####################################################################
+  #############################################################################
   ### Scheduler
   
   def addScheduler(self, iosch : schedr) -> bool:
@@ -356,7 +424,7 @@ class ZMObj:
       pfun = _LIB.zmAddScheduler
       pfun.argtypes = (ctypes.c_void_p, _schedrCng, ctypes.POINTER(ctypes.c_uint64))
       pfun.restype = ctypes.c_bool
-      if (pfun(self._zmConn, scng, _uint64_p(ctypes.addressof(sid)))):
+      if (pfun(self._zmConn, scng, ctypes.byref(sid))):
         iosch.id = sid.value
         return True
     return False
@@ -374,7 +442,7 @@ class ZMObj:
       pfun = _LIB.zmGetScheduler
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(_schedrCng))
       pfun.restype = ctypes.c_bool
-      if (pfun(self._zmConn, sid, _schedrCng_p(ctypes.addressof(scng)))):      
+      if (pfun(self._zmConn, sid, ctypes.byref(scng))):      
         iosch.connectPnt = scng.connectPnt.decode('utf-8')
         iosch.capacityTask = scng.capacityTask
       return True
@@ -467,7 +535,7 @@ class ZMObj:
       pfun = _LIB.zmSchedulerState
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(ctypes.c_int32))
       pfun.restype = ctypes.c_bool
-      if (pfun(self._zmConn, sid, _int32_p(ctypes.addressof(sstate)))):      
+      if (pfun(self._zmConn, sid, ctypes.byref(sstate))):      
         iosch.state = stateType(sstate.value) 
         return True
     return False
@@ -475,7 +543,7 @@ class ZMObj:
     """
     Get all schedrs
     :param state: choose with current state. If the state is 'undefined', select all
-    :return: list of schedr id
+    :return: list of schedr
     """
     if (self._zmConn):
       sstate = ctypes.c_int32(state.value)
@@ -500,7 +568,7 @@ class ZMObj:
       return osch
     return []
 
-  #####################################################################
+  #############################################################################
   ### Worker
 
   def addWorker(self, iowkr : worker) -> bool:
@@ -520,7 +588,7 @@ class ZMObj:
       pfun = _LIB.zmAddWorker
       pfun.argtypes = (ctypes.c_void_p, _workerCng, ctypes.POINTER(ctypes.c_uint64))
       pfun.restype = ctypes.c_bool
-      if (pfun(self._zmConn, wcng, _uint64_p(ctypes.addressof(wid)))):
+      if (pfun(self._zmConn, wcng, ctypes.byref(wid))):
         iowkr.id = wid.value
         return True
     return False
@@ -538,7 +606,7 @@ class ZMObj:
       pfun = _LIB.zmGetWorker
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(_workerCng))
       pfun.restype = ctypes.c_bool
-      if (pfun(self._zmConn, wid, _workerCng_p(ctypes.addressof(wcng)))):
+      if (pfun(self._zmConn, wid, ctypes.byref(wcng))):
         iowkr.sId = wcng.schedrId
         iowkr.connectPnt = wcng.connectPnt.decode('utf-8')
         iowkr.capacityTask = wcng.capacityTask
@@ -627,6 +695,8 @@ class ZMObj:
     if (self._zmConn):
       wsz = len(iowkrs)
       cwsz = ctypes.c_uint32(wsz)
+
+      iowkrs.sort(key = lambda w: w.id)
           
       idBuffer = (ctypes.c_uint64 * wsz)(*[iowkrs[i].id for i in range(wsz)])
       stateBuffer = (ctypes.c_int32 * wsz)()
@@ -640,12 +710,12 @@ class ZMObj:
           iowkrs[i].state = stateType(stateBuffer[i])
         return True
     return False
-  def getAllWorkers(self, schId : int, state : stateType) -> [schedr]:
+  def getAllWorkers(self, schId : int, state : stateType) -> [worker]:
     """
     Get all workers
     :param schId: schedr id
     :param state: choose with current state. If the state is 'undefined', select all
-    :return: list of worker id
+    :return: list of worker
     """
     if (self._zmConn):
       sId = ctypes.c_uint64(schId)
@@ -671,8 +741,8 @@ class ZMObj:
       return owkr
     return []
   
-  # ///////////////////////////////////////////////////////////////////////////////
-  # /// Pipeline of tasks
+  #############################################################################
+  ### Pipeline of tasks
   
   def addPipeline(self, ioppl : pipeline) -> bool:
     """
@@ -692,7 +762,7 @@ class ZMObj:
       pfun = _LIB.zmAddPipeline
       pfun.argtypes = (ctypes.c_void_p, _pipelineCng, ctypes.POINTER(ctypes.c_uint64))
       pfun.restype = ctypes.c_bool
-      if (pfun(self._zmConn, pcng, _uint64_p(ctypes.addressof(pplid)))):
+      if (pfun(self._zmConn, pcng, ctypes.byref(pplid))):
         ioppl.id = pplid.value
         return True
     return False
@@ -710,7 +780,7 @@ class ZMObj:
       pfun = _LIB.zmGetPipeline
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(_pipelineCng))
       pfun.restype = ctypes.c_bool
-      if (pfun(self._zmConn, pplid, _pipelineCng_p(ctypes.addressof(pcng)))):      
+      if (pfun(self._zmConn, pplid, ctypes.byref(pcng))):      
         ioppl.uId = pcng.userId
         ioppl.isShared = pcng.isShared
         ioppl.name = pcng.name.decode('utf-8')
@@ -754,7 +824,7 @@ class ZMObj:
     """
     Get all pipelines
     :param userId: user id
-    :return: list of pipeline id
+    :return: list of pipeline
     """
     if (self._zmConn):
       uId = ctypes.c_uint64(userId)
@@ -779,173 +849,369 @@ class ZMObj:
       return oppl
     return []
 
-  # ///////////////////////////////////////////////////////////////////////////////
-  # /// Task template 
+  #############################################################################
+  ### Task template 
 
-  # /// task template config
-  # struct zmTaskTemplate{
-  #   uint64_t userId;          ///< user id
-  #   uint32_t averDurationSec; ///< estimated lead time 
-  #   uint32_t maxDurationSec;  ///< maximum lead time
-  #   uint32_t isShared;        ///< may be shared [0..1]   
-  #   char name[255];           ///< task template name
-  #   char* description;        ///< description of task. The memory is allocated by the user. May be NULL
-  #   char* script;             ///< script on bash, python or cmd. The memory is allocated by the user
-  # };
+  def addTaskTemplate(self, iott : taskTemplate) -> bool:
+    """
+    Add new taskTemplate
+    :param iott: new tasktempl config
+    :return: True - ok
+    """
+    if (self._zmConn):
+      tcng = _taskTemplCng()
+      tcng.userId = iott.uId
+      tcng.averDurationSec = iott.averDurationSec
+      tcng.maxDurationSec = iott.maxDurationSec
+      tcng.isShared = iott.isShared
+      tcng.name = iott.name.encode('utf-8')
+      tcng.description = iott.description.encode('utf-8')
+      tcng.script = iott.script.encode('utf-8')
+      
+      ttid = ctypes.c_uint64(0)
+      
+      pfun = _LIB.zmAddTaskTemplate
+      pfun.argtypes = (ctypes.c_void_p, _taskTemplCng, ctypes.POINTER(ctypes.c_uint64))
+      pfun.restype = ctypes.c_bool
+      if (pfun(self._zmConn, tcng, ctypes.byref(ttid))):
+        iott.id = ttid.value
+        return True
+    return False
+  def getTaskTemplate(self, iott : taskTemplate) -> bool:
+    """
+    Get taskTemplate config by ID
+    :param iott: taskTemplate config
+    :return: True - ok
+    """
+    if (self._zmConn):
+      tcng = _taskTemplCng()
 
-  # /// add new task template
-  # /// @param[in] zmConn - object connect
-  # /// @param[in] cng - task template config
-  # /// @param[out] outTId - new task id
-  # /// @return true - ok
-  # ZMEY_API bool zmAddTaskTemplate(zmConn, zmTaskTemplate cng, uint64_t* outTId);
+      ttid = ctypes.c_uint64(iott.id)
+      
+      pfun = _LIB.zmGetTaskTemplate
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(_taskTemplCng))
+      pfun.restype = ctypes.c_bool
+      if (pfun(self._zmConn, ttid, ctypes.byref(tcng))):      
+        iott.uId = tcng.userId
+        iott.averDurationSec = tcng.averDurationSec
+        iott.maxDurationSec = tcng.maxDurationSec
+        iott.isShared = tcng.isShared
+        iott.name = tcng.name.decode('utf-8')
+        iott.description = tcng.description.decode('utf-8')
+        iott.script = tcng.script.decode('utf-8')
+        return True
+    return False
+  def changeTaskTemplate(self, iott : taskTemplate) -> bool:
+    """
+    Change taskTemplate config
+    :param iott: new taskTemplate config
+    :return: True - ok
+    """
+    if (self._zmConn):
+      ttid = ctypes.c_uint64(iott.id)
+      tcng = _taskTemplCng()
+      tcng.userId = iott.uId
+      tcng.averDurationSec = iott.averDurationSec
+      tcng.maxDurationSec = iott.maxDurationSec            
+      tcng.isShared = iott.isShared
+      tcng.name = iott.name.encode('utf-8')
+      tcng.description = iott.description.encode('utf-8')
+      tcng.script = iott.script.encode('utf-8')
+      
+      nttid = ctypes.c_uint64(0)
 
+      pfun = _LIB.zmChangeTaskTemplate
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, _taskTemplCng, ctypes.POINTER(ctypes.c_uint64))
+      pfun.restype = ctypes.c_bool
+      if (pfun(self._zmConn, ttid, tcng, ctypes.byref(nttid))):
+        iott.id = nttid.value
+        return True
+    return False
+  def delTaskTemplate(self, ttId : int) -> bool:
+    """
+    Delete taskTempl
+    :param ttId: taskTempl id
+    :return: True - ok
+    """
+    if (self._zmConn):
+      tid = ctypes.c_uint64(ttId)
+            
+      pfun = _LIB.zmDelTaskTemplate
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
+      pfun.restype = ctypes.c_bool
+      return pfun(self._zmConn, tid)
+    return False
+  def getAllTaskTemplates(self, userId : int) -> [taskTemplate]:
+    """
+    Get all taskTemplates
+    :param userId: user id
+    :return: list of taskTemplate
+    """
+    if (self._zmConn):
+      uId = ctypes.c_uint64(userId)
 
-obj = ZMObj(dbType.PostgreSQL, "host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10")
+      pfun = _LIB.zmGetAllTaskTemplates
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(ctypes.POINTER(ctypes.c_uint64)))
+      pfun.restype = ctypes.c_uint32
+      dbuffer = ctypes.POINTER(ctypes.c_uint64)()
+      osz = pfun(self._zmConn, uId, ctypes.byref(dbuffer))
+      oid = [dbuffer[i] for i in range(osz)]
+      
+      pfun = _LIB.zmFreeResources
+      pfun.restype = None
+      pfun.argtypes = (ctypes.POINTER(ctypes.c_uint64), ctypes.c_char_p)
+      pfun(dbuffer, ctypes.c_char_p(0))
 
-allUsr = obj.getAllUsers()
-
-ok = obj.getAllPipelines(allUsr[0].id)
-
-err = obj.getLastError()
-
-  # /// get task template cng
-  # /// @param[in] zmConn - object connect
-  # /// @param[in] tId - task id
-  # /// @param[out] outTCng - task config. The memory is allocated by the user
-  # /// @return true - ok
-  # ZMEY_API bool zmGetTaskTemplate(zmConn, uint64_t tId, zmTaskTemplate* outTCng);
-
-  # /// change task template cng
-  # /// A new record is created for each change, the old one is not deleted.
-  # /// @param[in] zmConn - object connect
-  # /// @param[in] tId - task id
-  # /// @param[in] newTCng - new task config
-  # /// @param[out] outTId - new task id
-  # /// @return true - ok
-  # ZMEY_API bool zmChangeTaskTemplate(zmConn, uint64_t tId, zmTaskTemplate newTCng, uint64_t* outTId);
-
-  # /// delete task template
-  # /// The record is marked, but not deleted.
-  # /// @param[in] zmConn - object connect
-  # /// @param[in] tId - task id
-  # /// @return true - ok
-  # ZMEY_API bool zmDelTaskTemplate(zmConn, uint64_t tId);
-
-  # /// get all tasks templates
-  # /// @param[in] zmConn - object connect
-  # /// @param[in] parent - user id
-  # /// @param[out] outTId - task id
-  # /// @return count of tasks
-  # ZMEY_API uint32_t zmGetAllTaskTemplates(zmConn, uint64_t parent, uint64_t** outTId);
+      ott = []
+      for i in range(osz):
+        t = taskTemplate(oid[i])
+        self.getTaskTemplate(t)
+        ott.append(t)
+      return ott
+    return []
 
   # ///////////////////////////////////////////////////////////////////////////////
   # /// Task of pipeline
+ 
+  def addTask(self, iot : task) -> bool:
+    """
+    Add new task
+    :param iot: new task config
+    :return: True - ok
+    """
+    if (self._zmConn):
+      tcng = _taskCng()
+      tcng.pplId = iot.pplId
+      tcng.ttId = iot.ttId
+      tcng.priority = iot.priority
+      tcng.prevTasksId = iot.prevTasksId.encode('utf-8')
+      tcng.nextTasksId = iot.nextTasksId.encode('utf-8')
+      tcng.params = iot.params.encode('utf-8')
+      tcng.screenRect = iot.screenRect.encode('utf-8')
+      
+      tid = ctypes.c_uint64(0)
+      
+      pfun = _LIB.zmAddTask
+      pfun.argtypes = (ctypes.c_void_p, _taskCng, ctypes.POINTER(ctypes.c_uint64))
+      pfun.restype = ctypes.c_bool
+      if (pfun(self._zmConn, tcng, ctypes.byref(tid))):
+        iot.id = tid.value
+        return True
+    return False
+  def getTask(self, iot : task) -> bool:
+    """
+    Get task config by ID
+    :param iot: task config
+    :return: True - ok
+    """
+    if (self._zmConn):
+      tcng = _taskCng()
 
-  # /// pipeline task config
-  # struct zmTask{
-  #   uint64_t pplId;          ///< pipeline id
-  #   uint64_t ttId;           ///< task template id
-  #   uint32_t priority;       ///< [1..3]
-  #   char* prevTasksId;       ///< pipeline task id of previous tasks to be completed: [qtId,..]. May be NULL 
-  #   char* nextTasksId;       ///< pipeline task id of next tasks: : [qtId,..]. May be NULL
-  #   char* params;            ///< CLI params for script: ['param1','param2'..]. May be NULL
-  #   char* screenRect;        ///< screenRect on UI: x y w h. May be NULL
-  # };
+      tid = ctypes.c_uint64(iot.id)
+      
+      pfun = _LIB.zmGetTask
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(_taskCng))
+      pfun.restype = ctypes.c_bool
+      if (pfun(self._zmConn, tid, ctypes.byref(tcng))):      
+        iot.pplId = tcng.pplId
+        iot.ttId = tcng.ttId
+        iot.priority = tcng.priority
+        iot.prevTasksId = tcng.prevTasksId.decode('utf-8')
+        iot.nextTasksId = tcng.nextTasksId.decode('utf-8')
+        iot.params = tcng.params.decode('utf-8')
+        iot.screenRect = tcng.screenRect.decode('utf-8')
+        return True
+    return False
+  def changeTask(self, iot : task) -> bool:
+    """
+    Change task config
+    :param iot: new task config
+    :return: True - ok
+    """
+    if (self._zmConn):
+      tid = ctypes.c_uint64(iot.id)
+      tcng = _taskCng()
+      tcng.pplId = iot.pplId
+      tcng.ttId = iot.ttId
+      tcng.priority = iot.priority
+      tcng.prevTasksId = iot.prevTasksId.encode('utf-8')
+      tcng.nextTasksId = iot.nextTasksId.encode('utf-8')
+      tcng.params = iot.params.encode('utf-8')
+      tcng.screenRect = iot.screenRect.encode('utf-8')
+            
+      pfun = _LIB.zmChangeTask
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, _taskCng)
+      pfun.restype = ctypes.c_bool
+      return pfun(self._zmConn, tid, tcng)
+    return False
+  def delTask(self, tId : int) -> bool:
+    """
+    Delete task
+    :param tId: task id
+    :return: True - ok
+    """
+    if (self._zmConn):
+      tid = ctypes.c_uint64(tId)
+            
+      pfun = _LIB.zmDelTask
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
+      pfun.restype = ctypes.c_bool
+      return pfun(self._zmConn, tid)
+    return False
+  def startTask(self, tId) -> bool:
+    """
+    Start task
+    :param tId: task id
+    :return: True - ok
+    """
+    if (self._zmConn):
+      tid = ctypes.c_uint64(tId)
+            
+      pfun = _LIB.zmStartTask
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
+      pfun.restype = ctypes.c_bool
+      return pfun(self._zmConn, tid)
+    return False
+  def stopTask(self, tId) -> bool:
+    """
+    Stop task
+    :param tId: task id
+    :return: True - ok
+    """
+    if (self._zmConn):
+      tid = ctypes.c_uint64(tId)
+            
+      pfun = _LIB.zmStopTask
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
+      pfun.restype = ctypes.c_bool
+      return pfun(self._zmConn, tid)
+    return False
+  def pauseTask(self, tId) -> bool:
+    """
+    Pause task
+    :param tId: task id
+    :return: True - ok
+    """
+    if (self._zmConn):
+      tid = ctypes.c_uint64(tId)
+            
+      pfun = _LIB.zmPauseTask
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
+      pfun.restype = ctypes.c_bool
+      return pfun(self._zmConn, tid)
+    return False
+  def continueTask(self, tId) -> bool:
+    """
+    Continue task
+    :param tId: task id
+    :return: True - ok
+    """
+    if (self._zmConn):
+      tid = ctypes.c_uint64(tId)
+            
+      pfun = _LIB.zmContinueTask
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
+      pfun.restype = ctypes.c_bool
+      return pfun(self._zmConn, tid)
+    return False
+  def taskState(self, iot : [task]) -> bool:
+    """
+    Task state
+    :param iot: tasks config
+    :return: True - ok
+    """
+    if (self._zmConn):
+      tsz = len(iot)
+      ctsz = ctypes.c_uint32(tsz)
+          
+      iot.sort(key = lambda t: t.id)
+        
+      idBuffer = (ctypes.c_uint64 * tsz)(*[iot[i].id for i in range(tsz)])
+      stateBuffer = (_taskState * tsz)()
+      
+      pfun = _LIB.zmTaskState
+      pfun.argtypes = (ctypes.c_void_p, ctypes.POINTER(ctypes.c_uint64), ctypes.c_uint32, ctypes.POINTER(_taskState))
+      pfun.restype = ctypes.c_bool
 
-  # /// add pipeline task
-  # /// @param[in] zmConn - object connect
-  # /// @param[in] cng - pipeline task config
-  # /// @param[out] outQTaskId - pipeline task id
-  # /// @return true - ok
-  # ZMEY_API bool zmAddTask(zmConn, zmTask cng, uint64_t* outQTaskId);
+      if (pfun(self._zmConn, idBuffer, ctsz, stateBuffer)):      
+        for i in range(tsz):
+          iot[i].state = stateType(stateBuffer[i].state)
+          iot[i].progress = stateBuffer[i].progress          
+        return True
+    return False
+  def taskResult(self, iot : task) -> bool:
+    """
+    Task result
+    :param iot: task config
+    :return: True - ok
+    """
+    if (self._zmConn):
+      tid = ctypes.c_uint64(iot.id)
+      tresult = ctypes.c_char_p()
+      
+      pfun = _LIB.zmTaskResult
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(ctypes.c_char_p))
+      pfun.restype = ctypes.c_bool
+      if (pfun(self._zmConn, tid, ctypes.byref(tresult))):      
+        iot.result = tresult.value
+      
+        pfun = _LIB.zmFreeResources
+        pfun.restype = None
+        pfun.argtypes = (ctypes.POINTER(ctypes.c_uint64), ctypes.c_char_p)
+        pfun(None, tresult)
+        return True
+    return False
+  def taskTime(self, iot : task) -> bool:
+    """
+    Task time
+    :param iot: task config
+    :return: True - ok
+    """
+    if (self._zmConn):
+      tid = ctypes.c_uint64(iot.id)
+      ttime = _taskTime()
+      
+      pfun = _LIB.zmTaskTime
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(_taskTime))
+      pfun.restype = ctypes.c_bool
+      if (pfun(self._zmConn, tid, ctypes.byref(ttime))):      
+        iot.createTime = ttime.createTime.decode('utf-8')
+        iot.takeInWorkTime = ttime.takeInWorkTime.decode('utf-8')
+        iot.startTime = ttime.startTime.decode('utf-8')
+        iot.stopTime = ttime.stopTime.decode('utf-8')
+        return True
+    return False
+  def getAllTasks(self, pplId : int, state : stateType) -> [task]:
+    """
+    Get all tasks
+    :param pplId: pipeline id
+    :param state: state type
+    :return: list of task
+    """
+    if (self._zmConn):
+      cpplId = ctypes.c_uint64(pplId)
+      cstate = ctypes.c_int32(state.value)
 
-  # /// get pipeline task config
-  # /// @param[in] zmConn - object connect
-  # /// @param[in] qtId - pipeline task id
-  # /// @param[out] outTCng - pipeline task config
-  # /// @return true - ok
-  # ZMEY_API bool zmGetTask(zmConn, uint64_t qtId, zmTask* outTCng);
+      pfun = _LIB.zmGetAllTasks
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.c_int32, ctypes.POINTER(ctypes.POINTER(ctypes.c_uint64)))
+      pfun.restype = ctypes.c_uint32
+      dbuffer = ctypes.POINTER(ctypes.c_uint64)()
+      osz = pfun(self._zmConn, cpplId, cstate, ctypes.byref(dbuffer))
+      oid = [dbuffer[i] for i in range(osz)]
+      
+      pfun = _LIB.zmFreeResources
+      pfun.restype = None
+      pfun.argtypes = (ctypes.POINTER(ctypes.c_uint64), ctypes.c_char_p)
+      pfun(dbuffer, ctypes.c_char_p(0))
 
-  # /// change pipeline task config
-  # /// @param[in] zmConn - object connect
-  # /// @param[in] qtId - pipeline task id
-  # /// @param[in] newCng - pipeline task config
-  # /// @return true - ok
-  # ZMEY_API bool zmChangeTask(zmConn, uint64_t qtId, zmTask newCng);
-
-  # /// delete pipeline task
-  # /// @param[in] zmConn - object connect
-  # /// @param[in] qtId - pipeline task id
-  # /// @return true - ok
-  # ZMEY_API bool zmDelTask(zmConn, uint64_t qtId);
-
-  # /// start pipeline task
-  # /// @param[in] zmConn - object connect
-  # /// @param[in] qtId - pipeline task id
-  # /// @return true - ok
-  # ZMEY_API bool zmStartTask(zmConn, uint64_t qtId);
-
-  # /// stop pipeline task
-  # /// @param[in] zmConn - object connect
-  # /// @param[in] qtId - pipeline task id
-  # /// @return true - ok
-  # ZMEY_API bool zmStopTask(zmConn, uint64_t qtId);
-
-  # /// pause pipeline task
-  # /// @param[in] zmConn - object connect
-  # /// @param[in] qtId - pipeline task id
-  # /// @return true - ok
-  # ZMEY_API bool zmPauseTask(zmConn, uint64_t qtId);
-
-  # /// continue pipeline task
-  # /// @param[in] zmConn - object connect
-  # /// @param[in] qtId - pipeline task id
-  # /// @return true - ok
-  # ZMEY_API bool zmContinueTask(zmConn, uint64_t qtId);
-
-  # /// pipeline task state
-  # struct zmTskState{
-  #   uint32_t progress;      ///< [0..100]
-  #   zmStateType state;
-  # };
-  # /// get pipeline task state
-  # /// @param[in] zmConn - object connect
-  # /// @param[in] qtId - pipeline task id, order by tId
-  # /// @param[in] tCnt - pipeline task id count
-  # /// @param[out] outTState - pipeline task state. The memory is allocated by the user
-  # /// @return true - ok
-  # ZMEY_API bool zmTaskState(zmConn, uint64_t* qtId, uint32_t tCnt, zmTskState* outTState);
-
-  # /// get pipeline task result
-  # /// @param[in] zmConn - object connect
-  # /// @param[in] qtId - pipeline task id
-  # /// @param[out] outTResult - pipeline task result
-  # /// @return true - ok
-  # ZMEY_API bool zmTaskResult(zmConn, uint64_t qtId, char** outTResult);
-
-  # /// pipeline task time
-  # struct zmTskTime{
-  #   char createTime[32];
-  #   char takeInWorkTime[32];        
-  #   char startTime[32]; 
-  #   char stopTime[32]; 
-  # };
-  # /// get pipeline task time
-  # /// @param[in] zmConn - object connect
-  # /// @param[in] qtId - pipeline task id
-  # /// @param[out] outTTime - pipeline task time
-  # /// @return true - ok
-  # ZMEY_API bool zmTaskTime(zmConn, uint64_t qtId, zmTskTime* outTTime);
-
-  # /// get all pipeline tasks
-  # /// @param[in] zmConn - object connect
-  # /// @param[in] pplId - pipeline id
-  # /// @param[in] state - choose with current state. If the state is 'undefined', select all
-  # /// @param[out] outQTId - pipeline task id 
-  # /// @return count of pipeline tasks
-  # ZMEY_API uint32_t zmGetAllTasks(zmConn, uint64_t pplId, zmStateType state, uint64_t** outQTId);
-
+      ott = []
+      for i in range(osz):
+        t = task(oid[i])
+        self.getTask(t)
+        ott.append(t)
+      return ott
+    return []
+ 
   # ///////////////////////////////////////////////////////////////////////////////
   # /// Internal errors
 
@@ -966,6 +1232,16 @@ err = obj.getLastError()
   # /// @return count of errors
   # ZMEY_API uint32_t zmGetInternErrors(zmConn, uint64_t sId, uint64_t wId, uint32_t mCnt, zmInternError** outErrors);
 
-  # ///////////////////////////////////////////////////////////////////////////////
-  # /// free resouces
-  # ZMEY_API void zmFreeResouces(uint64_t*, char*);
+
+obj = ZMObj(dbType.PostgreSQL, "host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10")
+
+allUsr = obj.getAllUsers()
+allPPL = obj.getAllPipelines(allUsr[0].id)
+allTT = obj.getAllTaskTemplates(allUsr[0].id)
+
+
+allT = obj.getAllTasks(allPPL[0].id, stateType.undefined)
+
+err = obj.getLastError()
+
+err

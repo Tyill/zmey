@@ -390,10 +390,10 @@ ZMEY_API bool zmDelTaskTemplate(zmConn, uint64_t tId);
 
 /// get all tasks templates
 /// @param[in] zmConn - object connect
-/// @param[in] parent - user id
+/// @param[in] userId - user id
 /// @param[out] outTId - task id
 /// @return count of tasks
-ZMEY_API uint32_t zmGetAllTaskTemplates(zmConn, uint64_t parent, uint64_t** outTId);
+ZMEY_API uint32_t zmGetAllTaskTemplates(zmConn, uint64_t userId, uint64_t** outTId);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Task of pipeline

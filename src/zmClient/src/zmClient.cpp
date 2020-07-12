@@ -526,10 +526,10 @@ bool zmDelTaskTemplate(zmConn zo, uint64_t tId){
 
   return static_cast<ZM_DB::DbProvider*>(zo)->delTaskTemplate(tId);
 }
-uint32_t zmGetAllTaskTemplates(zmConn zo, uint64_t parent, uint64_t** outTId){
+uint32_t zmGetAllTaskTemplates(zmConn zo, uint64_t userId, uint64_t** outTId){
   if (!zo) return 0; 
 
-  auto tasks = static_cast<ZM_DB::DbProvider*>(zo)->getAllTaskTemplates(parent);
+  auto tasks = static_cast<ZM_DB::DbProvider*>(zo)->getAllTaskTemplates(userId);
   size_t tsz = tasks.size();
   if (tsz > 0){
     *outTId = (uint64_t*)realloc(*outTId, tsz * sizeof(uint64_t));

@@ -1220,11 +1220,11 @@ bool DbPGProvider::taskState(const std::vector<uint64_t>& tId, std::vector<ZM_DB
                   return s.empty() ? to_string(v) : s + "," + to_string(v);
                 }); 
   stringstream ss;
-  ss << "SELECT ts.state, ts.progress "
+  ss << "SELECT pt.id, ts.state, ts.progress "
         "FROM tblTaskState ts "
         "JOIN tblTaskQueue qt ON qt.id = ts.qtask "
         "JOIN tblUPipelineTask pt ON pt.qtask = qt.id "
-        "WHERE pt.id IN (" << stId << ") AND pt.isDelete = 0;";
+        "WHERE pt.id IN (" << stId << ") AND pt.isDelete = 0 ORDER BY pt.id;";
 
   auto res = PQexec(_pg, ss.str().c_str());
   if (PQresultStatus(res) != PGRES_TUPLES_OK){
@@ -1240,8 +1240,8 @@ bool DbPGProvider::taskState(const std::vector<uint64_t>& tId, std::vector<ZM_DB
   }
   outState.resize(tsz);
   for (auto& s : outState){
-    s.state = (ZM_Base::stateType)atoi(PQgetvalue(res, 0, 0));
-    s.progress = atoi(PQgetvalue(res, 0, 1));    
+    s.state = (ZM_Base::stateType)atoi(PQgetvalue(res, 0, 1));
+    s.progress = atoi(PQgetvalue(res, 0, 2));
   }
   PQclear(res); 
   return true;
@@ -1259,7 +1259,7 @@ bool DbPGProvider::taskResult(uint64_t tId, std::string& out){
     return false;
   } 
   if (PQntuples(res) != 1){
-    errorMess("taskResult error: such task does not exist");
+    errorMess("taskResult error: task delete OR not taken to work");
     PQclear(res);        
     return false;
   } 
@@ -1281,7 +1281,7 @@ bool DbPGProvider::taskTime(uint64_t tId, ZM_DB::taskTime& out){
     return false;
   } 
   if (PQntuples(res) != 1){
-    errorMess("taskTime error: such task does not exist");
+    errorMess("taskTime error: task delete OR not taken to work");
     PQclear(res);        
     return false;
   } 
@@ -1321,16 +1321,16 @@ bool DbPGProvider::getWorkerByTask(uint64_t tId, uint64_t& qtId, ZM_Base::worker
         "FROM tblTaskQueue tq "
         "JOIN tblUPipelineTask tpp ON tpp.qtask = tq.id "
         "JOIN tblWorker wkr ON wkr.id = tq.worker "
-        "WHERE tpp.id = " << tId << ";";
+        "WHERE tpp.id = " << tId << " AND tpp.isDelete = 0;";
 
   auto res = PQexec(_pg, ss.str().c_str());
   if (PQresultStatus(res) != PGRES_TUPLES_OK){
-    errorMess(string("getSchedrAndWorkerByTask error: ") + PQerrorMessage(_pg));
+    errorMess(string("getWorkerByTask error: ") + PQerrorMessage(_pg));
     PQclear(res);
     return false;
   }
   if (PQntuples(res) != 1){
-    errorMess(string("getSchedrAndWorkerByTask error: such task does not exist"));
+    errorMess(string("getWorkerByTask error: task delete OR not taken to work"));
     PQclear(res);
     return false;
   }

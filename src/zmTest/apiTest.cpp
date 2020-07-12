@@ -22,7 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-//#define APITEST
+#define APITEST
 #ifdef APITEST
 
 #include <vector>
@@ -31,7 +31,7 @@
 #include "prepare.h"
 #include "zmDbProvider/dbProvider.h"
 #include "zmCommon/auxFunc.h"
-#include "zmey/zmey.h"
+#include "zmClient/zmClient.h"
 
 using namespace std;
 using namespace zmey;
