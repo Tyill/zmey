@@ -448,6 +448,12 @@ ZMEY_API bool zmStartTask(zmConn, uint64_t qtId);
 /// @return true - ok
 ZMEY_API bool zmStopTask(zmConn, uint64_t qtId);
 
+/// cancel pipeline task (when not yet taken to work)
+/// @param[in] zmConn - object connect
+/// @param[in] qtId - pipeline task id
+/// @return true - ok
+ZMEY_API bool zmCancelTask(zmConn, uint64_t qtId);
+
 /// pause pipeline task
 /// @param[in] zmConn - object connect
 /// @param[in] qtId - pipeline task id
@@ -518,9 +524,9 @@ struct zmInternError{
 /// @param[in] sId - scheduler id. If '0' then all
 /// @param[in] wId - worker id. If '0' then all
 /// @param[in] mCnt - last mess max count. If '0' then all 
-/// @param[out] outErrors
+/// @param[out] outErrors. The memory is allocated by the user
 /// @return count of errors
-ZMEY_API uint32_t zmGetInternErrors(zmConn, uint64_t sId, uint64_t wId, uint32_t mCnt, zmInternError** outErrors);
+ZMEY_API uint32_t zmGetInternErrors(zmConn, uint64_t sId, uint64_t wId, uint32_t mCnt, zmInternError* outErrors);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// free resouces

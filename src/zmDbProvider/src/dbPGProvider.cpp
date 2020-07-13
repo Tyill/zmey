@@ -101,7 +101,8 @@ bool DbPGProvider::createTables(){
         "(4, 'stop'),"
         "(5, 'completed'),"
         "(6, 'error'),"
-        "(7, 'notResponding') ON CONFLICT (id) DO NOTHING;";
+        "(7, 'cancel'),"
+        "(8, 'notResponding') ON CONFLICT (id) DO NOTHING;";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
@@ -416,12 +417,12 @@ bool DbPGProvider::createTables(){
         "    JOIN tblTaskState ts ON ts.qtask = tq.id "
         "    JOIN tblTaskParam tp ON tp.qtask = tq.id "
         "    JOIN tblPrevTask pt ON pt.qtask = tq.id "
-        "    WHERE ts.state = 0 ORDER BY tp.priority LIMIT maxTaskCnt"
+        "    WHERE ts.state = " << int(ZM_Base::stateType::ready) << " ORDER BY tp.priority LIMIT maxTaskCnt"
         "  LOOP"
         "    FOREACH t IN ARRAY prevTasks"
         "      LOOP"
         "        PERFORM * FROM tblTaskState"
-        "        WHERE qtask = t AND state = 5;" // completed
+        "        WHERE qtask = t AND state = " << int(ZM_Base::stateType::completed) << ";"
         "        CONTINUE mBegin WHEN NOT FOUND;"
 
         "        SELECT params || (SELECT result FROM tblTaskResult WHERE qtask = t) INTO params;"
@@ -433,7 +434,7 @@ bool DbPGProvider::createTables(){
         "    CONTINUE mBegin WHEN NOT FOUND;"
         
         "    UPDATE tblTaskState SET"
-        "      state = 1"  // start
+        "      state = " << int(ZM_Base::stateType::start) << ""
         "    WHERE qtask = qid;"
         
         "    UPDATE tblTaskTime SET"
@@ -1207,6 +1208,33 @@ bool DbPGProvider::startTask(uint64_t tId){
     errorMess("startTask error: previously deleted task is start OR \
                not found one or more task from prevTask or nextTasks");
     PQclear(res);
+    return false;
+  }
+  PQclear(res); 
+  return true;
+}
+bool DbPGProvider::cancelTask(uint64_t tId){
+  lock_guard<mutex> lk(_mtx);
+  stringstream ss;
+  ss << "UPDATE tblTaskState ts SET "
+        "state = " << int(ZM_Base::stateType::cancel) << " "
+        "FROM tblTaskQueue tq, tblUPipelineTask tpp "
+        "WHERE tpp.id = " << tId << " AND "
+        "      tpp.qtask = tq.id AND "
+        "      ts.qtask = tq.id AND "
+        "      ts.state = " << int(ZM_Base::stateType::ready) << " AND "
+        "      tpp.isDelete = 0 "
+        "RETURNING ts.qtask;";
+        
+  auto res = PQexec(_pg, ss.str().c_str());
+  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+    errorMess(string("cancelTask error: ") + PQerrorMessage(_pg));
+    PQclear(res);
+    return false;
+  }  
+  if (PQntuples(res) != 1){
+    errorMess(string("cancelTask error: task already take in work") + PQerrorMessage(_pg));
+    PQclear(res);  
     return false;
   }
   PQclear(res); 

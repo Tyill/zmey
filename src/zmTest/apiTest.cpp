@@ -1122,6 +1122,54 @@ TEST_F(APITest, startTask){
 
   EXPECT_TRUE(zmStartTask(_zc, tId1));           
 }
+TEST_F(APITest, cancelTask){
+  zmUser usr;
+  strcpy(usr.name, "alm");
+  strcpy(usr.passw, "123");
+  uint64_t uId = 0;  
+  EXPECT_TRUE(zmAddUser(_zc, usr, &uId) && (uId > 0));
+
+  zmPipeline ppline;
+  strcpy(ppline.name, "newPP");
+  ppline.description = new char[24];
+  strcpy(ppline.description, "dfsdf");
+  ppline.isShared = 0;
+  ppline.userId = uId;
+  uint64_t pId = 0;  
+  EXPECT_TRUE(zmAddPipeline(_zc, ppline, &pId) && (pId > 0)); 
+    
+  zmTaskTemplate templ;
+  templ.averDurationSec = 10;
+  templ.maxDurationSec = 100;
+  templ.script = new char[256];
+  strcpy(templ.script, "100500");
+  templ.userId = uId; 
+  templ.description = new char[256];
+  strcpy(templ.description, "descr");
+  templ.isShared = 0;
+  strcpy(templ.name, "newTask");
+  uint64_t ttId = 0;  
+  EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
+
+  zmTask task;
+  task.pplId = pId; 
+  task.priority = 1;
+  task.ttId = ttId;
+  task.params = new char[32];
+  task.screenRect = new char[24];
+  task.nextTasksId = new char[24];
+  task.prevTasksId = new char[24];
+  strcpy(task.params, "['param1','param2','param3']");
+  strcpy(task.screenRect, "1, 2, 3, 4");
+  strcpy(task.nextTasksId, "[]");
+  strcpy(task.prevTasksId, "[]");
+  uint64_t tId1 = 0;  
+  EXPECT_TRUE(zmAddTask(_zc, task, &tId1) && (tId1 > 0));  
+
+  EXPECT_TRUE(zmStartTask(_zc, tId1));        
+
+  EXPECT_TRUE(zmCancelTask(_zc, tId1));           
+}
 TEST_F(APITest, taskState){
   zmUser usr;
   strcpy(usr.name, "alm");

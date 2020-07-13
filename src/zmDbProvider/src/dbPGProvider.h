@@ -75,6 +75,7 @@ public:
   bool changeTask(uint64_t tId, const ZM_Base::uTask& newTCng) override;
   bool delTask(uint64_t tId) override;
   bool startTask(uint64_t tId) override;
+  bool cancelTask(uint64_t tId) override;
   bool taskState(const std::vector<uint64_t>& tId, std::vector<ZM_DB::tskState>&) override;
   bool taskResult(uint64_t tId, std::string&) override;
   bool taskTime(uint64_t tId, ZM_DB::taskTime& out) override;

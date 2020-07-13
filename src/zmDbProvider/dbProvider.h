@@ -130,6 +130,7 @@ public:
   virtual bool changeTask(uint64_t tId, const ZM_Base::uTask& newTCng) = 0;
   virtual bool delTask(uint64_t tId) = 0;
   virtual bool startTask(uint64_t tId) = 0;
+  virtual bool cancelTask(uint64_t tId) = 0;
   virtual bool taskState(const std::vector<uint64_t>& tId, std::vector<tskState>&) = 0;
   virtual bool taskResult(uint64_t tId, std::string&) = 0;
   virtual bool taskTime(uint64_t tId, taskTime& out) = 0;

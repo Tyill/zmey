@@ -149,6 +149,17 @@ class task:
     self.takeInWorkTime = takeInWorkTime
     self.startTime = startTime
     self.stopTime = stopTime
+class internError: 
+  """Internal error""" 
+  def __init__(self,
+               sId : int = 0,
+               wId : int = 0,
+               createTime : str = 0,
+               message : str = ""):
+    self.sId = sId                 # schedr id    
+    self.wId = wId                 # worker id
+    self.createTime = createTime   
+    self.message = message          
   
 class _connectCng(ctypes.Structure):
   _fields_ = [('dbType', ctypes.c_int32),
@@ -970,8 +981,8 @@ class ZMObj:
       return ott
     return []
 
-  # ///////////////////////////////////////////////////////////////////////////////
-  # /// Task of pipeline
+  #############################################################################
+  ### Task of pipeline
  
   def addTask(self, iot : task) -> bool:
     """
@@ -1212,36 +1223,33 @@ class ZMObj:
       return ott
     return []
  
-  # ///////////////////////////////////////////////////////////////////////////////
-  # /// Internal errors
+  #############################################################################
+  ### Internal errors
+ 
+  def getInternErrors(self, sId : int, wId : int, mCnt : int) -> [internError]:
+    """
+    Get internal errors
+    :param sId: schedr id
+    :param wId: worker id
+    :param mCnt: max mess count
+    :return: list of errors
+    """
+    if (self._zmConn):
+      csId = ctypes.c_uint64(sId)
+      cwId = ctypes.c_uint64(wId)
+      cmCnt = ctypes.c_uint32(mCnt)
 
-  # /// error
-  # struct zmInternError{
-  #   uint64_t sId;        ///< scheduler id 
-  #   uint64_t wId;        ///< worker id 
-  #   char createTime[32];
-  #   char message[256];
-  # };
-
-  # /// get errors
-  # /// @param[in] zmConn - object connect
-  # /// @param[in] sId - scheduler id. If '0' then all
-  # /// @param[in] wId - worker id. If '0' then all
-  # /// @param[in] mCnt - last mess max count. If '0' then all 
-  # /// @param[out] outErrors
-  # /// @return count of errors
-  # ZMEY_API uint32_t zmGetInternErrors(zmConn, uint64_t sId, uint64_t wId, uint32_t mCnt, zmInternError** outErrors);
-
-
-obj = ZMObj(dbType.PostgreSQL, "host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10")
-
-allUsr = obj.getAllUsers()
-allPPL = obj.getAllPipelines(allUsr[0].id)
-allTT = obj.getAllTaskTemplates(allUsr[0].id)
-
-
-allT = obj.getAllTasks(allPPL[0].id, stateType.undefined)
-
-err = obj.getLastError()
-
-err
+      pfun = _LIB.zmGetInternErrors
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.c_uint64, ctypes.c_uint32, ctypes.POINTER(_internError))
+      pfun.restype = ctypes.c_uint32
+      dbuffer = (_internError * mCnt)()
+      osz = pfun(self._zmConn, csId, cwId, cmCnt, dbuffer)
+      
+      oerr = []
+      for i in range(osz):
+        oerr[i].sId = dbuffer[i].schedrId
+        oerr[i].wId = dbuffer[i].workerId
+        oerr[i].createTime = dbuffer[i].createTime
+        oerr[i].message = dbuffer[i].message
+      return oerr
+    return []

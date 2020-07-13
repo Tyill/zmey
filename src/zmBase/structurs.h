@@ -38,17 +38,18 @@ namespace ZM_Base{
     taskPause           = 4,
     taskStart           = 5,
     taskStop            = 6,
-    progress            = 7,
-    pauseWorker         = 8,
-    pauseSchedr         = 9, 
-    startWorker         = 10,
-    startSchedr         = 11, 
-    pingWorker          = 12,
-    pingSchedr          = 13,
-    justStartWorker     = 14,
-    workerRating        = 15,
-    workerNotResponding = 16,
-    internError         = 17,      
+    taskCancel          = 7, // when not yet taken to work
+    progress            = 8,
+    pauseWorker         = 9,
+    pauseSchedr         = 10, 
+    startWorker         = 11,
+    startSchedr         = 12, 
+    pingWorker          = 13,
+    pingSchedr          = 14,
+    justStartWorker     = 15,
+    workerRating        = 16,
+    workerNotResponding = 17,
+    internError         = 18,      
   };
   // tblState
   enum class stateType{
@@ -60,7 +61,8 @@ namespace ZM_Base{
     stop                = 4,    
     completed           = 5,
     error               = 6,
-    notResponding       = 7,
+    cancel              = 7,
+    notResponding       = 8,
   };
   // tblUser
   struct user{
