@@ -124,9 +124,9 @@ class task:
                pplId : int = 0,
                ttId : int = 0,
                priority : int = 1,
-               prevTasksId = [],
-               nextTasksId = [],
-               params = [],
+               prevTasksId : [int] = [],
+               nextTasksId : [int] = [],
+               params : [str] = [],
                screenRect : str = "",
                state : stateType = stateType.ready, 
                progress : int = 0,
@@ -996,9 +996,9 @@ class ZMObj:
       tcng.pplId = iot.pplId
       tcng.ttId = iot.ttId
       tcng.priority = iot.priority
-      tcng.prevTasksId = ','.join(iot.prevTasksId).encode('utf-8')
-      tcng.nextTasksId = iot.nextTasksId.encode('utf-8')
-      tcng.params = iot.params.encode('utf-8')
+      tcng.prevTasksId = ','.join(str(i) for i in iot.prevTasksId).encode('utf-8')
+      tcng.nextTasksId = ','.join(str(i) for i in iot.nextTasksId).encode('utf-8')
+      tcng.params = ','.join(iot.params).encode('utf-8')
       tcng.screenRect = iot.screenRect.encode('utf-8')
       
       tid = ctypes.c_uint64(0)
@@ -1028,9 +1028,9 @@ class ZMObj:
         iot.pplId = tcng.pplId
         iot.ttId = tcng.ttId
         iot.priority = tcng.priority
-        iot.prevTasksId = tcng.prevTasksId.decode('utf-8')
-        iot.nextTasksId = tcng.nextTasksId.decode('utf-8')
-        iot.params = tcng.params.decode('utf-8')
+        iot.prevTasksId = [int(i) for i in tcng.prevTasksId.decode('utf-8').split(',')]
+        iot.nextTasksId = [int(i) for i in tcng.nextTasksId.decode('utf-8').split(',')]
+        iot.params = tcng.params.decode('utf-8').split(',')
         iot.screenRect = tcng.screenRect.decode('utf-8')
         return True
     return False
@@ -1046,9 +1046,9 @@ class ZMObj:
       tcng.pplId = iot.pplId
       tcng.ttId = iot.ttId
       tcng.priority = iot.priority
-      tcng.prevTasksId = iot.prevTasksId.encode('utf-8')
-      tcng.nextTasksId = iot.nextTasksId.encode('utf-8')
-      tcng.params = iot.params.encode('utf-8')
+      tcng.prevTasksId = ','.join(str(i) for i in iot.prevTasksId).encode('utf-8')
+      tcng.nextTasksId = ','.join(str(i) for i in iot.nextTasksId).encode('utf-8')
+      tcng.params = ','.join(iot.params).encode('utf-8')
       tcng.screenRect = iot.screenRect.encode('utf-8')
             
       pfun = _LIB.zmChangeTask
@@ -1268,20 +1268,3 @@ class ZMObj:
         oerr[i].message = dbuffer[i].message
       return oerr
     return []
-
-
-obj = zm.ZMObj(zm.dbType.PostgreSQL, "host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10")
-
-u = user(name = "alm")
-ok = obj.addUser(u)
-
-tt = taskTemplate(uId = u.id, name = "tt", script = "script")
-
-ppl = pipeline(uId = u.id, name = "ppl")
-ok = obj.addPipeline(ppl)
-
-allErr = obj.addTask(task(pplId=ppl.id,  ))
-
-err = obj.getLastError()
-
-err

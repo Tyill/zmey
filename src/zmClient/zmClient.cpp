@@ -24,7 +24,7 @@
 //
 
 #include <cstring>
-#include "zmClient/zmClient.h"
+#include "zmClient.h"
 #include "zmCommon/auxFunc.h"
 #include "zmCommon/tcp.h"
 #include "zmCommon/serial.h"

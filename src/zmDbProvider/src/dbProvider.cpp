@@ -23,7 +23,6 @@
 // THE SOFTWARE.
 //
 
-#include "../dbProvider.h"
 #include "dbPGProvider.h"
 
 namespace ZM_DB{
