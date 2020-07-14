@@ -552,9 +552,9 @@ bool zmAddTask(zmConn zo, zmTask cng, uint64_t* outQTId){
   }
   ZM_Base::uTask task;
   task.pplId = cng.pplId;
-  task.base.params = cng.params ? cng.params : "[]";
-  task.prevTasks = cng.prevTasksId ? cng.prevTasksId : "[]";
-  task.nextTasks = cng.nextTasksId ? cng.nextTasksId : "[]";
+  task.base.params = cng.params ? cng.params : "";
+  task.prevTasks = cng.prevTasksId ? cng.prevTasksId : "";
+  task.nextTasks = cng.nextTasksId ? cng.nextTasksId : "";
   task.screenRect = cng.screenRect ? cng.screenRect : "";  
   task.base.priority = cng.priority;
   task.base.tId = cng.ttId;
@@ -596,10 +596,10 @@ bool zmChangeTask(zmConn zo, uint64_t qtId, zmTask newCng){
   task.pplId = newCng.pplId;
   task.base.tId = newCng.ttId;
   task.base.priority = newCng.priority;
-  task.prevTasks = newCng.prevTasksId;
-  task.nextTasks = newCng.nextTasksId;
-  task.base.params = newCng.params;
-  task.screenRect = newCng.screenRect;
+  task.prevTasks = newCng.prevTasksId ? newCng.prevTasksId : "";
+  task.nextTasks = newCng.nextTasksId ? newCng.nextTasksId : "";
+  task.base.params = newCng.params ? newCng.params : "";
+  task.screenRect = newCng.screenRect ? newCng.screenRect : "";
 
   return static_cast<ZM_DB::DbProvider*>(zo)->changeTask(qtId, task);
 }

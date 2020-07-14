@@ -1080,6 +1080,11 @@ std::vector<uint64_t> DbPGProvider::getAllTaskTemplates(uint64_t usr){
 bool DbPGProvider::addTask(const ZM_Base::uTask& cng, uint64_t& outTId){
   lock_guard<mutex> lk(_mtx);
   
+  string prevTasks = "[" + cng.prevTasks + "]",
+         nextTasks = "[" + cng.nextTasks + "]",
+         params = "['" + cng.base.params + "']";
+  ZM_Aux::replace(params, ",", "','");
+  
   stringstream ss;
   ss << "SELECT * FROM funcAddTask("
         "(" << 0 << ","
@@ -1087,9 +1092,9 @@ bool DbPGProvider::addTask(const ZM_Base::uTask& cng, uint64_t& outTId){
             << cng.base.tId << ","
             << 0 << ","
             << cng.base.priority << ","
-            << "ARRAY" << cng.prevTasks << "::INT[],"
-            << "ARRAY" << cng.nextTasks << "::INT[],"
-            << "ARRAY" << cng.base.params << "::TEXT[],"
+            << "ARRAY" << prevTasks << "::INT[],"
+            << "ARRAY" << nextTasks << "::INT[],"
+            << "ARRAY" << params << "::TEXT[],"
             << "'" << cng.screenRect << "',"
             << 0 << "));";
 
@@ -1131,18 +1136,14 @@ bool DbPGProvider::getTask(uint64_t tId, ZM_Base::uTask& outTCng){
   outTCng.base.tId = stoull(PQgetvalue(res, 0, 1));
   outTCng.base.priority = atoi(PQgetvalue(res, 0, 2));  
   outTCng.prevTasks = PQgetvalue(res, 0, 3);
-  ZM_Aux::replace(outTCng.prevTasks, "{", "[");
-  ZM_Aux::replace(outTCng.prevTasks, "}", "]");
+  outTCng.prevTasks = outTCng.prevTasks.substr(1,  outTCng.prevTasks.size() - 2);
   
   outTCng.nextTasks = PQgetvalue(res, 0, 4);
-  ZM_Aux::replace(outTCng.nextTasks, "{", "[");
-  ZM_Aux::replace(outTCng.nextTasks, "}", "]");
-
+  outTCng.nextTasks = outTCng.nextTasks.substr(1,  outTCng.nextTasks.size() - 2);
+  
   outTCng.base.params = PQgetvalue(res, 0, 5);
   ZM_Aux::replace(outTCng.base.params, "\"", "");
-  ZM_Aux::replace(outTCng.base.params, "}", "']");
-  ZM_Aux::replace(outTCng.base.params, "{", "['");
-  ZM_Aux::replace(outTCng.base.params, ",", "','");
+  outTCng.base.params = outTCng.base.params.substr(1,  outTCng.base.params.size() - 2);  
 
   outTCng.screenRect = PQgetvalue(res, 0, 6);
   PQclear(res); 
@@ -1150,6 +1151,12 @@ bool DbPGProvider::getTask(uint64_t tId, ZM_Base::uTask& outTCng){
 }
 bool DbPGProvider::changeTask(uint64_t tId, const ZM_Base::uTask& newCng){
   lock_guard<mutex> lk(_mtx);
+
+  string prevTasks = "[" + newCng.prevTasks + "]",
+         nextTasks = "[" + newCng.nextTasks + "]",
+         params = "['" + newCng.base.params + "']";
+  ZM_Aux::replace(params, ",", "','");
+
   stringstream ss;
   ss << "SELECT * FROM funcUpdateTask("
         "(" << tId << ","
@@ -1157,9 +1164,9 @@ bool DbPGProvider::changeTask(uint64_t tId, const ZM_Base::uTask& newCng){
             << newCng.base.tId << ","
             << 0 << ","
             << newCng.base.priority << ","
-            << "ARRAY" << newCng.prevTasks << "::INT[],"
-            << "ARRAY" << newCng.nextTasks << "::INT[],"
-            << "ARRAY" << newCng.base.params << "::TEXT[],"
+            << "ARRAY" << prevTasks << "::INT[],"
+            << "ARRAY" << nextTasks << "::INT[],"
+            << "ARRAY" << params << "::TEXT[],"
             << "'" << newCng.screenRect << "',"
             << 0 << "));";
 

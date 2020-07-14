@@ -45,7 +45,8 @@ class stateType(Enum):
   stop          = 4    
   completed     = 5
   error         = 6
-  notResponding = 7
+  cancel        = 7
+  notResponding = 8
 class dbType(Enum):
   """Database type"""
   PostgreSQL = 0
@@ -94,7 +95,7 @@ class pipeline:
                description : str = ""):
     self.id = id
     self.uId = uId                   # user id
-    self.isShared = isShared
+    self.isShared = isShared         # [0..1]
     self.name = name    
     self.description = description 
 class taskTemplate: 
@@ -102,8 +103,8 @@ class taskTemplate:
   def __init__(self,
                id : int = 0,
                uId : int = 0,
-               averDurationSec : int = 0,
-               maxDurationSec : int = 0,
+               averDurationSec : int = 1,
+               maxDurationSec : int = 1,
                isShared : int = 0,
                name : str = "",
                description : str = "",
@@ -112,7 +113,7 @@ class taskTemplate:
     self.uId = uId                   # user id
     self.averDurationSec = averDurationSec
     self.maxDurationSec = maxDurationSec
-    self.isShared = isShared
+    self.isShared = isShared         # [0..1]
     self.name = name    
     self.description = description
     self.script = script 
@@ -122,10 +123,10 @@ class task:
                id : int = 0,
                pplId : int = 0,
                ttId : int = 0,
-               priority : int = 0,
-               prevTasksId : str = "",
-               nextTasksId : str = "",
-               params : str = "",
+               priority : int = 1,
+               prevTasksId = [],
+               nextTasksId = [],
+               params = [],
                screenRect : str = "",
                state : stateType = stateType.ready, 
                progress : int = 0,
@@ -995,7 +996,7 @@ class ZMObj:
       tcng.pplId = iot.pplId
       tcng.ttId = iot.ttId
       tcng.priority = iot.priority
-      tcng.prevTasksId = iot.prevTasksId.encode('utf-8')
+      tcng.prevTasksId = ','.join(iot.prevTasksId).encode('utf-8')
       tcng.nextTasksId = iot.nextTasksId.encode('utf-8')
       tcng.params = iot.params.encode('utf-8')
       tcng.screenRect = iot.screenRect.encode('utf-8')
@@ -1107,6 +1108,20 @@ class ZMObj:
       tid = ctypes.c_uint64(tId)
             
       pfun = _LIB.zmPauseTask
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
+      pfun.restype = ctypes.c_bool
+      return pfun(self._zmConn, tid)
+    return False
+  def cancelTask(self, tId) -> bool:
+    """
+    Cancel task
+    :param tId: task id
+    :return: True - ok
+    """
+    if (self._zmConn):
+      tid = ctypes.c_uint64(tId)
+            
+      pfun = _LIB.zmCancelTask
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, tid)
@@ -1253,3 +1268,20 @@ class ZMObj:
         oerr[i].message = dbuffer[i].message
       return oerr
     return []
+
+
+obj = zm.ZMObj(zm.dbType.PostgreSQL, "host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10")
+
+u = user(name = "alm")
+ok = obj.addUser(u)
+
+tt = taskTemplate(uId = u.id, name = "tt", script = "script")
+
+ppl = pipeline(uId = u.id, name = "ppl")
+ok = obj.addPipeline(ppl)
+
+allErr = obj.addTask(task(pplId=ppl.id,  ))
+
+err = obj.getLastError()
+
+err

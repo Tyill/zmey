@@ -403,9 +403,9 @@ struct zmTask{
   uint64_t pplId;          ///< pipeline id
   uint64_t ttId;           ///< task template id
   uint32_t priority;       ///< [1..3]
-  char* prevTasksId;       ///< pipeline task id of previous tasks to be completed: [qtId,..]. May be NULL 
-  char* nextTasksId;       ///< pipeline task id of next tasks: : [qtId,..]. May be NULL
-  char* params;            ///< CLI params for script: ['param1','param2'..]. May be NULL
+  char* prevTasksId;       ///< pipeline task id of previous tasks to be completed: qtId1,qtId2... May be NULL 
+  char* nextTasksId;       ///< pipeline task id of next tasks: : qtId1,qtId2... May be NULL
+  char* params;            ///< CLI params for script: param1,param2... May be NULL
   char* screenRect;        ///< screenRect on UI: x y w h. May be NULL
 };
 

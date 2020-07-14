@@ -861,10 +861,10 @@ TEST_F(APITest, addTask){
   task.screenRect = new char[24];
   task.nextTasksId = new char[24];
   task.prevTasksId = new char[24];
-  strcpy(task.params, "['param1','param2','param3']");
+  strcpy(task.params, "param1,param2,param3");
   strcpy(task.screenRect, "1, 2, 3, 4");
-  strcpy(task.nextTasksId, "[]");
-  strcpy(task.prevTasksId, "[]");
+  strcpy(task.nextTasksId, "");
+  strcpy(task.prevTasksId, "");
   uint64_t tId = 0;  
   EXPECT_TRUE(zmAddTask(_zc, task, &tId) && (tId > 0));  
   
@@ -909,10 +909,10 @@ TEST_F(APITest, getTask){
   task.screenRect = new char[24];
   task.nextTasksId = new char[24];
   task.prevTasksId = new char[24];
-  strcpy(task.params, "['param1','param2','param3']");
+  strcpy(task.params, "param1,param2,param3");
   strcpy(task.screenRect, "1, 2, 3, 4");
-  strcpy(task.nextTasksId, "[]");
-  strcpy(task.prevTasksId, "[]");
+  strcpy(task.nextTasksId, "");
+  strcpy(task.prevTasksId, "");
   uint64_t tId = 0;  
   EXPECT_TRUE(zmAddTask(_zc, task, &tId) && (tId > 0));  
 
@@ -926,9 +926,9 @@ TEST_F(APITest, getTask){
   EXPECT_TRUE(zmGetTask(_zc, tId, &task) &&
              (task.pplId == pId) &&
              (task.priority == 1) &&
-             (strcmp(task.params, "['param1','param2','param3']") == 0) &&
-             (strcmp(task.nextTasksId, "[]") == 0) &&
-             (strcmp(task.prevTasksId, "[]") == 0) &&
+             (strcmp(task.params, "param1,param2,param3") == 0) &&
+             (strcmp(task.nextTasksId, "") == 0) &&
+             (strcmp(task.prevTasksId, "") == 0) &&
              (strcmp(task.screenRect, "1, 2, 3, 4") == 0) &&
              (task.ttId == ttId));                              
 }
@@ -969,10 +969,10 @@ TEST_F(APITest, changeTask){
   task.screenRect = new char[24];
   task.nextTasksId = new char[24];
   task.prevTasksId = new char[24];
-  strcpy(task.params, "['param1','param2','param3']");
+  strcpy(task.params, "param1,param2,param3");
   strcpy(task.screenRect, "1, 2, 3, 4");
-  strcpy(task.nextTasksId, "[]");
-  strcpy(task.prevTasksId, "[]");
+  strcpy(task.nextTasksId, "");
+  strcpy(task.prevTasksId, "");
   uint64_t tId1 = 0;  
   EXPECT_TRUE(zmAddTask(_zc, task, &tId1) && (tId1 > 0)); 
 
@@ -983,34 +983,34 @@ TEST_F(APITest, changeTask){
   task.screenRect = new char[24];
   task.nextTasksId = new char[24];
   task.prevTasksId = new char[24];
-  strcpy(task.params, "['param1','param2','param3']");
+  strcpy(task.params, "param1,param2,param3");
   strcpy(task.screenRect, "1, 2, 3, 4");
-  strcpy(task.nextTasksId, "[]");
-  strcpy(task.prevTasksId, "[]");
+  strcpy(task.nextTasksId, "");
+  strcpy(task.prevTasksId, "");
   uint64_t tId2 = 0;  
   EXPECT_TRUE(zmAddTask(_zc, task, &tId2) && (tId2 > 0)); 
   
   task.pplId = pId; 
   task.priority = 2;
-  strcpy(task.params, "['par amm1','paramm2','paramm3']");
+  strcpy(task.params, "par amm1,paramm2,paramm3");
   strcpy(task.screenRect, "1, 2, 2, 4");
-  strcpy(task.nextTasksId, "[]");
-  strcpy(task.prevTasksId, ("[" + to_string(tId1) + "]").c_str());
+  strcpy(task.nextTasksId, "");
+  strcpy(task.prevTasksId, (to_string(tId1)).c_str());
   EXPECT_TRUE(zmChangeTask(_zc, tId2, task));
 
   task.pplId = pId + 1; 
   task.priority = 11;
   task.ttId = ttId + 1;
-  strcpy(task.params, "['par1','mm2','pam3']");
+  strcpy(task.params, "par1,mm2,pam3");
   strcpy(task.screenRect, "1, 1, 4");
-  strcpy(task.nextTasksId, "[]");
-  strcpy(task.prevTasksId, "[123]");
+  strcpy(task.nextTasksId, "");
+  strcpy(task.prevTasksId, "123");
   EXPECT_TRUE(zmGetTask(_zc, tId2, &task) &&
              (task.pplId == pId) &&
              (task.priority == 2) &&
-             (strcmp(task.params, "['par amm1','paramm2','paramm3']") == 0) &&
-             (strcmp(task.nextTasksId, "[]") == 0) &&
-             (strcmp(task.prevTasksId, ("[" + to_string(tId1) + "]").c_str()) == 0) &&
+             (strcmp(task.params, "par amm1,paramm2,paramm3") == 0) &&
+             (strcmp(task.nextTasksId, "") == 0) &&
+             (strcmp(task.prevTasksId, (to_string(tId1)).c_str()) == 0) &&
              (strcmp(task.screenRect, "1, 2, 2, 4") == 0) &&
              (task.ttId == ttId));
 }
@@ -1051,10 +1051,10 @@ TEST_F(APITest, delTask){
   task.screenRect = new char[24];
   task.nextTasksId = new char[24];
   task.prevTasksId = new char[24];
-  strcpy(task.params, "['param1','param2','param3']");
+  strcpy(task.params, "param1,param2,param3");
   strcpy(task.screenRect, "1, 2, 3, 4");
-  strcpy(task.nextTasksId, "[]");
-  strcpy(task.prevTasksId, "[]");
+  strcpy(task.nextTasksId, "");
+  strcpy(task.prevTasksId, "");
   uint64_t tId1 = 0;  
   EXPECT_TRUE(zmAddTask(_zc, task, &tId1) && (tId1 > 0)); 
 
@@ -1113,10 +1113,10 @@ TEST_F(APITest, startTask){
   task.screenRect = new char[24];
   task.nextTasksId = new char[24];
   task.prevTasksId = new char[24];
-  strcpy(task.params, "['param1','param2','param3']");
+  strcpy(task.params, "param1,param2,param3");
   strcpy(task.screenRect, "1, 2, 3, 4");
-  strcpy(task.nextTasksId, "[]");
-  strcpy(task.prevTasksId, "[]");
+  strcpy(task.nextTasksId, "");
+  strcpy(task.prevTasksId, "");
   uint64_t tId1 = 0;  
   EXPECT_TRUE(zmAddTask(_zc, task, &tId1) && (tId1 > 0));  
 
@@ -1159,10 +1159,10 @@ TEST_F(APITest, cancelTask){
   task.screenRect = new char[24];
   task.nextTasksId = new char[24];
   task.prevTasksId = new char[24];
-  strcpy(task.params, "['param1','param2','param3']");
+  strcpy(task.params, "param1,param2,param3");
   strcpy(task.screenRect, "1, 2, 3, 4");
-  strcpy(task.nextTasksId, "[]");
-  strcpy(task.prevTasksId, "[]");
+  strcpy(task.nextTasksId, "");
+  strcpy(task.prevTasksId, "");
   uint64_t tId1 = 0;  
   EXPECT_TRUE(zmAddTask(_zc, task, &tId1) && (tId1 > 0));  
 
@@ -1207,10 +1207,10 @@ TEST_F(APITest, taskState){
   task.screenRect = new char[24];
   task.nextTasksId = new char[24];
   task.prevTasksId = new char[24];
-  strcpy(task.params, "['param1','param2','param3']");
+  strcpy(task.params, "param1,param2,param3");
   strcpy(task.screenRect, "1, 2, 3, 4");
-  strcpy(task.nextTasksId, "[]");
-  strcpy(task.prevTasksId, "[]");
+  strcpy(task.nextTasksId, "");
+  strcpy(task.prevTasksId, "");
   uint64_t tId1 = 0;  
   EXPECT_TRUE(zmAddTask(_zc, task, &tId1) && (tId1 > 0));  
   
@@ -1223,10 +1223,10 @@ TEST_F(APITest, taskState){
   task.screenRect = new char[24];
   task.nextTasksId = new char[24];
   task.prevTasksId = new char[24];
-  strcpy(task.params, "['param1','param2','param3']");
+  strcpy(task.params, "param1,param2,param3");
   strcpy(task.screenRect, "1, 2, 3, 4");
-  strcpy(task.nextTasksId, "[]");
-  strcpy(task.prevTasksId, "[]");
+  strcpy(task.nextTasksId, "");
+  strcpy(task.prevTasksId, "");
   uint64_t tId2 = 0;  
   EXPECT_TRUE(zmAddTask(_zc, task, &tId2) && (tId2 > 0));
 
@@ -1277,10 +1277,10 @@ TEST_F(APITest, taskResult){
   task.screenRect = new char[24];
   task.nextTasksId = new char[24];
   task.prevTasksId = new char[24];
-  strcpy(task.params, "['param1','param2','param3']");
+  strcpy(task.params, "param1,param2,param3");
   strcpy(task.screenRect, "1, 2, 3, 4");
-  strcpy(task.nextTasksId, "[]");
-  strcpy(task.prevTasksId, "[]");
+  strcpy(task.nextTasksId, "");
+  strcpy(task.prevTasksId, "");
   uint64_t tId1 = 0;  
   EXPECT_TRUE(zmAddTask(_zc, task, &tId1) && (tId1 > 0));  
   
@@ -1326,10 +1326,10 @@ TEST_F(APITest, taskTime){
   task.screenRect = new char[24];
   task.nextTasksId = new char[24];
   task.prevTasksId = new char[24];
-  strcpy(task.params, "['param1','param2','param3']");
+  strcpy(task.params, "param1,param2,param3");
   strcpy(task.screenRect, "1, 2, 3, 4");
-  strcpy(task.nextTasksId, "[]");
-  strcpy(task.prevTasksId, "[]");
+  strcpy(task.nextTasksId, "");
+  strcpy(task.prevTasksId, "");
   uint64_t tId1 = 0;  
   EXPECT_TRUE(zmAddTask(_zc, task, &tId1) && (tId1 > 0));  
   
@@ -1375,10 +1375,10 @@ TEST_F(APITest, getAllTask){
   task.screenRect = new char[24];
   task.nextTasksId = new char[24];
   task.prevTasksId = new char[24];
-  strcpy(task.params, "['param1','param2','param3']");
+  strcpy(task.params, "param1,param2,param3");
   strcpy(task.screenRect, "1, 2, 3, 4");
-  strcpy(task.nextTasksId, "[]");
-  strcpy(task.prevTasksId, "[]");
+  strcpy(task.nextTasksId, "");
+  strcpy(task.prevTasksId, "");
   uint64_t tId1 = 0;  
   EXPECT_TRUE(zmAddTask(_zc, task, &tId1) && (tId1 > 0));  
   
@@ -1391,10 +1391,10 @@ TEST_F(APITest, getAllTask){
   task.screenRect = new char[24];
   task.nextTasksId = new char[24];
   task.prevTasksId = new char[24];
-  strcpy(task.params, "['param1','param2','param3']");
+  strcpy(task.params, "param1,param2,param3");
   strcpy(task.screenRect, "1, 2, 3, 4");
-  strcpy(task.nextTasksId, "[]");
-  strcpy(task.prevTasksId, "[]");
+  strcpy(task.nextTasksId, "");
+  strcpy(task.prevTasksId, "");
   uint64_t tId2 = 0;  
   EXPECT_TRUE(zmAddTask(_zc, task, &tId2) && (tId2 > 0));  
   
