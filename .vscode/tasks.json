@@ -2,7 +2,7 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"label": "Debug",
+            "label": "Debug",
             "type": "shell",
             "command": "/usr/bin/cmake --build ~/cpp/zmey/build --config Debug --target all -- -j 3",
             "problemMatcher": [],
