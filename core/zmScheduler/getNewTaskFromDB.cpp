@@ -43,14 +43,16 @@ void getNewTaskFromDB(ZM_DB::DbProvider& db){
   }
   actSz += _tasks.size();
   vector<ZM_DB::schedrTask> newTasks;
-  if (db.getNewTasksForSchedr(_schedr.id, capSz - actSz, newTasks)){
-    for(auto& t : newTasks){
-      _tasks.push(sTask{t.qTaskId, t.base, t.params});
+  if ((capSz - actSz) > 0){ 
+    if (db.getNewTasksForSchedr(_schedr.id, capSz - actSz, newTasks)){
+      for(auto& t : newTasks){
+        _tasks.push(sTask{t.qTaskId, t.base, t.params});
+      }      
+      ctickNT.reset();
     }
-    _schedr.activeTask = actSz + newTasks.size();
-    ctickNT.reset();
+    else if (ctickNT(1000)){ // every 1000 cycle
+      statusMess("getNewTaskFromDB db error: " + db.getLastError());
+    }
   }
-  else if (ctickNT(1000)){ // every 1000 cycle
-    statusMess("getNewTaskFromDB db error: " + db.getLastError());
-  }
+  _schedr.activeTask = actSz + newTasks.size();  
 };

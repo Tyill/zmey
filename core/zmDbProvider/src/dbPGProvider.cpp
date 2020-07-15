@@ -156,8 +156,8 @@ bool DbPGProvider::createTables(){
   ss << "CREATE TABLE IF NOT EXISTS tblTaskTime("
         "qtask          INT PRIMARY KEY REFERENCES tblTaskQueue,"        
         "createTime     TIMESTAMP NOT NULL DEFAULT current_timestamp,"
-        "takeInWorkTime TIMESTAMP CHECK (takeInWorkTime > createTime),"
-        "startTime      TIMESTAMP CHECK (startTime > takeInWorkTime),"
+        "takeInWorkTime TIMESTAMP,"
+        "startTime      TIMESTAMP CHECK (startTime >= takeInWorkTime),"
         "stopTime       TIMESTAMP CHECK (stopTime >= startTime));";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
@@ -219,12 +219,12 @@ bool DbPGProvider::createTables(){
   ///////////////////////////////////////////////////////////////////////////
   /// INDEXES
   ss.str(""); 
-  ss << "CREATE INDEX inxTSState ON tblTaskState(state);"
-        "CREATE INDEX inxPPTQTask ON tblUPipelineTask(qtask);"
-        "CREATE INDEX inxPPTQTaskTempl ON tblUPipelineTask(taskTempl);"
-        "CREATE INDEX inxTQWorker ON tblTaskQueue(worker);"
-        "CREATE INDEX inxIECreateTime ON tblInternError(createTime);"
-        "CREATE INDEX inxTTCreateTime ON tblTaskTime(createTime);";
+  ss << "CREATE INDEX IF NOT EXISTS inxTSState ON tblTaskState(state);"
+        "CREATE INDEX IF NOT EXISTS inxPPTQTask ON tblUPipelineTask(qtask);"
+        "CREATE INDEX IF NOT EXISTS inxPPTQTaskTempl ON tblUPipelineTask(taskTempl);"
+        "CREATE INDEX IF NOT EXISTS inxTQWorker ON tblTaskQueue(worker);"
+        "CREATE INDEX IF NOT EXISTS inxIECreateTime ON tblInternError(createTime);"
+        "CREATE INDEX IF NOT EXISTS inxTTCreateTime ON tblTaskTime(createTime);";
 
   ///////////////////////////////////////////////////////////////////////////
   /// FUNCTIONS

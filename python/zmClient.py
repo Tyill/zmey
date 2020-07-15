@@ -30,7 +30,7 @@ import sys
 import ctypes
 from enum import Enum
 
-_LIB = ctypes.CDLL(os.path.expanduser("~") + '/cpp/zmey/build/Debug/libzmClient.so')
+_LIB = ctypes.CDLL(os.path.expanduser("~") + '/cpp/zmey/build/Release/libzmClient.so')
 
 #############################################################################
 ### Common
