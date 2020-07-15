@@ -2,3 +2,4 @@
 build
 zmSchedr.log
 zmWorker.log
+__pycache__

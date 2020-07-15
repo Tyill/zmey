@@ -30,7 +30,7 @@ import sys
 import ctypes
 from enum import Enum
 
-_LIB = ctypes.CDLL(os.path.expanduser("~") + '/cpp/zmey/build/Release/libzmClient.so')
+_LIB = ctypes.CDLL(os.path.expanduser("~") + '/cpp/zmey/build/Debug/libzmClient.so')
 
 #############################################################################
 ### Common
@@ -551,7 +551,7 @@ class ZMObj:
         iosch.state = stateType(sstate.value) 
         return True
     return False
-  def getAllSchedulers(self, state : stateType) -> [schedr]:
+  def getAllSchedulers(self, state : stateType=stateType.undefined) -> [schedr]:
     """
     Get all schedrs
     :param state: choose with current state. If the state is 'undefined', select all
@@ -722,22 +722,22 @@ class ZMObj:
           iowkrs[i].state = stateType(stateBuffer[i])
         return True
     return False
-  def getAllWorkers(self, schId : int, state : stateType) -> [worker]:
+  def getAllWorkers(self, sId : int, state : stateType=stateType.undefined) -> [worker]:
     """
     Get all workers
-    :param schId: schedr id
+    :param sId: schedr id
     :param state: choose with current state. If the state is 'undefined', select all
     :return: list of worker
     """
     if (self._zmConn):
-      sId = ctypes.c_uint64(schId)
+      schId = ctypes.c_uint64(sId)
       sstate = ctypes.c_int32(state.value)
 
       pfun = _LIB.zmGetAllWorkers
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.c_int32, ctypes.POINTER(ctypes.POINTER(ctypes.c_uint64)))
       pfun.restype = ctypes.c_uint32
       dbuffer = ctypes.POINTER(ctypes.c_uint64)()
-      osz = pfun(self._zmConn, sId, sstate, ctypes.byref(dbuffer))
+      osz = pfun(self._zmConn, schId, sstate, ctypes.byref(dbuffer))
       oid = [dbuffer[i] for i in range(osz)]
       
       pfun = _LIB.zmFreeResources
@@ -832,20 +832,20 @@ class ZMObj:
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, pid)
     return False
-  def getAllPipelines(self, userId : int) -> [pipeline]:
+  def getAllPipelines(self, uId : int) -> [pipeline]:
     """
     Get all pipelines
-    :param userId: user id
+    :param uId: user id
     :return: list of pipeline
     """
     if (self._zmConn):
-      uId = ctypes.c_uint64(userId)
+      userId = ctypes.c_uint64(uId)
 
       pfun = _LIB.zmGetAllPipelines
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(ctypes.POINTER(ctypes.c_uint64)))
       pfun.restype = ctypes.c_uint32
       dbuffer = ctypes.POINTER(ctypes.c_uint64)()
-      osz = pfun(self._zmConn, uId, ctypes.byref(dbuffer))
+      osz = pfun(self._zmConn, userId, ctypes.byref(dbuffer))
       oid = [dbuffer[i] for i in range(osz)]
       
       pfun = _LIB.zmFreeResources
@@ -953,20 +953,20 @@ class ZMObj:
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, tid)
     return False
-  def getAllTaskTemplates(self, userId : int) -> [taskTemplate]:
+  def getAllTaskTemplates(self, uId : int) -> [taskTemplate]:
     """
     Get all taskTemplates
-    :param userId: user id
+    :param uId: user id
     :return: list of taskTemplate
     """
     if (self._zmConn):
-      uId = ctypes.c_uint64(userId)
+      userId = ctypes.c_uint64(uId)
 
       pfun = _LIB.zmGetAllTaskTemplates
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(ctypes.POINTER(ctypes.c_uint64)))
       pfun.restype = ctypes.c_uint32
       dbuffer = ctypes.POINTER(ctypes.c_uint64)()
-      osz = pfun(self._zmConn, uId, ctypes.byref(dbuffer))
+      osz = pfun(self._zmConn, userId, ctypes.byref(dbuffer))
       oid = [dbuffer[i] for i in range(osz)]
       
       pfun = _LIB.zmFreeResources
@@ -1028,9 +1028,12 @@ class ZMObj:
         iot.pplId = tcng.pplId
         iot.ttId = tcng.ttId
         iot.priority = tcng.priority
-        iot.prevTasksId = [int(i) for i in tcng.prevTasksId.decode('utf-8').split(',')]
-        iot.nextTasksId = [int(i) for i in tcng.nextTasksId.decode('utf-8').split(',')]
-        iot.params = tcng.params.decode('utf-8').split(',')
+        if (len(tcng.prevTasksId) > 0):
+          iot.prevTasksId = [int(i) for i in tcng.prevTasksId.decode('utf-8').split(',')]
+        if (len(tcng.nextTasksId) > 0):
+          iot.nextTasksId = [int(i) for i in tcng.nextTasksId.decode('utf-8').split(',')]
+        if (len(tcng.params) > 0):
+          iot.params = tcng.params.decode('utf-8').split(',')
         iot.screenRect = tcng.screenRect.decode('utf-8')
         return True
     return False
@@ -1207,7 +1210,7 @@ class ZMObj:
         iot.stopTime = ttime.stopTime.decode('utf-8')
         return True
     return False
-  def getAllTasks(self, pplId : int, state : stateType) -> [task]:
+  def getAllTasks(self, pplId : int, state : stateType=stateType.undefined) -> [task]:
     """
     Get all tasks
     :param pplId: pipeline id

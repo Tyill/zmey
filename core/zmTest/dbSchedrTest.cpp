@@ -45,16 +45,27 @@ public:
     _pDb = ZM_DB::makeDbProvider(cng);
     if (_pDb){
    
-      if (!isTables){
-        isTables = true;
-        EXPECT_TRUE(_pDb->createTables());
-      }
+      // auto usrId = _pDb->getAllUsers()[0];
+
+      // auto pplId = _pDb->getAllPipelines(usrId)[0];
+
+      // auto tasksId = _pDb->getAllTasks(pplId, ZM_Base::stateType::undefined);
+      
+      // vector<ZM_DB::tskState> tstate;
+      // _pDb->taskState(tasksId, tstate);
+
+      // bool ok = false;
+
+      // if (!isTables){
+      //   isTables = true;
+      //   EXPECT_TRUE(_pDb->createTables());
+      // }
    
-      EXPECT_TRUE(_pDb->delAllSchedrs())   << _pDb->getLastError();
-      EXPECT_TRUE(_pDb->delAllTask())      << _pDb->getLastError();
-      EXPECT_TRUE(_pDb->delAllPipelines()) << _pDb->getLastError();
-      EXPECT_TRUE(_pDb->delAllUsers())     << _pDb->getLastError();
-      EXPECT_TRUE(_pDb->delAllWorkers())   << _pDb->getLastError();
+      // EXPECT_TRUE(_pDb->delAllSchedrs())   << _pDb->getLastError();
+      // EXPECT_TRUE(_pDb->delAllTask())      << _pDb->getLastError();
+      // EXPECT_TRUE(_pDb->delAllPipelines()) << _pDb->getLastError();
+      // EXPECT_TRUE(_pDb->delAllUsers())     << _pDb->getLastError();
+      // EXPECT_TRUE(_pDb->delAllWorkers())   << _pDb->getLastError();
     }
   }
   ~DBSchedrTest() {
