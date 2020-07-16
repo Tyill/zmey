@@ -40,7 +40,7 @@ if (not zo.addUser(usr)):
   exit(-1)
   
 # add taskTemplate
-tt = zm.taskTemplate(name='tt', uId=usr.id, maxDurationSec = 10, script="#! /bin/sh \n sleep 1")
+tt = zm.taskTemplate(name='tt', uId=usr.id, maxDurationSec = 100, script="#! /bin/sh \n sleep 1")
 if (not zo.addTaskTemplate(tt)):
   exit(-1)
   
@@ -49,7 +49,35 @@ ppl = zm.pipeline(name='ppl', uId=usr.id)
 if (not zo.addPipeline(ppl)):
   exit(-1)
 
+# add and start schedulers and workers
+print('Add and start schedulers and workers')  
+sCnt = wCnt = 10
+schPrc = wkrPrc = []
+for i in range(sCnt):
+  sch = zm.schedr(connectPnt='localhost:' + str(4440 + i), capacityTask=100)
+  if (not zo.addScheduler(sch)):
+    exit(-1)
+  for j in range(wCnt):
+    if (not zo.addWorker(zm.worker(sId=sch.id, connectPnt='localhost:' + str(4450 + i * 10 + j), capacityTask=10))):
+      exit(-1)
+  schPrc.append(subprocess.Popen([os.path.expanduser("~") + '/cpp/zmey/build/Release/zmScheduler',
+                                  '-cp=localhost:' + str(4440 + i),
+                                  "-dbtp=PostgreSQL",
+                                  "-dbcs=host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10"]))
+  for j in range(wCnt):
+    wkrPrc.append(subprocess.Popen([os.path.expanduser("~") + '/cpp/zmey/build/Release/zmWorker',
+                                    '-scp=localhost:' + str(4440 + i),
+                                    '-cp=localhost:' + str(4450 + i * 10 + j)]))
+# wait until is running
+time.sleep(5)
+
+# pause schedrs
+allSch = zo.getAllSchedulers()
+for i in range(len(allSch)):
+  zo.pauseScheduler(allSch[i].id)
+
 # add and start 10000 tasks
+print('Add and start 10000 tasks')  
 taskCnt = 10000
 tasks = []
 for j in range(taskCnt):
@@ -58,26 +86,13 @@ for j in range(taskCnt):
   zo.startTask(t.id)
   tasks.append(t)
 
-# add and start 10 schedulers and 100 workers
-schPrc = []
-wkrPrc = []
-for i in range(10):
-  sch = zm.schedr(connectPnt='localhost:' + str(4440 + i), capacityTask=100)
-  if (not zo.addScheduler(sch)):
-    exit(-1)
-  schPrc.append(subprocess.Popen([os.path.expanduser("~") + '/cpp/zmey/build/Release/zmScheduler',
-                    '-cp=localhost:' + str(4440 + i),
-                    "-dbtp=PostgreSQL",
-                    "-dbcs=host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10"]))
-  time.sleep(1)
-  for j in range(10):
-    if (not zo.addWorker(zm.worker(sId=sch.id, connectPnt='localhost:' + str(4450 + i * 10 + j), capacityTask=10))):
-      exit(-1)
-    wkrPrc.append(subprocess.Popen([os.path.expanduser("~") + '/cpp/zmey/build/Release/zmWorker',
-                      '-scp=localhost:' + str(4440 + i),
-                      '-cp=localhost:' + str(4450 + i * 10 + j)]))
+# start schedrs
+allSch = zo.getAllSchedulers()
+for i in range(len(allSch)):
+  zo.startScheduler(allSch[i].id)
 
 # wait until the task is completed
+print('Wait until the task is completed')  
 complCnt = 0
 tstart = time.time()
 while complCnt != taskCnt:
@@ -89,7 +104,7 @@ while complCnt != taskCnt:
     
 print('Time to complete all tasks: ', time.time() - tstart)  
 
-time.sleep(10)
+time.sleep(5)
 
 # stop all schedr and workers
 for i in range(len(schPrc)):
