@@ -39,6 +39,6 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
     _messForSchedr.tryPop(mess);
     _isSendAck = true;    
   }else{
-    statusMess("sendHandler error send to schedr " + cp);
+    statusMess("worker::sendHandler error send to schedr, cp " + cp);
   }
 }

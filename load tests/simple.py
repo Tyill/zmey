@@ -51,7 +51,8 @@ if (not zo.addPipeline(ppl)):
 
 # add and start schedulers and workers
 print('Add and start schedulers and workers')  
-sCnt = wCnt = 10
+sCnt = 1
+wCnt = 10
 schPrc = wkrPrc = []
 for i in range(sCnt):
   sch = zm.schedr(connectPnt='localhost:' + str(4440 + i), capacityTask=100)
@@ -77,8 +78,8 @@ for i in range(len(allSch)):
   zo.pauseScheduler(allSch[i].id)
 
 # add and start 10000 tasks
-print('Add and start 10000 tasks')  
-taskCnt = 10000
+taskCnt = 1000
+print('Add and start', taskCnt, 'tasks')  
 tasks = []
 for j in range(taskCnt):
   t = zm.task(pplId=ppl.id, ttId=tt.id)
@@ -104,7 +105,7 @@ while complCnt != taskCnt:
     
 print('Time to complete all tasks: ', time.time() - tstart)  
 
-time.sleep(5)
+time.sleep(45)
 
 # stop all schedr and workers
 for i in range(len(schPrc)):
