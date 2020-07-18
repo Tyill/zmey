@@ -123,7 +123,8 @@ void waitProcess(list<Process>& procs, ZM_Aux::QueueThrSave<mess2schedr>& messFo
   }  
   // check max run time
   for(auto& p : procs){
-    if (p.checkMaxRunTime()){
+    if (p.checkMaxRunTime() && ((p.getTask().state == ZM_Base::stateType::start) || 
+                                (p.getTask().state == ZM_Base::stateType::running))){
       p.stop();
     }
   }

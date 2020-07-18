@@ -1275,9 +1275,9 @@ bool DbPGProvider::taskState(const std::vector<uint64_t>& tId, std::vector<ZM_DB
     return false;
   }
   outState.resize(tsz);
-  for (auto& s : outState){
-    s.state = (ZM_Base::stateType)atoi(PQgetvalue(res, 0, 1));
-    s.progress = atoi(PQgetvalue(res, 0, 2));
+  for (size_t i = 0; i < tsz; ++i){
+    outState[i].state = (ZM_Base::stateType)atoi(PQgetvalue(res, i, 1));
+    outState[i].progress = atoi(PQgetvalue(res, i, 2));
   }
   PQclear(res); 
   return true;

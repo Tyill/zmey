@@ -2,9 +2,9 @@
 import os
 import sys
 import time
-sys.path.append(os.path.expanduser("~") + '/cpp/zmey/python/')
 import subprocess
 import psycopg2
+sys.path.append(os.path.expanduser("~") + '/cpp/zmey/python/')
 import zmClient as zm
 
 #### 10 schedr, 100 workers, 10000 tasks on one machine
@@ -30,7 +30,7 @@ with psycopg2.connect(dbname='zmeyDb', user='alm', password='123', host='localho
 
 zo = zm.ZMObj(zm.dbType.PostgreSQL, "host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10")
 
-#zo.setErrorCBack(lambda err: print(err))
+zo.setErrorCBack(lambda err: print(err))
 
 zo.createTables()
 
@@ -51,7 +51,7 @@ if (not zo.addPipeline(ppl)):
 
 # add and start schedulers and workers
 print('Add and start schedulers and workers')  
-sCnt = 1
+sCnt = 5
 wCnt = 10
 schPrc = wkrPrc = []
 for i in range(sCnt):
@@ -65,19 +65,19 @@ for i in range(sCnt):
                                   '-cp=localhost:' + str(4440 + i),
                                   "-dbtp=PostgreSQL",
                                   "-dbcs=host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10"]))
+  time.sleep(3)
   for j in range(wCnt):
     wkrPrc.append(subprocess.Popen([os.path.expanduser("~") + '/cpp/zmey/build/Release/zmWorker',
                                     '-scp=localhost:' + str(4440 + i),
                                     '-cp=localhost:' + str(4450 + i * 10 + j)]))
-# wait until is running
-time.sleep(5)
-
 # pause schedrs
 allSch = zo.getAllSchedulers()
 for i in range(len(allSch)):
   zo.pauseScheduler(allSch[i].id)
 
-# add and start 10000 tasks
+time.sleep(3)
+
+# add and start tasks
 taskCnt = 1000
 print('Add and start', taskCnt, 'tasks')  
 tasks = []
@@ -96,16 +96,14 @@ for i in range(len(allSch)):
 print('Wait until the task is completed')  
 complCnt = 0
 tstart = time.time()
-while complCnt != taskCnt:
+while complCnt != taskCnt:  
   zo.taskState(tasks)
   complCnt = 0
   for i in range(taskCnt):
     if (tasks[i].state == zm.stateType.completed):
       complCnt += 1
     
-print('Time to complete all tasks: ', time.time() - tstart)  
-
-time.sleep(45)
+print('Time to complete all tasks: ', time.time() - tstart)
 
 # stop all schedr and workers
 for i in range(len(schPrc)):

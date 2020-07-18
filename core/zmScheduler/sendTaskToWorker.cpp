@@ -75,7 +75,8 @@ void sendTaskToWorker(const ZM_Base::scheduler& schedr,
         make_pair("script",          t.base.script),
         make_pair("averDurationSec", to_string(t.base.averDurationSec)), 
         make_pair("maxDurationSec",  to_string(t.base.maxDurationSec))
-      };
+      };      
+      ++(*iWr)->base.activeTask;
       ZM_Tcp::sendData((*iWr)->base.connectPnt, ZM_Aux::serialn(data));
       ctickTW.reset();
     }

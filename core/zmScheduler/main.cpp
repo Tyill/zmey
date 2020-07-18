@@ -159,8 +159,7 @@ int main(int argc, char* argv[]){
   auto dbNewTask = createDbProvider(cng, err);
   auto dbSendMess = dbNewTask ? createDbProvider(cng, err) : nullptr;
   CHECK(!dbNewTask || !dbSendMess, "DB connect error " + err + ": " + cng.dbType + " " + cng.dbConnCng.connectStr); 
-  statusMess("DB connect success: " + cng.dbType + " " + cng.dbConnCng.connectStr);
-  
+    
   // schedr from DB
   dbNewTask->getSchedr(cng.connectPnt, _schedr);
   CHECK(_schedr.id == 0, "Schedr not found in DB for connectPnt " + cng.connectPnt);
@@ -173,7 +172,7 @@ int main(int argc, char* argv[]){
   ZM_Tcp::setReceiveCBack(receiveHandler);
   ZM_Tcp::setStsSendCBack(sendHandler);
   CHECK(!ZM_Tcp::startServer(cng.connectPnt, err), "Tcp server error: " + cng.connectPnt + " " + err);
-  statusMess("Tcp server running: " + cng.connectPnt);
+  statusMess("Schedr running: " + cng.connectPnt);
   
   ///////////////////////////////////////////////////////
 
