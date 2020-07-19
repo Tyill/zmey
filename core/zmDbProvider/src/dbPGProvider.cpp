@@ -416,9 +416,12 @@ bool DbPGProvider::createTables(){
         "    JOIN tblTaskQueue tq ON tq.task = tt.id "
         "    JOIN tblTaskState ts ON ts.qtask = tq.id "
         "    JOIN tblTaskParam tp ON tp.qtask = tq.id "
+        "    JOIN tblTaskTime tm ON tm.qtask = tq.id "
         "    JOIN tblPrevTask pt ON pt.qtask = tq.id "
-        "    WHERE ts.state = " << int(ZM_Base::stateType::ready) << " ORDER BY tp.priority LIMIT maxTaskCnt "
-        "    FOR UPDATE OF tq SKIP LOCKED"
+        "    WHERE ts.state = " << int(ZM_Base::stateType::ready) << ""
+        "      AND tq.schedr IS NULL AND tm.takeInWorkTime IS NULL "
+        "    ORDER BY tp.priority LIMIT maxTaskCnt "
+        "    FOR UPDATE OF ts, tq, tm SKIP LOCKED"
         "  LOOP"
         "    FOREACH t IN ARRAY prevTasks"
         "      LOOP"
@@ -432,11 +435,10 @@ bool DbPGProvider::createTables(){
         "    UPDATE tblTaskQueue SET"
         "      schedr = sId"
         "    WHERE id = qid AND schedr IS NULL;"
-        "    CONTINUE mBegin WHEN NOT FOUND;"
         
         "    UPDATE tblTaskState SET"
         "      state = " << int(ZM_Base::stateType::start) << ""
-        "    WHERE qtask = qid;"
+        "    WHERE qtask = qid AND state = " << int(ZM_Base::stateType::ready) << ";"
         
         "    UPDATE tblTaskTime SET"
         "      createTime = current_timestamp"
@@ -444,7 +446,7 @@ bool DbPGProvider::createTables(){
 
         "    UPDATE tblTaskTime SET"
         "      takeInWorkTime = current_timestamp"
-        "    WHERE qtask = qid;"        
+        "    WHERE qtask = qid AND takeInWorkTime IS NULL;"       
         
         "    RETURN NEXT;"
         "  END LOOP;"
@@ -1502,7 +1504,8 @@ bool DbPGProvider::getWorkersOfSchedr(uint64_t sId, std::vector<ZM_Base::worker>
 bool DbPGProvider::getNewTasksForSchedr(uint64_t sId, int maxTaskCnt, std::vector<ZM_DB::schedrTask>& out){
   lock_guard<mutex> lk(_mtx);  
   stringstream ss;
-  ss << "SELECT * FROM funcNewTasksForSchedr(" << sId << "," << maxTaskCnt << ");";
+  ss << "SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;" 
+        "SELECT * FROM funcNewTasksForSchedr(" << sId << "," << maxTaskCnt << ");";
 
   auto res = PQexec(_pg, ss.str().c_str());
   if (PQresultStatus(res) != PGRES_TUPLES_OK){

@@ -7,7 +7,7 @@ import psycopg2
 sys.path.append(os.path.expanduser("~") + '/cpp/zmey/python/')
 import zmClient as zm
 
-#### 3 schedr, 3 * 100 workers, 3000 tasks on one machine
+#### 3 schedr, 3 * 30 workers, 3000 tasks on one machine
 
 # del all tables
 with psycopg2.connect(dbname='zmeyDb', user='alm', password='123', host='localhost') as pg:
@@ -53,7 +53,7 @@ if (not zo.addPipeline(ppl)):
 # add and start schedulers and workers
 print('Add and start schedulers and workers')  
 sCnt = 3
-wCnt = 100
+wCnt = 30
 wCapty = 10
 schPrc = wkrPrc = []
 for i in range(sCnt):
