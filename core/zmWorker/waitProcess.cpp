@@ -40,7 +40,7 @@ using namespace std;
 
 extern ZM_Aux::QueueThrSave<string> _errMess;
 
-void waitProcess(list<Process>& procs, ZM_Aux::QueueThrSave<mess2schedr>& messForSchedr){
+void waitProcess(ZM_Base::worker& worker, list<Process>& procs, ZM_Aux::QueueThrSave<mess2schedr>& messForSchedr){
   
 #define ERROR_MESS(mstr) \
   statusMess(mstr);      \
@@ -95,6 +95,7 @@ void waitProcess(list<Process>& procs, ZM_Aux::QueueThrSave<mess2schedr>& messFo
         st = ZM_Base::stateType::error;
       }
       itPrc->setTaskState(st);
+      --worker.activeTask;
       messForSchedr.push(mess2schedr{itPrc->getTask().base.id,
                                       mt,
                                       result});

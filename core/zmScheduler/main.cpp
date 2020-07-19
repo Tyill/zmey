@@ -34,7 +34,6 @@
 #include "zmCommon/queue.h"
 #include "zmCommon/auxFunc.h"
 #include "zmDbProvider/dbProvider.h"
-#include "zmCommon/logger.h"
 #include "structurs.h"
 
 using namespace std;
@@ -51,13 +50,11 @@ void getPrevWorkersFromDB(ZM_DB::DbProvider& db, ZM_Base::scheduler&, map<std::s
 map<std::string, sWorker> _workers;   // key - connectPnt
 ZM_Aux::QueueThrSave<sTask> _tasks;
 ZM_Aux::QueueThrSave<ZM_DB::messSchedr> _messToDB;
-unique_ptr<ZM_Aux::Logger> _pLog = nullptr;
 ZM_Base::scheduler _schedr;
 mutex _mtxSts;
 bool _fClose = false;
 
 struct config{
-  bool logEna = false;
   int capacityTask = 10000;
   int sendAllMessTOutMS = 500;
   int checkWorkerTOutSec = 120; 
@@ -69,9 +66,6 @@ struct config{
 void statusMess(const string& mess){
   lock_guard<std::mutex> lock(_mtxSts);
   cout << ZM_Aux::currDateTimeMs() << " " << mess << std::endl;
-  if (_pLog){
-    _pLog->writeMess(mess);
-  }
 }
 
 void parseArgs(int argc, char* argv[], config& outCng){ 
@@ -88,9 +82,6 @@ void parseArgs(int argc, char* argv[], config& outCng){
     }else{
       sprms[ZM_Aux::trim(arg)] = "";
     }
-  }
-  if (sprms.find("log") != sprms.end()){
-    outCng.logEna = true;
   }
 #define SET_PARAM(nm, prm) \
   if (sprms.find(#nm) != sprms.end()){ \
@@ -139,12 +130,7 @@ int main(int argc, char* argv[]){
 
   config cng;
   parseArgs(argc, argv, cng);
-
-  if (cng.logEna){
-    _pLog = unique_ptr<ZM_Aux::Logger>(
-      new ZM_Aux::Logger("zmSchedr" + to_string(getpid()) + ".log", "")
-    );
-  }
+  
   CHECK(cng.connectPnt.empty(), "Not set param '-cp' - scheduler connection point: IP or DNS:port");
   CHECK(cng.dbConnCng.selType == ZM_DB::dbType::undefined, "Check param '-dbtp', such db type is not defined");
   CHECK(cng.dbConnCng.connectStr.empty(), "Not set param '-dbcs' - db connection string");
@@ -207,6 +193,10 @@ int main(int argc, char* argv[]){
     if(timer.onDelaySec(true, cng.checkWorkerTOutSec, 1)){
       timer.onDelaySec(false, cng.checkWorkerTOutSec, 1);    
       checkStatusWorkers(_schedr, _workers, _messToDB);
+    }
+    if(timer.onDelaySec(true, 10, 2)){
+      timer.onDelaySec(false, 10, 2);    
+      statusMess("schedr is run, cp " + _schedr.connectPnt);
     }
     // added delay
     if (timer.getDeltaTimeMS() < minCycleTimeMS){

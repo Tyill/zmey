@@ -64,7 +64,7 @@ void sendTaskToWorker(const ZM_Base::scheduler& schedr,
     auto iWr = find_if(refWorkers.begin(), refWorkers.end(),
       [](const sWorker* w){
         return (w->base.state == ZM_Base::stateType::running) && 
-               (w->base.activeTask < w->base.capacityTask);
+               (w->base.activeTask <= w->base.capacityTask);
       }); 
     if(iWr != refWorkers.end()){
       map<string, string> data{

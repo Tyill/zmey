@@ -7,7 +7,7 @@ import psycopg2
 sys.path.append(os.path.expanduser("~") + '/cpp/zmey/python/')
 import zmClient as zm
 
-#### 10 schedr, 100 workers, 10000 tasks on one machine
+#### 1 schedr, 100 workers, 1000 tasks on one machine
 
 # del all tables
 with psycopg2.connect(dbname='zmeyDb', user='alm', password='123', host='localhost') as pg:
@@ -25,7 +25,8 @@ with psycopg2.connect(dbname='zmeyDb', user='alm', password='123', host='localho
               "drop table if exists tblPrevTask cascade;" +
               "drop table if exists tblTaskParam cascade;" +
               "drop table if exists tblTaskQueue cascade;" + 
-              "drop table if exists tblInternError cascade;")
+              "drop table if exists tblInternError cascade;" + 
+              "drop table if exists tblConnectPnt cascade;")
   csr.close()
 
 zo = zm.ZMObj(zm.dbType.PostgreSQL, "host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10")
@@ -40,7 +41,7 @@ if (not zo.addUser(usr)):
   exit(-1)
   
 # add taskTemplate
-tt = zm.taskTemplate(name='tt', uId=usr.id, maxDurationSec = 100, script="#! /bin/sh \n sleep 1")
+tt = zm.taskTemplate(name='tt', uId=usr.id, maxDurationSec = 10, script="#! /bin/sh \n sleep 1")
 if (not zo.addTaskTemplate(tt)):
   exit(-1)
   
@@ -51,15 +52,16 @@ if (not zo.addPipeline(ppl)):
 
 # add and start schedulers and workers
 print('Add and start schedulers and workers')  
-sCnt = 5
-wCnt = 10
+sCnt = 1
+wCnt = 100
+wCapty = 10
 schPrc = wkrPrc = []
 for i in range(sCnt):
-  sch = zm.schedr(connectPnt='localhost:' + str(4440 + i), capacityTask=100)
+  sch = zm.schedr(connectPnt='localhost:' + str(4440 + i), capacityTask=wCnt * wCapty)
   if (not zo.addScheduler(sch)):
     exit(-1)
   for j in range(wCnt):
-    if (not zo.addWorker(zm.worker(sId=sch.id, connectPnt='localhost:' + str(4450 + i * 10 + j), capacityTask=10))):
+    if (not zo.addWorker(zm.worker(sId=sch.id, connectPnt='localhost:' + str(4450 + i * wCnt + j), capacityTask=wCapty))):
       exit(-1)
   schPrc.append(subprocess.Popen([os.path.expanduser("~") + '/cpp/zmey/build/Release/zmScheduler',
                                   '-cp=localhost:' + str(4440 + i),
@@ -69,7 +71,7 @@ for i in range(sCnt):
   for j in range(wCnt):
     wkrPrc.append(subprocess.Popen([os.path.expanduser("~") + '/cpp/zmey/build/Release/zmWorker',
                                     '-scp=localhost:' + str(4440 + i),
-                                    '-cp=localhost:' + str(4450 + i * 10 + j)]))
+                                    '-cp=localhost:' + str(4450 + i * wCnt + j)]))
 # pause schedrs
 allSch = zo.getAllSchedulers()
 for i in range(len(allSch)):
@@ -100,7 +102,8 @@ while complCnt != taskCnt:
   zo.taskState(tasks)
   complCnt = 0
   for i in range(taskCnt):
-    if (tasks[i].state == zm.stateType.completed):
+    if ((tasks[i].state == zm.stateType.completed) or 
+        (tasks[i].state == zm.stateType.error)):
       complCnt += 1
     
 print('Time to complete all tasks: ', time.time() - tstart)

@@ -26,10 +26,12 @@
 #include <system_error>
 #include "zmCommon/queue.h" 
 #include "zmCommon/serial.h"
+#include "zmCommon/auxFunc.h"
 #include "structurs.h"
 
 using namespace std;
 
+ZM_Aux::CounterTick ctickSH;
 extern bool _isSendAck;
 extern ZM_Aux::QueueThrSave<mess2schedr> _messForSchedr;
 
@@ -38,7 +40,10 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
     mess2schedr mess;
     _messForSchedr.tryPop(mess);
     _isSendAck = true;    
+    ctickSH.reset();
   }else{
-    statusMess("worker::sendHandler error send to schedr, cp " + cp);
+    if (ctickSH(100)){
+      statusMess("worker::sendHandler error send to schedr, cp " + cp);
+    }
   }
 }

@@ -31,7 +31,6 @@
 #include "zmCommon/tcp.h"
 #include "zmCommon/timerDelay.h"
 #include "zmCommon/auxFunc.h"
-#include "zmCommon/logger.h"
 #include "zmCommon/queue.h"
 #include "zmCommon/serial.h"
 #include "structurs.h"
@@ -46,9 +45,8 @@ void progressToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt, 
 void pingToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt);
 void errorToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt, ZM_Aux::QueueThrSave<string>& );
 void updateListTasks(ZM_Base::worker& iow, ZM_Aux::QueueThrSave<wTask>& newTasks, list<Process>& procs);
-void waitProcess(list<Process>& procs, ZM_Aux::QueueThrSave<mess2schedr>& messForSchedr);
+void waitProcess(ZM_Base::worker&, list<Process>& procs, ZM_Aux::QueueThrSave<mess2schedr>& messForSchedr);
 
-unique_ptr<ZM_Aux::Logger> _pLog = nullptr;
 ZM_Aux::QueueThrSave<mess2schedr> _messForSchedr;
 ZM_Aux::QueueThrSave<wTask> _newTasks;
 ZM_Aux::QueueThrSave<string> _errMess;
@@ -57,7 +55,6 @@ mutex _mtxPrc, _mtxSts;
 bool _isSendAck = true;
 
 struct config{
-  bool logEna = false;
   int progressTasksTOutSec = 30;
   int pingSchedrTOutSec = 20; 
   const int sendAckTOutSec = 1; 
@@ -68,9 +65,6 @@ struct config{
 void statusMess(const string& mess){
   lock_guard<std::mutex> lock(_mtxSts);
   cout << ZM_Aux::currDateTimeMs() << " " << mess << std::endl;
-  if (_pLog){
-    _pLog->writeMess(mess);
-  }
 }
 
 void parseArgs(int argc, char* argv[], config& outCng){
@@ -89,9 +83,6 @@ void parseArgs(int argc, char* argv[], config& outCng){
       sprms[ZM_Aux::trim(arg)] = "";
     }
   }
-  if (sprms.find("log") != sprms.end()){
-    outCng.logEna = true;
-  }  
 #define SET_PARAM(nm, prm) \
   if (sprms.find(#nm) != sprms.end()){ \
     outCng.prm = sprms[#nm]; \
@@ -120,11 +111,7 @@ int main(int argc, char* argv[]){
 
   config cng;
   parseArgs(argc, argv, cng); 
-  if (cng.logEna){
-    _pLog = unique_ptr<ZM_Aux::Logger>(
-      new ZM_Aux::Logger("zmWorker" + to_string(getpid()) + ".log", "")
-    );
-  } 
+
   CHECK(cng.connectPnt.empty(), "Not set param '-cp' - worker connection point: IP or DNS:port");
   CHECK(cng.schedrConnPnt.empty(), "Not set param '-scp' - scheduler connection point: IP or DNS:port");
     
@@ -172,7 +159,7 @@ int main(int argc, char* argv[]){
       pingToSchedr(worker, cng.schedrConnPnt);
     }
     // check child process
-    waitProcess(_procs, _messForSchedr);
+    waitProcess(worker, _procs, _messForSchedr);
     
     // errors
     if (!_errMess.empty()){ 

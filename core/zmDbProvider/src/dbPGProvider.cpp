@@ -156,7 +156,7 @@ bool DbPGProvider::createTables(){
   ss << "CREATE TABLE IF NOT EXISTS tblTaskTime("
         "qtask          INT PRIMARY KEY REFERENCES tblTaskQueue,"        
         "createTime     TIMESTAMP NOT NULL DEFAULT current_timestamp,"
-        "takeInWorkTime TIMESTAMP,"
+        "takeInWorkTime TIMESTAMP CHECK (takeInWorkTime >= createTime),"
         "startTime      TIMESTAMP CHECK (startTime >= takeInWorkTime),"
         "stopTime       TIMESTAMP CHECK (stopTime >= startTime));";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
@@ -438,6 +438,10 @@ bool DbPGProvider::createTables(){
         "      state = " << int(ZM_Base::stateType::start) << ""
         "    WHERE qtask = qid;"
         
+        "    UPDATE tblTaskTime SET"
+        "      createTime = current_timestamp"
+        "    WHERE qtask = qid AND createTime > current_timestamp;"  
+
         "    UPDATE tblTaskTime SET"
         "      takeInWorkTime = current_timestamp"
         "    WHERE qtask = qid;"        
