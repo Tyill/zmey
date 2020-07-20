@@ -41,7 +41,7 @@ using namespace std;
 void receiveHandler(const string& cp, const string& data);
 void sendHandler(const string& cp, const string& data, const std::error_code& ec);
 void getNewTaskFromDB(ZM_DB::DbProvider& db);
-void sendTaskToWorker(const ZM_Base::scheduler&, map<std::string, sWorker>&, ZM_Aux::QueueThrSave<sTask>&, ZM_Aux::QueueThrSave<ZM_DB::messSchedr>& messToDB);
+void sendTaskToWorker(const ZM_Base::scheduler&, const map<std::string, sWorker>&, ZM_Aux::QueueThrSave<sTask>&, ZM_Aux::QueueThrSave<ZM_DB::messSchedr>& messToDB);
 void sendAllMessToDB(ZM_DB::DbProvider& db);
 void checkStatusWorkers(const ZM_Base::scheduler&, map<std::string, sWorker>&, ZM_Aux::QueueThrSave<ZM_DB::messSchedr>&);
 void getPrevTaskFromDB(ZM_DB::DbProvider& db, ZM_Base::scheduler&,  ZM_Aux::QueueThrSave<sTask>&);
@@ -144,7 +144,7 @@ int main(int argc, char* argv[]){
   string err;
   auto dbNewTask = createDbProvider(cng, err);
   auto dbSendMess = dbNewTask ? createDbProvider(cng, err) : nullptr;
-  CHECK(!dbNewTask || !dbSendMess, "DB connect error " + err + ": " + cng.dbType + " " + cng.dbConnCng.connectStr); 
+  CHECK(!dbNewTask || !dbSendMess, "Schedr DB connect error " + err + ": " + cng.dbType + " " + cng.dbConnCng.connectStr); 
     
   // schedr from DB
   dbNewTask->getSchedr(cng.connectPnt, _schedr);
@@ -157,7 +157,7 @@ int main(int argc, char* argv[]){
   // TCP server
   ZM_Tcp::setReceiveCBack(receiveHandler);
   ZM_Tcp::setStsSendCBack(sendHandler);
-  CHECK(!ZM_Tcp::startServer(cng.connectPnt, err), "Tcp server error: " + cng.connectPnt + " " + err);
+  CHECK(!ZM_Tcp::startServer(cng.connectPnt, err), "Schedr error: " + cng.connectPnt + " " + err);
   statusMess("Schedr running: " + cng.connectPnt);
   
   ///////////////////////////////////////////////////////

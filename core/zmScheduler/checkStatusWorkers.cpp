@@ -34,21 +34,21 @@ using namespace std;
 void checkStatusWorkers(const ZM_Base::scheduler& schedr,
                         map<std::string, sWorker>& workers,
                         ZM_Aux::QueueThrSave<ZM_DB::messSchedr>& messToDB){
-  vector<sWorker*> wkrNotResp; 
+  vector<sWorker> wkrNotResp; 
   for(auto& w : workers){
     if (!w.second.isActive){            
-      wkrNotResp.push_back(&w.second);
+      wkrNotResp.push_back(w.second);
     }else{
       w.second.isActive = false;
     }
   }
   if (wkrNotResp.size() < workers.size()){ 
-    for(auto w : wkrNotResp){
-      if (w->base.state != ZM_Base::stateType::notResponding){
+    for(auto& w : wkrNotResp){
+      if (w.base.state != ZM_Base::stateType::notResponding){
         messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::workerNotResponding,
-                                        w->base.id});
-        w->stateMem = w->base.state;
-        w->base.state = ZM_Base::stateType::notResponding;
+                                        w.base.id});
+        workers[w.base.connectPnt].stateMem = w.base.state;
+        workers[w.base.connectPnt].base.state = ZM_Base::stateType::notResponding;
       } 
     }
   }else{

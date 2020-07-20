@@ -63,11 +63,11 @@ for i in range(sCnt):
   for j in range(wCnt):
     if (not zo.addWorker(zm.worker(sId=sch.id, connectPnt='localhost:' + str(4450 + i * wCnt + j), capacityTask=wCapty))):
       exit(-1)
-  # schPrc.append(subprocess.Popen([os.path.expanduser("~") + '/cpp/zmey/build/Release/zmScheduler',
-  #                                 '-cp=localhost:' + str(4440 + i),
-  #                                 "-dbtp=PostgreSQL",
-  #                                 "-dbcs=host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10"]))
-  # time.sleep(3)
+  schPrc.append(subprocess.Popen([os.path.expanduser("~") + '/cpp/zmey/build/Release/zmScheduler',
+                                  '-cp=localhost:' + str(4440 + i),
+                                  "-dbtp=PostgreSQL",
+                                  "-dbcs=host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10"]))
+  time.sleep(3)
   for j in range(wCnt):
     wkrPrc.append(subprocess.Popen([os.path.expanduser("~") + '/cpp/zmey/build/Release/zmWorker',
                                     '-scp=localhost:' + str(4440 + i),
