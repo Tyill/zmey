@@ -37,7 +37,58 @@
             "request": "launch",
             "program": "${workspaceFolder}/build/${defaultBuildTask}/zmScheduler",
             "args": [
-                "-cp=localhost:4444",
+                "-cp=localhost:4440",
+                "-ctk=300",
+                "-dbtp=PostgreSQL",
+                "-dbcs=host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "${defaultBuildTask}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Включить автоматическое форматирование для gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "zmScheduler1",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/${defaultBuildTask}/zmScheduler",
+            "args": [
+                "-cp=localhost:4441",
+                "-ctk=300",
+                "-dbtp=PostgreSQL",
+                "-dbcs=host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "${defaultBuildTask}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Включить автоматическое форматирование для gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "zmScheduler2",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/${defaultBuildTask}/zmScheduler",
+            "args": [
+                "-cp=localhost:4442",
+                "-ctk=300",
                 "-dbtp=PostgreSQL",
                 "-dbcs=host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10"
             ],

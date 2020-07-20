@@ -421,7 +421,7 @@ bool DbPGProvider::createTables(){
         "    WHERE ts.state = " << int(ZM_Base::stateType::ready) << ""
         "      AND tq.schedr IS NULL AND tm.takeInWorkTime IS NULL "
         "    ORDER BY tp.priority LIMIT maxTaskCnt "
-        "    FOR UPDATE OF ts, tq, tm SKIP LOCKED"
+        "    FOR UPDATE OF tq SKIP LOCKED"
         "  LOOP"
         "    FOREACH t IN ARRAY prevTasks"
         "      LOOP"
@@ -434,11 +434,11 @@ bool DbPGProvider::createTables(){
         
         "    UPDATE tblTaskQueue SET"
         "      schedr = sId"
-        "    WHERE id = qid AND schedr IS NULL;"
+        "    WHERE id = qid;"
         
         "    UPDATE tblTaskState SET"
         "      state = " << int(ZM_Base::stateType::start) << ""
-        "    WHERE qtask = qid AND state = " << int(ZM_Base::stateType::ready) << ";"
+        "    WHERE qtask = qid;"
         
         "    UPDATE tblTaskTime SET"
         "      createTime = current_timestamp"
@@ -446,7 +446,7 @@ bool DbPGProvider::createTables(){
 
         "    UPDATE tblTaskTime SET"
         "      takeInWorkTime = current_timestamp"
-        "    WHERE qtask = qid AND takeInWorkTime IS NULL;"       
+        "    WHERE qtask = qid;"       
         
         "    RETURN NEXT;"
         "  END LOOP;"
@@ -1504,8 +1504,7 @@ bool DbPGProvider::getWorkersOfSchedr(uint64_t sId, std::vector<ZM_Base::worker>
 bool DbPGProvider::getNewTasksForSchedr(uint64_t sId, int maxTaskCnt, std::vector<ZM_DB::schedrTask>& out){
   lock_guard<mutex> lk(_mtx);  
   stringstream ss;
-  ss << "SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;" 
-        "SELECT * FROM funcNewTasksForSchedr(" << sId << "," << maxTaskCnt << ");";
+  ss << "SELECT * FROM funcNewTasksForSchedr(" << sId << "," << maxTaskCnt << ");";
 
   auto res = PQexec(_pg, ss.str().c_str());
   if (PQresultStatus(res) != PGRES_TUPLES_OK){
