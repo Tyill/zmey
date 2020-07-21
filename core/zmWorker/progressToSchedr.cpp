@@ -25,6 +25,7 @@
 #include <map>
 #include <list>
 #include <string>
+#include <mutex>
 #include "zmBase/structurs.h"
 #include "zmCommon/tcp.h"
 #include "zmCommon/serial.h"
@@ -32,8 +33,11 @@
 
 using namespace std;
 
+extern mutex _mtxPrc;
+
 void progressToSchedr(const ZM_Base::worker& worker, const std::string& schedrConnPnt, list<Process>& procs){
-  
+  std::lock_guard<std::mutex> lock(_mtxPrc);
+
   map<string, string> data{
     make_pair("command", to_string((int)ZM_Base::messType::progress)),
     make_pair("connectPnt", worker.connectPnt),

@@ -23,7 +23,7 @@
 // THE SOFTWARE.
 //
 #include <string>
-#include <system_error>
+#include <atomic>
 #include "zmCommon/queue.h" 
 #include "zmCommon/serial.h"
 #include "zmCommon/auxFunc.h"
@@ -32,24 +32,19 @@
 using namespace std;
 
 ZM_Aux::CounterTick ctickSH;
-extern bool _isSendAck;
+extern atomic_bool _isSendAck;
 extern ZM_Aux::QueueThrSave<mess2schedr> _messForSchedr;
 
 void sendHandler(const string& cp, const string& data, const std::error_code& ec){
-  if (!ec){
-   
+  if (!ec){   
     auto smess = ZM_Aux::deserialn(data);
-
-    mess2schedr mess;// = _messForSchedr.front();    
-    _messForSchedr.tryPop(mess);    
-    _isSendAck = true;
-
-    statusMess("worker error deser mtype " + smess["command"] + " qtask " + smess["taskId"] + 
-               " mess mtype " + to_string(int(mess.messType)) + " qtask " + to_string(int(mess.taskId)) + " workerCP " + smess["connectPnt"]);
-
-    // if ((int(mess.messType) == stoi(smess["command"])) && (mess.taskId == stoull(smess["taskId"]))){ 
-      
-    // }    
+    mess2schedr mess = _messForSchedr.front();
+                    
+    if (!smess.empty() && (stoi(smess["command"]) == int(mess.messType)) &&
+        (stoull(smess["taskId"]) == mess.taskId)){ 
+      _messForSchedr.tryPop(mess);    
+      _isSendAck = true;
+    }
     ctickSH.reset();
   }else{
     if (ctickSH(100)){

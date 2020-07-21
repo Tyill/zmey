@@ -28,6 +28,7 @@
 #include <iostream>
 #include <list>
 #include <mutex> 
+#include <atomic>
 #include "zmCommon/tcp.h"
 #include "zmCommon/timerDelay.h"
 #include "zmCommon/auxFunc.h"
@@ -52,7 +53,7 @@ ZM_Aux::QueueThrSave<wTask> _newTasks;
 ZM_Aux::QueueThrSave<string> _errMess;
 list<Process> _procs;
 mutex _mtxPrc, _mtxSts;
-bool _isSendAck = true;
+atomic_bool _isSendAck(true);
 
 struct config{
   int progressTasksTOutSec = 30;

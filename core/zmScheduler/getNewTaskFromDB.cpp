@@ -22,6 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+#include <mutex>
 #include "zmDbProvider/dbProvider.h"
 #include "zmCommon/queue.h"
 #include "zmCommon/auxFunc.h"
@@ -29,17 +30,20 @@
 
 using namespace std;
 
+extern mutex _mtxWkr;
 ZM_Aux::CounterTick ctickNT;
 extern ZM_Base::scheduler _schedr;
 extern ZM_Aux::QueueThrSave<sTask> _tasks;
-extern map<std::string, sWorker> _workers;
+extern map<std::string, sWorker*> _workers;
 
 void getNewTaskFromDB(ZM_DB::DbProvider& db){
   
   int actSz = 0,
       capSz = _schedr.capacityTask;
-  for (auto& w : _workers){
-    actSz += w.second.base.activeTask;
+  {lock_guard<std::mutex> lock(_mtxWkr);
+    for (auto& w : _workers){
+      actSz += w.second->base.activeTask;
+    }
   }
   actSz += _tasks.size();
   vector<ZM_DB::schedrTask> newTasks;

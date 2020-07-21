@@ -23,6 +23,7 @@
 // THE SOFTWARE.
 //
 #include <map>
+#include <mutex>
 #include "zmDbProvider/dbProvider.h"
 #include "zmCommon/queue.h"
 #include "zmCommon/tcp.h"
@@ -31,24 +32,30 @@
 
 using namespace std;
 
+extern mutex _mtxWkr;
+
 void checkStatusWorkers(const ZM_Base::scheduler& schedr,
-                        map<std::string, sWorker>& workers,
+                        map<std::string, sWorker*>& workers,
                         ZM_Aux::QueueThrSave<ZM_DB::messSchedr>& messToDB){
-  vector<sWorker> wkrNotResp; 
-  for(auto& w : workers){
-    if (!w.second.isActive){            
-      wkrNotResp.push_back(w.second);
-    }else{
-      w.second.isActive = false;
+  vector<sWorker*> wkrNotResp; 
+  size_t wsz = 0;
+  {lock_guard<std::mutex> lock(_mtxWkr);
+    for(auto& w : workers){
+      if (!w.second->isActive){            
+        wkrNotResp.push_back(w.second);
+      }else{
+        w.second->isActive = false;
+      }
     }
+    wsz = workers.size();
   }
-  if (wkrNotResp.size() < workers.size()){ 
-    for(auto& w : wkrNotResp){
-      if (w.base.state != ZM_Base::stateType::notResponding){
+  if (wkrNotResp.size() < wsz){ 
+    for(auto w : wkrNotResp){
+      if (w->base.state != ZM_Base::stateType::notResponding){
         messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::workerNotResponding,
-                                        w.base.id});
-        workers[w.base.connectPnt].stateMem = w.base.state;
-        workers[w.base.connectPnt].base.state = ZM_Base::stateType::notResponding;
+                                        w->base.id});
+        w->stateMem = w->base.state;
+        w->base.state = ZM_Base::stateType::notResponding;
       } 
     }
   }else{

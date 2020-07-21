@@ -31,6 +31,7 @@
 #include <cstring>
 #include <list>
 #include <algorithm>
+#include <mutex>
 
 #include "zmCommon/auxFunc.h"
 #include "zmCommon/queue.h"
@@ -39,8 +40,10 @@
 using namespace std;
 
 extern ZM_Aux::QueueThrSave<string> _errMess;
+extern mutex _mtxPrc;
 
 void waitProcess(ZM_Base::worker& worker, list<Process>& procs, ZM_Aux::QueueThrSave<mess2schedr>& messForSchedr){
+  std::lock_guard<std::mutex> lock(_mtxPrc);
   
 #define ERROR_MESS(mstr) \
   statusMess(mstr);      \

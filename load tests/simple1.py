@@ -53,8 +53,8 @@ if (not zo.addPipeline(ppl)):
 # add and start schedulers and workers
 print('Add and start schedulers and workers')  
 sCnt = 1
-wCnt = 100
-wCapty = 10
+wCnt = 150
+wCapty = 5
 schPrc = wkrPrc = []
 for i in range(sCnt):
   sch = zm.schedr(connectPnt='localhost:' + str(4440 + i), capacityTask=wCnt * wCapty)
