@@ -89,6 +89,8 @@ void receiveHandler(const string& remcp, const string& data){
         checkFieldNum(taskId);
         checkFieldNum(activeTask);
         checkField(taskResult);
+        statusMess("schedr mtype " + to_string((int)mtype) + " qtask " + mess["taskId"] + " workerId " + to_string(wId) + " workerCP " + worker.base.connectPnt);
+    
         worker.base.activeTask = stoi(mess["activeTask"]);
         _messToDB.push(ZM_DB::messSchedr{mtype, 
                                          wId,

@@ -35,7 +35,7 @@ using namespace std;
 
 ZM_Aux::CounterTick ctickTW;
 vector<ZM_Base::worker*> refWorkers;
-map<std::string, ZM_Base::worker> workersCopy;
+map<std::string, ZM_Base::worker> workersCopy; // a copy is needed for unhindered access from another thread
 
 void sendTaskToWorker(const ZM_Base::scheduler& schedr,
                       const map<std::string, sWorker>& workers,
@@ -59,14 +59,13 @@ void sendTaskToWorker(const ZM_Base::scheduler& schedr,
     for (auto& w : workersCopy){
       refWorkers.push_back(&w.second);
     }
-  }else{
-    auto iw = workers.begin();
-    auto iwcp = workersCopy.begin();
-    for (; iw != workers.end(); ++iw, ++iwcp){
-      iwcp->second.activeTask = iw->second.base.activeTask;
-      iwcp->second.rating = iw->second.base.rating;
-      iwcp->second.state = iw->second.base.state;
-    }
+  }
+  auto iw = workers.begin();
+  auto iwcp = workersCopy.begin();
+  for (; iw != workers.end(); ++iw, ++iwcp){
+    iwcp->second.activeTask = iw->second.base.activeTask;
+    iwcp->second.rating = iw->second.base.rating;
+    iwcp->second.state = iw->second.base.state;
   }
   sTask t;
   while (tasks.tryPop(t)){

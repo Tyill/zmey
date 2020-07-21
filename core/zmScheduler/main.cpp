@@ -194,6 +194,10 @@ int main(int argc, char* argv[]){
       timer.onDelaySec(false, cng.checkWorkerTOutSec, 1);    
       checkStatusWorkers(_schedr, _workers, _messToDB);
     }
+    if(timer.onDelaySec(true, 10, 2)){ 
+      timer.onDelaySec(false, 10, 2);    
+     // statusMess("Schedr is run, cp " + _schedr.connectPnt);
+    }
     // added delay
     if (timer.getDeltaTimeMS() < minCycleTimeMS){
       ZM_Aux::sleepMs(minCycleTimeMS - timer.getDeltaTimeMS());
