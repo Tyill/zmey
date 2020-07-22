@@ -69,7 +69,7 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
   uint64_t wId = 0;
   checkFieldNum(command);
   
-  if (ec && _workers.find(cp) != _workers.end()){
+  if (ec && (_workers.find(cp) != _workers.end())){
     auto& worker = _workers[cp];
     wId = worker.base.id;
     ZM_Base::messType mtype = ZM_Base::messType(stoi(mess["command"]));

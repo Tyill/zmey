@@ -27,8 +27,7 @@
 #include <algorithm>
 #include <iostream>
 #include <list>
-#include <mutex> 
-#include <atomic>
+#include <mutex>
 #include "zmCommon/tcp.h"
 #include "zmCommon/timerDelay.h"
 #include "zmCommon/auxFunc.h"

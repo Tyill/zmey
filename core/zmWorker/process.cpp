@@ -48,7 +48,7 @@ Process::Process(const wTask& tsk):
     // error
     case -1:{    
       _task.state = ZM_Base::stateType::error;
-      string mstr = "Process child error fork: " + string(strerror(errno));
+      string mstr = "worker::Process child error fork: " + string(strerror(errno));
       _messForSchedr.push(mess2schedr{tsk.base.id, ZM_Base::messType::taskError, mstr});
       statusMess(mstr);
       _errMess.push(move(mstr));

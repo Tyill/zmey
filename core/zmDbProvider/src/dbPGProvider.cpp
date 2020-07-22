@@ -1541,6 +1541,11 @@ bool DbPGProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::messSc
     switch (m.type){      
       case ZM_Base::messType::taskError:
         ss << "UPDATE tblTaskTime tt SET "
+              "startTime = current_timestamp "
+              "FROM tblTaskQueue tq "
+              "WHERE tt.qtask = " << m.taskId << " AND tq.worker = " << m.workerId << " AND tt.startTime IS NULL;"
+              
+              "UPDATE tblTaskTime tt SET "
               "stopTime = current_timestamp "
               "FROM tblTaskQueue tq "
               "WHERE tt.qtask = " << m.taskId << " AND tq.worker = " << m.workerId << " AND tt.stopTime IS NULL;"
@@ -1599,7 +1604,7 @@ bool DbPGProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::messSc
       case ZM_Base::messType::taskRunning: // worker talk, when first run task
         ss << "UPDATE tblTaskTime SET "
               "startTime = current_timestamp "
-              "WHERE qtask = " << m.taskId << " AND startTime IS NULL;";
+              "WHERE qtask = " << m.taskId << " AND startTime IS NULL AND stopTime IS NULL;";
         break;         
       case ZM_Base::messType::taskPause:
         ss << "UPDATE tblTaskState ts SET "
@@ -1626,7 +1631,8 @@ bool DbPGProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::messSc
       case ZM_Base::messType::justStartWorker:
         ss << "UPDATE tblTaskTime SET "
               "takeInWorkTime = NULL, "
-              "startTime = NULL "
+              "startTime = NULL, "
+              "stopTime = NULL "
               "FROM tblTaskState ts, tblTaskQueue tq "
               "WHERE tq.id = ts.qtask AND tq.worker = " << m.workerId << " AND (ts.state BETWEEN 2 AND 3);"
               
@@ -1676,7 +1682,8 @@ bool DbPGProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::messSc
       case ZM_Base::messType::workerNotResponding:
         ss << "UPDATE tblTaskTime SET "
               "takeInWorkTime = NULL, "
-              "startTime = NULL "
+              "startTime = NULL, "
+              "stopTime = NULL "
               "FROM tblTaskState ts, tblTaskQueue tq "
               "WHERE tq.id = ts.qtask AND tq.worker = " << m.workerId << " AND (ts.state BETWEEN 2 AND 3);"
               
