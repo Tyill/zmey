@@ -96,9 +96,9 @@ void receiveHandler(const string& remcp, const string& data){
       });
       if (iPrc != _procs.end()){
         switch (mtype){
-          case ZM_Base::messType::taskPause:   iPrc->pause(); break;
-          case ZM_Base::messType::taskRunning: iPrc->contin(); break;
-          case ZM_Base::messType::taskStop:    iPrc->stop(); break;
+          case ZM_Base::messType::taskPause:    iPrc->pause(); break;
+          case ZM_Base::messType::taskContinue: iPrc->contin(); break;
+          case ZM_Base::messType::taskStop:     iPrc->stop(); break;
           default:{
             ERROR_MESS("worker::receiveHandler wrong command: " + mess["command"]);
           }

@@ -53,7 +53,7 @@ if (not zo.addPipeline(ppl)):
 # add and start schedulers and workers
 print('Add and start schedulers and workers')  
 sCnt = 1
-wCnt = 150
+wCnt = 100
 wCapty = 5
 schPrc = wkrPrc = []
 for i in range(sCnt):
@@ -80,7 +80,7 @@ for i in range(len(allSch)):
 time.sleep(3)
 
 # add and start tasks
-taskCnt = 1000
+taskCnt = 3000
 print('Add and start', taskCnt, 'tasks')  
 tasks = []
 for j in range(taskCnt):

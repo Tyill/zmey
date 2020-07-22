@@ -38,13 +38,12 @@ extern ZM_Aux::QueueThrSave<mess2schedr> _messForSchedr;
 void sendHandler(const string& cp, const string& data, const std::error_code& ec){
   if (!ec){   
     auto smess = ZM_Aux::deserialn(data);
-    mess2schedr mess = _messForSchedr.front();
-                    
+    mess2schedr mess = _messForSchedr.front();                    
     if (!smess.empty() && (stoi(smess["command"]) == int(mess.messType)) &&
         (stoull(smess["taskId"]) == mess.taskId)){ 
-      _messForSchedr.tryPop(mess);    
-      _isSendAck = true;
+      _messForSchedr.tryPop(mess);
     }
+    _isSendAck = true;
     ctickSH.reset();
   }else{
     if (ctickSH(100)){

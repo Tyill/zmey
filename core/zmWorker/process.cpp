@@ -62,7 +62,7 @@ Process::Process(const wTask& tsk):
                   _exit(127);  \
                 }    
       string scriptFile = to_string(tsk.base.id) + ".script";
-      int fdSct = open(scriptFile.c_str(), O_CREAT | O_TRUNC | O_WRONLY, S_IRUSR | S_IXUSR);
+      int fdSct = open(scriptFile.c_str(), O_CREAT | O_TRUNC | O_WRONLY, S_IRUSR | S_IWUSR | S_IXUSR);
       CHECK(fdSct, "create");
       CHECK(write(fdSct, tsk.base.script.data(), tsk.base.script.size()), "write");
       CHECK(close(fdSct), "close");
@@ -89,8 +89,8 @@ Process::Process(const wTask& tsk):
     // parent                
     default:
       _timer.updateCycTime();
-      _task.state = ZM_Base::stateType::start;
-      _messForSchedr.push(mess2schedr{tsk.base.id, ZM_Base::messType::taskStart, ""});
+      _task.state = ZM_Base::stateType::running;
+      _messForSchedr.push(mess2schedr{tsk.base.id, ZM_Base::messType::taskRunning, ""});
       break;
  }
 

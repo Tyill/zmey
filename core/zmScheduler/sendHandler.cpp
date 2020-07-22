@@ -23,7 +23,6 @@
 // THE SOFTWARE.
 //
 #include <map>
-#include <mutex>
 #include "zmCommon/serial.h"
 #include "zmCommon/tcp.h"
 #include "zmCommon/queue.h"
@@ -33,10 +32,9 @@
 
 using namespace std;
 
-extern mutex _mtxWkr;
 extern ZM_Aux::QueueThrSave<sTask> _tasks;
 extern ZM_Aux::QueueThrSave<ZM_DB::messSchedr> _messToDB;
-extern map<std::string, sWorker*> _workers;
+extern map<std::string, sWorker> _workers;
 extern ZM_Base::scheduler _schedr;
 
 void sendHandler(const string& cp, const string& data, const std::error_code& ec){
@@ -70,15 +68,10 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
   auto mess = ZM_Aux::deserialn(data);
   uint64_t wId = 0;
   checkFieldNum(command);
-
-  sWorker* worker = nullptr;
-  {lock_guard<std::mutex> lock(_mtxWkr);
-    if(_workers.find(cp) != _workers.end()){
-      worker = _workers[cp];
-    }
-  }
-  if (ec && worker){
-    wId = worker->base.id;
+  
+  if (ec && _workers.find(cp) != _workers.end()){
+    auto& worker = _workers[cp];
+    wId = worker.base.id;
     ZM_Base::messType mtype = ZM_Base::messType(stoi(mess["command"]));
     switch (mtype){
       case ZM_Base::messType::newTask:{
@@ -88,7 +81,7 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
         checkFieldNum(averDurationSec);
         checkFieldNum(maxDurationSec);
         sTask t;
-        t.base.id = stoull(mess["taskId"]);
+        t.qTaskId = stoull(mess["taskId"]);
         t.params = mess["params"];
         t.base.script = mess["script"];
         t.base.averDurationSec = stoi(mess["averDurationSec"]);
@@ -101,13 +94,13 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
         break;
     }
     ERROR_MESS("schedr::sendHandler worker not response, cp: " + cp, wId);
-    if (worker->base.rating > 1){
-      --worker->base.rating;
+    if (worker.base.rating > 1){
+      --worker.base.rating;
       _messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::workerRating,
-                                       worker->base.id,
+                                       worker.base.id,
                                        0,
                                        0,
-                                       worker->base.rating});      
+                                       worker.base.rating});      
     }    
   }
   else {

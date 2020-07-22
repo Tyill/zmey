@@ -1587,30 +1587,31 @@ bool DbPGProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::messSc
               "activeTask = " << m.workerActiveTask << " "
               "WHERE id = " << m.workerId << ";";
         break;  
-      case ZM_Base::messType::taskStart: // when first launched 
+      case ZM_Base::messType::taskStart:   // schedr talk, when send task to worker 
         ss << "UPDATE tblTaskState SET "
               "state = " << (int)ZM_Base::stateType::running << " "
               "WHERE qtask = " << m.taskId << " AND state = " << (int)ZM_Base::stateType::start << ";"
 
               "UPDATE tblTaskQueue SET "
               "worker = " << m.workerId << " "
-              "WHERE id = " << m.taskId << " AND worker IS NULL;"
-
-              "UPDATE tblTaskTime SET "
-              "startTime = current_timestamp "
-              "WHERE qtask = " << m.taskId << " AND startTime IS NULL;";              
+              "WHERE id = " << m.taskId << " AND worker IS NULL;";              
         break;         
-      case ZM_Base::messType::taskRunning: // when continue
-        ss << "UPDATE tblTaskState SET "
-              "state = " << (int)ZM_Base::stateType::running << " "
-              "WHERE qtask = " << m.taskId << " AND state = " << (int)ZM_Base::stateType::pause << ";";                        
+      case ZM_Base::messType::taskRunning: // worker talk, when first run task
+        ss << "UPDATE tblTaskTime SET "
+              "startTime = current_timestamp "
+              "WHERE qtask = " << m.taskId << " AND startTime IS NULL;";
         break;         
       case ZM_Base::messType::taskPause:
         ss << "UPDATE tblTaskState ts SET "
               "state = " << (int)ZM_Base::stateType::pause << " "
               "FROM tblTaskQueue tq "
               "WHERE ts.qtask = " << m.taskId << " AND tq.worker = " << m.workerId << " AND ts.state = " << (int)ZM_Base::stateType::running << ";"; 
-        break;        
+        break;     
+      case ZM_Base::messType::taskContinue: // worker talk, when run task
+        ss << "UPDATE tblTaskState SET "
+              "state = " << (int)ZM_Base::stateType::running << " "
+              "WHERE qtask = " << m.taskId << " AND state = " << (int)ZM_Base::stateType::pause << ";";                        
+        break;    
       case ZM_Base::messType::taskStop:        
         ss << "UPDATE tblTaskTime tt SET "
               "stopTime = current_timestamp "

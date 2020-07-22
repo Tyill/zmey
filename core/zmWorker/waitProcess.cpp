@@ -31,7 +31,6 @@
 #include <cstring>
 #include <list>
 #include <algorithm>
-#include <mutex>
 
 #include "zmCommon/auxFunc.h"
 #include "zmCommon/queue.h"
@@ -40,10 +39,8 @@
 using namespace std;
 
 extern ZM_Aux::QueueThrSave<string> _errMess;
-extern mutex _mtxPrc;
 
 void waitProcess(ZM_Base::worker& worker, list<Process>& procs, ZM_Aux::QueueThrSave<mess2schedr>& messForSchedr){
-  std::lock_guard<std::mutex> lock(_mtxPrc);
   
 #define ERROR_MESS(mstr) \
   statusMess(mstr);      \
@@ -121,14 +118,13 @@ void waitProcess(ZM_Base::worker& worker, list<Process>& procs, ZM_Aux::QueueThr
     else if (WIFCONTINUED(sts)){
       itPrc->setTaskState(ZM_Base::stateType::running);
       messForSchedr.push(mess2schedr{itPrc->getTask().base.id,
-                                      ZM_Base::messType::taskRunning,
+                                      ZM_Base::messType::taskContinue,
                                       ""});    
     } 
   }  
   // check max run time
   for(auto& p : procs){
-    if (p.checkMaxRunTime() && ((p.getTask().state == ZM_Base::stateType::start) || 
-                                (p.getTask().state == ZM_Base::stateType::running))){
+    if (p.checkMaxRunTime() && (p.getTask().state == ZM_Base::stateType::running)){
       p.stop();
     }
   }

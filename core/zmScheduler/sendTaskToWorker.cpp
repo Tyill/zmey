@@ -24,7 +24,6 @@
 //
 #include <algorithm>
 #include <map>
-#include <mutex>
 #include "zmCommon/tcp.h"
 #include "zmCommon/serial.h"
 #include "zmCommon/queue.h"
@@ -34,12 +33,12 @@
 
 using namespace std;
 
-extern mutex _mtxWkr;
 ZM_Aux::CounterTick ctickTW;
-vector<sWorker*> refWorkers;
+vector<ZM_Base::worker> workersCpy;
+vector<ZM_Base::worker*> refWorkers;
 
 void sendTaskToWorker(const ZM_Base::scheduler& schedr,
-                      const map<std::string, sWorker*>& workers,
+                      map<std::string, sWorker>& workers,
                       ZM_Aux::QueueThrSave<sTask>& tasks, 
                       ZM_Aux::QueueThrSave<ZM_DB::messSchedr>& messToDB){  
 #define ERROR_MESS(mess, wId)                                     \
@@ -53,22 +52,31 @@ void sendTaskToWorker(const ZM_Base::scheduler& schedr,
                                   mess});                         \
   statusMess(mess);
   
-  if (refWorkers.empty()){
-    {lock_guard<std::mutex> lock(_mtxWkr); 
-      for (auto& w : workers){
-        refWorkers.push_back(w.second);
-      }
+  if (workersCpy.empty()){
+    for (auto& w : workers){
+      workersCpy.push_back(w.second.base);
     }
-  }  
+    for (auto& w : workersCpy){
+      refWorkers.push_back(&w);
+    }
+  } 
+  auto iw = workers.cbegin();
+  auto iwcp = workersCpy.begin();
+  for (; iw != workers.cend(); ++iw, ++iwcp){
+    iwcp->activeTask = iw->second.base.activeTask;
+    iwcp->rating = iw->second.base.rating;
+    iwcp->state = iw->second.base.state;
+  }
+
   sTask t;
   while (tasks.tryPop(t)){
-    sort(refWorkers.begin(), refWorkers.end(), [](const sWorker* l, const sWorker* r){
-      return (float)l->base.activeTask / l->base.rating < (float)r->base.activeTask / r->base.rating;
+    sort(refWorkers.begin(), refWorkers.end(), [](const ZM_Base::worker* l, const ZM_Base::worker* r){
+      return (float)l->activeTask / l->rating < (float)r->activeTask / r->rating;
     });
     auto iWr = find_if(refWorkers.begin(), refWorkers.end(),
-      [](const sWorker* w){
-        return (w->base.state == ZM_Base::stateType::running) && 
-               (w->base.activeTask <= w->base.capacityTask);
+      [](const ZM_Base::worker* w){
+        return (w->state == ZM_Base::stateType::running) && 
+               (w->activeTask <= w->capacityTask);
       }); 
     if(iWr != refWorkers.end()){
       map<string, string> data{
@@ -79,9 +87,20 @@ void sendTaskToWorker(const ZM_Base::scheduler& schedr,
         make_pair("script",          t.base.script),
         make_pair("averDurationSec", to_string(t.base.averDurationSec)), 
         make_pair("maxDurationSec",  to_string(t.base.maxDurationSec))
-      };      
-      ++(*iWr)->base.activeTask;
-      ZM_Tcp::sendData((*iWr)->base.connectPnt, ZM_Aux::serialn(data));
+      };
+      ++(*iWr)->activeTask;
+      workers[(*iWr)->connectPnt].base.activeTask = (*iWr)->activeTask;
+
+      ZM_Tcp::sendData((*iWr)->connectPnt, ZM_Aux::serialn(data));
+
+      messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::taskStart, 
+                                      (*iWr)->id,
+                                      t.qTaskId,
+                                      0,
+                                      0,
+                                      0,
+                                      0,
+                                      ""});
       ctickTW.reset();
     }
     else{      

@@ -660,7 +660,7 @@ bool zmContinueTask(zmConn zo, uint64_t tId){
   if (static_cast<ZM_DB::DbProvider*>(zo)->getWorkerByTask(tId, qtId, wcng)){
     auto connCng = static_cast<ZM_DB::DbProvider*>(zo)->getConnectCng();  
     map<string, string> data{
-            make_pair("command", to_string((int)ZM_Base::messType::taskRunning)),
+            make_pair("command", to_string((int)ZM_Base::messType::taskContinue)),
             make_pair("connectPnt", connCng.connectStr),
             make_pair("taskId", to_string(qtId))
           };
