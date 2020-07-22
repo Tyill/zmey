@@ -57,7 +57,8 @@ public:
             }
           }          
           if (ec || (length < MAX_LENGTH)){
-            if (_receiveDataCBack && !_mess.empty()){ 
+            if (_receiveDataCBack && !_mess.empty() && !_isSendReceive){ 
+              _isSendReceive = true;
               _receiveDataCBack(_addr + ":" + std::to_string(_port), _mess);
             }
           }
@@ -69,6 +70,7 @@ public:
   enum { MAX_LENGTH = 8192 };
   char _data[MAX_LENGTH];
   std::string _mess;
+  bool _isSendReceive = false;
 };
 
 class TcpServer{

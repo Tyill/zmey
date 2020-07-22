@@ -45,12 +45,16 @@ public:
       if (!ec){
         asio::async_write(_socket, asio::buffer(msg.data(), msg.size()),
           [this, self, msg, isCBackIfError](std::error_code ec, std::size_t /*length*/){
-            if (_stsSendCBack && (ec || !isCBackIfError))
+            if (_stsSendCBack && (ec || !isCBackIfError) && !_isSendCBack){
+              _isSendCBack = true;
               _stsSendCBack(_addr + ":" + _port, msg, ec); 
+            }
           });
       }else{
-        if (_stsSendCBack)
+        if (_stsSendCBack && !_isSendCBack){
+          _isSendCBack = true;
           _stsSendCBack(_addr + ":" + _port, msg, ec); 
+        }
       }
     });
   }
@@ -60,4 +64,5 @@ private:
   tcp::socket _socket;
   std::string _addr;
   std::string _port;
+  bool _isSendCBack = false;
 };

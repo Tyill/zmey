@@ -53,7 +53,7 @@ ZM_Aux::QueueThrSave<wTask> _newTasks;
 ZM_Aux::QueueThrSave<string> _errMess;
 list<Process> _procs;
 mutex _mtxPrc, _mtxSts;
-atomic_bool _isSendAck(true);
+bool _isSendAck = true;
 
 struct config{
   int progressTasksTOutSec = 30;

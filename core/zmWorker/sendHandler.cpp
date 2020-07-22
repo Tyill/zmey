@@ -32,7 +32,7 @@
 using namespace std;
 
 ZM_Aux::CounterTick ctickSH;
-extern atomic_bool _isSendAck;
+extern bool _isSendAck;
 extern ZM_Aux::QueueThrSave<mess2schedr> _messForSchedr;
 
 void sendHandler(const string& cp, const string& data, const std::error_code& ec){
