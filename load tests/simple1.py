@@ -55,7 +55,8 @@ print('Add and start schedulers and workers')
 sCnt = 1
 wCnt = 30
 wCapty = 10
-schPrc = wkrPrc = []
+schPrc = [] 
+wkrPrc = []
 for i in range(sCnt):
   sch = zm.schedr(connectPnt='localhost:' + str(4440 + i), capacityTask=wCnt * wCapty)
   if (not zo.addScheduler(sch)):
@@ -90,7 +91,6 @@ for j in range(taskCnt):
   tasks.append(t)
 
 # start schedrs
-allSch = zo.getAllSchedulers()
 for i in range(len(allSch)):
   zo.startScheduler(allSch[i].id)
 
