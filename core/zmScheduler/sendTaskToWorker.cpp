@@ -67,9 +67,8 @@ void sendTaskToWorker(const ZM_Base::scheduler& schedr,
     iwcp->rating = iw->second.base.rating;
     iwcp->state = iw->second.base.state;
   }
-
-  sTask t;
-  while (tasks.tryPop(t)){
+  
+  while (!tasks.empty()){
     sort(refWorkers.begin(), refWorkers.end(), [](const ZM_Base::worker* l, const ZM_Base::worker* r){
       return (float)l->activeTask / l->rating < (float)r->activeTask / r->rating;
     });
@@ -79,6 +78,8 @@ void sendTaskToWorker(const ZM_Base::scheduler& schedr,
                (w->activeTask <= w->capacityTask);
       }); 
     if(iWr != refWorkers.end()){
+      sTask t;
+      tasks.tryPop(t);
       map<string, string> data{
         make_pair("command",         to_string((int)ZM_Base::messType::newTask)),
         make_pair("connectPnt",      schedr.connectPnt),
@@ -95,16 +96,10 @@ void sendTaskToWorker(const ZM_Base::scheduler& schedr,
 
       messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::taskStart, 
                                       (*iWr)->id,
-                                      t.qTaskId,
-                                      0,
-                                      0,
-                                      0,
-                                      0,
-                                      ""});
+                                      t.qTaskId});      
       ctickTW.reset();
     }
-    else{      
-      tasks.push(move(t));
+    else{
       if (ctickTW(1000)){ // every 1000 cycle
         ERROR_MESS("schedr::sendTaskToWorker not found available worker", 0);
       }
