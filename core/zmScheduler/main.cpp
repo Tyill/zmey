@@ -58,6 +58,7 @@ struct config{
   int capacityTask = 10000;
   int sendAllMessTOutMS = 500;
   int checkWorkerTOutSec = 120; 
+  const int currentStateTOutSec = 10; 
   std::string dbType;
   std::string connectPnt;
   ZM_DB::connectCng dbConnCng;
@@ -193,6 +194,13 @@ int main(int argc, char* argv[]){
     if(timer.onDelaySec(true, cng.checkWorkerTOutSec, 1)){
       timer.onDelaySec(false, cng.checkWorkerTOutSec, 1);    
       checkStatusWorkers(_schedr, _workers, _messToDB);
+    }
+    // current state
+    if(timer.onDelaySec(true, cng.currentStateTOutSec, 2)){
+      timer.onDelaySec(false, cng.currentStateTOutSec, 2);    
+      _messToDB.push(ZM_DB::messSchedr{ 
+        _schedr.state == ZM_Base::stateType::running ? ZM_Base::messType::startSchedr : ZM_Base::messType::pauseSchedr
+      });
     }
     // added delay
     if (timer.getDeltaTimeMS() < minCycleTimeMS){
