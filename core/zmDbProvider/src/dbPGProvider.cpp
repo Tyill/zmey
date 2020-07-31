@@ -215,6 +215,18 @@ bool DbPGProvider::createTables(){
         "screenRect   TEXT NOT NULL,"
         "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+
+  ss.str("");
+  ss << "CREATE TABLE IF NOT EXISTS tblUTaskGroup("
+        "id           SERIAL PRIMARY KEY,"
+        "pipeline     INT NOT NULL REFERENCES tblUPipeline,"
+        "pplTask      INT NOT NULL REFERENCES tblUPipelineTask,"
+        "name         TEXT NOT NULL CHECK (name <> ''),"
+        "description  TEXT NOT NULL,"
+        "screenRect   TEXT NOT NULL,"
+        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1),"
+        "isShared     INT NOT NULL DEFAULT 0 CHECK (isShared BETWEEN 0 AND 1));";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
   
   ///////////////////////////////////////////////////////////////////////////
   /// INDEXES

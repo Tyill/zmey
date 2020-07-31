@@ -52,7 +52,7 @@ ZM_Aux::QueueThrSave<sTask> _tasks;
 ZM_Aux::QueueThrSave<ZM_DB::messSchedr> _messToDB;
 ZM_Base::scheduler _schedr;
 mutex _mtxSts;
-bool _fClose = false;
+volatile bool _fClose = false;
 
 struct config{
   int capacityTask = 10000;
