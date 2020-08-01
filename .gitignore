@@ -3,3 +3,4 @@ zmSchedr.log
 zmWorker.log
 __pycache__
 .vscode/settings.json
+web/node_modules
