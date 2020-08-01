@@ -29,8 +29,26 @@
 #include "zmCommon/auxFunc.h"
 #include "dbPGProvider.h"
 
-
 using namespace std;
+
+class PGres{
+public:
+  PGresult* res;
+  PGres(PGresult* _res):res(_res){}
+  ~PGres(){
+    PQclear(res);
+  }  
+  PGres& operator=(PGres& npgr){
+    PQclear(res);
+    res = npgr.res;
+    return *this;
+  }
+  PGres& operator=(PGres&& npgr){
+    PQclear(res);
+    res = npgr.res;
+    return *this;
+  }
+};
 
 DbPGProvider::DbPGProvider(const ZM_DB::connectCng& connCng)
   : ZM_DB::DbProvider(connCng){
@@ -49,13 +67,11 @@ DbPGProvider::~DbPGProvider(){
 bool DbPGProvider::createTables(){
   lock_guard<mutex> lk(_mtx);
   #define QUERY(req, sts){              \
-    auto res = PQexec(_pg, req);        \
-    if (PQresultStatus(res) != sts){    \
-        errorMess(string("createTables error: ") + PQerrorMessage(_pg)); \
-        PQclear(res);                   \
-        return false;                   \
+    PGres pgr(PQexec(_pg, req));        \
+    if (PQresultStatus(pgr.res) != sts){  \
+      errorMess(string("createTables error: ") + PQerrorMessage(_pg)); \
+      return false;                     \
     }                                   \
-    PQclear(res);                       \
   }
   QUERY("SELECT pg_catalog.set_config('search_path', 'public', false)", PGRES_TUPLES_OK);
   
@@ -479,14 +495,12 @@ bool DbPGProvider::addUser(const ZM_Base::user& cng, uint64_t& outUserId){
         "MD5('" << cng.passw << "'),"
         "'" << cng.description << "') RETURNING id;";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
     errorMess(string("addUser error: ") + PQerrorMessage(_pg));
-    PQclear(res);
     return false;
   }
-  outUserId = stoull(PQgetvalue(res, 0, 0));
-  PQclear(res); 
+  outUserId = stoull(PQgetvalue(pgr.res, 0, 0));
   return true;
 }
 bool DbPGProvider::getUserId(const std::string& name, const std::string& passw, uint64_t& outUserId){
@@ -495,19 +509,17 @@ bool DbPGProvider::getUserId(const std::string& name, const std::string& passw, 
   ss << "SELECT id FROM tblUser "
         "WHERE name = '" << name << "' AND " << "passwHash = MD5('" << passw << "') AND isDelete = 0;";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
     errorMess(string("getUser error: ") + PQerrorMessage(_pg));
-    PQclear(res);
     return false;
   }
-  if (PQntuples(res) != 1){
+  if (PQntuples(pgr.res) != 1){
     errorMess(string("getUser error: such user does not exist"));
-    PQclear(res);
+    
     return false;
   }
-  outUserId = stoull(PQgetvalue(res, 0, 0));
-  PQclear(res); 
+  outUserId = stoull(PQgetvalue(pgr.res, 0, 0));
   return true;
 }
 bool DbPGProvider::getUserCng(uint64_t userId, ZM_Base::user& cng){
@@ -516,20 +528,17 @@ bool DbPGProvider::getUserCng(uint64_t userId, ZM_Base::user& cng){
   ss << "SELECT name, description FROM tblUser "
         "WHERE id = " << userId << " AND isDelete = 0;";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
     errorMess(string("getUser error: ") + PQerrorMessage(_pg));
-    PQclear(res);
     return false;
   }
-  if (PQntuples(res) != 1){
+  if (PQntuples(pgr.res) != 1){
     errorMess(string("getUser error: such user does not exist"));
-    PQclear(res);
     return false;
   }
-  cng.name = PQgetvalue(res, 0, 0);
-  cng.description = PQgetvalue(res, 0, 1);  
-  PQclear(res); 
+  cng.name = PQgetvalue(pgr.res, 0, 0);
+  cng.description = PQgetvalue(pgr.res, 0, 1);  
   return true;
 }
 bool DbPGProvider::changeUser(uint64_t userId, const ZM_Base::user& newCng){
@@ -541,13 +550,11 @@ bool DbPGProvider::changeUser(uint64_t userId, const ZM_Base::user& newCng){
         "description = '" << newCng.description << "' "
         "WHERE id = " << userId << " AND isDelete = 0;";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_COMMAND_OK){
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
     errorMess(string("changeUser error: ") + PQerrorMessage(_pg));
-    PQclear(res);
     return false;
   }  
-  PQclear(res); 
   return true;
 }
 bool DbPGProvider::delUser(uint64_t userId){
@@ -557,13 +564,11 @@ bool DbPGProvider::delUser(uint64_t userId){
         "isDelete = 1 "
         "WHERE id = " << userId << ";";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_COMMAND_OK){
-      errorMess(string("delUser error: ") + PQerrorMessage(_pg));
-      PQclear(res);
-      return false;
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
+    errorMess(string("delUser error: ") + PQerrorMessage(_pg));
+    return false;
   }  
-  PQclear(res); 
   return true;
 }
 std::vector<uint64_t> DbPGProvider::getAllUsers(){
@@ -572,18 +577,16 @@ std::vector<uint64_t> DbPGProvider::getAllUsers(){
   ss << "SELECT id FROM tblUser "
         "WHERE isDelete = 0;";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
     errorMess(string("getAllUsers error: ") + PQerrorMessage(_pg));
-    PQclear(res);
     return std::vector<uint64_t>();
   }  
-  int rows = PQntuples(res);
+  int rows = PQntuples(pgr.res);
   std::vector<uint64_t> ret(rows);
   for (int i = 0; i < rows; ++i){
-    ret[i] = stoull(PQgetvalue(res, i, 0));
+    ret[i] = stoull(PQgetvalue(pgr.res, i, 0));
   }
-  PQclear(res);
   return ret;
 }
 
@@ -603,14 +606,12 @@ bool DbPGProvider::addSchedr(const ZM_Base::scheduler& schedl, uint64_t& outSchI
         "'" << (int)schedl.state << "',"
         "'" << schedl.capacityTask << "') RETURNING id;";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
     errorMess(string("addSchedr error: ") + PQerrorMessage(_pg));
-    PQclear(res);
     return false;
   }
-  outSchId = stoull(PQgetvalue(res, 0, 0));
-  PQclear(res); 
+  outSchId = stoull(PQgetvalue(pgr.res, 0, 0));
   return true;
 }
 bool DbPGProvider::getSchedr(uint64_t sId, ZM_Base::scheduler& cng){
@@ -620,21 +621,18 @@ bool DbPGProvider::getSchedr(uint64_t sId, ZM_Base::scheduler& cng){
         "JOIN tblConnectPnt cp ON cp.id = s.connPnt "
         "WHERE s.id = " << sId << " AND s.isDelete = 0;";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
     errorMess(string("getSchedr error: ") + PQerrorMessage(_pg));
-    PQclear(res);
     return false;
   }
-  if (PQntuples(res) != 1){
+  if (PQntuples(pgr.res) != 1){
     errorMess(string("getSchedr error: such schedr does not exist"));
-    PQclear(res);
     return false;
   }
-  cng.connectPnt = PQgetvalue(res, 0, 0) + string(":") + PQgetvalue(res, 0, 1);
-  cng.state = (ZM_Base::stateType)atoi(PQgetvalue(res, 0, 2));
-  cng.capacityTask = atoi(PQgetvalue(res, 0, 3));
-  PQclear(res); 
+  cng.connectPnt = PQgetvalue(pgr.res, 0, 0) + string(":") + PQgetvalue(pgr.res, 0, 1);
+  cng.state = (ZM_Base::stateType)atoi(PQgetvalue(pgr.res, 0, 2));
+  cng.capacityTask = atoi(PQgetvalue(pgr.res, 0, 3));
   return true;
 }
 bool DbPGProvider::changeSchedr(uint64_t sId, const ZM_Base::scheduler& newCng){  
@@ -654,13 +652,11 @@ bool DbPGProvider::changeSchedr(uint64_t sId, const ZM_Base::scheduler& newCng){
         "port = '" << connPnt[1] << "' "
         "WHERE id = (SELECT connPnt FROM tblScheduler WHERE id = " << sId << " AND isDelete = 0);";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_COMMAND_OK){
-      errorMess(string("changeSchedr error: ") + PQerrorMessage(_pg));
-      PQclear(res);
-      return false;
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
+    errorMess(string("changeSchedr error: ") + PQerrorMessage(_pg));
+    return false;
   }  
-  PQclear(res); 
   return true;
 }
 bool DbPGProvider::delSchedr(uint64_t sId){  
@@ -670,13 +666,11 @@ bool DbPGProvider::delSchedr(uint64_t sId){
         "isDelete = 1 "
         "WHERE id = " << sId << ";";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_COMMAND_OK){
-      errorMess(string("delSchedr error: ") + PQerrorMessage(_pg));
-      PQclear(res);
-      return false;
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
+    errorMess(string("delSchedr error: ") + PQerrorMessage(_pg));
+    return false;
   }  
-  PQclear(res); 
   return true;
 }
 bool DbPGProvider::schedrState(uint64_t sId, ZM_Base::stateType& state){
@@ -685,14 +679,12 @@ bool DbPGProvider::schedrState(uint64_t sId, ZM_Base::stateType& state){
   ss << "SELECT state FROM tblScheduler "
         "WHERE id = " << sId << " AND isDelete = 0;";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if ((PQresultStatus(res) != PGRES_TUPLES_OK) || (PQntuples(res) != 1)){
-      errorMess(string("schedrState error: ") + PQerrorMessage(_pg));
-      PQclear(res);
-      return false;
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if ((PQresultStatus(pgr.res) != PGRES_TUPLES_OK) || (PQntuples(pgr.res) != 1)){
+    errorMess(string("schedrState error: ") + PQerrorMessage(_pg));
+    return false;
   }
-  state = (ZM_Base::stateType)atoi(PQgetvalue(res, 0, 0));
-  PQclear(res); 
+  state = (ZM_Base::stateType)atoi(PQgetvalue(pgr.res, 0, 0));
   return true;
 }
 std::vector<uint64_t> DbPGProvider::getAllSchedrs(ZM_Base::stateType state){  
@@ -701,18 +693,16 @@ std::vector<uint64_t> DbPGProvider::getAllSchedrs(ZM_Base::stateType state){
   ss << "SELECT id FROM tblScheduler "
         "WHERE (state = " << (int)state << " OR " << (int)state << " = -1) AND isDelete = 0;";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_TUPLES_OK){
-      errorMess(string("getAllSchedrs error: ") + PQerrorMessage(_pg));
-      PQclear(res);
-      return std::vector<uint64_t>();
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
+    errorMess(string("getAllSchedrs error: ") + PQerrorMessage(_pg));
+    return std::vector<uint64_t>();
   }  
-  int rows = PQntuples(res);
+  int rows = PQntuples(pgr.res);
   std::vector<uint64_t> ret(rows);
   for (int i = 0; i < rows; ++i){
-    ret[i] = stoull(PQgetvalue(res, i, 0));
+    ret[i] = stoull(PQgetvalue(pgr.res, i, 0));
   }
-  PQclear(res);
   return ret;
 }
 
@@ -733,14 +723,12 @@ bool DbPGProvider::addWorker(const ZM_Base::worker& worker, uint64_t& outWkrId){
         "'" << (int)worker.state << "',"
         "'" << worker.capacityTask << "') RETURNING id;";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
       errorMess(string("addWorker error: ") + PQerrorMessage(_pg));
-      PQclear(res);
       return false;
   }
-  outWkrId = stoull(PQgetvalue(res, 0, 0));
-  PQclear(res); 
+  outWkrId = stoull(PQgetvalue(pgr.res, 0, 0));
   return true;
 }
 bool DbPGProvider::getWorker(uint64_t wId, ZM_Base::worker& cng){
@@ -750,22 +738,19 @@ bool DbPGProvider::getWorker(uint64_t wId, ZM_Base::worker& cng){
         "JOIN tblConnectPnt cp ON cp.id = w.connPnt "
         "WHERE w.id = " << wId << " AND w.isDelete = 0;";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
     errorMess(string("getWorker error: ") + PQerrorMessage(_pg));
-    PQclear(res);
     return false;
   }
-  if (PQntuples(res) != 1){
+  if (PQntuples(pgr.res) != 1){
     errorMess(string("getWorker error: such worker does not exist"));
-    PQclear(res);
     return false;
   }
-  cng.connectPnt = PQgetvalue(res, 0, 0) + string(":") + PQgetvalue(res, 0, 1);
-  cng.sId = stoull(PQgetvalue(res, 0, 2));
-  cng.state = (ZM_Base::stateType)atoi(PQgetvalue(res, 0, 3));
-  cng.capacityTask = atoi(PQgetvalue(res, 0, 4));
-  PQclear(res); 
+  cng.connectPnt = PQgetvalue(pgr.res, 0, 0) + string(":") + PQgetvalue(pgr.res, 0, 1);
+  cng.sId = stoull(PQgetvalue(pgr.res, 0, 2));
+  cng.state = (ZM_Base::stateType)atoi(PQgetvalue(pgr.res, 0, 3));
+  cng.capacityTask = atoi(PQgetvalue(pgr.res, 0, 4));
   return true;
 }
 bool DbPGProvider::changeWorker(uint64_t wId, const ZM_Base::worker& newCng){
@@ -786,13 +771,11 @@ bool DbPGProvider::changeWorker(uint64_t wId, const ZM_Base::worker& newCng){
         "port = '" << connPnt[1] << "' "
         "WHERE id = (SELECT connPnt FROM tblWorker WHERE id = " << wId << " AND isDelete = 0);";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_COMMAND_OK){
-      errorMess(string("changeWorker error: ") + PQerrorMessage(_pg));
-      PQclear(res);
-      return false;
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
+    errorMess(string("changeWorker error: ") + PQerrorMessage(_pg));
+    return false;
   }  
-  PQclear(res); 
   return true;
 }
 bool DbPGProvider::delWorker(uint64_t wId){
@@ -802,13 +785,11 @@ bool DbPGProvider::delWorker(uint64_t wId){
         "isDelete = 1 "
         "WHERE id = " << wId << ";";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_COMMAND_OK){
-      errorMess(string("delWorker error: ") + PQerrorMessage(_pg));
-      PQclear(res);
-      return false;
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
+    errorMess(string("delWorker error: ") + PQerrorMessage(_pg));
+    return false;
   }  
-  PQclear(res); 
   return true;
 }
 bool DbPGProvider::workerState(const std::vector<uint64_t>& wId, std::vector<ZM_Base::stateType>& state){
@@ -822,23 +803,20 @@ bool DbPGProvider::workerState(const std::vector<uint64_t>& wId, std::vector<ZM_
   ss << "SELECT state FROM tblWorker "
         "WHERE id IN (" << swId << ")  AND isDelete = 0 ORDER BY id;";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
     errorMess(string("workerState error: ") + PQerrorMessage(_pg));
-    PQclear(res);
     return false;
   }
   size_t wsz = wId.size();
-  if (PQntuples(res) != wsz){
-    errorMess("workerState error: PQntuples(res) != wsz");
-    PQclear(res);
+  if (PQntuples(pgr.res) != wsz){
+    errorMess("workerState error: PQntuples(pgr.res) != wsz");
     return false;
   }
   state.resize(wsz);
   for (size_t i = 0; i < wsz; ++i){
-    state[i] = (ZM_Base::stateType)atoi(PQgetvalue(res, i, 0));
+    state[i] = (ZM_Base::stateType)atoi(PQgetvalue(pgr.res, i, 0));
   }
-  PQclear(res); 
   return true;
 }
 std::vector<uint64_t> DbPGProvider::getAllWorkers(uint64_t sId, ZM_Base::stateType state){
@@ -849,18 +827,16 @@ std::vector<uint64_t> DbPGProvider::getAllWorkers(uint64_t sId, ZM_Base::stateTy
         "AND schedr = " << sId << " "
         "AND isDelete = 0;";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_TUPLES_OK){
-      errorMess(string("getAllWorkers error: ") + PQerrorMessage(_pg));
-      PQclear(res);
-      return std::vector<uint64_t>();
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
+    errorMess(string("getAllWorkers error: ") + PQerrorMessage(_pg));
+    return std::vector<uint64_t>();
   }  
-  int rows = PQntuples(res);
+  int rows = PQntuples(pgr.res);
   std::vector<uint64_t> ret(rows);
   for (int i = 0; i < rows; ++i){
-    ret[i] = stoull(PQgetvalue(res, i, 0));
+    ret[i] = stoull(PQgetvalue(pgr.res, i, 0));
   }
-  PQclear(res);
   return ret;
 }
 
@@ -873,14 +849,12 @@ bool DbPGProvider::addPipeline(const ZM_Base::uPipeline& ppl, uint64_t& outPPLId
         "'" << ppl.description << "',"
         "'" << ppl.isShared << "') RETURNING id;";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_TUPLES_OK){
-      errorMess(string("addPipeline error: ") + PQerrorMessage(_pg));
-      PQclear(res);
-      return false;
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
+    errorMess(string("addPipeline error: ") + PQerrorMessage(_pg));
+    return false;
   }
-  outPPLId = stoull(PQgetvalue(res, 0, 0));
-  PQclear(res); 
+  outPPLId = stoull(PQgetvalue(pgr.res, 0, 0));
   return true;
 }
 bool DbPGProvider::getPipeline(uint64_t pplId, ZM_Base::uPipeline& cng){
@@ -889,22 +863,19 @@ bool DbPGProvider::getPipeline(uint64_t pplId, ZM_Base::uPipeline& cng){
   ss << "SELECT usr, name, description, isShared FROM tblUPipeline "
         "WHERE id = " << pplId << " AND isDelete = 0;";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
     errorMess(string("getPipeline error: ") + PQerrorMessage(_pg));
-    PQclear(res);
     return false;
   }
-  if (PQntuples(res) != 1){
+  if (PQntuples(pgr.res) != 1){
     errorMess(string("getPipeline error: such pipeline does not exist"));
-    PQclear(res);
     return false;
   }
-  cng.uId = stoull(PQgetvalue(res, 0, 0));
-  cng.name = PQgetvalue(res, 0, 1);
-  cng.description = PQgetvalue(res, 0, 2);  
-  cng.isShared = atoi(PQgetvalue(res, 0, 3)); 
-  PQclear(res); 
+  cng.uId = stoull(PQgetvalue(pgr.res, 0, 0));
+  cng.name = PQgetvalue(pgr.res, 0, 1);
+  cng.description = PQgetvalue(pgr.res, 0, 2);  
+  cng.isShared = atoi(PQgetvalue(pgr.res, 0, 3)); 
   return true;
 }
 bool DbPGProvider::changePipeline(uint64_t pplId, const ZM_Base::uPipeline& newCng){
@@ -917,13 +888,11 @@ bool DbPGProvider::changePipeline(uint64_t pplId, const ZM_Base::uPipeline& newC
         "isShared = '" << newCng.isShared << "' "
         "WHERE id = " << pplId << " AND isDelete = 0;";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_COMMAND_OK){
-      errorMess(string("changePipeline error: ") + PQerrorMessage(_pg));
-      PQclear(res);
-      return false;
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
+    errorMess(string("changePipeline error: ") + PQerrorMessage(_pg));
+    return false;
   }  
-  PQclear(res); 
   return true;
 }
 bool DbPGProvider::delPipeline(uint64_t pplId){
@@ -933,13 +902,11 @@ bool DbPGProvider::delPipeline(uint64_t pplId){
         "isDelete = 1 "
         "WHERE id = " << pplId << ";";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_COMMAND_OK){
-      errorMess(string("delPipeline error: ") + PQerrorMessage(_pg));
-      PQclear(res);
-      return false;
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
+    errorMess(string("delPipeline error: ") + PQerrorMessage(_pg));
+    return false;
   }  
-  PQclear(res); 
   return true;
 }
 std::vector<uint64_t> DbPGProvider::getAllPipelines(uint64_t userId){
@@ -948,18 +915,16 @@ std::vector<uint64_t> DbPGProvider::getAllPipelines(uint64_t userId){
   ss << "SELECT id FROM tblUPipeline "
         "WHERE usr = " << userId << " AND isDelete = 0;";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_TUPLES_OK){
-      errorMess(string("getAllPipelines error: ") + PQerrorMessage(_pg));
-      PQclear(res);
-      return std::vector<uint64_t>();
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
+    errorMess(string("getAllPipelines error: ") + PQerrorMessage(_pg));
+    return std::vector<uint64_t>();
   }  
-  int rows = PQntuples(res);
+  int rows = PQntuples(pgr.res);
   std::vector<uint64_t> ret(rows);
   for (int i = 0; i < rows; ++i){
-    ret[i] = stoull(PQgetvalue(res, i, 0));
+    ret[i] = stoull(PQgetvalue(pgr.res, i, 0));
   }
-  PQclear(res);
   return ret;
 }
 
@@ -977,14 +942,12 @@ bool DbPGProvider::addTaskTemplate(const ZM_Base::uTaskTemplate& cng, uint64_t& 
         "'" << cng.description << "',"
         "'" << cng.isShared << "') RETURNING task;";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
     errorMess(string("addTaskTemplate error: ") + PQerrorMessage(_pg));
-    PQclear(res);
     return false;
   }
-  outTId = stoull(PQgetvalue(res, 0, 0));
-  PQclear(res); 
+  outTId = stoull(PQgetvalue(pgr.res, 0, 0));
   return true;
 }
 bool DbPGProvider::getTaskTemplate(uint64_t tId, ZM_Base::uTaskTemplate& outTCng){
@@ -995,25 +958,22 @@ bool DbPGProvider::getTaskTemplate(uint64_t tId, ZM_Base::uTaskTemplate& outTCng
         "JOIN tblTask t ON t.id = tt.task "
         "WHERE t.id = " << tId << " AND isDelete = 0;";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
     errorMess(string("getTaskTemplate error: ") + PQerrorMessage(_pg));
-    PQclear(res);
     return false;
   }
-  if (PQntuples(res) != 1){
+  if (PQntuples(pgr.res) != 1){
     errorMess(string("getPipeline error: such taskTemplate does not exist"));
-    PQclear(res);
     return false;
   }
-  outTCng.uId = stoull(PQgetvalue(res, 0, 0));
-  outTCng.name = PQgetvalue(res, 0, 1);
-  outTCng.description = PQgetvalue(res, 0, 2);  
-  outTCng.isShared = atoi(PQgetvalue(res, 0, 3)); 
-  outTCng.base.script = PQgetvalue(res, 0, 4);  
-  outTCng.base.averDurationSec = atoi(PQgetvalue(res, 0, 5));
-  outTCng.base.maxDurationSec = atoi(PQgetvalue(res, 0, 6));
-  PQclear(res); 
+  outTCng.uId = stoull(PQgetvalue(pgr.res, 0, 0));
+  outTCng.name = PQgetvalue(pgr.res, 0, 1);
+  outTCng.description = PQgetvalue(pgr.res, 0, 2);  
+  outTCng.isShared = atoi(PQgetvalue(pgr.res, 0, 3)); 
+  outTCng.base.script = PQgetvalue(pgr.res, 0, 4);  
+  outTCng.base.averDurationSec = atoi(PQgetvalue(pgr.res, 0, 5));
+  outTCng.base.maxDurationSec = atoi(PQgetvalue(pgr.res, 0, 6));
   return true;
 };
 bool DbPGProvider::changeTaskTemplate(uint64_t tId, const ZM_Base::uTaskTemplate& newTCng, uint64_t& outTId){
@@ -1034,15 +994,13 @@ bool DbPGProvider::changeTaskTemplate(uint64_t tId, const ZM_Base::uTaskTemplate
         "'" << newTCng.description << "',"
         "'" << newTCng.isShared << "') RETURNING task;";
   
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_TUPLES_OK){
-      errorMess(string("changeTaskTemplate error: ") + PQerrorMessage(_pg));
-      PQclear(res);
-      return false;
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
+    errorMess(string("changeTaskTemplate error: ") + PQerrorMessage(_pg));
+    return false;
   }
-  outTId = stoull(PQgetvalue(res, 0, 0));
-  PQclear(res); 
-
+  outTId = stoull(PQgetvalue(pgr.res, 0, 0));
+  
   ////////////////////////////////////////////////////////////////////////
 
   ss.str(""); 
@@ -1050,13 +1008,11 @@ bool DbPGProvider::changeTaskTemplate(uint64_t tId, const ZM_Base::uTaskTemplate
         "taskTempl = "<< outTId << " "
         "WHERE taskTempl = " << tId << ";";
   
-  res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_COMMAND_OK){
-      errorMess(string("changeTaskTemplate error: ") + PQerrorMessage(_pg));
-      PQclear(res);
-      return false;
+  pgr = PQexec(_pg, ss.str().c_str());
+  if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
+    errorMess(string("changeTaskTemplate error: ") + PQerrorMessage(_pg));
+    return false;
   }
-  PQclear(res);
   return true;
 }
 bool DbPGProvider::delTaskTemplate(uint64_t tId){
@@ -1066,13 +1022,11 @@ bool DbPGProvider::delTaskTemplate(uint64_t tId){
         "isDelete = 1 "
         "WHERE task = " << tId << ";";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_COMMAND_OK){
-      errorMess(string("delTaskTemplate error: ") + PQerrorMessage(_pg));
-      PQclear(res);
-      return false;
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
+    errorMess(string("delTaskTemplate error: ") + PQerrorMessage(_pg));
+    return false;
   }  
-  PQclear(res); 
   return true;
 }
 std::vector<uint64_t> DbPGProvider::getAllTaskTemplates(uint64_t usr){
@@ -1081,18 +1035,16 @@ std::vector<uint64_t> DbPGProvider::getAllTaskTemplates(uint64_t usr){
   ss << "SELECT task FROM tblUTaskTemplate "
         "WHERE usr = " << usr << " AND isDelete = 0;";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
     errorMess(string("getAllTaskTemplates error: ") + PQerrorMessage(_pg));
-    PQclear(res);
     return std::vector<uint64_t>();
   }  
-  int rows = PQntuples(res);
+  int rows = PQntuples(pgr.res);
   std::vector<uint64_t> ret(rows);
   for (int i = 0; i < rows; ++i){
-    ret[i] = stoull(PQgetvalue(res, i, 0));
+    ret[i] = stoull(PQgetvalue(pgr.res, i, 0));
   }
-  PQclear(res);
   return ret;
 }
 
@@ -1117,19 +1069,16 @@ bool DbPGProvider::addTask(const ZM_Base::uTask& cng, uint64_t& outTId){
             << "'" << cng.screenRect << "',"
             << 0 << "));";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_TUPLES_OK){
-      errorMess(string("addTask error: ") + PQerrorMessage(_pg));
-      PQclear(res);
-      return false;
-  }
-  outTId = stoull(PQgetvalue(res, 0, 0));
-  if (outTId == 0){
-    errorMess("addTask error: not found one or more task from prevTask or nextTasks");
-    PQclear(res);
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
+    errorMess(string("addTask error: ") + PQerrorMessage(_pg));
     return false;
   }
-  PQclear(res); 
+  outTId = stoull(PQgetvalue(pgr.res, 0, 0));
+  if (outTId == 0){
+    errorMess("addTask error: not found one or more task from prevTask or nextTasks");
+    return false;
+  }
   return true;
 }
 bool DbPGProvider::getTask(uint64_t tId, ZM_Base::uTask& outTCng){
@@ -1140,32 +1089,29 @@ bool DbPGProvider::getTask(uint64_t tId, ZM_Base::uTask& outTCng){
         "FROM tblUPipelineTask "
         "WHERE id = " << tId << " AND isDelete = 0;";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
     errorMess(string("getTask error: ") + PQerrorMessage(_pg));
-    PQclear(res);
     return false;
   }
-  if (PQntuples(res) != 1){
+  if (PQntuples(pgr.res) != 1){
     errorMess(string("getTask error: such task does not exist"));
-    PQclear(res);
     return false;
   }
-  outTCng.pplId = stoull(PQgetvalue(res, 0, 0));
-  outTCng.base.tId = stoull(PQgetvalue(res, 0, 1));
-  outTCng.base.priority = atoi(PQgetvalue(res, 0, 2));  
-  outTCng.prevTasks = PQgetvalue(res, 0, 3);
+  outTCng.pplId = stoull(PQgetvalue(pgr.res, 0, 0));
+  outTCng.base.tId = stoull(PQgetvalue(pgr.res, 0, 1));
+  outTCng.base.priority = atoi(PQgetvalue(pgr.res, 0, 2));  
+  outTCng.prevTasks = PQgetvalue(pgr.res, 0, 3);
   outTCng.prevTasks = outTCng.prevTasks.substr(1,  outTCng.prevTasks.size() - 2);
   
-  outTCng.nextTasks = PQgetvalue(res, 0, 4);
+  outTCng.nextTasks = PQgetvalue(pgr.res, 0, 4);
   outTCng.nextTasks = outTCng.nextTasks.substr(1,  outTCng.nextTasks.size() - 2);
   
-  outTCng.base.params = PQgetvalue(res, 0, 5);
+  outTCng.base.params = PQgetvalue(pgr.res, 0, 5);
   ZM_Aux::replace(outTCng.base.params, "\"", "");
   outTCng.base.params = outTCng.base.params.substr(1,  outTCng.base.params.size() - 2);  
 
-  outTCng.screenRect = PQgetvalue(res, 0, 6);
-  PQclear(res); 
+  outTCng.screenRect = PQgetvalue(pgr.res, 0, 6);
   return true;
 }
 bool DbPGProvider::changeTask(uint64_t tId, const ZM_Base::uTask& newCng){
@@ -1189,18 +1135,15 @@ bool DbPGProvider::changeTask(uint64_t tId, const ZM_Base::uTask& newCng){
             << "'" << newCng.screenRect << "',"
             << 0 << "));";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
     errorMess(string("changeTask error: ") + PQerrorMessage(_pg));
-    PQclear(res);
     return false;
   }
-  if (stoull(PQgetvalue(res, 0, 0)) == 0){
+  if (stoull(PQgetvalue(pgr.res, 0, 0)) == 0){
     errorMess("changeTask error: previously deleted task is updated OR not found one or more task from prevTask or nextTasks");
-    PQclear(res);
     return false;
   }
-  PQclear(res); 
   return true;
 }
 bool DbPGProvider::delTask(uint64_t tId){
@@ -1210,13 +1153,11 @@ bool DbPGProvider::delTask(uint64_t tId){
         "isDelete = 1 "
         "WHERE id = " << tId << ";";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_COMMAND_OK){
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
     errorMess(string("delTask error: ") + PQerrorMessage(_pg));
-    PQclear(res);
     return false;
   }  
-  PQclear(res); 
   return true;
 }
 bool DbPGProvider::startTask(uint64_t tId){
@@ -1224,19 +1165,16 @@ bool DbPGProvider::startTask(uint64_t tId){
   stringstream ss;
   ss << "SELECT * FROM funcStartTask(" << tId << ");";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
     errorMess(string("startTask error: ") + PQerrorMessage(_pg));
-    PQclear(res);
     return false;
   }
-  if (stoull(PQgetvalue(res, 0, 0)) == 0){
+  if (stoull(PQgetvalue(pgr.res, 0, 0)) == 0){
     errorMess("startTask error: previously deleted task is start OR \
                not found one or more task from prevTask or nextTasks");
-    PQclear(res);
     return false;
   }
-  PQclear(res); 
   return true;
 }
 bool DbPGProvider::cancelTask(uint64_t tId){
@@ -1252,18 +1190,15 @@ bool DbPGProvider::cancelTask(uint64_t tId){
         "      tpp.isDelete = 0 "
         "RETURNING ts.qtask;";
         
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
     errorMess(string("cancelTask error: ") + PQerrorMessage(_pg));
-    PQclear(res);
     return false;
   }  
-  if (PQntuples(res) != 1){
+  if (PQntuples(pgr.res) != 1){
     errorMess(string("cancelTask error: task already take in work") + PQerrorMessage(_pg));
-    PQclear(res);  
     return false;
   }
-  PQclear(res); 
   return true;
 }
 bool DbPGProvider::taskState(const std::vector<uint64_t>& tId, std::vector<ZM_DB::tskState>& outState){
@@ -1280,24 +1215,21 @@ bool DbPGProvider::taskState(const std::vector<uint64_t>& tId, std::vector<ZM_DB
         "JOIN tblUPipelineTask pt ON pt.qtask = qt.id "
         "WHERE pt.id IN (" << stId << ") AND pt.isDelete = 0 ORDER BY pt.id;";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
     errorMess(string("taskState error: ") + PQerrorMessage(_pg));
-    PQclear(res);
     return false;
   }
   size_t tsz = tId.size();
-  if (PQntuples(res) != tsz){      
-    errorMess("taskState error: PQntuples(res) != tsz");
-    PQclear(res);        
+  if (PQntuples(pgr.res) != tsz){      
+    errorMess("taskState error: PQntuples(pgr.res) != tsz");
     return false;
   }
   outState.resize(tsz);
   for (size_t i = 0; i < tsz; ++i){
-    outState[i].state = (ZM_Base::stateType)atoi(PQgetvalue(res, i, 1));
-    outState[i].progress = atoi(PQgetvalue(res, i, 2));
+    outState[i].state = (ZM_Base::stateType)atoi(PQgetvalue(pgr.res, i, 1));
+    outState[i].progress = atoi(PQgetvalue(pgr.res, i, 2));
   }
-  PQclear(res); 
   return true;
 }
 bool DbPGProvider::taskResult(uint64_t tId, std::string& out){
@@ -1306,19 +1238,16 @@ bool DbPGProvider::taskResult(uint64_t tId, std::string& out){
   ss << "SELECT result FROM tblTaskResult "
         "WHERE qtask = (SELECT qtask FROM tblUPipelineTask WHERE id = " << tId << " AND isDelete = 0);";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_TUPLES_OK){      
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){      
     errorMess(string("taskResult error: ") + PQerrorMessage(_pg));
-    PQclear(res);        
     return false;
   } 
-  if (PQntuples(res) != 1){
+  if (PQntuples(pgr.res) != 1){
     errorMess("taskResult error: task delete OR not taken to work");
-    PQclear(res);        
     return false;
   } 
-  out = PQgetvalue(res, 0, 0);
-  PQclear(res); 
+  out = PQgetvalue(pgr.res, 0, 0);
   return true;
 }
 bool DbPGProvider::taskTime(uint64_t tId, ZM_DB::taskTime& out){
@@ -1328,22 +1257,19 @@ bool DbPGProvider::taskTime(uint64_t tId, ZM_DB::taskTime& out){
         "FROM tblTaskTime "
         "WHERE qtask = (SELECT qtask FROM tblUPipelineTask WHERE id = " << tId << " AND isDelete = 0);";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_TUPLES_OK){      
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){      
     errorMess(string("taskTime error: ") + PQerrorMessage(_pg));
-    PQclear(res);        
     return false;
   } 
-  if (PQntuples(res) != 1){
+  if (PQntuples(pgr.res) != 1){
     errorMess("taskTime error: task delete OR not taken to work");
-    PQclear(res);        
     return false;
   } 
-  out.createTime = PQgetvalue(res, 0, 0);
-  out.takeInWorkTime = PQgetvalue(res, 0, 1);
-  out.startTime = PQgetvalue(res, 0, 2);
-  out.stopTime = PQgetvalue(res, 0, 3);
-  PQclear(res); 
+  out.createTime = PQgetvalue(pgr.res, 0, 0);
+  out.takeInWorkTime = PQgetvalue(pgr.res, 0, 1);
+  out.startTime = PQgetvalue(pgr.res, 0, 2);
+  out.stopTime = PQgetvalue(pgr.res, 0, 3);
   return true;
 }
 std::vector<uint64_t> DbPGProvider::getAllTasks(uint64_t pplId, ZM_Base::stateType state){  
@@ -1354,18 +1280,16 @@ std::vector<uint64_t> DbPGProvider::getAllTasks(uint64_t pplId, ZM_Base::stateTy
         "WHERE (ts.state = " << (int)state << " OR " << (int)state << " = -1) "
           "AND ut.pipeline = " << pplId << " AND ut.isDelete = 0;";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_TUPLES_OK){
-      errorMess(string("getAllTasks error: ") + PQerrorMessage(_pg));
-      PQclear(res);
-      return std::vector<uint64_t>();
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
+    errorMess(string("getAllTasks error: ") + PQerrorMessage(_pg));
+    return std::vector<uint64_t>();
   }  
-  int rows = PQntuples(res);
+  int rows = PQntuples(pgr.res);
   std::vector<uint64_t> ret(rows);
   for (int i = 0; i < rows; ++i){
-    ret[i] = stoull(PQgetvalue(res, i, 0));
+    ret[i] = stoull(PQgetvalue(pgr.res, i, 0));
   }
-  PQclear(res);
   return ret;
 }
 bool DbPGProvider::getWorkerByTask(uint64_t tId, uint64_t& qtId, ZM_Base::worker& wcng){
@@ -1377,22 +1301,19 @@ bool DbPGProvider::getWorkerByTask(uint64_t tId, uint64_t& qtId, ZM_Base::worker
         "JOIN tblWorker wkr ON wkr.id = tq.worker "
         "WHERE tpp.id = " << tId << " AND tpp.isDelete = 0;";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
     errorMess(string("getWorkerByTask error: ") + PQerrorMessage(_pg));
-    PQclear(res);
     return false;
   }
-  if (PQntuples(res) != 1){
+  if (PQntuples(pgr.res) != 1){
     errorMess(string("getWorkerByTask error: task delete OR not taken to work"));
-    PQclear(res);
     return false;
   }
-  qtId = stoull(PQgetvalue(res, 0, 0));
-  wcng.id = stoull(PQgetvalue(res, 0, 1));
-  wcng.connectPnt = PQgetvalue(res, 0, 2);
+  qtId = stoull(PQgetvalue(pgr.res, 0, 0));
+  wcng.id = stoull(PQgetvalue(pgr.res, 0, 1));
+  wcng.connectPnt = PQgetvalue(pgr.res, 0, 2);
 
-  PQclear(res); 
   return true;
 }
 
@@ -1407,21 +1328,19 @@ vector<ZM_DB::messError> DbPGProvider::getInternErrors(uint64_t sId, uint64_t wI
         "WHERE (schedr = " << sId << " OR " << sId << " = 0)" << " AND "
         "      (worker = " << wId << " OR " << wId << " = 0) ORDER BY createTime LIMIT " << mCnt << ";";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
     errorMess(string("getInternErrors error: ") + PQerrorMessage(_pg));
-    PQclear(res);
     return vector<ZM_DB::messError>();
   }  
-  int rows = PQntuples(res);
+  int rows = PQntuples(pgr.res);
   std::vector<ZM_DB::messError> ret(rows);
   for (int i = 0; i < rows; ++i){
-    ret[i].schedrId = stoull(PQgetvalue(res, i, 0));
-    ret[i].workerId = stoull(PQgetvalue(res, i, 1));
-    ret[i].message = PQgetvalue(res, i, 2);
-    ret[i].createTime = PQgetvalue(res, i, 3);
+    ret[i].schedrId = stoull(PQgetvalue(pgr.res, i, 0));
+    ret[i].workerId = stoull(PQgetvalue(pgr.res, i, 1));
+    ret[i].message = PQgetvalue(pgr.res, i, 2);
+    ret[i].createTime = PQgetvalue(pgr.res, i, 3);
   }
-  PQclear(res);
   return ret;
 }
 
@@ -1438,23 +1357,20 @@ bool DbPGProvider::getSchedr(std::string& connPnt, ZM_Base::scheduler& outCng){
         "JOIN tblConnectPnt cp ON cp.id = s.connPnt "
         "WHERE cp.ipAddr = '" << cp[0] << "' AND cp.port = '" << cp[1] << "' AND s.isDelete = 0;";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
     errorMess(string("getSchedr error: ") + PQerrorMessage(_pg));
-    PQclear(res);
     return false;
   }
-  if (PQntuples(res) == 0){
+  if (PQntuples(pgr.res) == 0){
     errorMess("getSchedr error: such schedr does not exist");
-    PQclear(res);
     return false;
   }
-  outCng.id = stoull(PQgetvalue(res, 0, 0));
+  outCng.id = stoull(PQgetvalue(pgr.res, 0, 0));
   outCng.connectPnt = connPnt;
-  outCng.state = (ZM_Base::stateType)atoi(PQgetvalue(res, 0, 1));
-  outCng.capacityTask = atoi(PQgetvalue(res, 0, 2));
-  outCng.activeTask = atoi(PQgetvalue(res, 0, 3));
-  PQclear(res); 
+  outCng.state = (ZM_Base::stateType)atoi(PQgetvalue(pgr.res, 0, 1));
+  outCng.capacityTask = atoi(PQgetvalue(pgr.res, 0, 2));
+  outCng.activeTask = atoi(PQgetvalue(pgr.res, 0, 3));
   return true;
 }
 bool DbPGProvider::getTasksOfSchedr(uint64_t sId, std::vector<ZM_DB::schedrTask>& out){
@@ -1462,28 +1378,24 @@ bool DbPGProvider::getTasksOfSchedr(uint64_t sId, std::vector<ZM_DB::schedrTask>
   stringstream ss;
   ss << "SELECT * FROM funcTasksOfSchedr(" << sId << ");";
      
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
     errorMess(string("getTasksOfSchedr error: ") + PQerrorMessage(_pg));
-    PQclear(res);
     return false;
   }
-  int tsz = PQntuples(res);
-  for (int i = 0; i < tsz; ++i){   
-
-    string params = PQgetvalue(res, i, 5);
+  int tsz = PQntuples(pgr.res);
+  for (int i = 0; i < tsz; ++i){
+    string params = PQgetvalue(pgr.res, i, 5);
     ZM_Aux::replace(params, "\"", "");
     params = string(params.data() + 1, params.size() - 2); // remove '{' and '}'
-
-    out.push_back(ZM_DB::schedrTask{stoull(PQgetvalue(res, i, 0)),
-                                    ZM_Base::task{stoull(PQgetvalue(res, i, 1)),
-                                                  atoi(PQgetvalue(res, i, 2)),
-                                                  atoi(PQgetvalue(res, i, 3)),
-                                                  PQgetvalue(res, i, 4)
+    out.push_back(ZM_DB::schedrTask{stoull(PQgetvalue(pgr.res, i, 0)),
+                                    ZM_Base::task{stoull(PQgetvalue(pgr.res, i, 1)),
+                                                  atoi(PQgetvalue(pgr.res, i, 2)),
+                                                  atoi(PQgetvalue(pgr.res, i, 3)),
+                                                  PQgetvalue(pgr.res, i, 4)
                                                 },
                                     params});
   }
-  PQclear(res);
   return true;
 }
 bool DbPGProvider::getWorkersOfSchedr(uint64_t sId, std::vector<ZM_Base::worker>& out){
@@ -1494,23 +1406,21 @@ bool DbPGProvider::getWorkersOfSchedr(uint64_t sId, std::vector<ZM_Base::worker>
         "JOIN tblConnectPnt cp ON cp.id = w.connPnt "
         "WHERE w.schedr = " << sId << " AND w.isDelete = 0;";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
     errorMess(string("getWorkersOfSchedr error: ") + PQerrorMessage(_pg));
-    PQclear(res);
     return false;
   }
-  int wsz = PQntuples(res);
+  int wsz = PQntuples(pgr.res);
   for(int i =0; i < wsz; ++i){
-    out.push_back(ZM_Base::worker{ stoull(PQgetvalue(res, i, 0)),
+    out.push_back(ZM_Base::worker{ stoull(PQgetvalue(pgr.res, i, 0)),
                                    sId,
-                                   (ZM_Base::stateType)atoi(PQgetvalue(res, i, 1)),
-                                   atoi(PQgetvalue(res, i, 2)),
-                                   atoi(PQgetvalue(res, i, 3)),
-                                   atoi(PQgetvalue(res, i, 4)),
-                                   PQgetvalue(res, i, 5) + string(":") + PQgetvalue(res, i, 6)});
+                                   (ZM_Base::stateType)atoi(PQgetvalue(pgr.res, i, 1)),
+                                   atoi(PQgetvalue(pgr.res, i, 2)),
+                                   atoi(PQgetvalue(pgr.res, i, 3)),
+                                   atoi(PQgetvalue(pgr.res, i, 4)),
+                                   PQgetvalue(pgr.res, i, 5) + string(":") + PQgetvalue(pgr.res, i, 6)});
   }
-  PQclear(res);
   return true;
 }
 bool DbPGProvider::getNewTasksForSchedr(uint64_t sId, int maxTaskCnt, std::vector<ZM_DB::schedrTask>& out){
@@ -1518,28 +1428,24 @@ bool DbPGProvider::getNewTasksForSchedr(uint64_t sId, int maxTaskCnt, std::vecto
   stringstream ss;
   ss << "SELECT * FROM funcNewTasksForSchedr(" << sId << "," << maxTaskCnt << ");";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_TUPLES_OK){
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
     errorMess(string("getNewTasksForSchedr error: ") + PQerrorMessage(_pg));
-    PQclear(res);
     return false;
   }
-  int tsz = PQntuples(res);
-  for (int i = 0; i < tsz; ++i){  
-
-    string params = PQgetvalue(res, i, 5);
+  int tsz = PQntuples(pgr.res);
+  for (int i = 0; i < tsz; ++i){
+    string params = PQgetvalue(pgr.res, i, 5);
     ZM_Aux::replace(params, "\"", "");
-    params = string(params.data() + 1, params.size() - 2); // remove '{' and '}'
-    
-    out.push_back(ZM_DB::schedrTask{stoull(PQgetvalue(res, i, 0)),
-                                    ZM_Base::task{stoull(PQgetvalue(res, i, 1)),
-                                                  atoi(PQgetvalue(res, i, 2)),
-                                                  atoi(PQgetvalue(res, i, 3)),
-                                                  PQgetvalue(res, i, 4)
+    params = string(params.data() + 1, params.size() - 2); // remove '{' and '}'    
+    out.push_back(ZM_DB::schedrTask{stoull(PQgetvalue(pgr.res, i, 0)),
+                                    ZM_Base::task{stoull(PQgetvalue(pgr.res, i, 1)),
+                                                  atoi(PQgetvalue(pgr.res, i, 2)),
+                                                  atoi(PQgetvalue(pgr.res, i, 3)),
+                                                  PQgetvalue(pgr.res, i, 4)
                                                 },
                                     params});
   }
-  PQclear(res);
   return true;
 }
 bool DbPGProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::messSchedr>& mess){
@@ -1729,13 +1635,11 @@ bool DbPGProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::messSc
         break;
     }    
   }
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_COMMAND_OK){
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
     errorMess(string("sendAllMessFromSchedr error: ") + PQerrorMessage(_pg));
-    PQclear(res);
     return false;
   }
-  PQclear(res);
   return true;
 }
 
@@ -1745,10 +1649,9 @@ bool DbPGProvider::delAllUsers(){
   stringstream ss;
   ss << "TRUNCATE tblUser CASCADE;";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_COMMAND_OK){
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
       errorMess(PQerrorMessage(_pg));
-      PQclear(res);
       return false;
   }
   return true;
@@ -1758,10 +1661,9 @@ bool DbPGProvider::delAllSchedrs(){
   stringstream ss;
   ss << "TRUNCATE tblScheduler CASCADE;";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_COMMAND_OK){
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
       errorMess(PQerrorMessage(_pg));
-      PQclear(res);
       return false;
   }
   return true;
@@ -1771,10 +1673,9 @@ bool DbPGProvider::delAllWorkers(){
   stringstream ss;
   ss << "TRUNCATE tblWorker CASCADE;";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_COMMAND_OK){
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
       errorMess(PQerrorMessage(_pg));
-      PQclear(res);
       return false;
   }
   return true;
@@ -1784,10 +1685,9 @@ bool DbPGProvider::delAllPipelines(){
   stringstream ss;
   ss << "TRUNCATE tblUPipeline CASCADE;";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_COMMAND_OK){
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
       errorMess(PQerrorMessage(_pg));
-      PQclear(res);
       return false;
   }
   return true;
@@ -1798,10 +1698,9 @@ bool DbPGProvider::delAllTemplateTask(){
   ss << "TRUNCATE tblUTaskTemplate CASCADE;";
   ss << "TRUNCATE tblTask CASCADE;";
 
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_COMMAND_OK){
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
       errorMess(PQerrorMessage(_pg));
-      PQclear(res);
       return false;
   }
   return true;
@@ -1817,10 +1716,9 @@ bool DbPGProvider::delAllTask(){
         "TRUNCATE tblTaskParam CASCADE;"
         "TRUNCATE tblTaskQueue CASCADE;";
   
-  auto res = PQexec(_pg, ss.str().c_str());
-  if (PQresultStatus(res) != PGRES_COMMAND_OK){
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
       errorMess(PQerrorMessage(_pg));
-      PQclear(res);
       return false;
   }
   return true;
