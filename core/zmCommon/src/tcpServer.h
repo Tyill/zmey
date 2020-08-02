@@ -67,7 +67,7 @@ public:
   tcp::socket _socket;
   std::string _addr;
   int _port; 
-  enum { MAX_LENGTH = 8192 };
+  enum { MAX_LENGTH = 4096 };
   char _data[MAX_LENGTH];
   std::string _mess;
   bool _isSendReceive = false;
