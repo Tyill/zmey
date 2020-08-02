@@ -44,28 +44,8 @@ public:
     cng.connectStr = "host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10";
     _pDb = ZM_DB::makeDbProvider(cng);
     if (_pDb){
-   
-      // auto usrId = _pDb->getAllUsers()[0];
-
-      // auto pplId = _pDb->getAllPipelines(usrId)[0];
-
-      // auto tasksId = _pDb->getAllTasks(pplId, ZM_Base::stateType::undefined);
-      
-      // vector<ZM_DB::tskState> tstate;
-      // _pDb->taskState(tasksId, tstate);
-
-      // bool ok = false;
-
-      // if (!isTables){
-      //   isTables = true;
-      //   EXPECT_TRUE(_pDb->createTables());
-      // }
-   
-      // EXPECT_TRUE(_pDb->delAllSchedrs())   << _pDb->getLastError();
-      // EXPECT_TRUE(_pDb->delAllTask())      << _pDb->getLastError();
-      // EXPECT_TRUE(_pDb->delAllPipelines()) << _pDb->getLastError();
-      // EXPECT_TRUE(_pDb->delAllUsers())     << _pDb->getLastError();
-      // EXPECT_TRUE(_pDb->delAllWorkers())   << _pDb->getLastError();
+      EXPECT_TRUE(_pDb->delAllTables())   << _pDb->getLastError();
+      EXPECT_TRUE(_pDb->createTables());
     }
   }
   ~DBSchedrTest() {
@@ -124,7 +104,6 @@ TEST_F(DBSchedrTest, getTaskOfSchedr){
   ppline.name = "newPP";
   ppline.description = "dfsdf";
   ppline.uId = uId;
-  ppline.isShared = 0;
   uint64_t pId = 0;  
   EXPECT_TRUE(_pDb->addPipeline(ppline, pId) && (pId > 0)) << _pDb->getLastError(); 
     
@@ -138,7 +117,6 @@ TEST_F(DBSchedrTest, getTaskOfSchedr){
   templ.description = "descr";
   templ.name = "newTask";
   templ.base = base;
-  templ.isShared = 0;
   uint64_t ttId = 0;  
   EXPECT_TRUE(_pDb->addTaskTemplate(templ, ttId) && (ttId > 0)) << _pDb->getLastError(); 
 
@@ -246,7 +224,6 @@ TEST_F(DBSchedrTest, getNewTasksForSchedr){
   ppline.name = "newPP";
   ppline.description = "dfsdf";
   ppline.uId = uId;
-  ppline.isShared = 0;
   uint64_t pId = 0;  
   EXPECT_TRUE(_pDb->addPipeline(ppline, pId) && (pId > 0)) << _pDb->getLastError(); 
     
@@ -260,7 +237,6 @@ TEST_F(DBSchedrTest, getNewTasksForSchedr){
   templ.description = "descr";
   templ.name = "newTask";
   templ.base = base;
-  templ.isShared = 0;
   uint64_t ttId = 0;  
   EXPECT_TRUE(_pDb->addTaskTemplate(templ, ttId) && (ttId > 0)) << _pDb->getLastError(); 
 
@@ -337,7 +313,6 @@ TEST_F(DBSchedrTest, getWorkerByTask){
   ppline.name = "newPP";
   ppline.description = "dfsdf";
   ppline.uId = uId;
-  ppline.isShared = 0;
   uint64_t pId = 0;  
   EXPECT_TRUE(_pDb->addPipeline(ppline, pId) && (pId > 0)) << _pDb->getLastError(); 
     
@@ -351,7 +326,6 @@ TEST_F(DBSchedrTest, getWorkerByTask){
   templ.description = "descr";
   templ.name = "newTask";
   templ.base = base;
-  templ.isShared = 0;
   uint64_t ttId = 0;  
   EXPECT_TRUE(_pDb->addTaskTemplate(templ, ttId) && (ttId > 0)) << _pDb->getLastError(); 
 

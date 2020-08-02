@@ -36,7 +36,6 @@
 using namespace std;
 using namespace zmey;
 
-bool isTables = false;
 class APITest : public ::testing::Test {
 public:
   APITest() { 
@@ -49,11 +48,7 @@ public:
     if (strlen(err) > 0){    
       TEST_COUT << err << endl;
       exit(-1);
-    }   
-    if (!isTables){
-      isTables = true;
-      EXPECT_TRUE(zmey::zmCreateTables(_zc));
-    }
+    } 
     zmey::zmSetErrorCBack(_zc, [](const char* mess, zmey::zmUData){
       TEST_COUT << mess << endl;
     }, nullptr); 
@@ -63,13 +58,10 @@ public:
     cng.connectStr = connStr;
     auto pDb = ZM_DB::makeDbProvider(cng);
     if (pDb){
-      EXPECT_TRUE(pDb->delAllSchedrs())   << pDb->getLastError();
-      EXPECT_TRUE(pDb->delAllTask())      << pDb->getLastError();
-      EXPECT_TRUE(pDb->delAllPipelines()) << pDb->getLastError();
-      EXPECT_TRUE(pDb->delAllUsers())     << pDb->getLastError();
-      EXPECT_TRUE(pDb->delAllWorkers())   << pDb->getLastError();
+      EXPECT_TRUE(pDb->delAllTables())   << pDb->getLastError();
       delete pDb;
     }
+    EXPECT_TRUE(zmey::zmCreateTables(_zc));
   }
   ~APITest() {
     zmey::zmDisconnect(_zc);

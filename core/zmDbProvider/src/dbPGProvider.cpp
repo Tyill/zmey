@@ -1061,8 +1061,7 @@ bool DbPGProvider::addTask(const ZM_Base::uTask& cng, uint64_t& outTId){
             << "ARRAY" << prevTasks << "::INT[],"
             << "ARRAY" << nextTasks << "::INT[],"
             << "ARRAY" << params << "::TEXT[],"
-            << "'" << cng.screenRect << "',"
-            << 0 << "));";
+            << "'" << cng.screenRect << "'));";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
@@ -1127,8 +1126,7 @@ bool DbPGProvider::changeTask(uint64_t tId, const ZM_Base::uTask& newCng){
             << "ARRAY" << prevTasks << "::INT[],"
             << "ARRAY" << nextTasks << "::INT[],"
             << "ARRAY" << params << "::TEXT[],"
-            << "'" << newCng.screenRect << "',"
-            << 0 << "));";
+            << "'" << newCng.screenRect << "'));";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
