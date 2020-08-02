@@ -228,6 +228,7 @@ bool DbPGProvider::createTables(){
         "id           SERIAL PRIMARY KEY,"
         "pipeline     INT NOT NULL REFERENCES tblUPipeline,"
         "taskTempl    INT NOT NULL REFERENCES tblUTaskTemplate,"
+		"taskGroup    INT REFERENCES tblUTaskGroup,"
         "qtask        INT REFERENCES tblTaskQueue,"
         "priority     INT NOT NULL DEFAULT 1 CHECK (priority BETWEEN 1 AND 3),"
         "prevTasks    INT[] NOT NULL,"     // [..]  
@@ -240,7 +241,6 @@ bool DbPGProvider::createTables(){
   ss << "CREATE TABLE IF NOT EXISTS tblUTaskGroup("
         "id           SERIAL PRIMARY KEY,"
         "pipeline     INT NOT NULL REFERENCES tblUPipeline,"
-        "pplTask      INT NOT NULL REFERENCES tblUPipelineTask,"
         "name         TEXT NOT NULL CHECK (name <> ''),"
         "description  TEXT NOT NULL,"
         "screenRect   TEXT NOT NULL);";
