@@ -215,6 +215,15 @@ bool DbPGProvider::createTables(){
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
+  ss << "CREATE TABLE IF NOT EXISTS tblUTaskGroup("
+        "id           SERIAL PRIMARY KEY,"
+        "pipeline     INT NOT NULL REFERENCES tblUPipeline,"
+        "name         TEXT NOT NULL CHECK (name <> ''),"
+        "description  TEXT NOT NULL,"
+        "screenRect   TEXT NOT NULL);";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+
+  ss.str("");
   ss << "CREATE TABLE IF NOT EXISTS tblUTaskTemplate("
         "task         INT PRIMARY KEY REFERENCES tblTask,"
         "usr          INT NOT NULL REFERENCES tblUser,"
@@ -228,7 +237,7 @@ bool DbPGProvider::createTables(){
         "id           SERIAL PRIMARY KEY,"
         "pipeline     INT NOT NULL REFERENCES tblUPipeline,"
         "taskTempl    INT NOT NULL REFERENCES tblUTaskTemplate,"
-		"taskGroup    INT REFERENCES tblUTaskGroup,"
+        "taskGroup    INT REFERENCES tblUTaskGroup,"
         "qtask        INT REFERENCES tblTaskQueue,"
         "priority     INT NOT NULL DEFAULT 1 CHECK (priority BETWEEN 1 AND 3),"
         "prevTasks    INT[] NOT NULL,"     // [..]  
@@ -236,16 +245,7 @@ bool DbPGProvider::createTables(){
         "params       TEXT[] NOT NULL,"    // ['param1','param2'..]
         "screenRect   TEXT NOT NULL);";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
-
-  ss.str("");
-  ss << "CREATE TABLE IF NOT EXISTS tblUTaskGroup("
-        "id           SERIAL PRIMARY KEY,"
-        "pipeline     INT NOT NULL REFERENCES tblUPipeline,"
-        "name         TEXT NOT NULL CHECK (name <> ''),"
-        "description  TEXT NOT NULL,"
-        "screenRect   TEXT NOT NULL);";
-  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
-  
+    
   ///////////////////////////////////////////////////////////////////////////
   /// INDEXES
   ss.str(""); 
@@ -1057,6 +1057,7 @@ bool DbPGProvider::addTask(const ZM_Base::uTask& cng, uint64_t& outTId){
             << cng.pplId << ","
             << cng.base.tId << ","
             << 0 << ","
+            << 0 << ","
             << cng.base.priority << ","
             << "ARRAY" << prevTasks << "::INT[],"
             << "ARRAY" << nextTasks << "::INT[],"
@@ -1121,6 +1122,7 @@ bool DbPGProvider::changeTask(uint64_t tId, const ZM_Base::uTask& newCng){
         "(" << tId << ","
             << newCng.pplId << ","
             << newCng.base.tId << ","
+            << 0 << ","
             << 0 << ","
             << newCng.base.priority << ","
             << "ARRAY" << prevTasks << "::INT[],"

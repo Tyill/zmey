@@ -126,10 +126,8 @@ bool zmGetUserCng(zmConn zo, uint64_t userId, zmUser* outUserCng){
   ZM_Base::user ur;
   if (static_cast<ZM_DB::DbProvider*>(zo)->getUserCng(userId, ur)){    
     strcpy(outUserCng->name, ur.name.c_str());
-    if (!ur.description.empty()){
-      outUserCng->description = (char*)realloc(outUserCng->description, ur.description.size() + 1);
-      strcpy(outUserCng->description, ur.description.c_str());   
-    }
+    outUserCng->description = (char*)realloc(outUserCng->description, ur.description.size() + 1);
+    strcpy(outUserCng->description, ur.description.c_str());   
     return true;
   }
   return false;
@@ -425,10 +423,8 @@ bool zmGetPipeline(zmConn zo, uint64_t pplId, zmPipeline* outPPLCng){
   if (static_cast<ZM_DB::DbProvider*>(zo)->getPipeline(pplId, pp)){    
     outPPLCng->userId = pp.uId;
     strcpy(outPPLCng->name, pp.name.c_str());
-    if (!pp.description.empty()){
-      outPPLCng->description = (char*)realloc(outPPLCng->description, pp.description.size() + 1);
-      strcpy(outPPLCng->description, pp.description.c_str());  
-    }
+    outPPLCng->description = (char*)realloc(outPPLCng->description, pp.description.size() + 1);
+    strcpy(outPPLCng->description, pp.description.c_str());  
     return true;
   }
   return false;
@@ -492,10 +488,8 @@ bool zmGetTaskTemplate(zmConn zo, uint64_t tId, zmTaskTemplate* outTCng){
   ZM_Base::uTaskTemplate task;
   if (static_cast<ZM_DB::DbProvider*>(zo)->getTaskTemplate(tId, task)){  
     strcpy(outTCng->name, task.name.c_str());  
-    if (!task.description.empty()){
-      outTCng->description = (char*)realloc(outTCng->description, task.description.size() + 1);
-      strcpy(outTCng->description, task.description.c_str());
-    }
+    outTCng->description = (char*)realloc(outTCng->description, task.description.size() + 1);
+    strcpy(outTCng->description, task.description.c_str());
     outTCng->averDurationSec = task.base.averDurationSec;
     outTCng->maxDurationSec = task.base.maxDurationSec;
     outTCng->userId = task.uId;
@@ -573,23 +567,14 @@ bool zmGetTask(zmConn zo, uint64_t qtId, zmTask* outCng){
     outCng->pplId = task.pplId;
     outCng->ttId = task.base.tId;
     outCng->priority = task.base.priority;
-
-    if (!task.prevTasks.empty()){
-      outCng->prevTasksId = (char*)realloc(outCng->prevTasksId, task.prevTasks.size() + 1);
-      strcpy(outCng->prevTasksId, task.prevTasks.c_str());
-    }
-    if (!task.nextTasks.empty()){
-      outCng->nextTasksId = (char*)realloc(outCng->nextTasksId, task.nextTasks.size() + 1);
-      strcpy(outCng->nextTasksId, task.nextTasks.c_str());
-    }
-    if (!task.base.params.empty()){
-      outCng->params = (char*)realloc(outCng->params, task.base.params.size() + 1);
-      strcpy(outCng->params, task.base.params.c_str());
-    }    
-    if (!task.screenRect.empty()){
-      outCng->screenRect = (char*)realloc(outCng->screenRect, task.screenRect.size() + 1);
-      strcpy(outCng->screenRect, task.screenRect.c_str());   
-    }
+    outCng->prevTasksId = (char*)realloc(outCng->prevTasksId, task.prevTasks.size() + 1);
+    strcpy(outCng->prevTasksId, task.prevTasks.c_str());    
+    outCng->nextTasksId = (char*)realloc(outCng->nextTasksId, task.nextTasks.size() + 1);
+    strcpy(outCng->nextTasksId, task.nextTasks.c_str());    
+    outCng->params = (char*)realloc(outCng->params, task.base.params.size() + 1);
+    strcpy(outCng->params, task.base.params.c_str());    
+    outCng->screenRect = (char*)realloc(outCng->screenRect, task.screenRect.size() + 1);
+    strcpy(outCng->screenRect, task.screenRect.c_str());   
     return true;
   }
   return false;
@@ -702,10 +687,8 @@ bool zmTaskResult(zmConn zo, uint64_t qtId, char** outTResult){
   }
   string result;
   if (static_cast<ZM_DB::DbProvider*>(zo)->taskResult(qtId, result)){  
-    if (!result.empty()){
-      *outTResult = (char*)realloc(*outTResult, result.size() + 1); 
-      strcpy(*outTResult, result.c_str());
-    }
+    *outTResult = (char*)realloc(*outTResult, result.size() + 1); 
+    strcpy(*outTResult, result.c_str());
     return true;
   }
   return false;
