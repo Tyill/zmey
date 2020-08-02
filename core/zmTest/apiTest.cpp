@@ -478,7 +478,6 @@ TEST_F(APITest, addPipeline){
   strcpy(ppline.name, "newPP");
   ppline.description = new char[24];
   strcpy(ppline.description, "dfsdf");
-  ppline.isShared = 0;
   ppline.userId = uId;
   uint64_t pId = 0;  
   EXPECT_TRUE(zmAddPipeline(_zc, ppline, &pId) && (pId > 0)); 
@@ -505,28 +504,23 @@ TEST_F(APITest, getPipeline){
   strcpy(ppline.name, "newPP");
   ppline.description = new char[24];
   strcpy(ppline.description, "dfsdf");
-  ppline.isShared = 0;
   ppline.userId = uId;
   uint64_t pId = 0;  
   EXPECT_TRUE(zmAddPipeline(_zc, ppline, &pId) && (pId > 0)); 
 
   strcpy(ppline.name, "");
   strcpy(ppline.description, "");
-  ppline.isShared = 1; 
   EXPECT_TRUE(zmGetPipeline(_zc, pId, &ppline) && 
                            (ppline.userId == uId) &&
                            (strcmp(ppline.name, "newPP") == 0) &&
-                           (ppline.isShared == 0) &&
                            (strcmp(ppline.description, "dfsdf") == 0)); 
 
   ppline.userId = 0;
   strcpy(ppline.name, "");
   strcpy(ppline.description, "dd");
-  ppline.isShared = 1; 
   EXPECT_TRUE(!zmGetPipeline(_zc, pId + 1, &ppline) &&
              (ppline.userId == 0) &&
              (strcmp(ppline.name, "") == 0) &&
-             (ppline.isShared == 1) &&
              (strcmp(ppline.description, "dd") == 0)); 
 
   delete ppline.description;                                                            
@@ -542,25 +536,21 @@ TEST_F(APITest, changePipeline){
   strcpy(ppline.name, "newPP");
   ppline.description = new char[24];
   strcpy(ppline.description, "dfsdf");
-  ppline.isShared = 0;
   ppline.userId = uId;
   uint64_t pId = 0;  
   EXPECT_TRUE(zmAddPipeline(_zc, ppline, &pId) && (pId > 0));  
 
   strcpy(ppline.name, "super");
   strcpy(ppline.description, "localhost:1234");
-  ppline.isShared = 1;
   ppline.userId = uId;
   EXPECT_TRUE(zmChangePipeline(_zc, pId, ppline)); 
 
   strcpy(ppline.name, "");
   strcpy(ppline.description, "1234");
-  ppline.isShared = 0;
   ppline.userId = 0;
   EXPECT_TRUE(zmGetPipeline(_zc, pId, &ppline) &&
                            (strcmp(ppline.name, "super") == 0) &&
                            (strcmp(ppline.description, "localhost:1234") == 0) &&
-                           (ppline.isShared == 1) &&
                            (ppline.userId == uId));  
                                                 
   ppline.userId = uId + 1;
@@ -579,7 +569,6 @@ TEST_F(APITest, delPipeline){
   strcpy(ppline.name, "newPP");
   ppline.description = new char[24];
   strcpy(ppline.description, "dfsdf");
-  ppline.isShared = 0;
   ppline.userId = uId;
   uint64_t pId = 0;  
   EXPECT_TRUE(zmAddPipeline(_zc, ppline, &pId) && (pId > 0));  
@@ -601,14 +590,12 @@ TEST_F(APITest, getAllPipelines){
   strcpy(ppline.name, "newPP");
   ppline.description = new char[24];
   strcpy(ppline.description, "dfsdf");
-  ppline.isShared = 0;
   ppline.userId = uId;
   uint64_t pId1 = 0;  
   EXPECT_TRUE(zmAddPipeline(_zc, ppline, &pId1) && (pId1 > 0));  
 
   strcpy(ppline.name, "newPP2");
   strcpy(ppline.description, "dfsdf");
-  ppline.isShared = 0;
   ppline.userId = uId;
   uint64_t pId2 = 0;  
   EXPECT_TRUE(zmAddPipeline(_zc, ppline, &pId2) && (pId2 > 0));  
@@ -638,7 +625,6 @@ TEST_F(APITest, addTaskTemplate){
   templ.userId = uId; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
-  templ.isShared = 0;
   strcpy(templ.name, "newTask");
   uint64_t tId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &tId) && (tId > 0));   
@@ -665,7 +651,6 @@ TEST_F(APITest, getTaskTemplate){
   templ.userId = uId; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
-  templ.isShared = 0;
   strcpy(templ.name, "newTask");
   uint64_t tId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &tId) && (tId > 0));    
@@ -675,14 +660,12 @@ TEST_F(APITest, getTaskTemplate){
   strcpy(templ.script, "1000");
   templ.userId = uId; 
   strcpy(templ.description, "dfsd");
-  templ.isShared = 1;
   strcpy(templ.name, "new11ask");
   EXPECT_TRUE(zmGetTaskTemplate(_zc, tId, &templ) &&
              (templ.averDurationSec == 10) &&
              (templ.maxDurationSec == 100) &&
              (strcmp(templ.script, "100500") == 0) &&
              (templ.userId == uId) &&
-             (templ.isShared == 0) &&
              (strcmp(templ.description, "descr") == 0) &&
              (strcmp(templ.name, "newTask") == 0)); 
 
@@ -710,7 +693,6 @@ TEST_F(APITest, delTaskTemplate){
   templ.userId = uId; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
-  templ.isShared = 0;
   strcpy(templ.name, "newTask");
   uint64_t tId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &tId) && (tId > 0));
@@ -741,7 +723,6 @@ TEST_F(APITest, changeTaskTemplate){
   templ.userId = uId; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
-  templ.isShared = 0;
   strcpy(templ.name, "newTask");
   uint64_t tId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &tId) && (tId > 0));  
@@ -751,7 +732,6 @@ TEST_F(APITest, changeTaskTemplate){
   strcpy(templ.script, "100");
   templ.userId = uId; 
   strcpy(templ.description, "de");
-  templ.isShared = 1;
   strcpy(templ.name, "new");
   uint64_t tIdNew = 0;  
   EXPECT_TRUE(zmChangeTaskTemplate(_zc, tId, templ, &tIdNew) && (tIdNew > 0));   
@@ -761,14 +741,12 @@ TEST_F(APITest, changeTaskTemplate){
   strcpy(templ.script, "1000");
   templ.userId = uId + 1; 
   strcpy(templ.description, "d00");
-  templ.isShared = 0;
   strcpy(templ.name, "new00");
   EXPECT_TRUE(zmGetTaskTemplate(_zc, tIdNew, &templ) &&
              (templ.averDurationSec == 1) &&
              (templ.maxDurationSec == 10) &&
              (strcmp(templ.script, "100") == 0) &&
              (templ.userId == uId) &&
-             (templ.isShared == 1) &&
              (strcmp(templ.description, "de") == 0) &&
              (strcmp(templ.name, "new") == 0));   
 
@@ -795,7 +773,6 @@ TEST_F(APITest, getAllTaskTemplate){
   templ.userId = uId1; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
-  templ.isShared = 0;
   strcpy(templ.name, "newTask");
   uint64_t tId1 = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &tId1) && (tId1 > 0));  
@@ -805,7 +782,6 @@ TEST_F(APITest, getAllTaskTemplate){
   strcpy(templ.script, "100500");
   templ.userId = uId2; 
   strcpy(templ.description, "descr");
-  templ.isShared = 0;
   strcpy(templ.name, "newTask");
   uint64_t tId2 = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &tId2) && (tId2 > 0)); 
@@ -835,7 +811,6 @@ TEST_F(APITest, addTask){
   strcpy(ppline.name, "newPP");
   ppline.description = new char[24];
   strcpy(ppline.description, "dfsdf");
-  ppline.isShared = 0;
   ppline.userId = uId;
   uint64_t pId = 0;  
   EXPECT_TRUE(zmAddPipeline(_zc, ppline, &pId) && (pId > 0)); 
@@ -848,7 +823,6 @@ TEST_F(APITest, addTask){
   templ.userId = uId; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
-  templ.isShared = 0;
   strcpy(templ.name, "newTask");
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
@@ -883,7 +857,6 @@ TEST_F(APITest, getTask){
   strcpy(ppline.name, "newPP");
   ppline.description = new char[24];
   strcpy(ppline.description, "dfsdf");
-  ppline.isShared = 0;
   ppline.userId = uId;
   uint64_t pId = 0;  
   EXPECT_TRUE(zmAddPipeline(_zc, ppline, &pId) && (pId > 0)); 
@@ -896,7 +869,6 @@ TEST_F(APITest, getTask){
   templ.userId = uId; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
-  templ.isShared = 0;
   strcpy(templ.name, "newTask");
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
@@ -943,7 +915,6 @@ TEST_F(APITest, changeTask){
   strcpy(ppline.name, "newPP");
   ppline.description = new char[24];
   strcpy(ppline.description, "dfsdf");
-  ppline.isShared = 0;
   ppline.userId = uId;
   uint64_t pId = 0;  
   EXPECT_TRUE(zmAddPipeline(_zc, ppline, &pId) && (pId > 0)); 
@@ -956,7 +927,6 @@ TEST_F(APITest, changeTask){
   templ.userId = uId; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
-  templ.isShared = 0;
   strcpy(templ.name, "newTask");
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
@@ -1025,7 +995,6 @@ TEST_F(APITest, delTask){
   strcpy(ppline.name, "newPP");
   ppline.description = new char[24];
   strcpy(ppline.description, "dfsdf");
-  ppline.isShared = 0;
   ppline.userId = uId;
   uint64_t pId = 0;  
   EXPECT_TRUE(zmAddPipeline(_zc, ppline, &pId) && (pId > 0)); 
@@ -1038,7 +1007,6 @@ TEST_F(APITest, delTask){
   templ.userId = uId; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
-  templ.isShared = 0;
   strcpy(templ.name, "newTask");
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
@@ -1087,7 +1055,6 @@ TEST_F(APITest, startTask){
   strcpy(ppline.name, "newPP");
   ppline.description = new char[24];
   strcpy(ppline.description, "dfsdf");
-  ppline.isShared = 0;
   ppline.userId = uId;
   uint64_t pId = 0;  
   EXPECT_TRUE(zmAddPipeline(_zc, ppline, &pId) && (pId > 0)); 
@@ -1100,7 +1067,6 @@ TEST_F(APITest, startTask){
   templ.userId = uId; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
-  templ.isShared = 0;
   strcpy(templ.name, "newTask");
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
@@ -1133,7 +1099,6 @@ TEST_F(APITest, cancelTask){
   strcpy(ppline.name, "newPP");
   ppline.description = new char[24];
   strcpy(ppline.description, "dfsdf");
-  ppline.isShared = 0;
   ppline.userId = uId;
   uint64_t pId = 0;  
   EXPECT_TRUE(zmAddPipeline(_zc, ppline, &pId) && (pId > 0)); 
@@ -1146,7 +1111,6 @@ TEST_F(APITest, cancelTask){
   templ.userId = uId; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
-  templ.isShared = 0;
   strcpy(templ.name, "newTask");
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
@@ -1181,7 +1145,6 @@ TEST_F(APITest, taskState){
   strcpy(ppline.name, "newPP");
   ppline.description = new char[24];
   strcpy(ppline.description, "dfsdf");
-  ppline.isShared = 0;
   ppline.userId = uId;
   uint64_t pId = 0;  
   EXPECT_TRUE(zmAddPipeline(_zc, ppline, &pId) && (pId > 0)); 
@@ -1194,7 +1157,6 @@ TEST_F(APITest, taskState){
   templ.userId = uId; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
-  templ.isShared = 0;
   strcpy(templ.name, "newTask");
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
@@ -1251,7 +1213,6 @@ TEST_F(APITest, taskResult){
   strcpy(ppline.name, "newPP");
   ppline.description = new char[24];
   strcpy(ppline.description, "dfsdf");
-  ppline.isShared = 0;
   ppline.userId = uId;
   uint64_t pId = 0;  
   EXPECT_TRUE(zmAddPipeline(_zc, ppline, &pId) && (pId > 0)); 
@@ -1264,7 +1225,6 @@ TEST_F(APITest, taskResult){
   templ.userId = uId; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
-  templ.isShared = 0;
   strcpy(templ.name, "newTask");
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
@@ -1300,7 +1260,6 @@ TEST_F(APITest, taskTime){
   strcpy(ppline.name, "newPP");
   ppline.description = new char[24];
   strcpy(ppline.description, "dfsdf");
-  ppline.isShared = 0;
   ppline.userId = uId;
   uint64_t pId = 0;  
   EXPECT_TRUE(zmAddPipeline(_zc, ppline, &pId) && (pId > 0)); 
@@ -1313,7 +1272,6 @@ TEST_F(APITest, taskTime){
   templ.userId = uId; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
-  templ.isShared = 0;
   strcpy(templ.name, "newTask");
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
@@ -1349,7 +1307,6 @@ TEST_F(APITest, getAllTask){
   strcpy(ppline.name, "newPP");
   ppline.description = new char[24];
   strcpy(ppline.description, "dfsdf");
-  ppline.isShared = 0;
   ppline.userId = uId;
   uint64_t pId = 0;  
   EXPECT_TRUE(zmAddPipeline(_zc, ppline, &pId) && (pId > 0)); 
@@ -1362,7 +1319,6 @@ TEST_F(APITest, getAllTask){
   templ.userId = uId; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
-  templ.isShared = 0;
   strcpy(templ.name, "newTask");
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 

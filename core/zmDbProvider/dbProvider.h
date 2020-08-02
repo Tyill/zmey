@@ -147,12 +147,7 @@ public:
   virtual bool sendAllMessFromSchedr(uint64_t sId, std::vector<messSchedr>& out) = 0;
 
   // for test
-  virtual bool delAllUsers() = 0;
-  virtual bool delAllSchedrs() = 0;
-  virtual bool delAllWorkers() = 0;
-  virtual bool delAllPipelines() = 0;
-  virtual bool delAllTemplateTask() = 0;
-  virtual bool delAllTask() = 0;
+  virtual bool delAllTables() = 0;
 
 protected:  
   DbProvider(const connectCng& cng);    

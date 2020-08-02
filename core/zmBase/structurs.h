@@ -76,7 +76,6 @@ namespace ZM_Base{
   struct uPipeline{
     uint64_t id;              // id tblUPipeline
     uint64_t uId;             // id tblUser
-    int isShared;             // may be shared [0..1]   
     std::string name;         // unique name
     std::string description;
   };
@@ -101,7 +100,6 @@ namespace ZM_Base{
   // tblUTaskTemplate
   struct uTaskTemplate{
     uint64_t uId;             // parent id tblUser
-    int isShared;             // may be shared [0..1]  
     std::string name;
     std::string description;
     task base;

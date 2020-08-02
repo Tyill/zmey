@@ -90,12 +90,10 @@ class pipeline:
   def __init__(self,
                id : int = 0,
                uId : int = 0,
-               isShared : int = 0,
                name : str = "",
                description : str = ""):
     self.id = id
     self.uId = uId                   # user id
-    self.isShared = isShared         # [0..1]
     self.name = name    
     self.description = description 
 class taskTemplate: 
@@ -105,7 +103,6 @@ class taskTemplate:
                uId : int = 0,
                averDurationSec : int = 1,
                maxDurationSec : int = 1,
-               isShared : int = 0,
                name : str = "",
                description : str = "",
                script: str = ""):
@@ -113,7 +110,6 @@ class taskTemplate:
     self.uId = uId                   # user id
     self.averDurationSec = averDurationSec
     self.maxDurationSec = maxDurationSec
-    self.isShared = isShared         # [0..1]
     self.name = name    
     self.description = description
     self.script = script 
@@ -178,14 +174,12 @@ class _workerCng(ctypes.Structure):
               ('connectPnt', ctypes.c_char * 255)]
 class _pipelineCng(ctypes.Structure):
   _fields_ = [('userId', ctypes.c_uint64),
-              ('isShared', ctypes.c_uint32),
               ('name', ctypes.c_char * 255),
               ('description', ctypes.c_char_p)]
 class _taskTemplCng(ctypes.Structure):
   _fields_ = [('userId', ctypes.c_uint64),
               ('averDurationSec', ctypes.c_uint32),
               ('maxDurationSec', ctypes.c_uint32),
-              ('isShared', ctypes.c_uint32),
               ('name', ctypes.c_char * 255),
               ('description', ctypes.c_char_p),
               ('script', ctypes.c_char_p)]
@@ -765,7 +759,6 @@ class ZMObj:
     if (self._zmConn):
       pcng = _pipelineCng()
       pcng.userId = ioppl.uId
-      pcng.isShared = ioppl.isShared
       pcng.name = ioppl.name.encode('utf-8')
       pcng.description = ioppl.description.encode('utf-8')
       
@@ -794,7 +787,6 @@ class ZMObj:
       pfun.restype = ctypes.c_bool
       if (pfun(self._zmConn, pplid, ctypes.byref(pcng))):      
         ioppl.uId = pcng.userId
-        ioppl.isShared = pcng.isShared
         ioppl.name = pcng.name.decode('utf-8')
         ioppl.description = pcng.description.decode('utf-8')
         return True
@@ -809,7 +801,6 @@ class ZMObj:
       pplid = ctypes.c_uint64(ippl.id)
       pcng = _pipelineCng()
       pcng.userId = ippl.uId
-      pcng.isShared = ippl.isShared
       pcng.name = ippl.name.encode('utf-8')
       pcng.description = ippl.description.encode('utf-8')
       
@@ -875,7 +866,6 @@ class ZMObj:
       tcng.userId = iott.uId
       tcng.averDurationSec = iott.averDurationSec
       tcng.maxDurationSec = iott.maxDurationSec
-      tcng.isShared = iott.isShared
       tcng.name = iott.name.encode('utf-8')
       tcng.description = iott.description.encode('utf-8')
       tcng.script = iott.script.encode('utf-8')
@@ -907,7 +897,6 @@ class ZMObj:
         iott.uId = tcng.userId
         iott.averDurationSec = tcng.averDurationSec
         iott.maxDurationSec = tcng.maxDurationSec
-        iott.isShared = tcng.isShared
         iott.name = tcng.name.decode('utf-8')
         iott.description = tcng.description.decode('utf-8')
         iott.script = tcng.script.decode('utf-8')
@@ -925,7 +914,6 @@ class ZMObj:
       tcng.userId = iott.uId
       tcng.averDurationSec = iott.averDurationSec
       tcng.maxDurationSec = iott.maxDurationSec            
-      tcng.isShared = iott.isShared
       tcng.name = iott.name.encode('utf-8')
       tcng.description = iott.description.encode('utf-8')
       tcng.script = iott.script.encode('utf-8')

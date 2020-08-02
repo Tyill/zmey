@@ -26,7 +26,8 @@ with psycopg2.connect(dbname='zmeyDb', user='alm', password='123', host='localho
               "drop table if exists tblTaskParam cascade;" +
               "drop table if exists tblTaskQueue cascade;" + 
               "drop table if exists tblInternError cascade;" + 
-              "drop table if exists tblConnectPnt cascade;")
+              "drop table if exists tblConnectPnt cascade;" + 
+              "drop table if exists tblUTaskGroup cascade;")
   csr.close()
 
 zo = zm.ZMObj(zm.dbType.PostgreSQL, "host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10")

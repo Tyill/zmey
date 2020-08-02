@@ -305,7 +305,6 @@ ZMEY_API uint32_t zmGetAllWorkers(zmConn, uint64_t sId, zmStateType state, uint6
 /// pipeline config
 struct zmPipeline{
   uint64_t userId;         ///< user id
-  uint32_t isShared;       ///< may be shared [0..1]   
   char name[255];          ///< pipeline name
   char* description;       ///< description of pipeline. The memory is allocated by the user. May be NULL
 };
@@ -352,7 +351,6 @@ struct zmTaskTemplate{
   uint64_t userId;          ///< user id
   uint32_t averDurationSec; ///< estimated lead time 
   uint32_t maxDurationSec;  ///< maximum lead time
-  uint32_t isShared;        ///< may be shared [0..1]   
   char name[255];           ///< task template name
   char* description;        ///< description of task. The memory is allocated by the user. May be NULL
   char* script;             ///< script on bash, python or cmd. The memory is allocated by the user

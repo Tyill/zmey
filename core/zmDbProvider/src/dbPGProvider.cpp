@@ -33,19 +33,27 @@ using namespace std;
 
 class PGres{
 public:
-  PGresult* res;
+  PGresult* res = nullptr;
   PGres(PGresult* _res):res(_res){}
   ~PGres(){
-    PQclear(res);
+    if (res){
+      PQclear(res);
+    }
   }  
   PGres& operator=(PGres& npgr){
-    PQclear(res);
+    if (res){
+      PQclear(res);
+    }
     res = npgr.res;
+    npgr.res = nullptr;
     return *this;
   }
   PGres& operator=(PGres&& npgr){
-    PQclear(res);
+    if (res){
+      PQclear(res);
+    }
     res = npgr.res;
+    npgr.res = nullptr;
     return *this;
   }
 };
@@ -203,9 +211,7 @@ bool DbPGProvider::createTables(){
         "id           SERIAL PRIMARY KEY,"
         "usr          INT NOT NULL REFERENCES tblUser,"
         "name         TEXT NOT NULL CHECK (name <> ''),"
-        "description  TEXT NOT NULL,"
-        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1),"
-        "isShared     INT NOT NULL DEFAULT 0 CHECK (isShared BETWEEN 0 AND 1));";
+        "description  TEXT NOT NULL);";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
@@ -214,8 +220,7 @@ bool DbPGProvider::createTables(){
         "usr          INT NOT NULL REFERENCES tblUser,"
         "name         TEXT NOT NULL CHECK (name <> ''),"
         "description  TEXT NOT NULL,"
-        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1),"
-        "isShared     INT NOT NULL DEFAULT 0 CHECK (isShared BETWEEN 0 AND 1));";
+        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
@@ -228,8 +233,7 @@ bool DbPGProvider::createTables(){
         "prevTasks    INT[] NOT NULL,"     // [..]  
         "nextTasks    INT[] NOT NULL,"     // [..]
         "params       TEXT[] NOT NULL,"    // ['param1','param2'..]
-        "screenRect   TEXT NOT NULL,"
-        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
+        "screenRect   TEXT NOT NULL);";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
@@ -239,9 +243,7 @@ bool DbPGProvider::createTables(){
         "pplTask      INT NOT NULL REFERENCES tblUPipelineTask,"
         "name         TEXT NOT NULL CHECK (name <> ''),"
         "description  TEXT NOT NULL,"
-        "screenRect   TEXT NOT NULL,"
-        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1),"
-        "isShared     INT NOT NULL DEFAULT 0 CHECK (isShared BETWEEN 0 AND 1));";
+        "screenRect   TEXT NOT NULL);";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
   
   ///////////////////////////////////////////////////////////////////////////
@@ -321,7 +323,7 @@ bool DbPGProvider::createTables(){
         "    nextTasks = task.nextTasks,"
         "    params = task.params,"
         "    screenRect = task.screenRect"
-        "  WHERE id = task.id AND task.isDelete = 0;"
+        "  WHERE id = task.id;"
         "  IF NOT FOUND THEN"
         "    RETURN 0;"
         "  END IF;"
@@ -343,7 +345,7 @@ bool DbPGProvider::createTables(){
         "BEGIN"
         "  SELECT * INTO task "
         "  FROM tblUPipelineTask "
-        "  WHERE id = tId AND isDelete = 0;"
+        "  WHERE id = tId;"
         "  IF NOT FOUND THEN"
         "    RETURN 0;"
         "  END IF;"
@@ -843,11 +845,10 @@ std::vector<uint64_t> DbPGProvider::getAllWorkers(uint64_t sId, ZM_Base::stateTy
 bool DbPGProvider::addPipeline(const ZM_Base::uPipeline& ppl, uint64_t& outPPLId){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
-  ss << "INSERT INTO tblUPipeline (usr, name, description, isShared) VALUES("
+  ss << "INSERT INTO tblUPipeline (usr, name, description) VALUES("
         "'" << ppl.uId << "',"
         "'" << ppl.name << "',"
-        "'" << ppl.description << "',"
-        "'" << ppl.isShared << "') RETURNING id;";
+        "'" << ppl.description << "') RETURNING id;";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
@@ -860,8 +861,8 @@ bool DbPGProvider::addPipeline(const ZM_Base::uPipeline& ppl, uint64_t& outPPLId
 bool DbPGProvider::getPipeline(uint64_t pplId, ZM_Base::uPipeline& cng){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
-  ss << "SELECT usr, name, description, isShared FROM tblUPipeline "
-        "WHERE id = " << pplId << " AND isDelete = 0;";
+  ss << "SELECT usr, name, description FROM tblUPipeline "
+        "WHERE id = " << pplId << ";";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
@@ -874,8 +875,7 @@ bool DbPGProvider::getPipeline(uint64_t pplId, ZM_Base::uPipeline& cng){
   }
   cng.uId = stoull(PQgetvalue(pgr.res, 0, 0));
   cng.name = PQgetvalue(pgr.res, 0, 1);
-  cng.description = PQgetvalue(pgr.res, 0, 2);  
-  cng.isShared = atoi(PQgetvalue(pgr.res, 0, 3)); 
+  cng.description = PQgetvalue(pgr.res, 0, 2);
   return true;
 }
 bool DbPGProvider::changePipeline(uint64_t pplId, const ZM_Base::uPipeline& newCng){
@@ -884,9 +884,8 @@ bool DbPGProvider::changePipeline(uint64_t pplId, const ZM_Base::uPipeline& newC
   ss << "UPDATE tblUPipeline SET "
         "usr = '" << newCng.uId << "',"
         "name = '" << newCng.name << "',"
-        "description = '" << newCng.description << "', "
-        "isShared = '" << newCng.isShared << "' "
-        "WHERE id = " << pplId << " AND isDelete = 0;";
+        "description = '" << newCng.description << "' "
+        "WHERE id = " << pplId << ";";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
@@ -898,8 +897,7 @@ bool DbPGProvider::changePipeline(uint64_t pplId, const ZM_Base::uPipeline& newC
 bool DbPGProvider::delPipeline(uint64_t pplId){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
-  ss << "UPDATE tblUPipeline SET "
-        "isDelete = 1 "
+  ss << "DELETE FROM tblUPipeline "
         "WHERE id = " << pplId << ";";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
@@ -913,7 +911,7 @@ std::vector<uint64_t> DbPGProvider::getAllPipelines(uint64_t userId){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
   ss << "SELECT id FROM tblUPipeline "
-        "WHERE usr = " << userId << " AND isDelete = 0;";
+        "WHERE usr = " << userId << ";";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
@@ -935,12 +933,11 @@ bool DbPGProvider::addTaskTemplate(const ZM_Base::uTaskTemplate& cng, uint64_t& 
         "'" << cng.base.script << "',"
         "'" << cng.base.averDurationSec << "',"
         "'" << cng.base.maxDurationSec << "') RETURNING id) "
-        "INSERT INTO tblUTaskTemplate (task, usr, name, description, isShared) VALUES("
+        "INSERT INTO tblUTaskTemplate (task, usr, name, description) VALUES("
         "(SELECT id FROM ntsk),"
         "'" << cng.uId << "',"
         "'" << cng.name << "',"
-        "'" << cng.description << "',"
-        "'" << cng.isShared << "') RETURNING task;";
+        "'" << cng.description << "') RETURNING task;";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
@@ -953,10 +950,10 @@ bool DbPGProvider::addTaskTemplate(const ZM_Base::uTaskTemplate& cng, uint64_t& 
 bool DbPGProvider::getTaskTemplate(uint64_t tId, ZM_Base::uTaskTemplate& outTCng){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
-  ss << "SELECT tt.usr, tt.name, tt.description, tt.isShared, t.script, t.averDurationSec, t.maxDurationSec "
+  ss << "SELECT tt.usr, tt.name, tt.description, t.script, t.averDurationSec, t.maxDurationSec "
         "FROM tblUTaskTemplate tt "
         "JOIN tblTask t ON t.id = tt.task "
-        "WHERE t.id = " << tId << " AND isDelete = 0;";
+        "WHERE t.id = " << tId << " AND tt.isDelete = 0;";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
@@ -969,11 +966,10 @@ bool DbPGProvider::getTaskTemplate(uint64_t tId, ZM_Base::uTaskTemplate& outTCng
   }
   outTCng.uId = stoull(PQgetvalue(pgr.res, 0, 0));
   outTCng.name = PQgetvalue(pgr.res, 0, 1);
-  outTCng.description = PQgetvalue(pgr.res, 0, 2);  
-  outTCng.isShared = atoi(PQgetvalue(pgr.res, 0, 3)); 
-  outTCng.base.script = PQgetvalue(pgr.res, 0, 4);  
-  outTCng.base.averDurationSec = atoi(PQgetvalue(pgr.res, 0, 5));
-  outTCng.base.maxDurationSec = atoi(PQgetvalue(pgr.res, 0, 6));
+  outTCng.description = PQgetvalue(pgr.res, 0, 2);
+  outTCng.base.script = PQgetvalue(pgr.res, 0, 3);  
+  outTCng.base.averDurationSec = atoi(PQgetvalue(pgr.res, 0, 4));
+  outTCng.base.maxDurationSec = atoi(PQgetvalue(pgr.res, 0, 5));
   return true;
 };
 bool DbPGProvider::changeTaskTemplate(uint64_t tId, const ZM_Base::uTaskTemplate& newTCng, uint64_t& outTId){
@@ -987,12 +983,11 @@ bool DbPGProvider::changeTaskTemplate(uint64_t tId, const ZM_Base::uTaskTemplate
         "'" << newTCng.base.script << "',"
         "'" << newTCng.base.averDurationSec << "',"
         "'" << newTCng.base.maxDurationSec << "') RETURNING id) "
-        "INSERT INTO tblUTaskTemplate (task, usr, name, description, isShared) VALUES("
+        "INSERT INTO tblUTaskTemplate (task, usr, name, description) VALUES("
         "(SELECT id FROM ntsk),"
         "'" << newTCng.uId << "',"
         "'" << newTCng.name << "',"
-        "'" << newTCng.description << "',"
-        "'" << newTCng.isShared << "') RETURNING task;";
+        "'" << newTCng.description << "') RETURNING task;";
   
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
@@ -1087,7 +1082,7 @@ bool DbPGProvider::getTask(uint64_t tId, ZM_Base::uTask& outTCng){
   ss << "SELECT pipeline, taskTempl, priority, prevTasks, nextTasks, "
         "params, screenRect "
         "FROM tblUPipelineTask "
-        "WHERE id = " << tId << " AND isDelete = 0;";
+        "WHERE id = " << tId << ";";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
@@ -1149,8 +1144,7 @@ bool DbPGProvider::changeTask(uint64_t tId, const ZM_Base::uTask& newCng){
 bool DbPGProvider::delTask(uint64_t tId){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
-  ss << "UPDATE tblUPipelineTask SET "
-        "isDelete = 1 "
+  ss << "DELETE FROM tblUPipelineTask "
         "WHERE id = " << tId << ";";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
@@ -1186,8 +1180,7 @@ bool DbPGProvider::cancelTask(uint64_t tId){
         "WHERE tpp.id = " << tId << " AND "
         "      tpp.qtask = tq.id AND "
         "      ts.qtask = tq.id AND "
-        "      ts.state = " << int(ZM_Base::stateType::ready) << " AND "
-        "      tpp.isDelete = 0 "
+        "      ts.state = " << int(ZM_Base::stateType::ready) << " "
         "RETURNING ts.qtask;";
         
   PGres pgr(PQexec(_pg, ss.str().c_str()));
@@ -1213,7 +1206,7 @@ bool DbPGProvider::taskState(const std::vector<uint64_t>& tId, std::vector<ZM_DB
         "FROM tblTaskState ts "
         "JOIN tblTaskQueue qt ON qt.id = ts.qtask "
         "JOIN tblUPipelineTask pt ON pt.qtask = qt.id "
-        "WHERE pt.id IN (" << stId << ") AND pt.isDelete = 0 ORDER BY pt.id;";
+        "WHERE pt.id IN (" << stId << ") ORDER BY pt.id;";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
@@ -1236,7 +1229,7 @@ bool DbPGProvider::taskResult(uint64_t tId, std::string& out){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
   ss << "SELECT result FROM tblTaskResult "
-        "WHERE qtask = (SELECT qtask FROM tblUPipelineTask WHERE id = " << tId << " AND isDelete = 0);";
+        "WHERE qtask = (SELECT qtask FROM tblUPipelineTask WHERE id = " << tId << ");";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){      
@@ -1255,7 +1248,7 @@ bool DbPGProvider::taskTime(uint64_t tId, ZM_DB::taskTime& out){
   stringstream ss;
   ss << "SELECT createTime, takeInWorkTime, startTime, stopTime "
         "FROM tblTaskTime "
-        "WHERE qtask = (SELECT qtask FROM tblUPipelineTask WHERE id = " << tId << " AND isDelete = 0);";
+        "WHERE qtask = (SELECT qtask FROM tblUPipelineTask WHERE id = " << tId << ");";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){      
@@ -1278,7 +1271,7 @@ std::vector<uint64_t> DbPGProvider::getAllTasks(uint64_t pplId, ZM_Base::stateTy
   ss << "SELECT ut.id FROM tblUPipelineTask ut "
         "LEFT JOIN tblTaskState ts ON ts.qtask = ut.qtask "
         "WHERE (ts.state = " << (int)state << " OR " << (int)state << " = -1) "
-          "AND ut.pipeline = " << pplId << " AND ut.isDelete = 0;";
+          "AND ut.pipeline = " << pplId << ";";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
@@ -1299,7 +1292,7 @@ bool DbPGProvider::getWorkerByTask(uint64_t tId, uint64_t& qtId, ZM_Base::worker
         "FROM tblTaskQueue tq "
         "JOIN tblUPipelineTask tpp ON tpp.qtask = tq.id "
         "JOIN tblWorker wkr ON wkr.id = tq.worker "
-        "WHERE tpp.id = " << tId << " AND tpp.isDelete = 0;";
+        "WHERE tpp.id = " << tId << ";";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
@@ -1644,77 +1637,25 @@ bool DbPGProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::messSc
 }
 
 // for test
-bool DbPGProvider::delAllUsers(){
+bool DbPGProvider::delAllTables(){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
-  ss << "TRUNCATE tblUser CASCADE;";
-
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
-  if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
-      errorMess(PQerrorMessage(_pg));
-      return false;
-  }
-  return true;
-}
-bool DbPGProvider::delAllSchedrs(){
-  lock_guard<mutex> lk(_mtx);
-  stringstream ss;
-  ss << "TRUNCATE tblScheduler CASCADE;";
-
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
-  if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
-      errorMess(PQerrorMessage(_pg));
-      return false;
-  }
-  return true;
-}
-bool DbPGProvider::delAllWorkers(){
-  lock_guard<mutex> lk(_mtx);
-  stringstream ss;
-  ss << "TRUNCATE tblWorker CASCADE;";
-
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
-  if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
-      errorMess(PQerrorMessage(_pg));
-      return false;
-  }
-  return true;
-}
-bool DbPGProvider::delAllPipelines(){
-  lock_guard<mutex> lk(_mtx);
-  stringstream ss;
-  ss << "TRUNCATE tblUPipeline CASCADE;";
-
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
-  if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
-      errorMess(PQerrorMessage(_pg));
-      return false;
-  }
-  return true;
-}
-bool DbPGProvider::delAllTemplateTask(){
-  lock_guard<mutex> lk(_mtx);
-  stringstream ss;
-  ss << "TRUNCATE tblUTaskTemplate CASCADE;";
-  ss << "TRUNCATE tblTask CASCADE;";
-
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
-  if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
-      errorMess(PQerrorMessage(_pg));
-      return false;
-  }
-  return true;
-}
-bool DbPGProvider::delAllTask(){
-  lock_guard<mutex> lk(_mtx);
-  stringstream ss;
-  ss << "TRUNCATE tblUPipelineTask CASCADE;"
-        "TRUNCATE tblTaskState CASCADE;"
-        "TRUNCATE tblTaskTime CASCADE;"
-        "TRUNCATE tblTaskResult CASCADE;"
-        "TRUNCATE tblPrevTask CASCADE;"
-        "TRUNCATE tblTaskParam CASCADE;"
-        "TRUNCATE tblTaskQueue CASCADE;";
+  ss << "DROP TABLE IF EXISTS tblUPipelineTask CASCADE; "
+        "DROP TABLE IF EXISTS tblTaskState CASCADE; "
+        "DROP TABLE IF EXISTS tblTaskTime CASCADE; "
+        "DROP TABLE IF EXISTS tblTaskResult CASCADE; "
+        "DROP TABLE IF EXISTS tblPrevTask CASCADE; "
+        "DROP TABLE IF EXISTS tblTaskParam CASCADE; "
+        "DROP TABLE IF EXISTS tblTaskQueue CASCADE; "
+        "DROP TABLE IF EXISTS tblUser CASCADE; "
+        "DROP TABLE IF EXISTS tblScheduler CASCADE; "
+        "DROP TABLE IF EXISTS tblWorker CASCADE; "
+        "DROP TABLE IF EXISTS tblUPipeline CASCADE; "
+        "DROP TABLE IF EXISTS tblTask CASCADE; "
+        "DROP TABLE IF EXISTS tblUTaskTemplate CASCADE; "
+        "DROP TABLE IF EXISTS tblInternError CASCADE; "
+        "DROP TABLE IF EXISTS tblConnectPnt CASCADE; "
+        "DROP TABLE IF EXISTS tblUTaskGroup CASCADE;";
   
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){

@@ -92,12 +92,7 @@ public:
   bool sendAllMessFromSchedr(uint64_t schedrId, std::vector<ZM_DB::messSchedr>&) override;
 
   // for test
-  bool delAllUsers() override;
-  bool delAllSchedrs() override;
-  bool delAllWorkers() override;
-  bool delAllPipelines() override;
-  bool delAllTemplateTask() override;
-  bool delAllTask() override;
+  bool delAllTables() override;
 
 private:
   PGconn* _pg = nullptr; 
