@@ -140,6 +140,7 @@ int main(int argc, char* argv[]){
   signal(SIGINT, closeHandler);
   signal(SIGTERM, closeHandler);
   signal(SIGQUIT, closeHandler);
+  signal(SIGPIPE, SIG_IGN);
   
   // db providers
   string err;

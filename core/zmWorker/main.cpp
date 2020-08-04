@@ -22,6 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+#include <signal.h>
 #include <unistd.h>
 #include <map>
 #include <algorithm>
@@ -115,6 +116,8 @@ int main(int argc, char* argv[]){
   CHECK(cng.connectPnt.empty(), "Not set param '-cp' - worker connection point: IP or DNS:port");
   CHECK(cng.schedrConnPnt.empty(), "Not set param '-scp' - scheduler connection point: IP or DNS:port");
     
+  signal(SIGPIPE, SIG_IGN);
+
   // on start
   _messForSchedr.push(mess2schedr{0, ZM_Base::messType::justStartWorker});
 
