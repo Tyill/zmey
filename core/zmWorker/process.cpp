@@ -73,7 +73,7 @@ Process::Process(const wTask& tsk):
       CHECK(dup2(fdRes, 1), "dup2(fdRes, 1)");// stdout -> fdRes
       CHECK(dup2(1, 2), "dup2(1, 2)");        // stderr -> stdout
       
-      auto prmVec = ZM_Aux::split(tsk.params, ",");
+      auto prmVec = ZM_Aux::split(tsk.params, ',');
       size_t psz = prmVec.size();
       char** argVec = new char*[psz + 2];
       argVec[0] = (char*)scriptFile.c_str();

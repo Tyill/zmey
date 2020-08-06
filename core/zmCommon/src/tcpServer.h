@@ -42,9 +42,7 @@ public:
       }
     }
   
-  void read(){
-    if (_addr.empty()) return;
-
+  void read(){  
     auto self(shared_from_this());
     _socket.async_read_some(asio::buffer(_data, MAX_LENGTH),
         [this, self](std::error_code ec, std::size_t length){

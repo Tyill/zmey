@@ -594,7 +594,7 @@ std::vector<uint64_t> DbPGProvider::getAllUsers(){
 
 bool DbPGProvider::addSchedr(const ZM_Base::scheduler& schedl, uint64_t& outSchId){    
   lock_guard<mutex> lk(_mtx);
-  auto connPnt = ZM_Aux::split(schedl.connectPnt, ":");
+  auto connPnt = ZM_Aux::split(schedl.connectPnt, ':');
   if (connPnt.size() != 2){
     errorMess("addSchedr error: connectPnt not correct");
     return false;
@@ -639,7 +639,7 @@ bool DbPGProvider::getSchedr(uint64_t sId, ZM_Base::scheduler& cng){
 }
 bool DbPGProvider::changeSchedr(uint64_t sId, const ZM_Base::scheduler& newCng){  
   lock_guard<mutex> lk(_mtx);
-  auto connPnt = ZM_Aux::split(newCng.connectPnt, ":");
+  auto connPnt = ZM_Aux::split(newCng.connectPnt, ':');
   if (connPnt.size() != 2){
     errorMess("changeSchedr error: connectPnt not correct");
     return false;
@@ -710,7 +710,7 @@ std::vector<uint64_t> DbPGProvider::getAllSchedrs(ZM_Base::stateType state){
 
 bool DbPGProvider::addWorker(const ZM_Base::worker& worker, uint64_t& outWkrId){
   lock_guard<mutex> lk(_mtx);
-  auto connPnt = ZM_Aux::split(worker.connectPnt, ":");
+  auto connPnt = ZM_Aux::split(worker.connectPnt, ':');
   if (connPnt.size() != 2){
     errorMess("addWorker error: connectPnt not correct");
     return false;
@@ -757,7 +757,7 @@ bool DbPGProvider::getWorker(uint64_t wId, ZM_Base::worker& cng){
 }
 bool DbPGProvider::changeWorker(uint64_t wId, const ZM_Base::worker& newCng){
   lock_guard<mutex> lk(_mtx);
-  auto connPnt = ZM_Aux::split(newCng.connectPnt, ":");
+  auto connPnt = ZM_Aux::split(newCng.connectPnt, ':');
   if (connPnt.size() != 2){
     errorMess("changeWorker error: connectPnt not correct");
     return false;
@@ -1340,7 +1340,7 @@ vector<ZM_DB::messError> DbPGProvider::getInternErrors(uint64_t sId, uint64_t wI
 // for zmSchedr
 bool DbPGProvider::getSchedr(std::string& connPnt, ZM_Base::scheduler& outCng){
   lock_guard<mutex> lk(_mtx);
-  auto cp = ZM_Aux::split(connPnt, ":");
+  auto cp = ZM_Aux::split(connPnt, ':');
   if (cp.size() != 2){
     errorMess(string("getSchedr error: connPnt not correct"));
     return false;

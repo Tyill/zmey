@@ -25,7 +25,8 @@
 //
 
 #include "zmCommon/auxFunc.h"
-#include <cstring>
+#include <string>
+#include <sstream>
 #include <thread>
 #include <chrono>
 #include <algorithm>
@@ -62,13 +63,12 @@ string currDateTimeMs() {
 
   return curDate;
 } 
-vector<string> split(string str, const char *sep) {
-  char* cstr = (char*)str.c_str();
+vector<string> split(const string& str, char sep) {  
   vector<string> res;
-  char *pch = strtok(cstr, sep);
-  while (pch != NULL) {
-    res.push_back(string(pch));
-    pch = strtok(NULL, sep);
+  std::istringstream iss(str);
+  string token;
+  while (getline(iss, token, sep)){
+    res.emplace_back(token);
   }
   return res;
 }

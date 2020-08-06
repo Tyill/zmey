@@ -75,7 +75,7 @@ void parseArgs(int argc, char* argv[], config& outCng){
     sargs += argv[i];
   }
   map<string, string> sprms;
-  auto argPair = ZM_Aux::split(sargs, "-");
+  auto argPair = ZM_Aux::split(sargs, '-');
   for (auto& arg : argPair){
     size_t sp = arg.find_first_of("=");
     if (sp != std::string::npos){

@@ -37,7 +37,7 @@ std::string currDateTime();
 // %Y-%m-%d %H:%M:%S:%MS
 std::string currDateTimeMs();
 
-std::vector<std::string> split(std::string str, const char *sep);
+std::vector<std::string> split(const std::string& str, char sep);
 
 bool endWith(const std::string& fullString, const std::string& ending);
 

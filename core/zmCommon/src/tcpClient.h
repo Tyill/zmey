@@ -38,25 +38,26 @@ public:
   : _ioc(ioc), _addr(addr), _port(port), _socket(ioc){}
 
   void write(const std::string& msg, bool isCBackIfError){
-    auto self(shared_from_this());   
-       
-    asio::async_connect(_socket, tcp::resolver(_ioc).resolve(_addr, _port),
-    [this, self, msg, isCBackIfError](std::error_code ec, tcp::endpoint ep){
-      if (!ec){
-        asio::async_write(_socket, asio::buffer(msg.data(), msg.size()),
-          [this, self, msg, isCBackIfError](std::error_code ec, std::size_t /*length*/){
-            if (_stsSendCBack && (ec || !isCBackIfError) && !_isSendCBack){
-              _isSendCBack = true;
-              _stsSendCBack(_addr + ":" + _port, msg, ec); 
-            }
-          });
-      }else{
-        if (_stsSendCBack && !_isSendCBack){
-          _isSendCBack = true;
-          _stsSendCBack(_addr + ":" + _port, msg, ec); 
+    try{
+      auto self(shared_from_this());
+      asio::async_connect(_socket, tcp::resolver(_ioc).resolve(_addr, _port),
+      [this, self, msg, isCBackIfError](std::error_code ec, tcp::endpoint ep){
+        if (!ec){
+          asio::async_write(_socket, asio::buffer(msg.data(), msg.size()),
+            [this, self, msg, isCBackIfError](std::error_code ec, std::size_t /*length*/){
+              if (_stsSendCBack && (ec || !isCBackIfError) && !_isSendCBack){
+                _isSendCBack = true;
+                _stsSendCBack(_addr + ":" + _port, msg, ec);
+              }
+            });
+        }else{
+          if (_stsSendCBack && !_isSendCBack){
+            _isSendCBack = true;
+            _stsSendCBack(_addr + ":" + _port, msg, ec); 
+          }
         }
-      }
-    });
+      });
+    }catch(...){}  
   }
   
 private:

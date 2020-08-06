@@ -44,7 +44,7 @@ bool startServer(const std::string& connPnt, std::string& err, int innerThreadCn
   if (_pSrv) return true;
 
   try{
-    auto cp = ZM_Aux::split(connPnt, ":");
+    auto cp = ZM_Aux::split(connPnt, ':');
     _pSrv = new TcpServer(ioc, cp[0], stoi(cp[1]));
   
     int thrCount = std::max<int>(1, std::thread::hardware_concurrency());
@@ -81,13 +81,12 @@ void stopServer(){
 };
 
 void sendData(const std::string& connPnt, const std::string& data, bool isCBackIfError){
-  auto cp = ZM_Aux::split(connPnt, ":");
-  std::make_shared<TcpClient>(ioc, cp[0], cp[1])->write(data, isCBackIfError);
+  auto cp = ZM_Aux::split(connPnt, ':');
+  std::make_shared<TcpClient>(ioc, cp[0], cp[1])->write(data, isCBackIfError);  
 };
 
-bool synchSendData(const std::string& connPnt, const std::string& inData){
-  
-  auto cp = ZM_Aux::split(connPnt, ":");
+bool synchSendData(const std::string& connPnt, const std::string& inData){  
+  auto cp = ZM_Aux::split(connPnt, ':');
   asio::io_context io;
   tcp::socket s(io);
   tcp::resolver resolver(io);
