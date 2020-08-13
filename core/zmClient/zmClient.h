@@ -344,6 +344,50 @@ ZMEY_API bool zmDelPipeline(zmConn, uint64_t pplId);
 ZMEY_API uint32_t zmGetAllPipelines(zmConn, uint64_t userId, uint64_t** outPPLId);
 
 ///////////////////////////////////////////////////////////////////////////////
+/// Group of tasks
+
+/// group config
+struct zmGroup{
+  uint64_t pplId;          ///< pipeline id
+  char name[255];          ///< group name
+  char* description;       ///< description of group. The memory is allocated by the user. May be NULL
+};
+
+/// add group
+/// @param[in] zmConn - object connect
+/// @param[in] cng - group config
+/// @param[out] outGId - group id
+/// @return true - ok
+ZMEY_API bool zmAddGroup(zmConn, zmGroup cng, uint64_t* outGId);
+
+/// get group config
+/// @param[in] zmConn - object connect
+/// @param[in] gId - group id
+/// @param[out] outCng - group config
+/// @return true - ok
+ZMEY_API bool zmGetGroup(zmConn, uint64_t gId, zmGroup* outCng);
+
+/// change group config
+/// @param[in] zmConn - object connect
+/// @param[in] gId - group id
+/// @param[in] newCng - group config
+/// @return true - ok
+ZMEY_API bool zmChangeGroup(zmConn, uint64_t gId, zmGroup newCng);
+
+/// delete group
+/// @param[in] zmConn - object connect
+/// @param[in] gId - group
+/// @return true - ok
+ZMEY_API bool zmDelGroup(zmConn, uint64_t gId);
+
+/// get all groups
+/// @param[in] zmConn - object connect
+/// @param[in] pplId - pipeline id
+/// @param[out] outGId - group id 
+/// @return count of groups
+ZMEY_API uint32_t zmGetAllGroups(zmConn, uint64_t pplId, uint64_t** outGId);
+
+///////////////////////////////////////////////////////////////////////////////
 /// Task template 
 
 /// task template config
@@ -398,6 +442,7 @@ ZMEY_API uint32_t zmGetAllTaskTemplates(zmConn, uint64_t userId, uint64_t** outT
 /// pipeline task config
 struct zmTask{
   uint64_t pplId;          ///< pipeline id
+  uint64_t gId;            ///< group id. 0 if group no exist.
   uint64_t ttId;           ///< task template id
   uint32_t priority;       ///< [1..3]
   char* prevTasksId;       ///< pipeline task id of previous tasks to be completed: qtId1,qtId2... May be NULL 

@@ -119,6 +119,12 @@ public:
   virtual bool delPipeline(uint64_t pplId) = 0;
   virtual std::vector<uint64_t> getAllPipelines(uint64_t userId) = 0;
 
+  virtual bool addGroup(const ZM_Base::uGroup& cng, uint64_t& outGId) = 0;
+  virtual bool getGroup(uint64_t gId, ZM_Base::uGroup& cng) = 0;
+  virtual bool changeGroup(uint64_t gId, const ZM_Base::uGroup& newCng) = 0;
+  virtual bool delGroup(uint64_t gId) = 0;
+  virtual std::vector<uint64_t> getAllGroups(uint64_t pplId) = 0;
+
   virtual bool addTaskTemplate(const ZM_Base::uTaskTemplate& cng, uint64_t& outTId) = 0;
   virtual bool getTaskTemplate(uint64_t tId, ZM_Base::uTaskTemplate& outTCng) = 0;
   virtual bool changeTaskTemplate(uint64_t tId, const ZM_Base::uTaskTemplate& newTCng) = 0;

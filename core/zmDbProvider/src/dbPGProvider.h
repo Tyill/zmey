@@ -64,6 +64,12 @@ public:
   bool delPipeline(uint64_t pplId) override;
   std::vector<uint64_t> getAllPipelines(uint64_t userId) override;
 
+  bool addGroup(const ZM_Base::uGroup& cng, uint64_t& outGId) override;
+  bool getGroup(uint64_t gId, ZM_Base::uGroup& cng) override;
+  bool changeGroup(uint64_t gId, const ZM_Base::uGroup& newCng) override;
+  bool delGroup(uint64_t gId) override;
+  std::vector<uint64_t> getAllGroups(uint64_t pplId) override;
+
   bool addTaskTemplate(const ZM_Base::uTaskTemplate& cng, uint64_t& outTId) override;
   bool getTaskTemplate(uint64_t tId, ZM_Base::uTaskTemplate& outTCng) override;;
   bool changeTaskTemplate(uint64_t tId, const ZM_Base::uTaskTemplate& newTCng) override;

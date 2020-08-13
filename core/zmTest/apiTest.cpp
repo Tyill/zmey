@@ -602,6 +602,190 @@ TEST_F(APITest, getAllPipelines){
   delete ppline.description;          
 }
 
+TEST_F(APITest, addGroup){  
+  zmUser usr;
+  strcpy(usr.name, "alm");
+  strcpy(usr.passw, "123"); 
+  uint64_t uId = 0;  
+  EXPECT_TRUE(zmAddUser(_zc, usr, &uId) && (uId > 0));
+
+  zmPipeline ppline;
+  strcpy(ppline.name, "newPP");
+  ppline.description = new char[24];
+  strcpy(ppline.description, "dfsdf");
+  ppline.userId = uId;
+  uint64_t pId = 0;  
+  EXPECT_TRUE(zmAddPipeline(_zc, ppline, &pId) && (pId > 0)); 
+
+  zmGroup group;
+  strcpy(group.name, "newGrp");
+  group.description = new char[24];
+  strcpy(group.description, "hjghjghj");
+  group.pplId = pId;
+  uint64_t gId = 0;  
+  EXPECT_TRUE(zmAddGroup(_zc, group, &gId) && (gId > 0)); 
+
+  strcpy(group.name, "");
+  gId = 0;  
+  EXPECT_TRUE(!zmAddGroup(_zc, group, &gId) && (gId == 0));
+
+  strcpy(group.name, "newGG");
+  group.pplId = pId + 1;
+  gId = 0;  
+  EXPECT_TRUE(!zmAddGroup(_zc, group, &gId) && (gId == 0));
+
+  delete ppline.description;              
+}
+TEST_F(APITest, getGroup){ 
+  zmUser usr;
+  strcpy(usr.name, "alm");
+  strcpy(usr.passw, "123"); 
+  uint64_t uId = 0;  
+  EXPECT_TRUE(zmAddUser(_zc, usr, &uId) && (uId > 0));
+
+  zmPipeline ppline;
+  strcpy(ppline.name, "newPP");
+  ppline.description = new char[24];
+  strcpy(ppline.description, "dfsdf");
+  ppline.userId = uId;
+  uint64_t pId = 0;  
+  EXPECT_TRUE(zmAddPipeline(_zc, ppline, &pId) && (pId > 0)); 
+
+  zmGroup group;
+  strcpy(group.name, "newGrp");
+  group.description = new char[24];
+  strcpy(group.description, "hjghjghj");
+  group.pplId = pId;
+  uint64_t gId = 0;  
+  EXPECT_TRUE(zmAddGroup(_zc, group, &gId) && (gId > 0)); 
+
+  strcpy(group.name, "");
+  strcpy(group.description, "");
+  EXPECT_TRUE(zmGetGroup(_zc, gId, &group) && 
+                           (group.pplId == pId) &&
+                           (strcmp(group.name, "newGrp") == 0) &&
+                           (strcmp(group.description, "hjghjghj") == 0)); 
+
+  group.pplId = 0;
+  strcpy(group.name, "");
+  strcpy(group.description, "dd");
+  EXPECT_TRUE(!zmGetGroup(_zc, gId + 1, &group) &&
+             (group.pplId == 0) &&
+             (strcmp(group.name, "") == 0) &&
+             (strcmp(group.description, "dd") == 0)); 
+
+  delete group.description;                                                            
+}
+TEST_F(APITest, changeGroup){  
+  zmUser usr;
+  strcpy(usr.name, "alm");
+  strcpy(usr.passw, "123"); 
+  uint64_t uId = 0;  
+  EXPECT_TRUE(zmAddUser(_zc, usr, &uId) && (uId > 0));
+
+  zmPipeline ppline;
+  strcpy(ppline.name, "newPP");
+  ppline.description = new char[24];
+  strcpy(ppline.description, "dfsdf");
+  ppline.userId = uId;
+  uint64_t pId = 0;  
+  EXPECT_TRUE(zmAddPipeline(_zc, ppline, &pId) && (pId > 0));  
+
+  zmGroup group;
+  strcpy(group.name, "newGrp");
+  group.description = new char[24];
+  strcpy(group.description, "hjghjghj");
+  group.pplId = pId;
+  uint64_t gId = 0;  
+  EXPECT_TRUE(zmAddGroup(_zc, group, &gId) && (gId > 0)); 
+
+  strcpy(group.name, "super");
+  strcpy(group.description, "localhost:1234");
+  group.pplId = pId;
+  EXPECT_TRUE(zmChangeGroup(_zc, gId, group)); 
+
+  strcpy(group.name, "");
+  strcpy(group.description, "1234");
+  group.pplId = 0;
+  EXPECT_TRUE(zmGetGroup(_zc, gId, &group) &&
+                           (strcmp(group.name, "super") == 0) &&
+                           (strcmp(group.description, "localhost:1234") == 0) &&
+                           (group.pplId == pId));  
+                                                
+  group.pplId = pId + 1;
+  EXPECT_TRUE(!zmChangeGroup(_zc, gId, group));  
+
+  delete ppline.description;                                                                                             
+}
+TEST_F(APITest, delGroup){  
+  zmUser usr;
+  strcpy(usr.name, "alm");
+  strcpy(usr.passw, "123"); 
+  uint64_t uId = 0;  
+  EXPECT_TRUE(zmAddUser(_zc, usr, &uId) && (uId > 0));
+
+  zmPipeline ppline;
+  strcpy(ppline.name, "newPP");
+  ppline.description = new char[24];
+  strcpy(ppline.description, "dfsdf");
+  ppline.userId = uId;
+  uint64_t pId = 0;  
+  EXPECT_TRUE(zmAddPipeline(_zc, ppline, &pId) && (pId > 0));  
+    
+  zmGroup group;
+  strcpy(group.name, "newGrp");
+  group.description = new char[24];
+  strcpy(group.description, "hjghjghj");
+  group.pplId = pId;
+  uint64_t gId = 0;  
+  EXPECT_TRUE(zmAddGroup(_zc, group, &gId) && (gId > 0)); 
+
+  EXPECT_TRUE(zmDelGroup(_zc, gId));
+  
+  EXPECT_TRUE(!zmGetGroup(_zc, gId, &group)); 
+
+  delete ppline.description;     
+}
+TEST_F(APITest, getAllGroups){  
+  zmUser usr;
+  strcpy(usr.name, "alm");
+  strcpy(usr.passw, "123"); 
+  uint64_t uId = 0;  
+  EXPECT_TRUE(zmAddUser(_zc, usr, &uId) && (uId > 0));
+
+  zmPipeline ppline;
+  strcpy(ppline.name, "newPP");
+  ppline.description = new char[24];
+  strcpy(ppline.description, "dfsdf");
+  ppline.userId = uId;
+  uint64_t pId1 = 0;  
+  EXPECT_TRUE(zmAddPipeline(_zc, ppline, &pId1) && (pId1 > 0));  
+
+  zmGroup group;
+  strcpy(group.name, "newGrp1");
+  group.description = new char[24];
+  strcpy(group.description, "hjghjghj");
+  group.pplId = pId1;
+  uint64_t gId1 = 0;  
+  EXPECT_TRUE(zmAddGroup(_zc, group, &gId1) && (gId1 > 0));
+
+  strcpy(group.name, "newGrp2");
+  group.description = new char[24];
+  strcpy(group.description, "hjghjghj");
+  group.pplId = pId1;
+  uint64_t gId2 = 0;  
+  EXPECT_TRUE(zmAddGroup(_zc, group, &gId2) && (gId2 > 0)); 
+  
+  uint64_t* pGR = nullptr;     
+  auto grCnt = zmGetAllGroups(_zc, pId1, &pGR);
+  EXPECT_TRUE((grCnt == 2) && (pGR[0] == gId1) && (pGR[1] == gId2)); 
+
+  grCnt = zmGetAllGroups(_zc, pId1 + 1, &pGR);
+  EXPECT_TRUE(grCnt == 0);
+
+  delete ppline.description;          
+}
+
 TEST_F(APITest, addTaskTemplate){  
   zmUser usr;
   strcpy(usr.name, "alm");
@@ -819,7 +1003,8 @@ TEST_F(APITest, addTask){
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
   zmTask task;
-  task.pplId = pId; 
+  task.pplId = pId;
+  task.gId = 0; 
   task.priority = 1;
   task.ttId = ttId;
   task.params = new char[32];
@@ -864,6 +1049,7 @@ TEST_F(APITest, getTask){
 
   zmTask task;
   task.pplId = pId; 
+  task.gId = 0; 
   task.priority = 1;
   task.ttId = ttId;
   task.params = new char[32];
@@ -875,7 +1061,8 @@ TEST_F(APITest, getTask){
   uint64_t tId = 0;  
   EXPECT_TRUE(zmAddTask(_zc, task, &tId) && (tId > 0));  
 
-  task.pplId = pId + 1; 
+  task.pplId = pId + 1;
+  task.gId = pId + 1; 
   task.priority = 2;
   task.ttId = ttId + 1;
   strcpy(task.params, "['e','paramr2','patyram3']");
@@ -883,6 +1070,7 @@ TEST_F(APITest, getTask){
   strcpy(task.prevTasksId, "[c]");
   EXPECT_TRUE(zmGetTask(_zc, tId, &task) &&
              (task.pplId == pId) &&
+             (task.gId == 0) &&
              (task.priority == 1) &&
              (strcmp(task.params, "param1,param2,param3") == 0) &&
              (strcmp(task.nextTasksId, "") == 0) &&
@@ -918,6 +1106,7 @@ TEST_F(APITest, changeTask){
 
   zmTask task;
   task.pplId = pId; 
+  task.gId = 0;
   task.priority = 1;
   task.ttId = ttId;
   task.params = new char[32];
@@ -991,6 +1180,7 @@ TEST_F(APITest, delTask){
 
   zmTask task;
   task.pplId = pId; 
+  task.gId = 0; 
   task.priority = 1;
   task.ttId = ttId;
   task.params = new char[32];
@@ -1047,6 +1237,7 @@ TEST_F(APITest, startTask){
 
   zmTask task;
   task.pplId = pId; 
+  task.gId = 0; 
   task.priority = 1;
   task.ttId = ttId;
   task.params = new char[32];
@@ -1088,7 +1279,8 @@ TEST_F(APITest, cancelTask){
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
   zmTask task;
-  task.pplId = pId; 
+  task.pplId = pId;
+  task.gId = 0;  
   task.priority = 1;
   task.ttId = ttId;
   task.params = new char[32];
@@ -1133,6 +1325,7 @@ TEST_F(APITest, taskState){
 
   zmTask task;
   task.pplId = pId; 
+  task.gId = 0; 
   task.priority = 1;
   task.ttId = ttId;
   task.params = new char[32];
@@ -1197,6 +1390,7 @@ TEST_F(APITest, taskResult){
 
   zmTask task;
   task.pplId = pId; 
+  task.gId = 0; 
   task.priority = 1;
   task.ttId = ttId;
   task.params = new char[32];
@@ -1242,6 +1436,7 @@ TEST_F(APITest, taskTime){
 
   zmTask task;
   task.pplId = pId; 
+  task.gId = 0; 
   task.priority = 1;
   task.ttId = ttId;
   task.params = new char[32];
@@ -1287,6 +1482,7 @@ TEST_F(APITest, getAllTask){
 
   zmTask task;
   task.pplId = pId; 
+  task.gId = 0; 
   task.priority = 1;
   task.ttId = ttId;
   task.params = new char[32];
@@ -1300,7 +1496,7 @@ TEST_F(APITest, getAllTask){
   
   EXPECT_TRUE(zmStartTask(_zc, tId1));  
 
-   task.pplId = pId; 
+  task.pplId = pId; 
   task.priority = 1;
   task.ttId = ttId;
   task.params = new char[32];

@@ -96,6 +96,17 @@ class pipeline:
     self.uId = uId                   # user id
     self.name = name    
     self.description = description 
+class group: 
+  """Group config""" 
+  def __init__(self,
+               id : int = 0,
+               pplId : int = 0,
+               name : str = "",
+               description : str = ""):
+    self.id = id
+    self.pplId = pplId               # pipeline id
+    self.name = name    
+    self.description = description 
 class taskTemplate: 
   """TaskTemplate config""" 
   def __init__(self,
@@ -119,11 +130,11 @@ class task:
                id : int = 0,
                pplId : int = 0,
                ttId : int = 0,
+               gId : int = 0,
                priority : int = 1,
                prevTasksId : [int] = [],
                nextTasksId : [int] = [],
                params : [str] = [],
-               screenRect : str = "",
                state : stateType = stateType.ready, 
                progress : int = 0,
                result : str = "",
@@ -134,11 +145,11 @@ class task:
     self.id = id
     self.pplId = pplId                 # pipeline id    
     self.ttId = ttId                   # taskTemplate id
+    self.gId = gId                     # taskGroup id
     self.priority = priority           # [1..3]
     self.prevTasksId = prevTasksId     # pipeline task id of previous tasks to be completed: [qtId,..] 
     self.nextTasksId = nextTasksId     # pipeline task id of next tasks: : [qtId,..]
     self.params = params               # CLI params for script: ['param1','param2'..]
-    self.screenRect = screenRect       # screenRect on UI: x y w h
     self.state = state
     self.progress = progress
     self.result = result
@@ -176,6 +187,10 @@ class _pipelineCng(ctypes.Structure):
   _fields_ = [('userId', ctypes.c_uint64),
               ('name', ctypes.c_char * 255),
               ('description', ctypes.c_char_p)]
+class _groupCng(ctypes.Structure):
+  _fields_ = [('pplId', ctypes.c_uint64),
+              ('name', ctypes.c_char * 255),
+              ('description', ctypes.c_char_p)]
 class _taskTemplCng(ctypes.Structure):
   _fields_ = [('userId', ctypes.c_uint64),
               ('averDurationSec', ctypes.c_uint32),
@@ -186,11 +201,11 @@ class _taskTemplCng(ctypes.Structure):
 class _taskCng(ctypes.Structure):
   _fields_ = [('pplId', ctypes.c_uint64),
               ('ttId', ctypes.c_uint64),
+              ('gId', ctypes.c_uint64),
               ('priority', ctypes.c_uint32),
               ('prevTasksId', ctypes.c_char_p),
               ('nextTasksId', ctypes.c_char_p),
-              ('params', ctypes.c_char_p),
-              ('screenRect', ctypes.c_char_p)]
+              ('params', ctypes.c_char_p)]
 class _taskState(ctypes.Structure):
   _fields_ = [('progress', ctypes.c_uint32),
               ('state', ctypes.c_int32)]
@@ -852,6 +867,111 @@ class ZMObj:
       return oppl
     return []
 
+#############################################################################
+  ### Group of tasks
+  
+  def addGroup(self, iogrp : group) -> bool:
+    """
+    Add new group
+    :param iogrp: new group config
+    :return: True - ok
+    """
+    if (self._zmConn):
+      gcng = _groupCng()
+      gcng.pplId = iogrp.pplId
+      gcng.name = iogrp.name.encode('utf-8')
+      gcng.description = iogrp.description.encode('utf-8')
+      
+      gid = ctypes.c_uint64(0)
+      
+      pfun = _LIB.zmAddGroup
+      pfun.argtypes = (ctypes.c_void_p, _groupCng, ctypes.POINTER(ctypes.c_uint64))
+      pfun.restype = ctypes.c_bool
+      if (pfun(self._zmConn, pcng, ctypes.byref(gid))):
+        iogrp.id = gid.value
+        return True
+    return False
+  def getGroup(self, iogrp : group) -> bool:
+    """
+    Get group config by ID
+    :param iogrp: group config
+    :return: True - ok
+    """
+    if (self._zmConn):
+      gcng = _groupCng()
+
+      gid = ctypes.c_uint64(iogrp.id)
+      
+      pfun = _LIB.zmGetGroup
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(_groupCng))
+      pfun.restype = ctypes.c_bool
+      if (pfun(self._zmConn, gid, ctypes.byref(gcng))):      
+        iogrp.pplId = gcng.pplId
+        iogrp.name = gcng.name.decode('utf-8')
+        iogrp.description = gcng.description.decode('utf-8')
+        return True
+    return False
+  def changeGroup(self, igrp : user) -> bool:
+    """
+    Change group config
+    :param igrp: new group config
+    :return: True - ok
+    """
+    if (self._zmConn):
+      gid = ctypes.c_uint64(igrp.id)
+      gcng = _groupCng()
+      gcng.pplId = igrp.pplId
+      gcng.name = igrp.name.encode('utf-8')
+      gcng.description = igrp.description.encode('utf-8')
+      
+      pfun = _LIB.zmChangeGroup
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, _groupCng)
+      pfun.restype = ctypes.c_bool
+      return pfun(self._zmConn, gid, gcng)
+    return False
+  def delGroup(self, grpId : int) -> bool:
+    """
+    Delete group
+    :param grpId: group id
+    :return: True - ok
+    """
+    if (self._zmConn):
+      gid = ctypes.c_uint64(grpId)
+            
+      pfun = _LIB.zmDelGroup
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
+      pfun.restype = ctypes.c_bool
+      return pfun(self._zmConn, gid)
+    return False
+  def getAllGroups(self, pplId : int) -> [pipeline]:
+    """
+    Get all groups
+    :param pplId: pipeline id
+    :return: list of groups
+    """
+    if (self._zmConn):
+      plineId = ctypes.c_uint64(pplId)
+
+      pfun = _LIB.zmGetAllGroups
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(ctypes.POINTER(ctypes.c_uint64)))
+      pfun.restype = ctypes.c_uint32
+      dbuffer = ctypes.POINTER(ctypes.c_uint64)()
+      osz = pfun(self._zmConn, plineId, ctypes.byref(dbuffer))
+      oid = [dbuffer[i] for i in range(osz)]
+      
+      pfun = _LIB.zmFreeResources
+      pfun.restype = None
+      pfun.argtypes = (ctypes.POINTER(ctypes.c_uint64), ctypes.c_char_p)
+      pfun(dbuffer, ctypes.c_char_p(0))
+
+      ogrp = []
+      for i in range(osz):
+        g = group(oid[i])
+        self.getGroup(g)
+        ogrp.append(g)
+      return ogrp
+    return []
+
   #############################################################################
   ### Task template 
 
@@ -917,15 +1037,11 @@ class ZMObj:
       tcng.name = iott.name.encode('utf-8')
       tcng.description = iott.description.encode('utf-8')
       tcng.script = iott.script.encode('utf-8')
-      
-      nttid = ctypes.c_uint64(0)
-
+            
       pfun = _LIB.zmChangeTaskTemplate
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, _taskTemplCng, ctypes.POINTER(ctypes.c_uint64))
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, _taskTemplCng)
       pfun.restype = ctypes.c_bool
-      if (pfun(self._zmConn, ttid, tcng, ctypes.byref(nttid))):
-        iott.id = nttid.value
-        return True
+      return pfun(self._zmConn, ttid, tcng)
     return False
   def delTaskTemplate(self, ttId : int) -> bool:
     """
@@ -983,11 +1099,11 @@ class ZMObj:
       tcng = _taskCng()
       tcng.pplId = iot.pplId
       tcng.ttId = iot.ttId
+      tcng.gId = iot.gId
       tcng.priority = iot.priority
       tcng.prevTasksId = ','.join(str(i) for i in iot.prevTasksId).encode('utf-8')
       tcng.nextTasksId = ','.join(str(i) for i in iot.nextTasksId).encode('utf-8')
       tcng.params = ','.join(iot.params).encode('utf-8')
-      tcng.screenRect = iot.screenRect.encode('utf-8')
       
       tid = ctypes.c_uint64(0)
       
@@ -1015,6 +1131,7 @@ class ZMObj:
       if (pfun(self._zmConn, tid, ctypes.byref(tcng))):      
         iot.pplId = tcng.pplId
         iot.ttId = tcng.ttId
+        iot.gId = tcng.gId
         iot.priority = tcng.priority
         if (len(tcng.prevTasksId) > 0):
           iot.prevTasksId = [int(i) for i in tcng.prevTasksId.decode('utf-8').split(',')]
@@ -1022,7 +1139,6 @@ class ZMObj:
           iot.nextTasksId = [int(i) for i in tcng.nextTasksId.decode('utf-8').split(',')]
         if (len(tcng.params) > 0):
           iot.params = tcng.params.decode('utf-8').split(',')
-        iot.screenRect = tcng.screenRect.decode('utf-8')
         return True
     return False
   def changeTask(self, iot : task) -> bool:
@@ -1036,11 +1152,11 @@ class ZMObj:
       tcng = _taskCng()
       tcng.pplId = iot.pplId
       tcng.ttId = iot.ttId
+      tcng.gId = iot.gId
       tcng.priority = iot.priority
       tcng.prevTasksId = ','.join(str(i) for i in iot.prevTasksId).encode('utf-8')
       tcng.nextTasksId = ','.join(str(i) for i in iot.nextTasksId).encode('utf-8')
       tcng.params = ','.join(iot.params).encode('utf-8')
-      tcng.screenRect = iot.screenRect.encode('utf-8')
             
       pfun = _LIB.zmChangeTask
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, _taskCng)

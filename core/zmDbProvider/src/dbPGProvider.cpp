@@ -278,10 +278,11 @@ bool DbPGProvider::createTables(){
         "        RETURN 0;"
         "      END IF;"
         "    END LOOP;"
-        "  INSERT INTO tblUPipelineTask (pipeline, taskTempl, priority,"
+        "  INSERT INTO tblUPipelineTask (pipeline, taskTempl, taskGroup, priority,"
         "                                prevTasks, nextTasks, params)"
         "    VALUES(task.pipeline,"
         "           task.taskTempl,"
+        "           NULLIF(task.taskGroup, 0),"
         "           task.priority,"
         "           task.prevTasks,"
         "           task.nextTasks,"
@@ -315,6 +316,7 @@ bool DbPGProvider::createTables(){
         "  UPDATE tblUPipelineTask SET "
         "    pipeline = task.pipeline,"
         "    taskTempl = task.taskTempl,"
+        "    taskGroup = NULLIF(task.taskGroup, 0),"
         "    priority = task.priority,"
         "    prevTasks = task.prevTasks,"
         "    nextTasks = task.nextTasks,"
@@ -922,6 +924,90 @@ std::vector<uint64_t> DbPGProvider::getAllPipelines(uint64_t userId){
   return ret;
 }
 
+bool DbPGProvider::addGroup(const ZM_Base::uGroup& cng, uint64_t& outGId){
+  lock_guard<mutex> lk(_mtx);
+  stringstream ss;
+  ss << "INSERT INTO tblUTaskGroup (pipeline, name, description) VALUES("
+        "'" << cng.pplId << "',"
+        "'" << cng.name << "',"
+        "'" << cng.description << "') RETURNING id;";
+
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
+    errorMess(string("addGroup error: ") + PQerrorMessage(_pg));
+    return false;
+  }
+  outGId = stoull(PQgetvalue(pgr.res, 0, 0));
+  return true;
+}
+bool DbPGProvider::getGroup(uint64_t gId, ZM_Base::uGroup& cng){
+  lock_guard<mutex> lk(_mtx);
+  stringstream ss;
+  ss << "SELECT pipeline, name, description FROM tblUTaskGroup "
+        "WHERE id = " << gId << ";";
+
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
+    errorMess(string("getGroup error: ") + PQerrorMessage(_pg));
+    return false;
+  }
+  if (PQntuples(pgr.res) != 1){
+    errorMess(string("getGroup error: such group does not exist"));
+    return false;
+  }
+  cng.pplId = stoull(PQgetvalue(pgr.res, 0, 0));
+  cng.name = PQgetvalue(pgr.res, 0, 1);
+  cng.description = PQgetvalue(pgr.res, 0, 2);
+  return true;
+}
+bool DbPGProvider::changeGroup(uint64_t gId, const ZM_Base::uGroup& newCng){
+  lock_guard<mutex> lk(_mtx);
+  stringstream ss;
+  ss << "UPDATE tblUTaskGroup SET "
+        "pipeline = '" << newCng.pplId << "',"
+        "name = '" << newCng.name << "',"
+        "description = '" << newCng.description << "' "
+        "WHERE id = " << gId << ";";
+
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
+    errorMess(string("changeGroup error: ") + PQerrorMessage(_pg));
+    return false;
+  }  
+  return true;
+}
+bool DbPGProvider::delGroup(uint64_t gId){
+  lock_guard<mutex> lk(_mtx);
+  stringstream ss;
+  ss << "DELETE FROM tblUTaskGroup "
+        "WHERE id = " << gId << ";";
+
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
+    errorMess(string("delGroup error: ") + PQerrorMessage(_pg));
+    return false;
+  }  
+  return true;
+}
+std::vector<uint64_t> DbPGProvider::getAllGroups(uint64_t pplId){
+  lock_guard<mutex> lk(_mtx);
+  stringstream ss;
+  ss << "SELECT id FROM tblUTaskGroup "
+        "WHERE pipeline = " << pplId << ";";
+
+  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
+    errorMess(string("getAllGroups error: ") + PQerrorMessage(_pg));
+    return std::vector<uint64_t>();
+  }  
+  int rows = PQntuples(pgr.res);
+  std::vector<uint64_t> ret(rows);
+  for (int i = 0; i < rows; ++i){
+    ret[i] = stoull(PQgetvalue(pgr.res, i, 0));
+  }
+  return ret;
+}
+
 bool DbPGProvider::addTaskTemplate(const ZM_Base::uTaskTemplate& cng, uint64_t& outTId){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
@@ -1036,7 +1122,7 @@ bool DbPGProvider::addTask(const ZM_Base::uTask& cng, uint64_t& outTId){
         "(" << 0 << ","
             << cng.pplId << ","
             << cng.base.tId << ","
-            << 0 << ","
+            << cng.gId << ","
             << 0 << ","
             << cng.base.priority << ","
             << "ARRAY" << prevTasks << "::INT[],"
@@ -1058,7 +1144,7 @@ bool DbPGProvider::addTask(const ZM_Base::uTask& cng, uint64_t& outTId){
 bool DbPGProvider::getTask(uint64_t tId, ZM_Base::uTask& outTCng){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
-  ss << "SELECT pipeline, taskTempl, priority, prevTasks, nextTasks, params "
+  ss << "SELECT pipeline, COALESCE(taskGroup, 0), taskTempl, priority, prevTasks, nextTasks, params "
         "FROM tblUPipelineTask "
         "WHERE id = " << tId << ";";
 
@@ -1072,15 +1158,16 @@ bool DbPGProvider::getTask(uint64_t tId, ZM_Base::uTask& outTCng){
     return false;
   }
   outTCng.pplId = stoull(PQgetvalue(pgr.res, 0, 0));
-  outTCng.base.tId = stoull(PQgetvalue(pgr.res, 0, 1));
-  outTCng.base.priority = atoi(PQgetvalue(pgr.res, 0, 2));  
-  outTCng.prevTasks = PQgetvalue(pgr.res, 0, 3);
+  outTCng.gId = stoull(PQgetvalue(pgr.res, 0, 1));
+  outTCng.base.tId = stoull(PQgetvalue(pgr.res, 0, 2));
+  outTCng.base.priority = atoi(PQgetvalue(pgr.res, 0, 3));  
+  outTCng.prevTasks = PQgetvalue(pgr.res, 0, 4);
   outTCng.prevTasks = outTCng.prevTasks.substr(1,  outTCng.prevTasks.size() - 2);
   
-  outTCng.nextTasks = PQgetvalue(pgr.res, 0, 4);
+  outTCng.nextTasks = PQgetvalue(pgr.res, 0, 5);
   outTCng.nextTasks = outTCng.nextTasks.substr(1,  outTCng.nextTasks.size() - 2);
   
-  outTCng.base.params = PQgetvalue(pgr.res, 0, 5);
+  outTCng.base.params = PQgetvalue(pgr.res, 0, 6);
   ZM_Aux::replace(outTCng.base.params, "\"", "");
   outTCng.base.params = outTCng.base.params.substr(1,  outTCng.base.params.size() - 2);  
   return true;
@@ -1098,7 +1185,7 @@ bool DbPGProvider::changeTask(uint64_t tId, const ZM_Base::uTask& newCng){
         "(" << tId << ","
             << newCng.pplId << ","
             << newCng.base.tId << ","
-            << 0 << ","
+            << newCng.gId << ","
             << 0 << ","
             << newCng.base.priority << ","
             << "ARRAY" << prevTasks << "::INT[],"

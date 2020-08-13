@@ -459,6 +459,68 @@ uint32_t zmGetAllPipelines(zmConn zo, uint64_t userId, uint64_t** outPPLId){
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+/// Group of tasks
+bool zmAddGroup(zmConn zo, zmGroup cng, uint64_t* outGId){
+  if (!zo) return false;
+  
+  if (!outGId){
+     static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmAddGroup error: !outGId");
+     return false;
+  }
+  ZM_Base::uGroup gr;
+  gr.pplId = cng.pplId;
+  gr.name = cng.name;
+  gr.description = cng.description ? cng.description : "";
+  
+  return static_cast<ZM_DB::DbProvider*>(zo)->addGroup(gr, *outGId);
+}
+bool zmGetGroup(zmConn zo, uint64_t gId, zmGroup* outGCng){
+  if (!zo) return false; 
+
+  if (!outGCng){
+     static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmGetGroup error: !outGCng");
+     return false;
+  }
+  ZM_Base::uGroup gr;
+  if (static_cast<ZM_DB::DbProvider*>(zo)->getGroup(gId, gr)){    
+    outGCng->pplId = gr.pplId;
+    strcpy(outGCng->name, gr.name.c_str());
+    outGCng->description = (char*)realloc(outGCng->description, gr.description.size() + 1);
+    strcpy(outGCng->description, gr.description.c_str());  
+    return true;
+  }
+  return false;
+}
+bool zmChangeGroup(zmConn zo, uint64_t gId, zmGroup newCng){
+  if (!zo) return false;
+     
+  ZM_Base::uGroup gr;
+  gr.pplId = newCng.pplId;
+  gr.name = newCng.name;
+  gr.description = newCng.description ? newCng.description : "";
+
+  return static_cast<ZM_DB::DbProvider*>(zo)->changeGroup(gId, gr);
+}
+bool zmDelGroup(zmConn zo, uint64_t gId){
+  if (!zo) return false;
+ 
+  return static_cast<ZM_DB::DbProvider*>(zo)->delGroup(gId);
+}
+uint32_t zmGetAllGroups(zmConn zo, uint64_t pplId, uint64_t** outGId){
+  if (!zo) return 0; 
+
+  auto groups = static_cast<ZM_DB::DbProvider*>(zo)->getAllGroups(pplId);
+  size_t gsz = groups.size();
+  if (gsz > 0){
+    *outGId = (uint64_t*)realloc(*outGId, gsz * sizeof(uint64_t));
+    memcpy(*outGId, groups.data(), gsz * sizeof(uint64_t));
+  }else{
+    *outGId = nullptr;
+  }
+  return (uint32_t)gsz;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 /// Task template
 
 bool zmAddTaskTemplate(zmConn zo, zmTaskTemplate cng, uint64_t* outTId){
@@ -542,6 +604,7 @@ bool zmAddTask(zmConn zo, zmTask cng, uint64_t* outQTId){
   }
   ZM_Base::uTask task;
   task.pplId = cng.pplId;
+  task.gId = cng.gId;
   task.base.params = cng.params ? cng.params : "";
   task.prevTasks = cng.prevTasksId ? cng.prevTasksId : "";
   task.nextTasks = cng.nextTasksId ? cng.nextTasksId : "";
@@ -560,6 +623,7 @@ bool zmGetTask(zmConn zo, uint64_t qtId, zmTask* outCng){
   ZM_Base::uTask task;
   if (static_cast<ZM_DB::DbProvider*>(zo)->getTask(qtId, task)){
     outCng->pplId = task.pplId;
+    outCng->gId = task.gId;
     outCng->ttId = task.base.tId;
     outCng->priority = task.base.priority;
     outCng->prevTasksId = (char*)realloc(outCng->prevTasksId, task.prevTasks.size() + 1);
@@ -577,6 +641,7 @@ bool zmChangeTask(zmConn zo, uint64_t qtId, zmTask newCng){
   
   ZM_Base::uTask task;
   task.pplId = newCng.pplId;
+  task.gId = newCng.gId;
   task.base.tId = newCng.ttId;
   task.base.priority = newCng.priority;
   task.prevTasks = newCng.prevTasksId ? newCng.prevTasksId : "";

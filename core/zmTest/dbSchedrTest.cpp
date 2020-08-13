@@ -122,6 +122,7 @@ TEST_F(DBSchedrTest, getTaskOfSchedr){
 
   ZM_Base::uTask task;
   task.pplId = pId; 
+  task.gId = 0; 
   task.base.priority = 1;
   task.base.tId = ttId;
   task.base.params = "param11,param12,param13";
@@ -240,6 +241,7 @@ TEST_F(DBSchedrTest, getNewTasksForSchedr){
 
   ZM_Base::uTask task;
   task.pplId = pId; 
+  task.gId = 0; 
   task.base.priority = 1;
   task.base.tId = ttId;
   task.base.params = "param11,param12,param13";
@@ -327,6 +329,7 @@ TEST_F(DBSchedrTest, getWorkerByTask){
 
   ZM_Base::uTask task;
   task.pplId = pId; 
+  task.gId = 0; 
   task.base.priority = 1;
   task.base.tId = ttId;
   task.base.params = "param11,param12,param13";
