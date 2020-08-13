@@ -219,8 +219,7 @@ bool DbPGProvider::createTables(){
         "id           SERIAL PRIMARY KEY,"
         "pipeline     INT NOT NULL REFERENCES tblUPipeline,"
         "name         TEXT NOT NULL CHECK (name <> ''),"
-        "description  TEXT NOT NULL,"
-        "screenRect   TEXT NOT NULL);";
+        "description  TEXT NOT NULL);";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
@@ -242,8 +241,7 @@ bool DbPGProvider::createTables(){
         "priority     INT NOT NULL DEFAULT 1 CHECK (priority BETWEEN 1 AND 3),"
         "prevTasks    INT[] NOT NULL,"     // [..]  
         "nextTasks    INT[] NOT NULL,"     // [..]
-        "params       TEXT[] NOT NULL,"    // ['param1','param2'..]
-        "screenRect   TEXT NOT NULL);";
+        "params       TEXT[] NOT NULL);";  // ['param1','param2'..]
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
     
   ///////////////////////////////////////////////////////////////////////////
@@ -281,14 +279,13 @@ bool DbPGProvider::createTables(){
         "      END IF;"
         "    END LOOP;"
         "  INSERT INTO tblUPipelineTask (pipeline, taskTempl, priority,"
-        "                              prevTasks, nextTasks, params, screenRect)"
+        "                                prevTasks, nextTasks, params)"
         "    VALUES(task.pipeline,"
         "           task.taskTempl,"
         "           task.priority,"
         "           task.prevTasks,"
         "           task.nextTasks,"
-        "           task.params,"
-        "           task.screenRect) RETURNING id INTO tId;"
+        "           task.params) RETURNING id INTO tId;"
         "  RETURN tId;" 
         "END;"
         "$$ LANGUAGE plpgsql;";
@@ -321,8 +318,7 @@ bool DbPGProvider::createTables(){
         "    priority = task.priority,"
         "    prevTasks = task.prevTasks,"
         "    nextTasks = task.nextTasks,"
-        "    params = task.params,"
-        "    screenRect = task.screenRect"
+        "    params = task.params"
         "  WHERE id = task.id;"
         "  IF NOT FOUND THEN"
         "    RETURN 0;"
@@ -972,42 +968,26 @@ bool DbPGProvider::getTaskTemplate(uint64_t tId, ZM_Base::uTaskTemplate& outTCng
   outTCng.base.maxDurationSec = atoi(PQgetvalue(pgr.res, 0, 5));
   return true;
 };
-bool DbPGProvider::changeTaskTemplate(uint64_t tId, const ZM_Base::uTaskTemplate& newTCng, uint64_t& outTId){
+bool DbPGProvider::changeTaskTemplate(uint64_t tId, const ZM_Base::uTaskTemplate& newTCng){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
   ss << "UPDATE tblUTaskTemplate SET "
-        "isDelete = 1 "
+        "usr = '" << newTCng.uId << "',"
+        "name = '" << newTCng.name << "',"
+        "description = '" << newTCng.description << "' "
         "WHERE task = " << tId << ";"
         
-        "WITH ntsk AS (INSERT INTO tblTask (script, averDurationSec, maxDurationSec) VALUES("
-        "'" << newTCng.base.script << "',"
-        "'" << newTCng.base.averDurationSec << "',"
-        "'" << newTCng.base.maxDurationSec << "') RETURNING id) "
-        "INSERT INTO tblUTaskTemplate (task, usr, name, description) VALUES("
-        "(SELECT id FROM ntsk),"
-        "'" << newTCng.uId << "',"
-        "'" << newTCng.name << "',"
-        "'" << newTCng.description << "') RETURNING task;";
+        "UPDATE tblTask SET "
+        "script = '" << newTCng.base.script << "',"
+        "averDurationSec = '" << newTCng.base.averDurationSec << "',"
+        "maxDurationSec = '" << newTCng.base.maxDurationSec << "' "
+        "WHERE id = " << tId << ";";
   
   PGres pgr(PQexec(_pg, ss.str().c_str()));
-  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("changeTaskTemplate error: ") + PQerrorMessage(_pg));
-    return false;
-  }
-  outTId = stoull(PQgetvalue(pgr.res, 0, 0));
-  
-  ////////////////////////////////////////////////////////////////////////
-
-  ss.str(""); 
-  ss << "UPDATE tblUPipelineTask SET "
-        "taskTempl = "<< outTId << " "
-        "WHERE taskTempl = " << tId << ";";
-  
-  pgr = PQexec(_pg, ss.str().c_str());
   if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
     errorMess(string("changeTaskTemplate error: ") + PQerrorMessage(_pg));
     return false;
-  }
+  } 
   return true;
 }
 bool DbPGProvider::delTaskTemplate(uint64_t tId){
@@ -1061,8 +1041,7 @@ bool DbPGProvider::addTask(const ZM_Base::uTask& cng, uint64_t& outTId){
             << cng.base.priority << ","
             << "ARRAY" << prevTasks << "::INT[],"
             << "ARRAY" << nextTasks << "::INT[],"
-            << "ARRAY" << params << "::TEXT[],"
-            << "'" << cng.screenRect << "'));";
+            << "ARRAY" << params << "::TEXT[]));";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
@@ -1079,8 +1058,7 @@ bool DbPGProvider::addTask(const ZM_Base::uTask& cng, uint64_t& outTId){
 bool DbPGProvider::getTask(uint64_t tId, ZM_Base::uTask& outTCng){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
-  ss << "SELECT pipeline, taskTempl, priority, prevTasks, nextTasks, "
-        "params, screenRect "
+  ss << "SELECT pipeline, taskTempl, priority, prevTasks, nextTasks, params "
         "FROM tblUPipelineTask "
         "WHERE id = " << tId << ";";
 
@@ -1105,8 +1083,6 @@ bool DbPGProvider::getTask(uint64_t tId, ZM_Base::uTask& outTCng){
   outTCng.base.params = PQgetvalue(pgr.res, 0, 5);
   ZM_Aux::replace(outTCng.base.params, "\"", "");
   outTCng.base.params = outTCng.base.params.substr(1,  outTCng.base.params.size() - 2);  
-
-  outTCng.screenRect = PQgetvalue(pgr.res, 0, 6);
   return true;
 }
 bool DbPGProvider::changeTask(uint64_t tId, const ZM_Base::uTask& newCng){
@@ -1127,8 +1103,7 @@ bool DbPGProvider::changeTask(uint64_t tId, const ZM_Base::uTask& newCng){
             << newCng.base.priority << ","
             << "ARRAY" << prevTasks << "::INT[],"
             << "ARRAY" << nextTasks << "::INT[],"
-            << "ARRAY" << params << "::TEXT[],"
-            << "'" << newCng.screenRect << "'));";
+            << "ARRAY" << params << "::TEXT[]));";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){

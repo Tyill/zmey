@@ -499,13 +499,9 @@ bool zmGetTaskTemplate(zmConn zo, uint64_t tId, zmTaskTemplate* outTCng){
   }
   return false;
 }
-bool zmChangeTaskTemplate(zmConn zo, uint64_t tId, zmTaskTemplate newCng, uint64_t* outTId){
+bool zmChangeTaskTemplate(zmConn zo, uint64_t tId, zmTaskTemplate newCng){
   if (!zo) return false; 
-
-  if (!outTId){
-    static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmChangeTaskTemplateCng error: !outTId");
-    return false;
-  }
+  
   ZM_Base::uTaskTemplate task;
   task.name = newCng.name;
   task.description = newCng.description ? newCng.description : "";
@@ -513,7 +509,7 @@ bool zmChangeTaskTemplate(zmConn zo, uint64_t tId, zmTaskTemplate newCng, uint64
   task.base.averDurationSec = newCng.averDurationSec;
   task.base.maxDurationSec = newCng.maxDurationSec;
   task.base.script = newCng.script;
-  return static_cast<ZM_DB::DbProvider*>(zo)->changeTaskTemplate(tId, task, *outTId);
+  return static_cast<ZM_DB::DbProvider*>(zo)->changeTaskTemplate(tId, task);
 }
 bool zmDelTaskTemplate(zmConn zo, uint64_t tId){
   if (!zo) return false; 
@@ -549,7 +545,6 @@ bool zmAddTask(zmConn zo, zmTask cng, uint64_t* outQTId){
   task.base.params = cng.params ? cng.params : "";
   task.prevTasks = cng.prevTasksId ? cng.prevTasksId : "";
   task.nextTasks = cng.nextTasksId ? cng.nextTasksId : "";
-  task.screenRect = cng.screenRect ? cng.screenRect : "";  
   task.base.priority = cng.priority;
   task.base.tId = cng.ttId;
   
@@ -572,9 +567,7 @@ bool zmGetTask(zmConn zo, uint64_t qtId, zmTask* outCng){
     outCng->nextTasksId = (char*)realloc(outCng->nextTasksId, task.nextTasks.size() + 1);
     strcpy(outCng->nextTasksId, task.nextTasks.c_str());    
     outCng->params = (char*)realloc(outCng->params, task.base.params.size() + 1);
-    strcpy(outCng->params, task.base.params.c_str());    
-    outCng->screenRect = (char*)realloc(outCng->screenRect, task.screenRect.size() + 1);
-    strcpy(outCng->screenRect, task.screenRect.c_str());   
+    strcpy(outCng->params, task.base.params.c_str());  
     return true;
   }
   return false;
@@ -589,7 +582,6 @@ bool zmChangeTask(zmConn zo, uint64_t qtId, zmTask newCng){
   task.prevTasks = newCng.prevTasksId ? newCng.prevTasksId : "";
   task.nextTasks = newCng.nextTasksId ? newCng.nextTasksId : "";
   task.base.params = newCng.params ? newCng.params : "";
-  task.screenRect = newCng.screenRect ? newCng.screenRect : "";
 
   return static_cast<ZM_DB::DbProvider*>(zo)->changeTask(qtId, task);
 }

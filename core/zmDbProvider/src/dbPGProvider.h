@@ -66,7 +66,7 @@ public:
 
   bool addTaskTemplate(const ZM_Base::uTaskTemplate& cng, uint64_t& outTId) override;
   bool getTaskTemplate(uint64_t tId, ZM_Base::uTaskTemplate& outTCng) override;;
-  bool changeTaskTemplate(uint64_t tId, const ZM_Base::uTaskTemplate& newTCng, uint64_t& outTId) override;
+  bool changeTaskTemplate(uint64_t tId, const ZM_Base::uTaskTemplate& newTCng) override;
   bool delTaskTemplate(uint64_t tId) override;
   std::vector<uint64_t> getAllTaskTemplates(uint64_t parent) override;
 

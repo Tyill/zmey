@@ -110,7 +110,6 @@ namespace ZM_Base{
     uint64_t pplId;           // id tblUPipeline
     std::string prevTasks;    // queue task id tblUTask of previous tasks to be completed: {tId,..}
     std::string nextTasks;    // queue task id tblUTask of next tasks: {tId,..}
-    std::string screenRect;   // rect on screen: x y w h
     queueTask base; 
   };
   // tblScheduler

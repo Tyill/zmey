@@ -375,9 +375,8 @@ ZMEY_API bool zmGetTaskTemplate(zmConn, uint64_t tId, zmTaskTemplate* outTCng);
 /// @param[in] zmConn - object connect
 /// @param[in] tId - task id
 /// @param[in] newTCng - new task config
-/// @param[out] outTId - new task id
 /// @return true - ok
-ZMEY_API bool zmChangeTaskTemplate(zmConn, uint64_t tId, zmTaskTemplate newTCng, uint64_t* outTId);
+ZMEY_API bool zmChangeTaskTemplate(zmConn, uint64_t tId, zmTaskTemplate newTCng);
 
 /// delete task template
 /// The record is marked, but not deleted.
@@ -404,7 +403,6 @@ struct zmTask{
   char* prevTasksId;       ///< pipeline task id of previous tasks to be completed: qtId1,qtId2... May be NULL 
   char* nextTasksId;       ///< pipeline task id of next tasks: : qtId1,qtId2... May be NULL
   char* params;            ///< CLI params for script: param1,param2... May be NULL
-  char* screenRect;        ///< screenRect on UI: x y w h. May be NULL
 };
 
 /// add pipeline task

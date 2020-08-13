@@ -121,7 +121,7 @@ public:
 
   virtual bool addTaskTemplate(const ZM_Base::uTaskTemplate& cng, uint64_t& outTId) = 0;
   virtual bool getTaskTemplate(uint64_t tId, ZM_Base::uTaskTemplate& outTCng) = 0;
-  virtual bool changeTaskTemplate(uint64_t tId, const ZM_Base::uTaskTemplate& newTCng, uint64_t& outTId) = 0;
+  virtual bool changeTaskTemplate(uint64_t tId, const ZM_Base::uTaskTemplate& newTCng) = 0;
   virtual bool delTaskTemplate(uint64_t tId) = 0;
   virtual std::vector<uint64_t> getAllTaskTemplates(uint64_t parent) = 0;
 
