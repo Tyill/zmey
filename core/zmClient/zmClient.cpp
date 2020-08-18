@@ -47,21 +47,16 @@ void zmVersionLib(char* outVersion /*sz 8*/){
 
 zmConn zmCreateConnection(zmConnect cng, char* err/*sz 256*/){
   
-  ZM_DB::connectCng connCng{ (ZM_DB::dbType)cng.dbType,
-                             cng.connectStr};
-  ZM_DB::DbProvider* pDb = ZM_DB::makeDbProvider(connCng);
+  ZM_DB::connectCng connCng{ cng.connectStr};
+  ZM_DB::DbProvider* pDb = new ZM_DB::DbProvider(connCng);
 
-  if (pDb){
-    auto serr = pDb->getLastError();
-    if (!serr.empty()){
-      if (err){
-        strncpy(err, serr.c_str(), 256);
-      }
-      delete pDb;
-      return nullptr;
+  auto serr = pDb->getLastError();
+  if (!serr.empty()){
+    if (err){
+      strncpy(err, serr.c_str(), 256);
     }
-  }else{
-    strcpy(err, ("zmCreateConnection error: not support dbType " + dbTypeToStr(connCng.selType)).c_str());
+    delete pDb;
+    return nullptr;
   }
   return pDb;
 }

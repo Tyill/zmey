@@ -27,20 +27,13 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <mutex>
 #include <functional>
 #include "zmBase/structurs.h"
 
 namespace ZM_DB{
 
-enum class dbType{
-  undefined = -1,
-  PostgreSQL = 0,
-};
-std::string dbTypeToStr(dbType);
-dbType dbTypeFromStr(const std::string& dbt);
-
 struct connectCng{
-  dbType selType;
   std::string connectStr;
 };
 struct messSchedr{
@@ -79,89 +72,98 @@ typedef void* udata;
 typedef std::function<void(const char* mess, udata)> errCBack;
 
 class DbProvider{  
-  friend DbProvider* makeDbProvider(const connectCng&);
-public:  
-  virtual ~DbProvider() = default; 
-  DbProvider(const DbProvider& other) = delete;
-  DbProvider& operator=(const DbProvider& other) = delete;
-  std::string getLastError() const;
-  void setErrorCBack(errCBack ecb, udata ud);
-  void errorMess(const std::string&);
-  connectCng getConnectCng();
-  
-  virtual bool createTables() = 0;
-
-  // for manager
-  virtual bool addUser(const ZM_Base::user& newUserCng, uint64_t& outUserId) = 0;
-  virtual bool getUserId(const std::string& name, const std::string& passw, uint64_t& outUserId) = 0;
-  virtual bool getUserCng(uint64_t userId, ZM_Base::user& cng) = 0; 
-  virtual bool changeUser(uint64_t userId, const ZM_Base::user& newCng) = 0;
-  virtual bool delUser(uint64_t userId) = 0;
-  virtual std::vector<uint64_t> getAllUsers() = 0;
-  
-  virtual bool addSchedr(const ZM_Base::scheduler& schedl, uint64_t& outSchId) = 0;
-  virtual bool getSchedr(uint64_t sId, ZM_Base::scheduler& outCng) = 0;
-  virtual bool changeSchedr(uint64_t sId, const ZM_Base::scheduler& newCng) = 0;
-  virtual bool delSchedr(uint64_t sId) = 0;
-  virtual bool schedrState(uint64_t sId, ZM_Base::stateType& ) = 0;
-  virtual std::vector<uint64_t> getAllSchedrs(ZM_Base::stateType) = 0;
-  
-  virtual bool addWorker(const ZM_Base::worker& worker, uint64_t& outWkrId) = 0;
-  virtual bool getWorker(uint64_t wId, ZM_Base::worker& outCng) = 0;
-  virtual bool changeWorker(uint64_t wId, const ZM_Base::worker& newCng) = 0;
-  virtual bool delWorker(uint64_t wId) = 0;
-  virtual bool workerState(const std::vector<uint64_t>& wId, std::vector<ZM_Base::stateType>&) = 0;
-  virtual std::vector<uint64_t> getAllWorkers(uint64_t sId, ZM_Base::stateType) = 0;
-
-  virtual bool addPipeline(const ZM_Base::uPipeline& cng, uint64_t& outPPLId) = 0;
-  virtual bool getPipeline(uint64_t pplId, ZM_Base::uPipeline& cng) = 0;
-  virtual bool changePipeline(uint64_t pplId, const ZM_Base::uPipeline& newCng) = 0;
-  virtual bool delPipeline(uint64_t pplId) = 0;
-  virtual std::vector<uint64_t> getAllPipelines(uint64_t userId) = 0;
-
-  virtual bool addGroup(const ZM_Base::uGroup& cng, uint64_t& outGId) = 0;
-  virtual bool getGroup(uint64_t gId, ZM_Base::uGroup& cng) = 0;
-  virtual bool changeGroup(uint64_t gId, const ZM_Base::uGroup& newCng) = 0;
-  virtual bool delGroup(uint64_t gId) = 0;
-  virtual std::vector<uint64_t> getAllGroups(uint64_t pplId) = 0;
-
-  virtual bool addTaskTemplate(const ZM_Base::uTaskTemplate& cng, uint64_t& outTId) = 0;
-  virtual bool getTaskTemplate(uint64_t tId, ZM_Base::uTaskTemplate& outTCng) = 0;
-  virtual bool changeTaskTemplate(uint64_t tId, const ZM_Base::uTaskTemplate& newTCng) = 0;
-  virtual bool delTaskTemplate(uint64_t tId) = 0;
-  virtual std::vector<uint64_t> getAllTaskTemplates(uint64_t parent) = 0;
-
-  virtual bool addTask(const ZM_Base::uTask&, uint64_t& outTId) = 0;
-  virtual bool getTask(uint64_t tId, ZM_Base::uTask&) = 0;
-  virtual bool changeTask(uint64_t tId, const ZM_Base::uTask& newTCng) = 0;
-  virtual bool delTask(uint64_t tId) = 0;
-  virtual bool startTask(uint64_t tId) = 0;
-  virtual bool cancelTask(uint64_t tId) = 0;
-  virtual bool taskState(const std::vector<uint64_t>& tId, std::vector<tskState>&) = 0;
-  virtual bool taskResult(uint64_t tId, std::string&) = 0;
-  virtual bool taskTime(uint64_t tId, taskTime& out) = 0;
-  virtual std::vector<uint64_t> getAllTasks(uint64_t pplId, ZM_Base::stateType) = 0;
-  virtual bool getWorkerByTask(uint64_t tId, uint64_t& qtId, ZM_Base::worker& wcng) = 0;
-
-  virtual std::vector<messError> getInternErrors(uint64_t sId, uint64_t wId, uint32_t mCnt) = 0;
-
-  // for zmSchedr
-  virtual bool getSchedr(std::string& connPnt, ZM_Base::scheduler& outSchedl) = 0;
-  virtual bool getTasksOfSchedr(uint64_t sId, std::vector<schedrTask>& out) = 0;
-  virtual bool getWorkersOfSchedr(uint64_t sId, std::vector<ZM_Base::worker>& out) = 0;
-  virtual bool getNewTasksForSchedr(uint64_t sId, int maxTaskCnt, std::vector<schedrTask>& out) = 0;
-  virtual bool sendAllMessFromSchedr(uint64_t sId, std::vector<messSchedr>& out) = 0;
-
-  // for test
-  virtual bool delAllTables() = 0;
-
-protected:  
-  DbProvider(const connectCng& cng);    
   std::string _err;
   errCBack _errCBack = nullptr;
   udata _errUData = nullptr;
   ZM_DB::connectCng _connCng;
-};
+  void* _db = nullptr; 
+  std::mutex _mtx;
+public: 
+  DbProvider(const connectCng& cng);
+  ~DbProvider(); 
+  DbProvider(const DbProvider& other) = delete;
+  DbProvider& operator=(const DbProvider& other) = delete;
+  std::string getLastError() const{
+    return _err;
+  }  
+  void setErrorCBack(errCBack ecb, udata ud){
+    _errCBack = ecb;
+    _errUData = ud;
+  }
+  void errorMess(const std::string& mess){
+    _err = mess;
+    if (_errCBack){
+      _errCBack(mess.c_str(), _errUData);
+    } 
+  }
+  connectCng getConnectCng(){
+    return _connCng;
+  }
+  
+  bool createTables();
 
-DbProvider* makeDbProvider(const connectCng&);
+  // for manager
+  bool addUser(const ZM_Base::user& newUserCng, uint64_t& outUserId);
+  bool getUserId(const std::string& name, const std::string& passw, uint64_t& outUserId);
+  bool getUserCng(uint64_t userId, ZM_Base::user& cng); 
+  bool changeUser(uint64_t userId, const ZM_Base::user& newCng);
+  bool delUser(uint64_t userId);
+  std::vector<uint64_t> getAllUsers();
+
+  bool addSchedr(const ZM_Base::scheduler& schedl, uint64_t& outSchId);
+  bool getSchedr(uint64_t sId, ZM_Base::scheduler& outCng);
+  bool changeSchedr(uint64_t sId, const ZM_Base::scheduler& newCng);
+  bool delSchedr(uint64_t sId);
+  bool schedrState(uint64_t sId, ZM_Base::stateType& );
+  std::vector<uint64_t> getAllSchedrs(ZM_Base::stateType);
+
+  bool addWorker(const ZM_Base::worker& worker, uint64_t& outWkrId);
+  bool getWorker(uint64_t wId, ZM_Base::worker& outCng);
+  bool changeWorker(uint64_t wId, const ZM_Base::worker& newCng);
+  bool delWorker(uint64_t wId);
+  bool workerState(const std::vector<uint64_t>& wId, std::vector<ZM_Base::stateType>&);
+  std::vector<uint64_t> getAllWorkers(uint64_t sId, ZM_Base::stateType);
+
+  bool addPipeline(const ZM_Base::uPipeline& cng, uint64_t& outPPLId);
+  bool getPipeline(uint64_t pplId, ZM_Base::uPipeline& cng);
+  bool changePipeline(uint64_t pplId, const ZM_Base::uPipeline& newCng);
+  bool delPipeline(uint64_t pplId);
+  std::vector<uint64_t> getAllPipelines(uint64_t userId);
+
+  bool addGroup(const ZM_Base::uGroup& cng, uint64_t& outGId);
+  bool getGroup(uint64_t gId, ZM_Base::uGroup& cng);
+  bool changeGroup(uint64_t gId, const ZM_Base::uGroup& newCng);
+  bool delGroup(uint64_t gId);
+  std::vector<uint64_t> getAllGroups(uint64_t pplId);
+
+  bool addTaskTemplate(const ZM_Base::uTaskTemplate& cng, uint64_t& outTId);
+  bool getTaskTemplate(uint64_t tId, ZM_Base::uTaskTemplate& outTCng);
+  bool changeTaskTemplate(uint64_t tId, const ZM_Base::uTaskTemplate& newTCng);
+  bool delTaskTemplate(uint64_t tId);
+  std::vector<uint64_t> getAllTaskTemplates(uint64_t parent);
+
+  bool addTask(const ZM_Base::uTask&, uint64_t& outTId);
+  bool getTask(uint64_t tId, ZM_Base::uTask&);
+  bool changeTask(uint64_t tId, const ZM_Base::uTask& newTCng);
+  bool delTask(uint64_t tId);
+  bool startTask(uint64_t tId);
+  bool cancelTask(uint64_t tId);
+  bool taskState(const std::vector<uint64_t>& tId, std::vector<tskState>&);
+  bool taskResult(uint64_t tId, std::string&);
+  bool taskTime(uint64_t tId, taskTime& out);
+  std::vector<uint64_t> getAllTasks(uint64_t pplId, ZM_Base::stateType);
+  bool getWorkerByTask(uint64_t tId, uint64_t& qtId, ZM_Base::worker& wcng);
+
+  std::vector<messError> getInternErrors(uint64_t sId, uint64_t wId, uint32_t mCnt);
+
+  // for zmSchedr
+  bool getSchedr(std::string& connPnt, ZM_Base::scheduler& outSchedl);
+  bool getTasksOfSchedr(uint64_t sId, std::vector<schedrTask>& out);
+  bool getWorkersOfSchedr(uint64_t sId, std::vector<ZM_Base::worker>& out);
+  bool getNewTasksForSchedr(uint64_t sId, int maxTaskCnt, std::vector<schedrTask>& out);
+  bool sendAllMessFromSchedr(uint64_t sId, std::vector<messSchedr>& out);
+
+  // for test
+  bool delAllTables();  
+};
 }

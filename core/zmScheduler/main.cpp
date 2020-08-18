@@ -59,7 +59,6 @@ struct config{
   int sendAllMessTOutMS = 500;
   int checkWorkerTOutSec = 120; 
   const int currentStateTOutSec = 10; 
-  std::string dbType;
   std::string connectPnt;
   ZM_DB::connectCng dbConnCng;
 };
@@ -90,10 +89,7 @@ void parseArgs(int argc, char* argv[], config& outCng){
     outCng.prm = sprms[#nm]; \
   }
   SET_PARAM(cp, connectPnt);
-  SET_PARAM(dbtp, dbType);
   SET_PARAM(dbcs, dbConnCng.connectStr);
-
-  outCng.dbConnCng.selType = ZM_DB::dbTypeFromStr(outCng.dbType);
  
 #define SET_PARAM_NUM(nm, prm) \
   if (sprms.find(#nm) != sprms.end() && ZM_Aux::isNumber(sprms[#nm])){ \
@@ -113,7 +109,7 @@ void closeHandler(int sig){
 
 unique_ptr<ZM_DB::DbProvider> 
 createDbProvider(const config& cng, std::string& err){
-  unique_ptr<ZM_DB::DbProvider> db(ZM_DB::makeDbProvider(cng.dbConnCng));  
+  unique_ptr<ZM_DB::DbProvider> db(new ZM_DB::DbProvider(cng.dbConnCng));  
   if (db && db->getLastError().empty()){
     return db;
   } else{
@@ -134,7 +130,6 @@ int main(int argc, char* argv[]){
   parseArgs(argc, argv, cng);
   
   CHECK(cng.connectPnt.empty(), "Not set param '-cp' - scheduler connection point: IP or DNS:port");
-  CHECK(cng.dbConnCng.selType == ZM_DB::dbType::undefined, "Check param '-dbtp', such db type is not defined");
   CHECK(cng.dbConnCng.connectStr.empty(), "Not set param '-dbcs' - db connection string");
  
   signal(SIGHUP, closeHandler);
@@ -147,7 +142,7 @@ int main(int argc, char* argv[]){
   string err;
   auto dbNewTask = createDbProvider(cng, err);
   auto dbSendMess = dbNewTask ? createDbProvider(cng, err) : nullptr;
-  CHECK(!dbNewTask || !dbSendMess, "Schedr DB connect error " + err + ": " + cng.dbType + " " + cng.dbConnCng.connectStr); 
+  CHECK(!dbNewTask || !dbSendMess, "Schedr DB connect error " + err + ": " + cng.dbConnCng.connectStr); 
     
   // schedr from DB
   dbNewTask->getSchedr(cng.connectPnt, _schedr);

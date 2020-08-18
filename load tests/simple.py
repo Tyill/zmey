@@ -30,7 +30,7 @@ with psycopg2.connect(dbname='zmeyDb', user='alm', password='123', host='localho
               "drop table if exists tblUTaskGroup cascade;")
   csr.close()
 
-zo = zm.ZMObj(zm.dbType.PostgreSQL, "host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10")
+zo = zm.ZMObj("host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10")
 
 zo.setErrorCBack(lambda err: print(err))
 
@@ -67,7 +67,6 @@ for i in range(sCnt):
       exit(-1)
   schPrc.append(subprocess.Popen([os.path.expanduser("~") + '/cpp/zmey/build/Release/zmScheduler',
                                   '-cp=localhost:' + str(4440 + i),
-                                  "-dbtp=PostgreSQL",
                                   "-dbcs=host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10"]))
   time.sleep(3)
   for j in range(wCnt):

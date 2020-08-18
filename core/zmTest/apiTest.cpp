@@ -42,8 +42,7 @@ public:
 
     string connStr = "host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10";
     char err[256]{0};
-    _zc = zmey::zmCreateConnection(zmey::zmConnect{ zmey::zmDbType::zmPostgreSQL,
-                                                    (char*)connStr.c_str() },
+    _zc = zmey::zmCreateConnection(zmey::zmConnect{ (char*)connStr.c_str() },
                                                    err);
     if (strlen(err) > 0){    
       TEST_COUT << err << endl;
@@ -54,9 +53,8 @@ public:
     }, nullptr); 
 
     ZM_DB::connectCng cng;
-    cng.selType = ZM_DB::dbType::PostgreSQL;
     cng.connectStr = connStr;
-    auto pDb = ZM_DB::makeDbProvider(cng);
+    auto pDb = new ZM_DB::DbProvider(cng);
     if (pDb){
       EXPECT_TRUE(pDb->delAllTables())   << pDb->getLastError();
       delete pDb;

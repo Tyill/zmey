@@ -62,11 +62,6 @@ enum zmStateType{
   zmNotResponding = 7,
 };
 
-/// database type
-enum zmDbType{
-  zmPostgreSQL = 0,
-};
-
 /// version lib
 /// @param[out] outVersion. The memory is allocated by the user
 ZMEY_API void zmVersionLib(char* outVersion /*sz 8*/);
@@ -76,7 +71,6 @@ ZMEY_API void zmVersionLib(char* outVersion /*sz 8*/);
 
 /// connection config
 struct zmConnect{
-  zmDbType dbType;          ///< db type
   char* connectStr;         ///< connection string
 };
 

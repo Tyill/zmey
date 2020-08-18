@@ -47,9 +47,6 @@ class stateType(Enum):
   error         = 6
   cancel        = 7
   notResponding = 8
-class dbType(Enum):
-  """Database type"""
-  PostgreSQL = 0
 class user: 
   """User config""" 
   def __init__(self, 
@@ -170,8 +167,7 @@ class internError:
     self.message = message          
   
 class _connectCng(ctypes.Structure):
-  _fields_ = [('dbType', ctypes.c_int32),
-              ('connStr', ctypes.c_char_p)]
+  _fields_ = [('connStr', ctypes.c_char_p)]
 class _userCng(ctypes.Structure):
   _fields_ = [('name', ctypes.c_char * 255),
               ('passw', ctypes.c_char * 255),
@@ -200,8 +196,8 @@ class _taskTemplCng(ctypes.Structure):
               ('script', ctypes.c_char_p)]
 class _taskCng(ctypes.Structure):
   _fields_ = [('pplId', ctypes.c_uint64),
-              ('ttId', ctypes.c_uint64),
               ('gId', ctypes.c_uint64),
+              ('ttId', ctypes.c_uint64),
               ('priority', ctypes.c_uint32),
               ('prevTasksId', ctypes.c_char_p),
               ('nextTasksId', ctypes.c_char_p),
@@ -243,9 +239,8 @@ class ZMObj:
   #############################################################################
   ### Connection with DB
 
-  def __init__(self, db : dbType, connStr : str):
+  def __init__(self, connStr : str):
     cng = _connectCng()
-    cng.dbType = db.value
     cng.connStr = connStr.encode("utf-8")
 
     pfun = _LIB.zmCreateConnection
