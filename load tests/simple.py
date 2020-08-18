@@ -67,7 +67,7 @@ for i in range(sCnt):
       exit(-1)
   schPrc.append(subprocess.Popen([os.path.expanduser("~") + '/cpp/zmey/build/Release/zmScheduler',
                                   '-cp=localhost:' + str(4440 + i),
-                                  "-dbcs=host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10"]))
+                                  "-db=host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10"]))
   time.sleep(3)
   for j in range(wCnt):
     wkrPrc.append(subprocess.Popen([os.path.expanduser("~") + '/cpp/zmey/build/Release/zmWorker',

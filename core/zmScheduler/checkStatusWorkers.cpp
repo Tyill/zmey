@@ -52,7 +52,7 @@ void checkStatusWorkers(const ZM_Base::scheduler& schedr,
       } 
     }
   }else{
-    string mess = "schedr::checkStatusWorkers error all workers are not available, no network";
+    string mess = "schedr::checkStatusWorkers error all workers are not available";
     messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::internError,
                                     0,
                                     0,

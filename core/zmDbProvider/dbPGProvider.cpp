@@ -1172,8 +1172,9 @@ bool DbProvider::getTask(uint64_t tId, ZM_Base::uTask& outTCng){
   outTCng.nextTasks = outTCng.nextTasks.substr(1,  outTCng.nextTasks.size() - 2);
   
   outTCng.base.params = PQgetvalue(pgr.res, 0, 6);
-  ZM_Aux::replace(outTCng.base.params, "\"", "");
-  outTCng.base.params = outTCng.base.params.substr(1,  outTCng.base.params.size() - 2);  
+  ZM_Aux::replace(outTCng.base.params, "\",\"", ",");
+  ZM_Aux::replace(outTCng.base.params, "{\"", "");
+  ZM_Aux::replace(outTCng.base.params, "\"}", ""); 
   return true;
 }
 bool DbProvider::changeTask(uint64_t tId, const ZM_Base::uTask& newCng){
@@ -1445,8 +1446,9 @@ bool DbProvider::getTasksOfSchedr(uint64_t sId, std::vector<ZM_DB::schedrTask>& 
   int tsz = PQntuples(pgr.res);
   for (int i = 0; i < tsz; ++i){
     string params = PQgetvalue(pgr.res, i, 5);
-    ZM_Aux::replace(params, "\"", "");
-    params = string(params.data() + 1, params.size() - 2); // remove '{' and '}'
+    ZM_Aux::replace(params, "\",\"", ",");
+    ZM_Aux::replace(params, "{\"", "");
+    ZM_Aux::replace(params, "\"}", "");
     out.push_back(ZM_DB::schedrTask{stoull(PQgetvalue(pgr.res, i, 0)),
                                     ZM_Base::task{stoull(PQgetvalue(pgr.res, i, 1)),
                                                   atoi(PQgetvalue(pgr.res, i, 2)),
@@ -1495,8 +1497,9 @@ bool DbProvider::getNewTasksForSchedr(uint64_t sId, int maxTaskCnt, std::vector<
   int tsz = PQntuples(pgr.res);
   for (int i = 0; i < tsz; ++i){
     string params = PQgetvalue(pgr.res, i, 5);
-    ZM_Aux::replace(params, "\"", "");
-    params = string(params.data() + 1, params.size() - 2); // remove '{' and '}'    
+    ZM_Aux::replace(params, "\",\"", ",");
+    ZM_Aux::replace(params, "{\"", "");
+    ZM_Aux::replace(params, "\"}", "");
     out.push_back(ZM_DB::schedrTask{stoull(PQgetvalue(pgr.res, i, 0)),
                                     ZM_Base::task{stoull(PQgetvalue(pgr.res, i, 1)),
                                                   atoi(PQgetvalue(pgr.res, i, 2)),

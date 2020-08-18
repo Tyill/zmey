@@ -89,7 +89,7 @@ void parseArgs(int argc, char* argv[], config& outCng){
     outCng.prm = sprms[#nm]; \
   }
   SET_PARAM(cp, connectPnt);
-  SET_PARAM(dbcs, dbConnCng.connectStr);
+  SET_PARAM(db, dbConnCng.connectStr);
  
 #define SET_PARAM_NUM(nm, prm) \
   if (sprms.find(#nm) != sprms.end() && ZM_Aux::isNumber(sprms[#nm])){ \
@@ -130,7 +130,7 @@ int main(int argc, char* argv[]){
   parseArgs(argc, argv, cng);
   
   CHECK(cng.connectPnt.empty(), "Not set param '-cp' - scheduler connection point: IP or DNS:port");
-  CHECK(cng.dbConnCng.connectStr.empty(), "Not set param '-dbcs' - db connection string");
+  CHECK(cng.dbConnCng.connectStr.empty(), "Not set param '-db' - db connection string");
  
   signal(SIGHUP, closeHandler);
   signal(SIGINT, closeHandler);
