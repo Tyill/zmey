@@ -1173,8 +1173,7 @@ bool DbProvider::getTask(uint64_t tId, ZM_Base::uTask& outTCng){
   
   outTCng.base.params = PQgetvalue(pgr.res, 0, 6);
   ZM_Aux::replace(outTCng.base.params, "\",\"", ",");
-  ZM_Aux::replace(outTCng.base.params, "{\"", "");
-  ZM_Aux::replace(outTCng.base.params, "\"}", ""); 
+  outTCng.base.params = outTCng.base.params.substr(2, outTCng.base.params.size() - 4); // remove {" and "}
   return true;
 }
 bool DbProvider::changeTask(uint64_t tId, const ZM_Base::uTask& newCng){
@@ -1447,8 +1446,7 @@ bool DbProvider::getTasksOfSchedr(uint64_t sId, std::vector<ZM_DB::schedrTask>& 
   for (int i = 0; i < tsz; ++i){
     string params = PQgetvalue(pgr.res, i, 5);
     ZM_Aux::replace(params, "\",\"", ",");
-    ZM_Aux::replace(params, "{\"", "");
-    ZM_Aux::replace(params, "\"}", "");
+    params = params.substr(2, params.size() - 4); // remove {" and "}
     out.push_back(ZM_DB::schedrTask{stoull(PQgetvalue(pgr.res, i, 0)),
                                     ZM_Base::task{stoull(PQgetvalue(pgr.res, i, 1)),
                                                   atoi(PQgetvalue(pgr.res, i, 2)),
@@ -1498,8 +1496,7 @@ bool DbProvider::getNewTasksForSchedr(uint64_t sId, int maxTaskCnt, std::vector<
   for (int i = 0; i < tsz; ++i){
     string params = PQgetvalue(pgr.res, i, 5);
     ZM_Aux::replace(params, "\",\"", ",");
-    ZM_Aux::replace(params, "{\"", "");
-    ZM_Aux::replace(params, "\"}", "");
+    params = params.substr(2, params.size() - 4); // remove {" and "}
     out.push_back(ZM_DB::schedrTask{stoull(PQgetvalue(pgr.res, i, 0)),
                                     ZM_Base::task{stoull(PQgetvalue(pgr.res, i, 1)),
                                                   atoi(PQgetvalue(pgr.res, i, 2)),
