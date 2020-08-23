@@ -75,6 +75,10 @@ DbProvider::~DbProvider(){
   if (_pg){
     PQfinish(_pg);
   }
+  if (_thrEndTask.joinable()){
+    _fClose = true;
+    _thrEndTask.join();
+  }
 }
 bool DbProvider::createTables(){
   lock_guard<mutex> lk(_mtx);
@@ -1373,6 +1377,67 @@ bool DbProvider::getWorkerByTask(uint64_t tId, uint64_t& qtId, ZM_Base::worker& 
   wcng.id = stoull(PQgetvalue(pgr.res, 0, 1));
   wcng.connectPnt = PQgetvalue(pgr.res, 0, 2);
 
+  return true;
+}
+bool DbProvider::setEndTaskCBack(uint64_t tId, endTaskCBack cback){
+  if (!cback){
+    return false;
+  }
+  {lock_guard<mutex> lk(_mtxNotifyTask);  
+    _notifyEndTask[tId] = cback;
+  }  
+  if (!_thrEndTask.joinable()){
+    const int toutMs = 1000; // tough 
+    _thrEndTask = thread([this](){
+      while (!_fClose){
+        if (_notifyEndTask.empty()){
+          ZM_Aux::sleepMs(toutMs); 
+          continue;
+        }
+        string stId;  
+        std::map<uint64_t, endTaskCBack> notifyTask;
+        { lock_guard<mutex> lk(_mtxNotifyTask); 
+          notifyTask = _notifyEndTask;  
+          stId = accumulate(notifyTask.begin(), notifyTask.end(), stId,
+                  [](string& s, pair<uint64_t, endTaskCBack> v){
+                    return s.empty() ? to_string(v.first) : s + "," + to_string(v.first);
+                  });
+        }        
+        stringstream ss;
+        ss << "SELECT pt.id, ts.state "
+              "FROM tblTaskState ts "
+              "JOIN tblTaskQueue qt ON qt.id = ts.qtask "
+              "JOIN tblUPipelineTask pt ON pt.qtask = qt.id "
+              "WHERE pt.id IN (" << stId << ") AND (ts.state BETWEEN 5 AND 7);"; // cancel, complete, error
+        
+        vector<pair<uint64_t, ZM_Base::stateType>> notifyRes;
+        { lock_guard<mutex> lk(_mtx);
+          PGres pgr(PQexec(_pg, ss.str().c_str()));
+          if (PQresultStatus(pgr.res) == PGRES_TUPLES_OK){
+            size_t tsz = PQntuples(pgr.res);
+            for (size_t i = 0; i < tsz; ++i){
+              uint64_t tId = stoull(PQgetvalue(pgr.res, i, 0));
+              ZM_Base::stateType state = (ZM_Base::stateType)atoi(PQgetvalue(pgr.res, i, 1));
+              notifyRes.push_back(make_pair(tId, state));
+            }
+          }else{
+            errorMess(string("endTaskCBack error: ") + PQerrorMessage(_pg));
+          } 
+        }
+        if (!notifyRes.empty()){
+          for (auto& t : notifyRes){
+            notifyTask[t.first](t.first, t.second);
+          }
+          { lock_guard<mutex> lk(_mtxNotifyTask);  
+            for (auto& t : notifyRes){
+              _notifyEndTask.erase(t.first);
+            }    
+          }
+        }
+        ZM_Aux::sleepMs(toutMs);     
+      }      
+    });
+  }
   return true;
 }
 

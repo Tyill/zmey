@@ -775,6 +775,11 @@ uint32_t zmGetAllTasks(zmConn zo, uint64_t pplId, zmStateType state, uint64_t** 
   }
   return (uint32_t)tsz;
 }
+bool zmSetEndTaskCBack(zmConn zo, uint64_t qtId, zmEndTaskCBack cback){
+  if (!zo) return false; 
+
+  return static_cast<ZM_DB::DbProvider*>(zo)->setEndTaskCBack(qtId, (ZM_DB::endTaskCBack)cback);
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Internal errors

@@ -28,6 +28,7 @@
 #include <vector>
 #include <map>
 #include <mutex>
+#include <thread>
 #include <functional>
 #include "zmBase/structurs.h"
 
@@ -71,13 +72,18 @@ struct taskTime{
 typedef void* udata;
 typedef std::function<void(const char* mess, udata)> errCBack;
 
+typedef void(*endTaskCBack)(uint64_t qtId, ZM_Base::stateType tState);
+
 class DbProvider{  
   std::string _err;
   errCBack _errCBack = nullptr;
   udata _errUData = nullptr;
   ZM_DB::connectCng _connCng;
   void* _db = nullptr; 
-  std::mutex _mtx;
+  std::mutex _mtx, _mtxNotifyTask;
+  std::thread _thrEndTask;
+  std::map<uint64_t, endTaskCBack> _notifyEndTask;
+  volatile bool _fClose = false;
 public: 
   DbProvider(const connectCng& cng);
   ~DbProvider(); 
@@ -153,6 +159,7 @@ public:
   bool taskTime(uint64_t tId, taskTime& out);
   std::vector<uint64_t> getAllTasks(uint64_t pplId, ZM_Base::stateType);
   bool getWorkerByTask(uint64_t tId, uint64_t& qtId, ZM_Base::worker& wcng);
+  bool setEndTaskCBack(uint64_t tId, endTaskCBack cback);
 
   std::vector<messError> getInternErrors(uint64_t sId, uint64_t wId, uint32_t mCnt);
 
