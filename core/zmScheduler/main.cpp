@@ -56,7 +56,6 @@ volatile bool _fClose = false;
 
 struct config{
   int capacityTask = 10000;
-  int sendAllMessTOutMS = 500;
   int checkWorkerTOutSec = 120; 
   const int currentStateTOutSec = 10; 
   std::string connectPnt;
@@ -96,7 +95,6 @@ void parseArgs(int argc, char* argv[], config& outCng){
     outCng.prm = stoi(sprms[#nm]); \
   }  
   SET_PARAM_NUM(ctk, capacityTask);
-  SET_PARAM_NUM(sdt, sendAllMessTOutMS);
   SET_PARAM_NUM(chw, checkWorkerTOutSec);
 
 #undef SET_PARAM
@@ -109,11 +107,11 @@ void closeHandler(int sig){
 
 unique_ptr<ZM_DB::DbProvider> 
 createDbProvider(const config& cng, std::string& err){
-  unique_ptr<ZM_DB::DbProvider> db(new ZM_DB::DbProvider(cng.dbConnCng));  
-  if (db && db->getLastError().empty()){
+  unique_ptr<ZM_DB::DbProvider> db(new ZM_DB::DbProvider(cng.dbConnCng));
+  err = db->getLastError();
+  if (err.empty()){
     return db;
-  } else{
-    err = db ? db->getLastError() : "db undefined";
+  } else{    
     return nullptr;
   }
 }
@@ -183,18 +181,17 @@ int main(int argc, char* argv[]){
     sendTaskToWorker(_schedr, _workers, _tasks, _messToDB);    
 
     // send all mess to DB
-    if(timer.onDelayMS(true, cng.sendAllMessTOutMS, 0) && !_messToDB.empty()){
-      timer.onDelayMS(false, cng.sendAllMessTOutMS, 0);
+    if(!_messToDB.empty()){      
       FUTURE_RUN(frSendAllMessToDB, dbSendMess, sendAllMessToDB);
     }    
     // check status of workers
-    if(timer.onDelaySec(true, cng.checkWorkerTOutSec, 1)){
-      timer.onDelaySec(false, cng.checkWorkerTOutSec, 1);    
+    if(timer.onDelaySec(true, cng.checkWorkerTOutSec, 0)){
+      timer.onDelaySec(false, cng.checkWorkerTOutSec, 0);    
       checkStatusWorkers(_schedr, _workers, _messToDB);
     }
     // current state
-    if(timer.onDelaySec(true, cng.currentStateTOutSec, 2)){
-      timer.onDelaySec(false, cng.currentStateTOutSec, 2);    
+    if(timer.onDelaySec(true, cng.currentStateTOutSec, 1)){
+      timer.onDelaySec(false, cng.currentStateTOutSec, 1);    
       _messToDB.push(ZM_DB::messSchedr{ 
         _schedr.state == ZM_Base::stateType::running ? ZM_Base::messType::startSchedr : ZM_Base::messType::pauseSchedr
       });

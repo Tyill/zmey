@@ -1387,22 +1387,22 @@ bool DbProvider::setEndTaskCBack(uint64_t tId, endTaskCBack cback){
     _notifyEndTask[tId] = cback;
   }  
   if (!_thrEndTask.joinable()){
-    const int toutMs = 1000; // tough 
+    const int toutMs = 10; // tough 
     _thrEndTask = thread([this](){
       while (!_fClose){
         if (_notifyEndTask.empty()){
           ZM_Aux::sleepMs(toutMs); 
           continue;
         }
-        string stId;  
         std::map<uint64_t, endTaskCBack> notifyTask;
         { lock_guard<mutex> lk(_mtxNotifyTask); 
-          notifyTask = _notifyEndTask;  
-          stId = accumulate(notifyTask.begin(), notifyTask.end(), stId,
+          notifyTask = _notifyEndTask;
+        } 
+        string stId;
+        stId = accumulate(notifyTask.begin(), notifyTask.end(), stId,
                   [](string& s, pair<uint64_t, endTaskCBack> v){
                     return s.empty() ? to_string(v.first) : s + "," + to_string(v.first);
-                  });
-        }        
+                  });       
         stringstream ss;
         ss << "SELECT pt.id, ts.state "
               "FROM tblTaskState ts "
