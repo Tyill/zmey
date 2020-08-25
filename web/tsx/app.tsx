@@ -4,7 +4,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import { connect, Provider } from "react-redux";
 import {Container, Row, Col, Button, Modal} from "react-bootstrap";
-import TreeNav from "./treeNav.jsx";
+import TreeNav, {ITreeNavDir} from "./treeNav";
  
 import { updateFromServer, 
          setDataParams, 
@@ -350,14 +350,42 @@ import "bootstrap/dist/css/bootstrap.min.css";
 
 // let AppRedux = connect(mapStateToProps, mapDispatchToProps)(App);
 
+class HelloWorld extends React.Component {
+ render() {  
+  
+  let obj : ITreeNavDir = { name : "dir1",
+                            files : [],
+                            subdirs : [],
+                            isShow : false };
+  for(let i = 0; i < 5; ++i){
+    obj.files.push("f" + i);
+  }   
+  let obj1 : ITreeNavDir = { name : "dir2",
+                            files : ["f3", "f4"],
+                            subdirs : [],
+                            isShow : false };
+  obj.subdirs.push(obj1);
+
+  let dirs: Array<ITreeNavDir> = [];
+  dirs.push(obj);
+
+  return (
+          <div>
+          <Container className="col app-container" style={{overflow: "auto"}}>
+            <Row noGutters={true} className="m-1 p-2"
+                 style = {{  border: "1px solid #dbdbdb", borderRadius: "5px"}}>
+              <Col className="col-auto" > 
+                <TreeNav dirs={dirs}/>            
+              </Col>              
+            </Row>
+          </Container> 
+        </div>
+    )
+  }
+}
+
 const root = document.getElementById('root')
 
-class HelloWorld extends React.Component {
- render() {
-  let h1 = React.createElement('h1', null, 'Hello world!')
-  return React.createElement('div', null, h1, h1)
- }
-}
 if (root){
   ReactDOM.render(
     React.createElement(HelloWorld, null),

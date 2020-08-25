@@ -13,6 +13,9 @@ module.exports = {
   },
   devtool:  '#sourcemap',
   mode: 'development',
+  resolve: {
+    extensions: [".ts", ".tsx", ".js"]
+  },
   module: {
     rules: [
       { test: /\.css$/, loader: 'style-loader!css-loader'},
