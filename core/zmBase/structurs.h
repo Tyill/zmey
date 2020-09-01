@@ -30,40 +30,40 @@
 namespace ZM_Base{
 
   enum class messType{
-    undefined           = -1,
-    newTask             = 0,
-    taskRunning         = 1,
-    taskError           = 2,
-    taskCompleted       = 3,
-    taskPause           = 4,
-    taskStart           = 5,
-    taskStop            = 6,
-    taskContinue        = 7,
-    taskCancel          = 8, // when not yet taken to work
-    progress            = 9,
-    pauseWorker         = 10,
-    pauseSchedr         = 11, 
-    startWorker         = 12,
-    startSchedr         = 13, 
-    pingWorker          = 14,
-    pingSchedr          = 15,
-    justStartWorker     = 16,
-    workerRating        = 17,
-    workerNotResponding = 18,
-    internError         = 19,      
+    undefined = -1,
+    newTask,
+    taskRunning,
+    taskError,
+    taskCompleted,
+    taskPause,
+    taskStart,
+    taskStop,
+    taskContinue,
+    taskCancel, // when not yet taken to work
+    progress,
+    pauseWorker,
+    pauseSchedr, 
+    startWorker,
+    startSchedr, 
+    pingWorker,
+    pingSchedr,
+    justStartWorker,
+    workerRating,
+    workerNotResponding,
+    internError,      
   };
   // tblState
   enum class stateType{
-    undefined           = -1,
-    ready               = 0,  // for task: can be taken to work
-    start               = 1,  // for task: taken to work
-    running             = 2,  // for task: running
-    pause               = 3,
-    stop                = 4,    
-    completed           = 5,
-    error               = 6,
-    cancel              = 7,
-    notResponding       = 8,
+    undefined = -1,
+    ready,    // for task: can be taken to work
+    start,    // for task: taken to work
+    running,  // for task: running
+    pause,
+    stop,    
+    completed,
+    error,
+    cancel,
+    notResponding,
   };
   // tblUser
   struct user{
