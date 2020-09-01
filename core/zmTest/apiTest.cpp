@@ -1053,7 +1053,7 @@ TEST_F(APITest, getTask){
   task.params = new char[32];
   task.nextTasksId = new char[24];
   task.prevTasksId = new char[24];
-  strcpy(task.params, "param1,param2,param3");
+  strcpy(task.params, "par am1,param2,param3");
   strcpy(task.nextTasksId, "");
   strcpy(task.prevTasksId, "");
   uint64_t tId = 0;  
@@ -1070,10 +1070,10 @@ TEST_F(APITest, getTask){
              (task.pplId == pId) &&
              (task.gId == 0) &&
              (task.priority == 1) &&
-             (strcmp(task.params, "param1,param2,param3") == 0) &&
+             (strcmp(task.params, "par am1,param2,param3") == 0) &&
              (strcmp(task.nextTasksId, "") == 0) &&
              (strcmp(task.prevTasksId, "") == 0) &&
-             (task.ttId == ttId));                              
+             (task.ttId == ttId));          
 }
 TEST_F(APITest, changeTask){
   zmUser usr;
