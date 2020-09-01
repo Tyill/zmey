@@ -125,16 +125,16 @@ bool DbProvider::createTables(){
     
   ss.str("");
   ss << "INSERT INTO tblState VALUES"
-        "(-1, 'undefined'),"
-        "(0, 'ready'),"
-        "(1, 'start'),"
-        "(2, 'running'),"
-        "(3, 'pause'),"
-        "(4, 'stop'),"
-        "(5, 'completed'),"
-        "(6, 'error'),"
-        "(7, 'cancel'),"
-        "(8, 'notResponding') ON CONFLICT (id) DO NOTHING;";
+        "(" << (int)ZM_Base::stateType::undefined << ", 'undefined'),"
+        "(" << (int)ZM_Base::stateType::ready << ", 'ready'),"
+        "(" << (int)ZM_Base::stateType::start << ", 'start'),"
+        "(" << (int)ZM_Base::stateType::running << ", 'running'),"
+        "(" << (int)ZM_Base::stateType::pause << ", 'pause'),"
+        "(" << (int)ZM_Base::stateType::stop << ", 'stop'),"
+        "(" << (int)ZM_Base::stateType::completed << ", 'completed'),"
+        "(" << (int)ZM_Base::stateType::error << ", 'error'),"
+        "(" << (int)ZM_Base::stateType::cancel << ", 'cancel'),"
+        "(" << (int)ZM_Base::stateType::notResponding << ", 'notResponding') ON CONFLICT (id) DO NOTHING;";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
