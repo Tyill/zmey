@@ -25,7 +25,7 @@ class App extends React.Component{
     
   render(){
 
-    let obj : ITreeNavDir = { name : "dir1",
+    let obj : ITreeNavDir = { name : "dir2222222222222222222222221",
     files : [],
     subdirs : [],
     isShow : false };
@@ -44,7 +44,7 @@ class App extends React.Component{
     return (
       <div>
       <Container className="col app-container"
-                 style={{overflow: "auto", height: clientHeight}}>
+                 style={{overflow: "auto", height: 500}}>
         <Row noGutters={true} className="m-1 p-2"
              style = {{  border: "1px solid #dbdbdb", borderRadius: "5px"}}>
             <Col className="col-auto"> 

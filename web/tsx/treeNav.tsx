@@ -31,8 +31,7 @@ class TreeNav extends React.Component<ITreeNavProps, ITreeNavState>{
         this.addFiles(1, dir, objList);
       }
     }       
-    const clientHeight = document.documentElement ? document.documentElement.clientHeight : 300;    
-    return <div style={{ borderRadius: "3px", overflow: "auto", maxHeight : clientHeight * 0.8 + "px" }}> 
+    return <div style={{ borderRadius: "3px", overflow: "auto", maxHeight : 300 + "px" }}> 
              {objList}          
            </div>
   }  
