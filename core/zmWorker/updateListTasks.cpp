@@ -43,8 +43,7 @@ void updateListTasks(ZM_Base::worker& worker, ZM_Aux::QueueThrSave<wTask>& newTa
     ZM_Base::stateType tskState = ip->getTask().state;
     if ((tskState == ZM_Base::stateType::completed) ||
         (tskState == ZM_Base::stateType::error)){
-      procs.erase(ip);
-      ip = procs.begin();
+      ip = procs.erase(ip);
     }else{
       ++ip;
     }
