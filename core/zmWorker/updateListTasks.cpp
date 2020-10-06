@@ -37,7 +37,12 @@ void updateListTasks(ZM_Base::worker& worker, ZM_Aux::QueueThrSave<wTask>& newTa
 
   wTask tsk;
   while(newTasks.tryPop(tsk)){
-    procs.push_back(Process(tsk));
+    Process prc(tsk);
+    if (prc.getPid() == -1){
+      newTasks.push(move(tsk));
+      break;
+    }
+    procs.push_back(move(prc));
   }
   for (auto ip = procs.begin(); ip != procs.end();){
     ZM_Base::stateType tskState = ip->getTask().state;
