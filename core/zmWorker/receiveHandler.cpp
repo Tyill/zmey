@@ -67,8 +67,8 @@ void receiveHandler(const string& remcp, const string& data){
   checkField(connectPnt);
   cp = mess["connectPnt"];
   checkFieldNum(command);
-  ZM_Base::messType mtype = ZM_Base::messType(stoi(mess["command"]));  
-  if (mtype == ZM_Base::messType::newTask){
+  ZM_Base::MessType mtype = ZM_Base::MessType(stoi(mess["command"]));  
+  if (mtype == ZM_Base::MessType::NEW_TASK){
     checkFieldNum(taskId);
     checkField(params);
     checkField(script);
@@ -80,10 +80,10 @@ void receiveHandler(const string& remcp, const string& data){
     t.maxDurationSec = stoi(mess["maxDurationSec"]);
     t.script = mess["script"];
     _newTasks.push(wTask{t, 
-                         ZM_Base::stateType::ready,
+                         ZM_Base::StateType::READY,
                          mess["params"]});
   }
-  else if (mtype == ZM_Base::messType::pingWorker){  // only check
+  else if (mtype == ZM_Base::MessType::PING_WORKER){  // only check
     return;
   }
   else{
@@ -96,9 +96,9 @@ void receiveHandler(const string& remcp, const string& data){
       });
       if (iPrc != _procs.end()){
         switch (mtype){
-          case ZM_Base::messType::taskPause:    iPrc->pause(); break;
-          case ZM_Base::messType::taskContinue: iPrc->contin(); break;
-          case ZM_Base::messType::taskStop:     iPrc->stop(); break;
+          case ZM_Base::MessType::TASK_PAUSE:    iPrc->pause(); break;
+          case ZM_Base::MessType::TASK_CONTINUE: iPrc->contin(); break;
+          case ZM_Base::MessType::TASK_STOP:     iPrc->stop(); break;
           default:{
             ERROR_MESS("worker::receiveHandler wrong command: " + mess["command"]);
           }

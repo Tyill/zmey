@@ -799,7 +799,7 @@ TEST_F(APITest, addTaskTemplate){
   templ.userId = uId; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
-  strcpy(templ.name, "newTask");
+  strcpy(templ.name, "NEW_TASK");
   uint64_t tId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &tId) && (tId > 0));   
 
@@ -825,7 +825,7 @@ TEST_F(APITest, getTaskTemplate){
   templ.userId = uId; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
-  strcpy(templ.name, "newTask");
+  strcpy(templ.name, "NEW_TASK");
   uint64_t tId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &tId) && (tId > 0));    
   
@@ -841,7 +841,7 @@ TEST_F(APITest, getTaskTemplate){
              (strcmp(templ.script, "100500") == 0) &&
              (templ.userId == uId) &&
              (strcmp(templ.description, "descr") == 0) &&
-             (strcmp(templ.name, "newTask") == 0)); 
+             (strcmp(templ.name, "NEW_TASK") == 0)); 
 
   templ.averDurationSec = 1;
   templ.maxDurationSec = 10;
@@ -867,7 +867,7 @@ TEST_F(APITest, delTaskTemplate){
   templ.userId = uId; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
-  strcpy(templ.name, "newTask");
+  strcpy(templ.name, "NEW_TASK");
   uint64_t tId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &tId) && (tId > 0));
   
@@ -897,7 +897,7 @@ TEST_F(APITest, changeTaskTemplate){
   templ.userId = uId; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
-  strcpy(templ.name, "newTask");
+  strcpy(templ.name, "NEW_TASK");
   uint64_t tId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &tId) && (tId > 0));  
   
@@ -946,7 +946,7 @@ TEST_F(APITest, getAllTaskTemplate){
   templ.userId = uId1; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
-  strcpy(templ.name, "newTask");
+  strcpy(templ.name, "NEW_TASK");
   uint64_t tId1 = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &tId1) && (tId1 > 0));  
 
@@ -955,7 +955,7 @@ TEST_F(APITest, getAllTaskTemplate){
   strcpy(templ.script, "100500");
   templ.userId = uId2; 
   strcpy(templ.description, "descr");
-  strcpy(templ.name, "newTask");
+  strcpy(templ.name, "NEW_TASK");
   uint64_t tId2 = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &tId2) && (tId2 > 0)); 
     
@@ -996,7 +996,7 @@ TEST_F(APITest, addTask){
   templ.userId = uId; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
-  strcpy(templ.name, "newTask");
+  strcpy(templ.name, "NEW_TASK");
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
@@ -1041,7 +1041,7 @@ TEST_F(APITest, getTask){
   templ.userId = uId; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
-  strcpy(templ.name, "newTask");
+  strcpy(templ.name, "NEW_TASK");
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
@@ -1098,7 +1098,7 @@ TEST_F(APITest, changeTask){
   templ.userId = uId; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
-  strcpy(templ.name, "newTask");
+  strcpy(templ.name, "NEW_TASK");
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
@@ -1172,7 +1172,7 @@ TEST_F(APITest, delTask){
   templ.userId = uId; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
-  strcpy(templ.name, "newTask");
+  strcpy(templ.name, "NEW_TASK");
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
@@ -1229,7 +1229,7 @@ TEST_F(APITest, startTask){
   templ.userId = uId; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
-  strcpy(templ.name, "newTask");
+  strcpy(templ.name, "NEW_TASK");
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
@@ -1272,7 +1272,7 @@ TEST_F(APITest, cancelTask){
   templ.userId = uId; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
-  strcpy(templ.name, "newTask");
+  strcpy(templ.name, "NEW_TASK");
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
@@ -1317,7 +1317,7 @@ TEST_F(APITest, taskState){
   templ.userId = uId; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
-  strcpy(templ.name, "newTask");
+  strcpy(templ.name, "NEW_TASK");
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
@@ -1354,9 +1354,9 @@ TEST_F(APITest, taskState){
   uint64_t* tIds = new uint64_t[2] {tId1, tId2};
   zmTskState* tState = new zmTskState[2];
   EXPECT_TRUE(zmTaskState(_zc, tIds, 2, tState) && 
-              (tState[0].progress == 0) &&
+              (tState[0].PROGRESS == 0) &&
               (tState[0].state == zmStateType::zmReady) &&
-              (tState[1].progress == 0) &&
+              (tState[1].PROGRESS == 0) &&
               (tState[1].state == zmStateType::zmReady));              
 }
 TEST_F(APITest, taskResult){
@@ -1382,7 +1382,7 @@ TEST_F(APITest, taskResult){
   templ.userId = uId; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
-  strcpy(templ.name, "newTask");
+  strcpy(templ.name, "NEW_TASK");
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
@@ -1428,7 +1428,7 @@ TEST_F(APITest, taskTime){
   templ.userId = uId; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
-  strcpy(templ.name, "newTask");
+  strcpy(templ.name, "NEW_TASK");
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
@@ -1474,7 +1474,7 @@ TEST_F(APITest, getAllTask){
   templ.userId = uId; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
-  strcpy(templ.name, "newTask");
+  strcpy(templ.name, "NEW_TASK");
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 

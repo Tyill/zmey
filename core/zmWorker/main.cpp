@@ -119,8 +119,8 @@ int main(int argc, char* argv[]){
     
   signal(SIGPIPE, SIG_IGN);
 
-  // on start
-  _messForSchedr.push(mess2schedr{0, ZM_Base::messType::justStartWorker});
+  // on START
+  _messForSchedr.push(mess2schedr{0, ZM_Base::MessType::JUST_START_WORKER});
 
   // TCP server
   ZM_Tcp::setReceiveCBack(receiveHandler);
@@ -152,7 +152,7 @@ int main(int argc, char* argv[]){
     // update list of tasks
     updateListTasks(worker, _newTasks, _procs);
     
-    // progress of tasks
+    // PROGRESS of tasks
     if(timer.onDelaySec(true, cng.progressTasksTOutSec, 1)){
       timer.onDelaySec(false, cng.progressTasksTOutSec, 1);
       progressToSchedr(worker, cng.schedrConnPnt, _procs);

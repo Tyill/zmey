@@ -39,7 +39,7 @@ extern ZM_Base::scheduler _schedr;
 
 void sendHandler(const string& cp, const string& data, const std::error_code& ec){
 #define ERROR_MESS(mess, wId)                                      \
-  _messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::internError, \
+  _messToDB.push(ZM_DB::messSchedr{ZM_Base::MessType::INTERN_ERROR, \
                                    wId,                            \
                                    0,                              \
                                    0,                              \
@@ -72,9 +72,9 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
   if (ec && (_workers.find(cp) != _workers.end())){
     auto& worker = _workers[cp];
     wId = worker.base.id;
-    ZM_Base::messType mtype = ZM_Base::messType(stoi(mess["command"]));
+    ZM_Base::MessType mtype = ZM_Base::MessType(stoi(mess["command"]));
     switch (mtype){
-      case ZM_Base::messType::newTask:{
+      case ZM_Base::MessType::NEW_TASK:{
         checkFieldNum(taskId);
         checkField(params);
         checkField(script);
@@ -96,7 +96,7 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
     ERROR_MESS("schedr::sendHandler worker not response, cp: " + cp, wId);
     if (worker.base.rating > 1){
       --worker.base.rating;
-      _messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::workerRating,
+      _messToDB.push(ZM_DB::messSchedr{ZM_Base::MessType::WORKER_RATING,
                                        worker.base.id,
                                        0,
                                        0,

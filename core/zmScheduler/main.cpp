@@ -164,7 +164,7 @@ int main(int argc, char* argv[]){
   const int minCycleTimeMS = 10;
 
   #define FUTURE_RUN(fut, db, func)                                                 \
-    if(!fut.valid() || (fut.wait_for(chrono::seconds(0)) == future_status::ready)){ \
+    if(!fut.valid() || (fut.wait_for(chrono::seconds(0)) == future_status::READY)){ \
       fut = async(launch::async, [&db]{                                             \
         func(*db);                                                                  \
       });                                                                           \
@@ -174,7 +174,7 @@ int main(int argc, char* argv[]){
     timer.updateCycTime();   
 
     // get new tasks from DB
-    if((_tasks.size() < _schedr.capacityTask) && (_schedr.state != ZM_Base::stateType::pause)){
+    if((_tasks.size() < _schedr.capacityTask) && (_schedr.state != ZM_Base::StateType::pause)){
       FUTURE_RUN(frGetNewTask, dbNewTask, getNewTaskFromDB);
     }        
     // send task to worker    
@@ -193,7 +193,7 @@ int main(int argc, char* argv[]){
     if(timer.onDelaySec(true, cng.currentStateTOutSec, 1)){
       timer.onDelaySec(false, cng.currentStateTOutSec, 1);    
       _messToDB.push(ZM_DB::messSchedr{ 
-        _schedr.state == ZM_Base::stateType::running ? ZM_Base::messType::startSchedr : ZM_Base::messType::pauseSchedr
+        _schedr.state == ZM_Base::StateType::running ? ZM_Base::MessType::START_SCHEDR : ZM_Base::MessType::PAUSE_SCHEDR
       });
     }
     // added delay

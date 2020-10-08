@@ -38,11 +38,11 @@ struct connectCng{
   std::string connectStr;
 };
 struct messSchedr{
-  ZM_Base::messType type;
+  ZM_Base::MessType type;
   uint64_t workerId;
   uint64_t taskId;
-  int progress;
-  int workerRating;
+  int PROGRESS;
+  int WORKER_RATING;
   int schedrActiveTask;
   int workerActiveTask;
   std::string result; // if type is 'error', then errorMess
@@ -59,8 +59,8 @@ struct schedrTask{
   std::string params; // through ','
 };
 struct tskState{
-  uint32_t progress;
-  ZM_Base::stateType state;
+  uint32_t PROGRESS;
+  ZM_Base::StateType state;
 };
 struct taskTime{
   std::string createTime;
@@ -72,7 +72,7 @@ struct taskTime{
 typedef void* udata;
 typedef std::function<void(const char* mess, udata)> errCBack;
 
-typedef void(*endTaskCBack)(uint64_t qtId, ZM_Base::stateType tState);
+typedef void(*endTaskCBack)(uint64_t qtId, ZM_Base::StateType tState);
 
 class DbProvider{  
   std::string _err;
@@ -120,15 +120,15 @@ public:
   bool getSchedr(uint64_t sId, ZM_Base::scheduler& outCng);
   bool changeSchedr(uint64_t sId, const ZM_Base::scheduler& newCng);
   bool delSchedr(uint64_t sId);
-  bool schedrState(uint64_t sId, ZM_Base::stateType& );
-  std::vector<uint64_t> getAllSchedrs(ZM_Base::stateType);
+  bool schedrState(uint64_t sId, ZM_Base::StateType& );
+  std::vector<uint64_t> getAllSchedrs(ZM_Base::StateType);
 
   bool addWorker(const ZM_Base::worker& worker, uint64_t& outWkrId);
   bool getWorker(uint64_t wId, ZM_Base::worker& outCng);
   bool changeWorker(uint64_t wId, const ZM_Base::worker& newCng);
   bool delWorker(uint64_t wId);
-  bool workerState(const std::vector<uint64_t>& wId, std::vector<ZM_Base::stateType>&);
-  std::vector<uint64_t> getAllWorkers(uint64_t sId, ZM_Base::stateType);
+  bool workerState(const std::vector<uint64_t>& wId, std::vector<ZM_Base::StateType>&);
+  std::vector<uint64_t> getAllWorkers(uint64_t sId, ZM_Base::StateType);
 
   bool addPipeline(const ZM_Base::uPipeline& cng, uint64_t& outPPLId);
   bool getPipeline(uint64_t pplId, ZM_Base::uPipeline& cng);
@@ -157,7 +157,7 @@ public:
   bool taskState(const std::vector<uint64_t>& tId, std::vector<tskState>&);
   bool taskResult(uint64_t tId, std::string&);
   bool taskTime(uint64_t tId, taskTime& out);
-  std::vector<uint64_t> getAllTasks(uint64_t pplId, ZM_Base::stateType);
+  std::vector<uint64_t> getAllTasks(uint64_t pplId, ZM_Base::StateType);
   bool getWorkerByTask(uint64_t tId, uint64_t& qtId, ZM_Base::worker& wcng);
   bool setEndTaskCBack(uint64_t tId, endTaskCBack cback);
 

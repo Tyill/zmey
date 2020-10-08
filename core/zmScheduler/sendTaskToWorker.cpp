@@ -42,7 +42,7 @@ void sendTaskToWorker(const ZM_Base::scheduler& schedr,
                       ZM_Aux::QueueThrSave<sTask>& tasks, 
                       ZM_Aux::QueueThrSave<ZM_DB::messSchedr>& messToDB){  
 #define ERROR_MESS(mess, wId)                                     \
-  messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::internError, \
+  messToDB.push(ZM_DB::messSchedr{ZM_Base::MessType::INTERN_ERROR, \
                                   wId,                            \
                                   0,                              \
                                   0,                              \
@@ -74,14 +74,14 @@ void sendTaskToWorker(const ZM_Base::scheduler& schedr,
     });
     auto iWr = find_if(refWorkers.begin(), refWorkers.end(),
       [](const ZM_Base::worker* w){
-        return (w->state == ZM_Base::stateType::running) && 
+        return (w->state == ZM_Base::StateType::running) && 
                (w->activeTask <= w->capacityTask);
       }); 
     if(iWr != refWorkers.end()){
       sTask t;
       tasks.tryPop(t);
       map<string, string> data{
-        make_pair("command",         to_string((int)ZM_Base::messType::newTask)),
+        make_pair("command",         to_string((int)ZM_Base::MessType::NEW_TASK)),
         make_pair("connectPnt",      schedr.connectPnt),
         make_pair("taskId",          to_string(t.qTaskId)),
         make_pair("params",          t.params), 
@@ -94,7 +94,7 @@ void sendTaskToWorker(const ZM_Base::scheduler& schedr,
 
       ZM_Tcp::sendData((*iWr)->connectPnt, ZM_Aux::serialn(data));
 
-      messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::taskStart, 
+      messToDB.push(ZM_DB::messSchedr{ZM_Base::MessType::TASK_START, 
                                       (*iWr)->id,
                                       t.qTaskId});      
       ctickTW.reset();

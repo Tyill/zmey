@@ -34,7 +34,7 @@ using namespace std;
 void sendMessToSchedr(const ZM_Base::worker& worker, const std::string& schedrConnPnt, const mess2schedr& mess){
   
   map<string, string> data{
-        make_pair("command",    to_string((int)mess.messType)),
+        make_pair("command",    to_string((int)mess.MessType)),
         make_pair("connectPnt", worker.connectPnt),
         make_pair("taskId",     to_string(mess.taskId)),
         make_pair("activeTask", to_string(worker.activeTask)),

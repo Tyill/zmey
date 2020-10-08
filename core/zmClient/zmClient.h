@@ -190,7 +190,7 @@ ZMEY_API bool zmChangeScheduler(zmConn, uint64_t sId, zmSchedr newCng);
 /// @return true - ok
 ZMEY_API bool zmDelScheduler(zmConn, uint64_t sId);
 
-/// start scheduler
+/// START scheduler
 /// @param[in] zmConn - object connect
 /// @param[in] sId - scheduler id
 /// @return true - ok
@@ -217,7 +217,7 @@ ZMEY_API bool zmSchedulerState(zmConn, uint64_t sId, zmStateType* outState);
 
 /// get all schedulers
 /// @param[in] zmConn - object connect
-/// @param[in] state - choose with current state. If the state is 'undefined', select all
+/// @param[in] state - choose with current state. If the state is 'UNDEFINED', select all
 /// @param[out] outSchId - schedulers id
 /// @return count of schedulers
 ZMEY_API uint32_t zmGetAllSchedulers(zmConn, zmStateType state, uint64_t** outSchId);
@@ -259,7 +259,7 @@ ZMEY_API bool zmChangeWorker(zmConn, uint64_t wId, zmWorker newCng);
 /// @return true - ok
 ZMEY_API bool zmDelWorker(zmConn, uint64_t wId);
 
-/// start worker
+/// START worker
 /// @param[in] zmConn - object connect
 /// @param[in] wId - worker id
 /// @return true - ok
@@ -288,7 +288,7 @@ ZMEY_API bool zmWorkerState(zmConn, uint64_t* wId, uint32_t wCnt, zmStateType* o
 /// get all workers
 /// @param[in] zmConn - object connect
 /// @param[in] sId - scheduler id 
-/// @param[in] state - choose with current state. If the state is 'undefined', select all
+/// @param[in] state - choose with current state. If the state is 'UNDEFINED', select all
 /// @param[out] outWId - worker id 
 /// @return count of schedulers
 ZMEY_API uint32_t zmGetAllWorkers(zmConn, uint64_t sId, zmStateType state, uint64_t** outWId);
@@ -471,7 +471,7 @@ ZMEY_API bool zmChangeTask(zmConn, uint64_t ptId, zmTask newCng);
 /// @return true - ok
 ZMEY_API bool zmDelTask(zmConn, uint64_t ptId);
 
-/// start pipeline task
+/// START pipeline task
 /// @param[in] zmConn - object connect
 /// @param[in] ptId - pipeline task id
 /// @return true - ok
@@ -503,7 +503,7 @@ ZMEY_API bool zmContinueTask(zmConn, uint64_t ptId);
 
 /// pipeline task state
 struct zmTskState{
-  uint32_t progress;      ///< [0..100]
+  uint32_t PROGRESS;      ///< [0..100]
   zmStateType state;
 };
 /// get pipeline task state
@@ -538,7 +538,7 @@ ZMEY_API bool zmTaskTime(zmConn, uint64_t ptId, zmTskTime* outTTime);
 /// get all pipeline tasks
 /// @param[in] zmConn - object connect
 /// @param[in] pplId - pipeline id
-/// @param[in] state - choose with current state. If the state is 'undefined', select all
+/// @param[in] state - choose with current state. If the state is 'UNDEFINED', select all
 /// @param[out] outQTId - pipeline task id 
 /// @return count of pipeline tasks
 ZMEY_API uint32_t zmGetAllTasks(zmConn, uint64_t pplId, zmStateType state, uint64_t** outQTId);

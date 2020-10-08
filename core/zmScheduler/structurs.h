@@ -36,6 +36,6 @@ struct sTask{
 
 struct sWorker{
   ZM_Base::worker base;
-  ZM_Base::stateType stateMem;
+  ZM_Base::StateType stateMem;
   bool isActive;
 };

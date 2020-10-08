@@ -41,7 +41,7 @@ class Process{
     pid_t getPid() const;
     int getProgress();
     bool checkMaxRunTime();
-    void setTaskState(ZM_Base::stateType);
+    void setTaskState(ZM_Base::StateType);
     void pause();
     void contin();
     void stop();    

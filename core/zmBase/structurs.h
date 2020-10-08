@@ -29,34 +29,34 @@
 
 namespace ZM_Base{
 
-  enum class messType{
-    undefined = -1,
-    newTask,
-    taskRunning,
-    taskError,
-    taskCompleted,
-    taskPause,
-    taskStart,
-    taskStop,
-    taskContinue,
-    taskCancel, // when not yet taken to work
-    progress,
-    pauseWorker,
-    pauseSchedr, 
-    startWorker,
-    startSchedr, 
-    pingWorker,
-    pingSchedr,
-    justStartWorker,
-    workerRating,
-    workerNotResponding,
-    internError,      
+  enum class MessType{
+    UNDEFINED = -1,
+    NEW_TASK,
+    TASK_RUNNING,
+    TASK_ERROR,
+    TASK_COMPLETED,
+    TASK_PAUSE,
+    TASK_START,
+    TASK_STOP,
+    TASK_CONTINUE,
+    TASK_CANCEL, // when not yet taken to work
+    PROGRESS,
+    PAUSE_WORKER,
+    PAUSE_SCHEDR, 
+    START_WORKER,
+    START_SCHEDR, 
+    PING_WORKER,
+    PING_SCHEDR,
+    JUST_START_WORKER,
+    WORKER_RATING,
+    WORKER_NOT_RESPONDING,
+    INTERN_ERROR,      
   };
   // tblState
-  enum class stateType{
-    undefined = -1,
-    ready,    // for task: can be taken to work
-    start,    // for task: taken to work
+  enum class StateType{
+    UNDEFINED = -1,
+    READY,    // for task: can be taken to work
+    START,    // for task: taken to work
     running,  // for task: running
     pause,
     stop,    
@@ -98,9 +98,9 @@ namespace ZM_Base{
     uint64_t id;              // id tblTaskQueue
     uint64_t tId;             // id tblTask
     uint64_t uId;             // launcher id tblUser
-    stateType state;
+    StateType state;
     int priority;             // [1..3]
-    int progress;             // [0..100] 
+    int PROGRESS;             // [0..100] 
     std::string params;       // CLI params for script: {param1,param2..}
     std::string result;       // result of script
   };  
@@ -123,7 +123,7 @@ namespace ZM_Base{
   // tblScheduler
   struct scheduler{
     uint64_t id;              // id tblScheduler
-    stateType state;
+    StateType state;
     int capacityTask;         // the number of tasks that can be performed simultaneously  
     int activeTask;           // number of running tasks (approximate quantity)
     std::string connectPnt;   // connection point: IP or DNS ':' port
@@ -132,7 +132,7 @@ namespace ZM_Base{
   struct worker{
     uint64_t id;              // id tblWorker
     uint64_t sId;             // id tblScheduler
-    stateType state;  
+    StateType state;  
     int capacityTask;         // the number of tasks that can be performed simultaneously  
     int activeTask;           // number of running tasks (approximate quantity)
     int rating;               // manager is assigned a rating to the worker[1..10]

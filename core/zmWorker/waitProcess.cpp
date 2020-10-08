@@ -82,17 +82,17 @@ void waitProcess(ZM_Base::worker& worker, list<Process>& procs, ZM_Aux::QueueThr
         isRes = false;
       }
 
-      ZM_Base::messType mt = ZM_Base::messType::taskCompleted;
-      ZM_Base::stateType st = ZM_Base::stateType::completed;
+      ZM_Base::MessType mt = ZM_Base::MessType::TASK_COMPLETED;
+      ZM_Base::StateType st = ZM_Base::StateType::completed;
       if (WIFEXITED(sts) && isRes){
         sts = WEXITSTATUS(sts);
         if (sts != 0){
-          mt = ZM_Base::messType::taskError;
-          st = ZM_Base::stateType::error;
+          mt = ZM_Base::MessType::TASK_ERROR;
+          st = ZM_Base::StateType::error;
         }
       }else{
-        mt = ZM_Base::messType::taskError;
-        st = ZM_Base::stateType::error;
+        mt = ZM_Base::MessType::TASK_ERROR;
+        st = ZM_Base::StateType::error;
       }
       itPrc->setTaskState(st);
       --worker.activeTask;
@@ -109,22 +109,22 @@ void waitProcess(ZM_Base::worker& worker, list<Process>& procs, ZM_Aux::QueueThr
     }    
     // stop
     else if (WIFSTOPPED(sts)){
-      itPrc->setTaskState(ZM_Base::stateType::pause);
+      itPrc->setTaskState(ZM_Base::StateType::pause);
       messForSchedr.push(mess2schedr{itPrc->getTask().base.id,
-                                      ZM_Base::messType::taskPause,
+                                      ZM_Base::MessType::TASK_PAUSE,
                                       ""});
     } 
     // continue
     else if (WIFCONTINUED(sts)){
-      itPrc->setTaskState(ZM_Base::stateType::running);
+      itPrc->setTaskState(ZM_Base::StateType::running);
       messForSchedr.push(mess2schedr{itPrc->getTask().base.id,
-                                      ZM_Base::messType::taskContinue,
+                                      ZM_Base::MessType::TASK_CONTINUE,
                                       ""});    
     } 
   }  
   // check max run time
   for(auto& p : procs){
-    if (p.checkMaxRunTime() && (p.getTask().state == ZM_Base::stateType::running)){
+    if (p.checkMaxRunTime() && (p.getTask().state == ZM_Base::StateType::running)){
       p.stop();
     }
   }

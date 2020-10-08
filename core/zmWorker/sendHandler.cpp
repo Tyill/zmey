@@ -39,7 +39,7 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
   if (!ec){   
     auto smess = ZM_Aux::deserialn(data);
     mess2schedr mess = _messForSchedr.front();                    
-    if (!smess.empty() && (stoi(smess["command"]) == int(mess.messType)) &&
+    if (!smess.empty() && (stoi(smess["command"]) == int(mess.MessType)) &&
         (stoull(smess["taskId"]) == mess.taskId)){ 
       _messForSchedr.tryPop(mess);
     }

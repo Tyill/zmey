@@ -30,12 +30,12 @@ void statusMess(const std::string& mess);
 
 struct mess2schedr{
   uint64_t taskId;
-  ZM_Base::messType messType;
+  ZM_Base::MessType MessType;
   std::string taskResult;
 };
 
 struct wTask{
   ZM_Base::task base;
-  ZM_Base::stateType state;
+  ZM_Base::StateType state;
   std::string params; // through ','
 };

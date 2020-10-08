@@ -35,7 +35,7 @@ void getPrevWorkersFromDB(ZM_DB::DbProvider& db,
   vector<ZM_Base::worker> workers; 
   if (db.getWorkersOfSchedr(schedr.id, workers)){
     for(auto& w : workers){
-      outWorkers[w.connectPnt] = sWorker{w, w.state, w.state != ZM_Base::stateType::notResponding};
+      outWorkers[w.connectPnt] = sWorker{w, w.state, w.state != ZM_Base::StateType::notResponding};
     }
   }else{
     statusMess("getPrevWorkersFromDB db error: " + db.getLastError());

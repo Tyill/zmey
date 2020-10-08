@@ -87,8 +87,8 @@ Process::Process(const wTask& tsk):
     // parent                
     default:
       _timer.updateCycTime();
-      _task.state = ZM_Base::stateType::running;
-      _messForSchedr.push(mess2schedr{tsk.base.id, ZM_Base::messType::taskRunning, ""});
+      _task.state = ZM_Base::StateType::running;
+      _messForSchedr.push(mess2schedr{tsk.base.id, ZM_Base::MessType::TASK_RUNNING, ""});
       break;
  }
 
@@ -117,9 +117,9 @@ bool Process::checkMaxRunTime(){
   _timer.updateCycTime();
   return int(_cdeltaTime / 1000) > _task.base.maxDurationSec;
 }
-void Process::setTaskState(ZM_Base::stateType st){
+void Process::setTaskState(ZM_Base::StateType st){
   _task.state = st;
-  _isPause = (st == ZM_Base::stateType::pause);
+  _isPause = (st == ZM_Base::StateType::pause);
 }
 void Process::pause(){
   if (kill(_pid, SIGSTOP) == -1){

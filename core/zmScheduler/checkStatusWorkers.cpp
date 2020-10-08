@@ -44,16 +44,16 @@ void checkStatusWorkers(const ZM_Base::scheduler& schedr,
   }
   if (wkrNotResp.size() < workers.size()){ 
     for(auto w : wkrNotResp){
-      if (w->base.state != ZM_Base::stateType::notResponding){
-        messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::workerNotResponding,
+      if (w->base.state != ZM_Base::StateType::notResponding){
+        messToDB.push(ZM_DB::messSchedr{ZM_Base::MessType::WORKER_NOT_RESPONDING,
                                         w->base.id});
         w->stateMem = w->base.state;
-        w->base.state = ZM_Base::stateType::notResponding;
+        w->base.state = ZM_Base::StateType::notResponding;
       } 
     }
   }else{
     string mess = "schedr::checkStatusWorkers error all workers are not available";
-    messToDB.push(ZM_DB::messSchedr{ZM_Base::messType::internError,
+    messToDB.push(ZM_DB::messSchedr{ZM_Base::MessType::INTERN_ERROR,
                                     0,
                                     0,
                                     0,

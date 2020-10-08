@@ -45,9 +45,9 @@ void updateListTasks(ZM_Base::worker& worker, ZM_Aux::QueueThrSave<wTask>& newTa
     procs.push_back(move(prc));
   }
   for (auto ip = procs.begin(); ip != procs.end();){
-    ZM_Base::stateType tskState = ip->getTask().state;
-    if ((tskState == ZM_Base::stateType::completed) ||
-        (tskState == ZM_Base::stateType::error)){
+    ZM_Base::StateType tskState = ip->getTask().state;
+    if ((tskState == ZM_Base::StateType::completed) ||
+        (tskState == ZM_Base::StateType::error)){
       ip = procs.erase(ip);
     }else{
       ++ip;

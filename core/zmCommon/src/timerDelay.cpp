@@ -46,13 +46,13 @@ void TimerDelay::updateCycTime(){
 uint64_t TimerDelay::getDeltaTimeMS(){
   return currDateTimeSinceEpochMs() - _prevCycTm;
 }
-bool TimerDelay::onDelaySec(bool start, int delay, int id){
+bool TimerDelay::onDelaySec(bool START, int delay, int id){
   if (id >= _tmSz){
     _tmrs.resize(id + 1, tmBase{0, false});
     _tmSz = id + 1;
   }
   bool res = false;
-  if (start) {
+  if (START) {
     _tmrs[id].tmCnt += (int)_cycleTm;
     if (_tmrs[id].tmCnt >= delay * 1000){
       res = true;
@@ -63,13 +63,13 @@ bool TimerDelay::onDelaySec(bool start, int delay, int id){
   _tmrs[id].tmActiv = true;
   return res;
 }
-bool TimerDelay::offDelaySec(bool start, int delay, int id){
+bool TimerDelay::offDelaySec(bool START, int delay, int id){
   if (id >= _tmSz){
     _tmrs.resize(id + 1, tmBase{0, false});
     _tmSz = id + 1;
   }
   bool res = false;
-  if (start){ 
+  if (START){ 
     _tmrs[id].tmCnt = delay * 1000;
   }
   else if (_tmrs[id].tmCnt > 0){
@@ -77,15 +77,15 @@ bool TimerDelay::offDelaySec(bool start, int delay, int id){
     _tmrs[id].tmCnt -= (int)_cycleTm;
   }
   _tmrs[id].tmActiv = true;
-  return (start || res);
+  return (START || res);
 }
-bool TimerDelay::onDelayMS(bool start, int delay, int id){
+bool TimerDelay::onDelayMS(bool START, int delay, int id){
   if (id >= _tmSz){
     _tmrs.resize(id + 1, tmBase{0, false});
     _tmSz = id + 1;
   }
   bool res = false;
-  if (start) {
+  if (START) {
     _tmrs[id].tmCnt += (int)_cycleTm;
     if (_tmrs[id].tmCnt >= delay){
       res = true;
@@ -96,13 +96,13 @@ bool TimerDelay::onDelayMS(bool start, int delay, int id){
   _tmrs[id].tmActiv = true;
   return res;
 }
-bool TimerDelay::offDelayMS(bool start, int delay, int id){    
+bool TimerDelay::offDelayMS(bool START, int delay, int id){    
   if (id >= _tmSz){
     _tmrs.resize(id + 1, tmBase{0, false});
     _tmSz = id + 1;
   }
   bool res = false;
-  if (start){
+  if (START){
     _tmrs[id].tmCnt = delay;
   }
   else if (_tmrs[id].tmCnt > 0){      
@@ -110,6 +110,6 @@ bool TimerDelay::offDelayMS(bool start, int delay, int id){
     _tmrs[id].tmCnt -= (int)_cycleTm;
   }
   _tmrs[id].tmActiv = true;
-  return (start || res);
+  return (START || res);
 }
 }
