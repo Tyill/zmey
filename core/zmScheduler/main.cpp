@@ -54,7 +54,7 @@ ZM_Base::Scheduler _schedr;
 mutex _mtxSts;
 volatile bool _fClose = false;
 
-struct config{
+struct Config{
   int capacityTask = 10000;
   int checkWorkerTOutSec = 120; 
   const int currentStateTOutSec = 10; 
@@ -67,7 +67,7 @@ void statusMess(const string& mess){
   cout << ZM_Aux::currDateTimeMs() << " " << mess << std::endl;
 }
 
-void parseArgs(int argc, char* argv[], config& outCng){ 
+void parseArgs(int argc, char* argv[], Config& outCng){ 
   string sargs;
   for (int i = 1; i < argc; ++i){
     sargs += argv[i];
@@ -106,7 +106,7 @@ void closeHandler(int sig){
 }
 
 unique_ptr<ZM_DB::DbProvider> 
-createDbProvider(const config& cng, std::string& err){
+createDbProvider(const Config& cng, std::string& err){
   unique_ptr<ZM_DB::DbProvider> db(new ZM_DB::DbProvider(cng.dbConnCng));
   err = db->getLastError();
   if (err.empty()){
@@ -124,7 +124,7 @@ createDbProvider(const config& cng, std::string& err){
 
 int main(int argc, char* argv[]){
 
-  config cng;
+  Config cng;
   parseArgs(argc, argv, cng);
   
   CHECK(cng.connectPnt.empty(), "Not set param '-cp' - scheduler connection point: IP or DNS:port");
