@@ -109,7 +109,7 @@ namespace ZM_Base{
     uint64_t uId;             // parent id tblUser
     std::string name;
     std::string description;
-    task base;
+    Task base;
   };
   // tblUPipelineTask
   struct UTask{
