@@ -190,7 +190,7 @@ ZMEY_API bool zmChangeScheduler(zmConn, uint64_t sId, zmSchedr newCng);
 /// @return true - ok
 ZMEY_API bool zmDelScheduler(zmConn, uint64_t sId);
 
-/// START scheduler
+/// start scheduler
 /// @param[in] zmConn - object connect
 /// @param[in] sId - scheduler id
 /// @return true - ok
@@ -259,7 +259,7 @@ ZMEY_API bool zmChangeWorker(zmConn, uint64_t wId, zmWorker newCng);
 /// @return true - ok
 ZMEY_API bool zmDelWorker(zmConn, uint64_t wId);
 
-/// START worker
+/// start worker
 /// @param[in] zmConn - object connect
 /// @param[in] wId - worker id
 /// @return true - ok
@@ -471,7 +471,7 @@ ZMEY_API bool zmChangeTask(zmConn, uint64_t ptId, zmTask newCng);
 /// @return true - ok
 ZMEY_API bool zmDelTask(zmConn, uint64_t ptId);
 
-/// START pipeline task
+/// start pipeline task
 /// @param[in] zmConn - object connect
 /// @param[in] ptId - pipeline task id
 /// @return true - ok
@@ -503,7 +503,7 @@ ZMEY_API bool zmContinueTask(zmConn, uint64_t ptId);
 
 /// pipeline task state
 struct zmTskState{
-  uint32_t PROGRESS;      ///< [0..100]
+  uint32_t progress;      ///< [0..100]
   zmStateType state;
 };
 /// get pipeline task state

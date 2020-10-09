@@ -57,71 +57,71 @@ namespace ZM_Base{
     UNDEFINED = -1,
     READY,    // for task: can be taken to work
     START,    // for task: taken to work
-    running,  // for task: running
-    pause,
-    stop,    
-    completed,
-    error,
-    cancel,
-    notResponding,
+    RUNNING,  // for task: running
+    PAUSE,
+    STOP,    
+    COMPLETED,
+    ERROR,
+    CANCEL,
+    NOT_RESPONDING,
   };
   // tblUser
-  struct user{
+  struct User{
     uint64_t id;              // id tblUser
     std::string name;         // unique name
     std::string passw;        // optional password
     std::string description;
   };
   // tblUPipeline
-  struct uPipeline{
+  struct UPipeline{
     uint64_t id;              // id tblUPipeline
     uint64_t uId;             // id tblUser
     std::string name;         // unique name
     std::string description;
   };
   // tblUGroup
-  struct uGroup{
+  struct UGroup{
     uint64_t id;              // id tblUGroup
     uint64_t pplId;           // id tblUPipeline
     std::string name;         // unique name
     std::string description;
   };
   // tblTask
-  struct task{
+  struct Task{
     uint64_t id;              // id tblTask
     int averDurationSec;      // estimated lead time
     int maxDurationSec;       // maximum lead time
     std::string script;       // script on bash, python or cmd
   };  
   // tblTaskQueue
-  struct queueTask{
+  struct QueueTask{
     uint64_t id;              // id tblTaskQueue
     uint64_t tId;             // id tblTask
     uint64_t uId;             // launcher id tblUser
     StateType state;
     int priority;             // [1..3]
-    int PROGRESS;             // [0..100] 
+    int progress;             // [0..100] 
     std::string params;       // CLI params for script: {param1,param2..}
     std::string result;       // result of script
   };  
   // tblUTaskTemplate
-  struct uTaskTemplate{
+  struct UTaskTemplate{
     uint64_t uId;             // parent id tblUser
     std::string name;
     std::string description;
     task base;
   };
   // tblUPipelineTask
-  struct uTask{
+  struct UTask{
     uint64_t id;              // id tblUPipelineTask 
     uint64_t pplId;           // id tblUPipeline
     uint64_t gId;             // id tblUGroup
     std::string prevTasks;    // queue task id tblUTask of previous tasks to be completed: {tId,..}
     std::string nextTasks;    // queue task id tblUTask of next tasks: {tId,..}
-    queueTask base; 
+    QueueTask base; 
   };
   // tblScheduler
-  struct scheduler{
+  struct Scheduler{
     uint64_t id;              // id tblScheduler
     StateType state;
     int capacityTask;         // the number of tasks that can be performed simultaneously  
@@ -129,7 +129,7 @@ namespace ZM_Base{
     std::string connectPnt;   // connection point: IP or DNS ':' port
   };
   // tblWorker
-  struct worker{
+  struct Worker{
     uint64_t id;              // id tblWorker
     uint64_t sId;             // id tblScheduler
     StateType state;  

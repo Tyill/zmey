@@ -52,7 +52,7 @@ public:
       TEST_COUT << mess << endl;
     }, nullptr); 
 
-    ZM_DB::connectCng cng;
+    ZM_DB::ConnectCng cng;
     cng.connectStr = connStr;
     auto pDb = new ZM_DB::DbProvider(cng);
     if (pDb){
@@ -1354,9 +1354,9 @@ TEST_F(APITest, taskState){
   uint64_t* tIds = new uint64_t[2] {tId1, tId2};
   zmTskState* tState = new zmTskState[2];
   EXPECT_TRUE(zmTaskState(_zc, tIds, 2, tState) && 
-              (tState[0].PROGRESS == 0) &&
+              (tState[0].progress == 0) &&
               (tState[0].state == zmStateType::zmReady) &&
-              (tState[1].PROGRESS == 0) &&
+              (tState[1].progress == 0) &&
               (tState[1].state == zmStateType::zmReady));              
 }
 TEST_F(APITest, taskResult){
@@ -1405,7 +1405,7 @@ TEST_F(APITest, taskResult){
   char* result = nullptr;
   EXPECT_TRUE(zmTaskResult(_zc, tId1, &result)); 
 }
-TEST_F(APITest, taskTime){
+TEST_F(APITest, TaskTime){
   zmUser usr;
   strcpy(usr.name, "alm");
   strcpy(usr.passw, "123");

@@ -41,15 +41,15 @@ using namespace std;
 
 void receiveHandler(const string& cp, const string& data);
 void sendHandler(const string& cp, const string& data, const std::error_code& ec);
-void sendMessToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt, const mess2schedr&);
-void progressToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt, list<Process>&);
-void pingToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt);
-void errorToSchedr(const ZM_Base::worker&, const std::string& schedrConnPnt, ZM_Aux::QueueThrSave<string>& );
-void updateListTasks(ZM_Base::worker& iow, ZM_Aux::QueueThrSave<wTask>& newTasks, list<Process>& procs);
-void waitProcess(ZM_Base::worker&, list<Process>& procs, ZM_Aux::QueueThrSave<mess2schedr>& messForSchedr);
+void sendMessToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt, const Mess2schedr&);
+void progressToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt, list<Process>&);
+void pingToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt);
+void errorToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt, ZM_Aux::QueueThrSave<string>& );
+void updateListTasks(ZM_Base::Worker& iow, ZM_Aux::QueueThrSave<WTask>& newTasks, list<Process>& procs);
+void waitProcess(ZM_Base::Worker&, list<Process>& procs, ZM_Aux::QueueThrSave<Mess2schedr>& messForSchedr);
 
-ZM_Aux::QueueThrSave<mess2schedr> _messForSchedr;
-ZM_Aux::QueueThrSave<wTask> _newTasks;
+ZM_Aux::QueueThrSave<Mess2schedr> _messForSchedr;
+ZM_Aux::QueueThrSave<WTask> _newTasks;
 ZM_Aux::QueueThrSave<string> _errMess;
 list<Process> _procs;
 mutex _mtxPrc, _mtxSts;
@@ -119,8 +119,8 @@ int main(int argc, char* argv[]){
     
   signal(SIGPIPE, SIG_IGN);
 
-  // on START
-  _messForSchedr.push(mess2schedr{0, ZM_Base::MessType::JUST_START_WORKER});
+  // on start
+  _messForSchedr.push(Mess2schedr{0, ZM_Base::MessType::JUST_START_WORKER});
 
   // TCP server
   ZM_Tcp::setReceiveCBack(receiveHandler);
@@ -131,7 +131,7 @@ int main(int argc, char* argv[]){
   
   ///////////////////////////////////////////////////////
   
-  ZM_Base::worker worker;
+  ZM_Base::Worker worker;
   worker.connectPnt = cng.connectPnt;
     
   ZM_Aux::TimerDelay timer;
@@ -152,7 +152,7 @@ int main(int argc, char* argv[]){
     // update list of tasks
     updateListTasks(worker, _newTasks, _procs);
     
-    // PROGRESS of tasks
+    // progress of tasks
     if(timer.onDelaySec(true, cng.progressTasksTOutSec, 1)){
       timer.onDelaySec(false, cng.progressTasksTOutSec, 1);
       progressToSchedr(worker, cng.schedrConnPnt, _procs);

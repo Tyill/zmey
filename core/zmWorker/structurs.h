@@ -28,14 +28,14 @@
 
 void statusMess(const std::string& mess);
 
-struct mess2schedr{
+struct Mess2schedr{
   uint64_t taskId;
   ZM_Base::MessType MessType;
   std::string taskResult;
 };
 
-struct wTask{
-  ZM_Base::task base;
+struct WTask{
+  ZM_Base::Task base;
   ZM_Base::StateType state;
   std::string params; // through ','
 };

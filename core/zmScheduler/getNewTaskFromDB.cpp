@@ -30,9 +30,9 @@
 using namespace std;
 
 ZM_Aux::CounterTick ctickNT;
-extern ZM_Base::scheduler _schedr;
-extern ZM_Aux::QueueThrSave<sTask> _tasks;
-extern map<std::string, sWorker> _workers;
+extern ZM_Base::Scheduler _schedr;
+extern ZM_Aux::QueueThrSave<STask> _tasks;
+extern map<std::string, SWorker> _workers;
 
 void getNewTaskFromDB(ZM_DB::DbProvider& db){
   
@@ -42,11 +42,11 @@ void getNewTaskFromDB(ZM_DB::DbProvider& db){
     actSz += w.second.base.activeTask;
   }
   actSz += _tasks.size();
-  vector<ZM_DB::schedrTask> newTasks;
+  vector<ZM_DB::SchedrTask> newTasks;
   if ((capSz - actSz) > 0){ 
     if (db.getNewTasksForSchedr(_schedr.id, capSz - actSz, newTasks)){
       for(auto& t : newTasks){
-        _tasks.push(sTask{t.qTaskId, t.base, t.params});
+        _tasks.push(STask{t.qTaskId, t.base, t.params});
       }      
       ctickNT.reset();
     }

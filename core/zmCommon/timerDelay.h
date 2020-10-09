@@ -43,9 +43,9 @@ public:
   TimerDelay();
   void updateCycTime();
   uint64_t getDeltaTimeMS();
-  bool onDelaySec(bool START, int delay, int id);
-  bool offDelaySec(bool START, int delay, int id);
-  bool onDelayMS(bool START, int delay, int id);
-  bool offDelayMS(bool START, int delay, int id);
+  bool onDelaySec(bool start, int delay, int id);
+  bool offDelaySec(bool start, int delay, int id);
+  bool onDelayMS(bool start, int delay, int id);
+  bool offDelayMS(bool start, int delay, int id);
 };
 }

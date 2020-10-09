@@ -29,12 +29,12 @@
 using namespace std;
 
 void getPrevTaskFromDB(ZM_DB::DbProvider& db, 
-                       ZM_Base::scheduler& schedr,
-                       ZM_Aux::QueueThrSave<sTask>& outTasks){
-  vector<ZM_DB::schedrTask> tasks;
+                       ZM_Base::Scheduler& schedr,
+                       ZM_Aux::QueueThrSave<STask>& outTasks){
+  vector<ZM_DB::SchedrTask> tasks;
   if (db.getTasksOfSchedr(schedr.id, tasks)){
     for(auto& t : tasks){
-      outTasks.push(sTask{t.qTaskId, t.base, t.params});
+      outTasks.push(STask{t.qTaskId, t.base, t.params});
     }
   }else{
     statusMess("getPrevTaskFromDB db error: " + db.getLastError());

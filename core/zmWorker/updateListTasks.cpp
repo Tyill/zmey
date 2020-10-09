@@ -32,10 +32,10 @@ using namespace std;
 
 extern mutex _mtxPrc;
 
-void updateListTasks(ZM_Base::worker& worker, ZM_Aux::QueueThrSave<wTask>& newTasks, list<Process>& procs){
+void updateListTasks(ZM_Base::Worker& worker, ZM_Aux::QueueThrSave<WTask>& newTasks, list<Process>& procs){
   lock_guard<std::mutex> lock(_mtxPrc);
 
-  wTask tsk;
+  WTask tsk;
   while(newTasks.tryPop(tsk)){
     Process prc(tsk);
     if (prc.getPid() == -1){
@@ -45,9 +45,9 @@ void updateListTasks(ZM_Base::worker& worker, ZM_Aux::QueueThrSave<wTask>& newTa
     procs.push_back(move(prc));
   }
   for (auto ip = procs.begin(); ip != procs.end();){
-    ZM_Base::StateType tskState = ip->getTask().state;
-    if ((tskState == ZM_Base::StateType::completed) ||
-        (tskState == ZM_Base::StateType::error)){
+    ZM_Base::StateType TaskState = ip->getTask().state;
+    if ((TaskState == ZM_Base::StateType::COMPLETED) ||
+        (TaskState == ZM_Base::StateType::ERROR)){
       ip = procs.erase(ip);
     }else{
       ++ip;

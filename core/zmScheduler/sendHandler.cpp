@@ -32,14 +32,14 @@
 
 using namespace std;
 
-extern ZM_Aux::QueueThrSave<sTask> _tasks;
-extern ZM_Aux::QueueThrSave<ZM_DB::messSchedr> _messToDB;
-extern map<std::string, sWorker> _workers;
-extern ZM_Base::scheduler _schedr;
+extern ZM_Aux::QueueThrSave<STask> _tasks;
+extern ZM_Aux::QueueThrSave<ZM_DB::MessSchedr> _messToDB;
+extern map<std::string, SWorker> _workers;
+extern ZM_Base::Scheduler _schedr;
 
 void sendHandler(const string& cp, const string& data, const std::error_code& ec){
 #define ERROR_MESS(mess, wId)                                      \
-  _messToDB.push(ZM_DB::messSchedr{ZM_Base::MessType::INTERN_ERROR, \
+  _messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::INTERN_ERROR, \
                                    wId,                            \
                                    0,                              \
                                    0,                              \
@@ -80,7 +80,7 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
         checkField(script);
         checkFieldNum(averDurationSec);
         checkFieldNum(maxDurationSec);
-        sTask t;
+        STask t;
         t.qTaskId = stoull(mess["taskId"]);
         t.params = mess["params"];
         t.base.script = mess["script"];
@@ -96,7 +96,7 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
     ERROR_MESS("schedr::sendHandler worker not response, cp: " + cp, wId);
     if (worker.base.rating > 1){
       --worker.base.rating;
-      _messToDB.push(ZM_DB::messSchedr{ZM_Base::MessType::WORKER_RATING,
+      _messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::WORKER_RATING,
                                        worker.base.id,
                                        0,
                                        0,

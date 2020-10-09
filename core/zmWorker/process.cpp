@@ -38,10 +38,10 @@
 
 using namespace std;
 
-extern ZM_Aux::QueueThrSave<mess2schedr> _messForSchedr;
+extern ZM_Aux::QueueThrSave<Mess2schedr> _messForSchedr;
 extern ZM_Aux::QueueThrSave<string> _errMess;
 
-Process::Process(const wTask& tsk):
+Process::Process(const WTask& tsk):
   _task(tsk){
 
   switch (_pid = fork()){
@@ -87,8 +87,8 @@ Process::Process(const wTask& tsk):
     // parent                
     default:
       _timer.updateCycTime();
-      _task.state = ZM_Base::StateType::running;
-      _messForSchedr.push(mess2schedr{tsk.base.id, ZM_Base::MessType::TASK_RUNNING, ""});
+      _task.state = ZM_Base::StateType::RUNNING;
+      _messForSchedr.push(Mess2schedr{tsk.base.id, ZM_Base::MessType::TASK_RUNNING, ""});
       break;
  }
 
@@ -96,7 +96,7 @@ Process::Process(const wTask& tsk):
 Process::~Process(){
 }
 
-wTask Process::getTask() const{
+WTask Process::getTask() const{
   return _task;
 }
 pid_t Process::getPid() const{
@@ -119,7 +119,7 @@ bool Process::checkMaxRunTime(){
 }
 void Process::setTaskState(ZM_Base::StateType st){
   _task.state = st;
-  _isPause = (st == ZM_Base::StateType::pause);
+  _isPause = (st == ZM_Base::StateType::PAUSE);
 }
 void Process::pause(){
   if (kill(_pid, SIGSTOP) == -1){

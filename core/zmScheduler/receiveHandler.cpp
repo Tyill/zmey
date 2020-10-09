@@ -32,14 +32,14 @@
 
 using namespace std;
 
-extern ZM_Aux::QueueThrSave<ZM_DB::messSchedr> _messToDB;
-extern map<std::string, sWorker> _workers;
-extern ZM_Base::scheduler _schedr;
+extern ZM_Aux::QueueThrSave<ZM_DB::MessSchedr> _messToDB;
+extern map<std::string, SWorker> _workers;
+extern ZM_Base::Scheduler _schedr;
 
 void receiveHandler(const string& remcp, const string& data){
 
 #define ERROR_MESS(mess, wId)                                      \
-  _messToDB.push(ZM_DB::messSchedr{ZM_Base::MessType::INTERN_ERROR, \
+  _messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::INTERN_ERROR, \
                                    wId,                            \
                                    0,                              \
                                    0,                              \
@@ -91,7 +91,7 @@ void receiveHandler(const string& remcp, const string& data){
         checkFieldNum(activeTask);
         checkField(taskResult);
         worker.base.activeTask = stoi(mess["activeTask"]);
-        _messToDB.push(ZM_DB::messSchedr{mtype, 
+        _messToDB.push(ZM_DB::MessSchedr{mtype, 
                                          wId,
                                          stoull(mess["taskId"]),
                                          0,
@@ -101,15 +101,15 @@ void receiveHandler(const string& remcp, const string& data){
                                          mess["taskResult"]});
         break;
       case ZM_Base::MessType::JUST_START_WORKER:
-        _messToDB.push(ZM_DB::messSchedr{mtype, wId});
+        _messToDB.push(ZM_DB::MessSchedr{mtype, wId});
         break;
       case ZM_Base::MessType::PROGRESS:{
         int tCnt = 0;
         while(mess.find("taskId" + to_string(tCnt)) != mess.end()){
-          _messToDB.push(ZM_DB::messSchedr{mtype, 
+          _messToDB.push(ZM_DB::MessSchedr{mtype, 
                                            wId,
                                            stoull(mess["taskId" + to_string(tCnt)]),
-                                           stoi(mess["PROGRESS" + to_string(tCnt)])});
+                                           stoi(mess["progress" + to_string(tCnt)])});
           ++tCnt;
         }
         }
@@ -129,22 +129,22 @@ void receiveHandler(const string& remcp, const string& data){
     }    
     worker.isActive = true;
     if (worker.base.state == ZM_Base::StateType::READY){
-      worker.base.state = worker.stateMem = ZM_Base::StateType::running;
-      _messToDB.push(ZM_DB::messSchedr{ZM_Base::MessType::START_WORKER,
+      worker.base.state = worker.stateMem = ZM_Base::StateType::RUNNING;
+      _messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::START_WORKER,
                                        worker.base.id});
     }
-    else if (worker.base.state == ZM_Base::StateType::notResponding){
-      if (worker.stateMem != ZM_Base::StateType::notResponding){ 
+    else if (worker.base.state == ZM_Base::StateType::NOT_RESPONDING){
+      if (worker.stateMem != ZM_Base::StateType::NOT_RESPONDING){ 
         worker.base.state = worker.stateMem;
       }else{
-        worker.base.state = worker.stateMem = ZM_Base::StateType::running;
+        worker.base.state = worker.stateMem = ZM_Base::StateType::RUNNING;
       }
-      _messToDB.push(ZM_DB::messSchedr{ZM_Base::MessType::START_WORKER,
+      _messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::START_WORKER,
                                        worker.base.id});
     }
-    if (worker.base.rating < ZM_Base::worker::RATING_MAX){
+    if (worker.base.rating < ZM_Base::Worker::RATING_MAX){
       ++worker.base.rating;
-      _messToDB.push(ZM_DB::messSchedr{ZM_Base::MessType::WORKER_RATING,
+      _messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::WORKER_RATING,
                                        wId,
                                        0,
                                        0,
@@ -157,32 +157,32 @@ void receiveHandler(const string& remcp, const string& data){
       case ZM_Base::MessType::PING_SCHEDR:     // only check
         break;
       case ZM_Base::MessType::PAUSE_SCHEDR:
-        if (_schedr.state != ZM_Base::StateType::pause){
-          _messToDB.push(ZM_DB::messSchedr{mtype});
+        if (_schedr.state != ZM_Base::StateType::PAUSE){
+          _messToDB.push(ZM_DB::MessSchedr{mtype});
         }
-        _schedr.state = ZM_Base::StateType::pause;
+        _schedr.state = ZM_Base::StateType::PAUSE;
         break;
       case ZM_Base::MessType::START_SCHEDR:
-        if (_schedr.state != ZM_Base::StateType::running){
-          _messToDB.push(ZM_DB::messSchedr{mtype});
+        if (_schedr.state != ZM_Base::StateType::RUNNING){
+          _messToDB.push(ZM_DB::MessSchedr{mtype});
         }
-        _schedr.state = ZM_Base::StateType::running;
+        _schedr.state = ZM_Base::StateType::RUNNING;
         break;
       case ZM_Base::MessType::PAUSE_WORKER:{
         checkField(workerConnPnt);
         auto& worker = _workers[mess["workerConnPnt"]];
-        if (worker.base.state != ZM_Base::StateType::pause){
-          _messToDB.push(ZM_DB::messSchedr{mtype, worker.base.id});
+        if (worker.base.state != ZM_Base::StateType::PAUSE){
+          _messToDB.push(ZM_DB::MessSchedr{mtype, worker.base.id});
         }
-        worker.base.state = worker.stateMem = ZM_Base::StateType::pause;
+        worker.base.state = worker.stateMem = ZM_Base::StateType::PAUSE;
         } break;
       case ZM_Base::MessType::START_WORKER:{
         checkField(workerConnPnt);
         auto& worker = _workers[mess["workerConnPnt"]];        
-        if (worker.base.state != ZM_Base::StateType::running){
-          _messToDB.push(ZM_DB::messSchedr{mtype, worker.base.id});
+        if (worker.base.state != ZM_Base::StateType::RUNNING){
+          _messToDB.push(ZM_DB::MessSchedr{mtype, worker.base.id});
         }
-        worker.base.state = worker.stateMem = ZM_Base::StateType::running;
+        worker.base.state = worker.stateMem = ZM_Base::StateType::RUNNING;
         } break;
       default:
         ERROR_MESS("schedr::receiveHandler wrong command from manager: " + mess["command"], 0);

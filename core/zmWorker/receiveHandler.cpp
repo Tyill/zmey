@@ -35,7 +35,7 @@
 using namespace std;
 
 extern list<Process> _procs;
-extern ZM_Aux::QueueThrSave<wTask> _newTasks;
+extern ZM_Aux::QueueThrSave<WTask> _newTasks;
 extern ZM_Aux::QueueThrSave<string> _errMess;
 extern mutex _mtxPrc;
 
@@ -74,12 +74,12 @@ void receiveHandler(const string& remcp, const string& data){
     checkField(script);
     checkFieldNum(averDurationSec);
     checkFieldNum(maxDurationSec);
-    ZM_Base::task t;
+    ZM_Base::Task t;
     t.id = stoull(mess["taskId"]);
     t.averDurationSec = stoi(mess["averDurationSec"]);
     t.maxDurationSec = stoi(mess["maxDurationSec"]);
     t.script = mess["script"];
-    _newTasks.push(wTask{t, 
+    _newTasks.push(WTask{t, 
                          ZM_Base::StateType::READY,
                          mess["params"]});
   }

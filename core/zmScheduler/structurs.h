@@ -28,14 +28,14 @@
 
 void statusMess(const std::string& mess);
 
-struct sTask{
+struct STask{
   uint64_t qTaskId;
-  ZM_Base::task base;
+  ZM_Base::Task base;
   std::string params; // through ','
 };
 
-struct sWorker{
-  ZM_Base::worker base;
+struct SWorker{
+  ZM_Base::Worker base;
   ZM_Base::StateType stateMem;
   bool isActive;
 };

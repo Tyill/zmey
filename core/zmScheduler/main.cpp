@@ -41,16 +41,16 @@ using namespace std;
 void receiveHandler(const string& cp, const string& data);
 void sendHandler(const string& cp, const string& data, const std::error_code& ec);
 void getNewTaskFromDB(ZM_DB::DbProvider& db);
-void sendTaskToWorker(const ZM_Base::scheduler&, map<std::string, sWorker>&, ZM_Aux::QueueThrSave<sTask>&, ZM_Aux::QueueThrSave<ZM_DB::messSchedr>& messToDB);
+void sendTaskToWorker(const ZM_Base::Scheduler&, map<std::string, SWorker>&, ZM_Aux::QueueThrSave<STask>&, ZM_Aux::QueueThrSave<ZM_DB::MessSchedr>& messToDB);
 void sendAllMessToDB(ZM_DB::DbProvider& db);
-void checkStatusWorkers(const ZM_Base::scheduler&, map<std::string, sWorker>&, ZM_Aux::QueueThrSave<ZM_DB::messSchedr>&);
-void getPrevTaskFromDB(ZM_DB::DbProvider& db, ZM_Base::scheduler&,  ZM_Aux::QueueThrSave<sTask>&);
-void getPrevWorkersFromDB(ZM_DB::DbProvider& db, ZM_Base::scheduler&, map<std::string, sWorker>&);
+void checkStatusWorkers(const ZM_Base::Scheduler&, map<std::string, SWorker>&, ZM_Aux::QueueThrSave<ZM_DB::MessSchedr>&);
+void getPrevTaskFromDB(ZM_DB::DbProvider& db, ZM_Base::Scheduler&,  ZM_Aux::QueueThrSave<STask>&);
+void getPrevWorkersFromDB(ZM_DB::DbProvider& db, ZM_Base::Scheduler&, map<std::string, SWorker>&);
 
-map<std::string, sWorker> _workers;   // key - connectPnt
-ZM_Aux::QueueThrSave<sTask> _tasks;
-ZM_Aux::QueueThrSave<ZM_DB::messSchedr> _messToDB;
-ZM_Base::scheduler _schedr;
+map<std::string, SWorker> _workers;   // key - connectPnt
+ZM_Aux::QueueThrSave<STask> _tasks;
+ZM_Aux::QueueThrSave<ZM_DB::MessSchedr> _messToDB;
+ZM_Base::Scheduler _schedr;
 mutex _mtxSts;
 volatile bool _fClose = false;
 
@@ -59,7 +59,7 @@ struct config{
   int checkWorkerTOutSec = 120; 
   const int currentStateTOutSec = 10; 
   std::string connectPnt;
-  ZM_DB::connectCng dbConnCng;
+  ZM_DB::ConnectCng dbConnCng;
 };
 
 void statusMess(const string& mess){
@@ -164,7 +164,7 @@ int main(int argc, char* argv[]){
   const int minCycleTimeMS = 10;
 
   #define FUTURE_RUN(fut, db, func)                                                 \
-    if(!fut.valid() || (fut.wait_for(chrono::seconds(0)) == future_status::READY)){ \
+    if(!fut.valid() || (fut.wait_for(chrono::seconds(0)) == future_status::ready)){ \
       fut = async(launch::async, [&db]{                                             \
         func(*db);                                                                  \
       });                                                                           \
@@ -174,7 +174,7 @@ int main(int argc, char* argv[]){
     timer.updateCycTime();   
 
     // get new tasks from DB
-    if((_tasks.size() < _schedr.capacityTask) && (_schedr.state != ZM_Base::StateType::pause)){
+    if((_tasks.size() < _schedr.capacityTask) && (_schedr.state != ZM_Base::StateType::PAUSE)){
       FUTURE_RUN(frGetNewTask, dbNewTask, getNewTaskFromDB);
     }        
     // send task to worker    
@@ -192,8 +192,8 @@ int main(int argc, char* argv[]){
     // current state
     if(timer.onDelaySec(true, cng.currentStateTOutSec, 1)){
       timer.onDelaySec(false, cng.currentStateTOutSec, 1);    
-      _messToDB.push(ZM_DB::messSchedr{ 
-        _schedr.state == ZM_Base::StateType::running ? ZM_Base::MessType::START_SCHEDR : ZM_Base::MessType::PAUSE_SCHEDR
+      _messToDB.push(ZM_DB::MessSchedr{ 
+        _schedr.state == ZM_Base::StateType::RUNNING ? ZM_Base::MessType::START_SCHEDR : ZM_Base::MessType::PAUSE_SCHEDR
       });
     }
     // added delay

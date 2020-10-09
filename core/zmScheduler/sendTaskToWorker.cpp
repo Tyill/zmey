@@ -34,15 +34,15 @@
 using namespace std;
 
 ZM_Aux::CounterTick ctickTW;
-vector<ZM_Base::worker> workersCpy;
-vector<ZM_Base::worker*> refWorkers;
+vector<ZM_Base::Worker> workersCpy;
+vector<ZM_Base::Worker*> refWorkers;
 
-void sendTaskToWorker(const ZM_Base::scheduler& schedr,
-                      map<std::string, sWorker>& workers,
-                      ZM_Aux::QueueThrSave<sTask>& tasks, 
-                      ZM_Aux::QueueThrSave<ZM_DB::messSchedr>& messToDB){  
+void sendTaskToWorker(const ZM_Base::Scheduler& schedr,
+                      map<std::string, SWorker>& workers,
+                      ZM_Aux::QueueThrSave<STask>& tasks, 
+                      ZM_Aux::QueueThrSave<ZM_DB::MessSchedr>& messToDB){  
 #define ERROR_MESS(mess, wId)                                     \
-  messToDB.push(ZM_DB::messSchedr{ZM_Base::MessType::INTERN_ERROR, \
+  messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::INTERN_ERROR, \
                                   wId,                            \
                                   0,                              \
                                   0,                              \
@@ -69,16 +69,16 @@ void sendTaskToWorker(const ZM_Base::scheduler& schedr,
   }
   
   while (!tasks.empty()){
-    sort(refWorkers.begin(), refWorkers.end(), [](const ZM_Base::worker* l, const ZM_Base::worker* r){
+    sort(refWorkers.begin(), refWorkers.end(), [](const ZM_Base::Worker* l, const ZM_Base::Worker* r){
       return (float)l->activeTask / l->rating < (float)r->activeTask / r->rating;
     });
     auto iWr = find_if(refWorkers.begin(), refWorkers.end(),
-      [](const ZM_Base::worker* w){
-        return (w->state == ZM_Base::StateType::running) && 
+      [](const ZM_Base::Worker* w){
+        return (w->state == ZM_Base::StateType::RUNNING) && 
                (w->activeTask <= w->capacityTask);
       }); 
     if(iWr != refWorkers.end()){
-      sTask t;
+      STask t;
       tasks.tryPop(t);
       map<string, string> data{
         make_pair("command",         to_string((int)ZM_Base::MessType::NEW_TASK)),
@@ -94,7 +94,7 @@ void sendTaskToWorker(const ZM_Base::scheduler& schedr,
 
       ZM_Tcp::sendData((*iWr)->connectPnt, ZM_Aux::serialn(data));
 
-      messToDB.push(ZM_DB::messSchedr{ZM_Base::MessType::TASK_START, 
+      messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::TASK_START, 
                                       (*iWr)->id,
                                       t.qTaskId});      
       ctickTW.reset();

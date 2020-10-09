@@ -31,10 +31,10 @@
 
 using namespace std;
 
-void checkStatusWorkers(const ZM_Base::scheduler& schedr,
-                        map<std::string, sWorker>& workers,
-                        ZM_Aux::QueueThrSave<ZM_DB::messSchedr>& messToDB){
-  vector<sWorker*> wkrNotResp;
+void checkStatusWorkers(const ZM_Base::Scheduler& schedr,
+                        map<std::string, SWorker>& workers,
+                        ZM_Aux::QueueThrSave<ZM_DB::MessSchedr>& messToDB){
+  vector<SWorker*> wkrNotResp;
   for(auto& w : workers){
     if (!w.second.isActive){            
       wkrNotResp.push_back(&w.second);
@@ -44,16 +44,16 @@ void checkStatusWorkers(const ZM_Base::scheduler& schedr,
   }
   if (wkrNotResp.size() < workers.size()){ 
     for(auto w : wkrNotResp){
-      if (w->base.state != ZM_Base::StateType::notResponding){
-        messToDB.push(ZM_DB::messSchedr{ZM_Base::MessType::WORKER_NOT_RESPONDING,
+      if (w->base.state != ZM_Base::StateType::NOT_RESPONDING){
+        messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::WORKER_NOT_RESPONDING,
                                         w->base.id});
         w->stateMem = w->base.state;
-        w->base.state = ZM_Base::StateType::notResponding;
+        w->base.state = ZM_Base::StateType::NOT_RESPONDING;
       } 
     }
   }else{
     string mess = "schedr::checkStatusWorkers error all workers are not available";
-    messToDB.push(ZM_DB::messSchedr{ZM_Base::MessType::INTERN_ERROR,
+    messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::INTERN_ERROR,
                                     0,
                                     0,
                                     0,

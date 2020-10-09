@@ -30,14 +30,14 @@
 
 class Process{
     pid_t _pid = 1; 
-    wTask _task;
+    WTask _task;
     ZM_Aux::TimerDelay _timer;
     uint64_t _cdeltaTime = 0;
     bool _isPause = false;
   public:
-    Process(const wTask&);
+    Process(const WTask&);
     ~Process();  
-    wTask getTask() const;
+    WTask getTask() const;
     pid_t getPid() const;
     int getProgress();
     bool checkMaxRunTime();

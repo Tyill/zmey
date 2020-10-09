@@ -47,7 +47,7 @@ void zmVersionLib(char* outVersion /*sz 8*/){
 
 zmConn zmCreateConnection(zmConnect cng, char* err/*sz 256*/){
   
-  ZM_DB::connectCng connCng{ cng.connectStr};
+  ZM_DB::ConnectCng connCng{ cng.connectStr};
   ZM_DB::DbProvider* pDb = new ZM_DB::DbProvider(connCng);
 
   auto serr = pDb->getLastError();
@@ -95,7 +95,7 @@ bool zmAddUser(zmConn zo, zmUser newUserCng, uint64_t* outUserId){
      static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmAddUser error: !outUserId");
      return false;
   }
-  ZM_Base::user us;
+  ZM_Base::User us;
   us.name = newUserCng.name;
   us.passw = newUserCng.passw;
   us.description = newUserCng.description ? newUserCng.description : "";
@@ -118,7 +118,7 @@ bool zmGetUserCng(zmConn zo, uint64_t userId, zmUser* outUserCng){
      static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmGetUserCng error: !outUserCng");
      return false;
   }
-  ZM_Base::user ur;
+  ZM_Base::User ur;
   if (static_cast<ZM_DB::DbProvider*>(zo)->getUserCng(userId, ur)){    
     strcpy(outUserCng->name, ur.name.c_str());
     outUserCng->description = (char*)realloc(outUserCng->description, ur.description.size() + 1);
@@ -130,7 +130,7 @@ bool zmGetUserCng(zmConn zo, uint64_t userId, zmUser* outUserCng){
 bool zmChangeUser(zmConn zo, uint64_t userId, zmUser newCng){
   if (!zo) return false;
      
-  ZM_Base::user us;
+  ZM_Base::User us;
   us.name = newCng.name;
   us.passw = newCng.passw;
   us.description = newCng.description ? newCng.description : "";
@@ -166,7 +166,7 @@ bool zmAddScheduler(zmConn zo, zmSchedr cng, uint64_t* outSchId){
      static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmAddScheduler error: !outSchId");
      return false;
   }
-  ZM_Base::scheduler scng;
+  ZM_Base::Scheduler scng;
   scng.activeTask = 0;
   scng.capacityTask = cng.capacityTask;
   scng.connectPnt = cng.connectPnt;
@@ -181,7 +181,7 @@ bool zmGetScheduler(zmConn zo, uint64_t sId, zmSchedr* outCng){
      static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmGetSchedulerCng error: !outCng");
      return false;
   }
-  ZM_Base::scheduler scng;
+  ZM_Base::Scheduler scng;
   if (static_cast<ZM_DB::DbProvider*>(zo)->getSchedr(sId, scng)){    
     outCng->capacityTask = scng.capacityTask;
     strcpy(outCng->connectPnt, scng.connectPnt.c_str());
@@ -192,7 +192,7 @@ bool zmGetScheduler(zmConn zo, uint64_t sId, zmSchedr* outCng){
 bool zmChangeScheduler(zmConn zo, uint64_t sId, zmSchedr newCng){
   if (!zo) return false; 
   
-  ZM_Base::scheduler scng;
+  ZM_Base::Scheduler scng;
   scng.capacityTask = newCng.capacityTask;
   scng.connectPnt = newCng.connectPnt;
 
@@ -274,7 +274,7 @@ bool zmAddWorker(zmConn zo, zmWorker cng, uint64_t* outWId){
      static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmAddWorker error: !outWId");
      return false;
   }
-  ZM_Base::worker wcng;
+  ZM_Base::Worker wcng;
   wcng.capacityTask = cng.capacityTask;
   wcng.connectPnt = cng.connectPnt;
   wcng.state = ZM_Base::StateType::READY;
@@ -289,7 +289,7 @@ bool zmGetWorker(zmConn zo, uint64_t wId, zmWorker* outWCng){
      static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmGetWorkerCng error: !outWCng");
      return false;
   }
-  ZM_Base::worker wcng;
+  ZM_Base::Worker wcng;
   if (static_cast<ZM_DB::DbProvider*>(zo)->getWorker(wId, wcng)){    
     outWCng->sId = wcng.sId;
     outWCng->capacityTask = wcng.capacityTask;
@@ -301,7 +301,7 @@ bool zmGetWorker(zmConn zo, uint64_t wId, zmWorker* outWCng){
 bool zmChangeWorker(zmConn zo, uint64_t wId, zmWorker newCng){
   if (!zo) return false; 
 
-  ZM_Base::worker wcng;
+  ZM_Base::Worker wcng;
   wcng.sId = newCng.sId;
   wcng.capacityTask = newCng.capacityTask;
   wcng.connectPnt = newCng.connectPnt;
@@ -400,7 +400,7 @@ bool zmAddPipeline(zmConn zo, zmPipeline cng, uint64_t* outPPLId){
      static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmAddPipeline error: !outPPLId");
      return false;
   }
-  ZM_Base::uPipeline pp;
+  ZM_Base::UPipeline pp;
   pp.uId = cng.userId;
   pp.name = cng.name;
   pp.description = cng.description ? cng.description : "";
@@ -414,7 +414,7 @@ bool zmGetPipeline(zmConn zo, uint64_t pplId, zmPipeline* outPPLCng){
      static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmGetPipelineCng error: !outPPLCng");
      return false;
   }
-  ZM_Base::uPipeline pp;
+  ZM_Base::UPipeline pp;
   if (static_cast<ZM_DB::DbProvider*>(zo)->getPipeline(pplId, pp)){    
     outPPLCng->userId = pp.uId;
     strcpy(outPPLCng->name, pp.name.c_str());
@@ -427,7 +427,7 @@ bool zmGetPipeline(zmConn zo, uint64_t pplId, zmPipeline* outPPLCng){
 bool zmChangePipeline(zmConn zo, uint64_t pplId, zmPipeline newCng){
   if (!zo) return false;
      
-  ZM_Base::uPipeline pp;
+  ZM_Base::UPipeline pp;
   pp.uId = newCng.userId;
   pp.name = newCng.name;
   pp.description = newCng.description ? newCng.description : "";
@@ -462,7 +462,7 @@ bool zmAddGroup(zmConn zo, zmGroup cng, uint64_t* outGId){
      static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmAddGroup error: !outGId");
      return false;
   }
-  ZM_Base::uGroup gr;
+  ZM_Base::UGroup gr;
   gr.pplId = cng.pplId;
   gr.name = cng.name;
   gr.description = cng.description ? cng.description : "";
@@ -476,7 +476,7 @@ bool zmGetGroup(zmConn zo, uint64_t gId, zmGroup* outGCng){
      static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmGetGroup error: !outGCng");
      return false;
   }
-  ZM_Base::uGroup gr;
+  ZM_Base::UGroup gr;
   if (static_cast<ZM_DB::DbProvider*>(zo)->getGroup(gId, gr)){    
     outGCng->pplId = gr.pplId;
     strcpy(outGCng->name, gr.name.c_str());
@@ -489,7 +489,7 @@ bool zmGetGroup(zmConn zo, uint64_t gId, zmGroup* outGCng){
 bool zmChangeGroup(zmConn zo, uint64_t gId, zmGroup newCng){
   if (!zo) return false;
      
-  ZM_Base::uGroup gr;
+  ZM_Base::UGroup gr;
   gr.pplId = newCng.pplId;
   gr.name = newCng.name;
   gr.description = newCng.description ? newCng.description : "";
@@ -525,7 +525,7 @@ bool zmAddTaskTemplate(zmConn zo, zmTaskTemplate cng, uint64_t* outTId){
     static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmAddTaskTemplate error: !outTId || !cng.script");
     return false;
   }
-  ZM_Base::uTaskTemplate task;
+  ZM_Base::UTaskTemplate task;
   task.name = cng.name;
   task.description = cng.description ? cng.description : "";
   task.uId = cng.userId;
@@ -542,7 +542,7 @@ bool zmGetTaskTemplate(zmConn zo, uint64_t tId, zmTaskTemplate* outTCng){
     static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmGetTaskTemplateCng error: !outTCng");
     return false;
   }
-  ZM_Base::uTaskTemplate task;
+  ZM_Base::UTaskTemplate task;
   if (static_cast<ZM_DB::DbProvider*>(zo)->getTaskTemplate(tId, task)){  
     strcpy(outTCng->name, task.name.c_str());  
     outTCng->description = (char*)realloc(outTCng->description, task.description.size() + 1);
@@ -559,7 +559,7 @@ bool zmGetTaskTemplate(zmConn zo, uint64_t tId, zmTaskTemplate* outTCng){
 bool zmChangeTaskTemplate(zmConn zo, uint64_t tId, zmTaskTemplate newCng){
   if (!zo) return false; 
   
-  ZM_Base::uTaskTemplate task;
+  ZM_Base::UTaskTemplate task;
   task.name = newCng.name;
   task.description = newCng.description ? newCng.description : "";
   task.uId = newCng.userId;
@@ -597,7 +597,7 @@ bool zmAddTask(zmConn zo, zmTask cng, uint64_t* outQTId){
     static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmAddTask error: !outQTId");
     return false;
   }
-  ZM_Base::uTask task;
+  ZM_Base::UTask task;
   task.pplId = cng.pplId;
   task.gId = cng.gId;
   task.base.params = cng.params ? cng.params : "";
@@ -615,7 +615,7 @@ bool zmGetTask(zmConn zo, uint64_t qtId, zmTask* outCng){
     static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmGetTaskCng error: !outCng");
     return false;
   }
-  ZM_Base::uTask task;
+  ZM_Base::UTask task;
   if (static_cast<ZM_DB::DbProvider*>(zo)->getTask(qtId, task)){
     outCng->pplId = task.pplId;
     outCng->gId = task.gId;
@@ -634,7 +634,7 @@ bool zmGetTask(zmConn zo, uint64_t qtId, zmTask* outCng){
 bool zmChangeTask(zmConn zo, uint64_t qtId, zmTask newCng){
   if (!zo) return false;
   
-  ZM_Base::uTask task;
+  ZM_Base::UTask task;
   task.pplId = newCng.pplId;
   task.gId = newCng.gId;
   task.base.tId = newCng.ttId;
@@ -658,7 +658,7 @@ bool zmStartTask(zmConn zo, uint64_t qtId){
 bool zmStopTask(zmConn zo, uint64_t tId){
   if (!zo) return false;
     
-  ZM_Base::worker wcng;  
+  ZM_Base::Worker wcng;  
   uint64_t qtId = 0;
   if (static_cast<ZM_DB::DbProvider*>(zo)->getWorkerByTask(tId, qtId, wcng)){
     auto connCng = static_cast<ZM_DB::DbProvider*>(zo)->getConnectCng();  
@@ -680,7 +680,7 @@ bool zmCancelTask(zmConn zo, uint64_t tId){
 bool zmPauseTask(zmConn zo, uint64_t tId){
   if (!zo) return false;
     
-  ZM_Base::worker wcng;  
+  ZM_Base::Worker wcng;  
   uint64_t qtId = 0;
   if (static_cast<ZM_DB::DbProvider*>(zo)->getWorkerByTask(tId, qtId, wcng)){
     auto connCng = static_cast<ZM_DB::DbProvider*>(zo)->getConnectCng();  
@@ -697,7 +697,7 @@ bool zmPauseTask(zmConn zo, uint64_t tId){
 bool zmContinueTask(zmConn zo, uint64_t tId){
   if (!zo) return false;
     
-  ZM_Base::worker wcng;  
+  ZM_Base::Worker wcng;  
   uint64_t qtId = 0;
   if (static_cast<ZM_DB::DbProvider*>(zo)->getWorkerByTask(tId, qtId, wcng)){
     auto connCng = static_cast<ZM_DB::DbProvider*>(zo)->getConnectCng();  
@@ -720,10 +720,10 @@ bool zmTaskState(zmConn zo, uint64_t* qtId, uint32_t tCnt, zmTskState* outQTStat
   }
   vector<uint64_t> qtaskId(tCnt);
   memcpy(qtaskId.data(), qtId, tCnt * sizeof(uint64_t));
-  vector<ZM_DB::tskState> state;
+  vector<ZM_DB::TaskState> state;
   if (static_cast<ZM_DB::DbProvider*>(zo)->taskState(qtaskId, state)){  
     for (size_t i = 0; i < tCnt; ++i){
-      outQTState[i].PROGRESS = state[i].PROGRESS;
+      outQTState[i].progress = state[i].progress;
       outQTState[i].state = (zmStateType)state[i].state;
     }    
     return true;
@@ -752,7 +752,7 @@ bool zmTaskTime(zmConn zo, uint64_t qtId, zmTskTime* outTTime){
     static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmTaskTime error: !outTTime");
     return false;
   }
-  ZM_DB::taskTime tskTime;
+  ZM_DB::TaskTime tskTime;
   if (static_cast<ZM_DB::DbProvider*>(zo)->taskTime(qtId, tskTime)){  
     strncpy(outTTime->createTime, tskTime.createTime.c_str(), 32);
     strncpy(outTTime->takeInWorkTime, tskTime.takeInWorkTime.c_str(), 32);
