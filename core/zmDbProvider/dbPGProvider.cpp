@@ -71,13 +71,13 @@ DbProvider::DbProvider(const ZM_DB::ConnectCng& cng)
     return;
   }
 }
-DbProvider::~DbProvider(){
-  if (_pg){
-    PQfinish(_pg);
-  }
+DbProvider::~DbProvider(){  
   if (_thrEndTask.joinable()){
     _fClose = true;
     _thrEndTask.join();
+  }
+  if (_pg){
+    PQfinish(_pg);
   }
 }
 bool DbProvider::createTables(){
