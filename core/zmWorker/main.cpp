@@ -152,11 +152,11 @@ int main(int argc, char* argv[]){
   while (1){
     timer.updateCycTime();   
 
+    // update list of tasks
+    updateListTasks(worker, _newTasks, _procs);
+
     // check child process
     waitProcess(worker, _procs, _messForSchedr);
-
-     // update list of tasks
-    updateListTasks(worker, _newTasks, _procs);
 
     // send mess to schedr (send constantly until it receives)
     if (_isSendAck && !_messForSchedr.empty()){ 
@@ -166,7 +166,7 @@ int main(int argc, char* argv[]){
     else if (!_isSendAck && timer.onDelaySec(true, cng.sendAckTOutSec, 0)){
       _isSendAck = true;
     }
-        
+
     // progress of tasks
     if(timer.onDelaySec(true, cng.progressTasksTOutSec, 1)){
       timer.onDelaySec(false, cng.progressTasksTOutSec, 1);
