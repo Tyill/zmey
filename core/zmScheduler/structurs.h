@@ -28,6 +28,8 @@
 
 void statusMess(const std::string& mess);
 
+void mainCycleNotify();
+
 struct STask{
   uint64_t qTaskId;
   ZM_Base::Task base;

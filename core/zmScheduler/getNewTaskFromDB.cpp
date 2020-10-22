@@ -55,4 +55,8 @@ void getNewTaskFromDB(ZM_DB::DbProvider& db){
     }
   }
   _schedr.activeTask = actSz + newTasks.size();  
+
+  if (!newTasks.empty()){
+    mainCycleNotify();
+  }
 };

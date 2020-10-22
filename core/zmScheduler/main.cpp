@@ -25,6 +25,7 @@
 #include <signal.h>
 #include <unistd.h>
 #include <future>
+#include <condition_variable>
 #include <algorithm>
 #include <iostream>
 #include <map>
@@ -52,7 +53,9 @@ ZM_Aux::QueueThrSave<STask> _tasks;
 ZM_Aux::QueueThrSave<ZM_DB::MessSchedr> _messToDB;
 ZM_Base::Scheduler _schedr;
 mutex _mtxSts;
-volatile bool _fClose = false;
+std::condition_variable _cv;
+volatile bool _fClose = false,
+              _isMainCycleRun = false;
 
 struct Config{
   int capacityTask = 10000;
@@ -99,6 +102,13 @@ void parseArgs(int argc, char* argv[], Config& outCng){
 
 #undef SET_PARAM
 #undef SET_PARAM_NUM
+}
+
+void mainCycleNotify(){
+  if (!_isMainCycleRun){
+    _isMainCycleRun = true;
+    _cv.notify_one();
+  }
 }
 
 void closeHandler(int sig){
@@ -162,6 +172,7 @@ int main(int argc, char* argv[]){
                frSendAllMessToDB; 
   ZM_Aux::TimerDelay timer;
   const int minCycleTimeMS = 10;
+  std::mutex mtxPause;
 
   #define FUTURE_RUN(fut, db, func)                                                 \
     if(!fut.valid() || (fut.wait_for(chrono::seconds(0)) == future_status::ready)){ \
@@ -169,7 +180,8 @@ int main(int argc, char* argv[]){
         func(*db);                                                                  \
       });                                                                           \
     }
-  // main cycle
+
+  // main cycle  
   while (!_fClose){
     timer.updateCycTime();   
 
@@ -197,9 +209,10 @@ int main(int argc, char* argv[]){
       });
     }
     // added delay
-    if (timer.getDeltaTimeMS() < minCycleTimeMS){
-      ZM_Aux::sleepMs(minCycleTimeMS - timer.getDeltaTimeMS());
-    }
+    _isMainCycleRun = false;
+    std::unique_lock<std::mutex> lck(mtxPause);
+    _cv.wait_for(lck, std::chrono::milliseconds(minCycleTimeMS)); 
+    _isMainCycleRun = true;   
   }
   ZM_Tcp::stopServer();
   sendAllMessToDB(*dbSendMess);

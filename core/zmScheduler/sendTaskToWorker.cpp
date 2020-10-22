@@ -41,15 +41,8 @@ void sendTaskToWorker(const ZM_Base::Scheduler& schedr,
                       map<std::string, SWorker>& workers,
                       ZM_Aux::QueueThrSave<STask>& tasks, 
                       ZM_Aux::QueueThrSave<ZM_DB::MessSchedr>& messToDB){  
-#define ERROR_MESS(mess, wId)                                     \
-  messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::INTERN_ERROR, \
-                                  wId,                            \
-                                  0,                              \
-                                  0,                              \
-                                  0,                              \
-                                  0,                              \
-                                  0,                              \
-                                  mess});                         \
+#define ERROR_MESS(mess, wId)                                                   \
+  messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::INTERN_ERROR, wId, mess}); \
   statusMess(mess);
   
   if (workersCpy.empty()){

@@ -27,6 +27,7 @@
 #include <map>
 #include <algorithm>
 #include <iostream>
+#include <condition_variable>
 #include <list>
 #include <mutex>
 #include "zmCommon/tcp.h"
@@ -53,7 +54,9 @@ ZM_Aux::QueueThrSave<WTask> _newTasks;
 ZM_Aux::QueueThrSave<string> _errMess;
 list<Process> _procs;
 mutex _mtxPrc, _mtxSts;
-bool _isSendAck = true;
+std::condition_variable _cv;
+volatile bool _isSendAck = true,
+              _isMainCycleRun = false;
 
 struct Config{
   int progressTasksTOutSec = 30;
@@ -62,6 +65,13 @@ struct Config{
   std::string connectPnt;
   std::string schedrConnPnt;
 };
+
+void mainCycleNotify(){
+  if (!_isMainCycleRun){
+    _isMainCycleRun = true;
+    _cv.notify_one();
+  }
+}
 
 void statusMess(const string& mess){
   lock_guard<std::mutex> lock(_mtxSts);
@@ -136,6 +146,7 @@ int main(int argc, char* argv[]){
     
   ZM_Aux::TimerDelay timer;
   const int minCycleTimeMS = 10;
+  std::mutex mtxPause;
    
   // main cycle
   while (1){
@@ -168,12 +179,12 @@ int main(int argc, char* argv[]){
     // errors
     if (!_errMess.empty()){ 
       errorToSchedr(worker, cng.schedrConnPnt, _errMess);
-    }
-    
-    // added delay
-    if (timer.getDeltaTimeMS() < minCycleTimeMS){
-      ZM_Aux::sleepMs(minCycleTimeMS - timer.getDeltaTimeMS());
     }    
+    // added delay
+    _isMainCycleRun = false;
+    std::unique_lock<std::mutex> lck(mtxPause);
+    _cv.wait_for(lck, std::chrono::milliseconds(minCycleTimeMS)); 
+    _isMainCycleRun = true;      
   }
   return 0;
 }

@@ -28,6 +28,8 @@
 
 void statusMess(const std::string& mess);
 
+void mainCycleNotify();
+
 struct Mess2schedr{
   uint64_t taskId;
   ZM_Base::MessType MessType;

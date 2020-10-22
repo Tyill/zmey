@@ -109,4 +109,5 @@ void receiveHandler(const string& remcp, const string& data){
       }
     }
   }
+  mainCycleNotify();
 }

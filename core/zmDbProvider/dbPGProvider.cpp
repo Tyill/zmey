@@ -1718,7 +1718,7 @@ bool DbProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::MessSche
         break;
       case ZM_Base::MessType::WORKER_RATING:
         ss << "UPDATE tblWorker SET "
-              "rating = " << m.WORKER_RATING << " "
+              "rating = " << m.workerRating << " "
               "WHERE id = " << m.workerId << ";";
         break;
       case ZM_Base::MessType::WORKER_NOT_RESPONDING:

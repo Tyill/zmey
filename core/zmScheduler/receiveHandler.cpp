@@ -38,15 +38,8 @@ extern ZM_Base::Scheduler _schedr;
 
 void receiveHandler(const string& remcp, const string& data){
 
-#define ERROR_MESS(mess, wId)                                      \
-  _messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::INTERN_ERROR, \
-                                   wId,                            \
-                                   0,                              \
-                                   0,                              \
-                                   0,                              \
-                                   0,                              \
-                                   0,                              \
-                                   mess});                         \
+#define ERROR_MESS(mess, wId)                                                    \
+  _messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::INTERN_ERROR, wId, mess}); \
   statusMess(mess);
 
   auto mess = ZM_Aux::deserialn(data);
@@ -189,4 +182,6 @@ void receiveHandler(const string& remcp, const string& data){
         break;
     }
   }
+  
+  mainCycleNotify();  
 }
