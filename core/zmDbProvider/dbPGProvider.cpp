@@ -1379,28 +1379,28 @@ bool DbProvider::getWorkerByTask(uint64_t tId, uint64_t& qtId, ZM_Base::Worker& 
 
   return true;
 }
-bool DbProvider::setEndTaskCBack(uint64_t tId, endTaskCBack cback){
+bool DbProvider::setChangeTaskStateCBack(uint64_t tId, changeTaskStateCBack cback){
   if (!cback){
     return false;
   }
   {lock_guard<mutex> lk(_mtxNotifyTask);  
-    _notifyEndTask[tId] = cback;
+    _notifyTaskStateCBack[tId] = {ZM_Base::StateType::UNDEFINED, cback};
   }  
   if (!_thrEndTask.joinable()){
     const int toutMs = 10; // tough 
     _thrEndTask = thread([this](){
       while (!_fClose){
-        if (_notifyEndTask.empty()){
+        if (_notifyTaskStateCBack.empty()){
           ZM_Aux::sleepMs(toutMs); 
           continue;
         }
-        std::map<uint64_t, endTaskCBack> notifyTask;
+        std::map<uint64_t, pair<ZM_Base::StateType, changeTaskStateCBack>> notifyTask;
         { lock_guard<mutex> lk(_mtxNotifyTask); 
-          notifyTask = _notifyEndTask;
+          notifyTask = _notifyTaskStateCBack;
         } 
         string stId;
         stId = accumulate(notifyTask.begin(), notifyTask.end(), stId,
-                  [](string& s, pair<uint64_t, endTaskCBack> v){
+                  [](string& s, pair<uint64_t, pair<ZM_Base::StateType, changeTaskStateCBack>> v){
                     return s.empty() ? to_string(v.first) : s + "," + to_string(v.first);
                   });       
         stringstream ss;
@@ -1408,7 +1408,7 @@ bool DbProvider::setEndTaskCBack(uint64_t tId, endTaskCBack cback){
               "FROM tblTaskState ts "
               "JOIN tblTaskQueue qt ON qt.id = ts.qtask "
               "JOIN tblUPipelineTask pt ON pt.qtask = qt.id "
-              "WHERE pt.id IN (" << stId << ") AND (ts.state BETWEEN " << (int)ZM_Base::StateType::COMPLETED << " AND " << (int)ZM_Base::StateType::CANCEL << ");"; // cancel, complete, error
+              "WHERE pt.id IN (" << stId << ");"; 
         
         vector<pair<uint64_t, ZM_Base::StateType>> notifyRes;
         { lock_guard<mutex> lk(_mtx);
@@ -1418,7 +1418,9 @@ bool DbProvider::setEndTaskCBack(uint64_t tId, endTaskCBack cback){
             for (size_t i = 0; i < tsz; ++i){
               uint64_t tId = stoull(PQgetvalue(pgr.res, i, 0));
               ZM_Base::StateType state = (ZM_Base::StateType)atoi(PQgetvalue(pgr.res, i, 1));
-              notifyRes.push_back(make_pair(tId, state));
+              if (state != notifyTask[tId].first){
+                notifyRes.push_back(make_pair(tId, state));
+              }
             }
           }else{
             errorMess(string("endTaskCBack error: ") + PQerrorMessage(_pg));
@@ -1426,11 +1428,20 @@ bool DbProvider::setEndTaskCBack(uint64_t tId, endTaskCBack cback){
         }
         if (!notifyRes.empty()){
           for (auto& t : notifyRes){
-            notifyTask[t.first](t.first, t.second);
+            uint64_t tId = t.first;
+            ZM_Base::StateType prevState = notifyTask[tId].first,
+                               newState = t.second;
+            notifyTask[tId].second(tId, prevState, newState);
           }
           { lock_guard<mutex> lk(_mtxNotifyTask);  
             for (auto& t : notifyRes){
-              _notifyEndTask.erase(t.first);
+              uint64_t tId = t.first;
+              ZM_Base::StateType newState = t.second;
+              if ((newState == ZM_Base::StateType::COMPLETED) || (newState == ZM_Base::StateType::ERROR) || (newState == ZM_Base::StateType::CANCEL)){
+                _notifyTaskStateCBack.erase(tId);
+              }else{
+                _notifyTaskStateCBack[tId].first = newState;
+              }
             }    
           }
         }

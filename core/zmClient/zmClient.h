@@ -543,14 +543,14 @@ ZMEY_API bool zmTaskTime(zmConn, uint64_t ptId, zmTskTime* outTTime);
 /// @return count of pipeline tasks
 ZMEY_API uint32_t zmGetAllTasks(zmConn, uint64_t pplId, zmStateType state, uint64_t** outQTId);
 
-typedef void(*zmEndTaskCBack)(uint64_t ptId, zmStateType tState);
+typedef void(*zmChangeTaskStateCBack)(uint64_t ptId, zmStateType prevState, zmStateType newState);
 
-/// task end callback
+/// set change task state callback
 /// @param[in] zmConn - object connect
 /// @param[in] ptId - pipeline task id
 /// @param[in] cback
 /// @return true - ok
-ZMEY_API bool zmSetEndTaskCBack(zmConn, uint64_t ptId, zmEndTaskCBack cback);
+ZMEY_API bool zmSetChangeTaskStateCBack(zmConn, uint64_t ptId, zmChangeTaskStateCBack cback);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Internal errors
