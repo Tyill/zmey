@@ -43,17 +43,17 @@ class App extends React.Component{
 
     return (
       <div>
-      <Container className="col app-container"
-                 style={{overflow: "auto", height: 500}}>
-        <Row noGutters={true} className="m-1 p-2"
-             style = {{  border: "1px solid #dbdbdb", borderRadius: "5px"}}>
+        <Container className="col app-container"
+                  style={{overflow: "auto", height: 500}}>
+          <Row noGutters={true} className="m-1 p-2"
+              style = {{  border: "1px solid #dbdbdb", borderRadius: "5px"}}>
             <Col className="col-auto"> 
               <TreeNav dirs={dirs} />            
             </Col>            
-           <Col className="col"> 
-           </Col>
-        </Row>
-      </Container>  
+            <Col className="col"> 
+            </Col>
+          </Row>
+        </Container>  
       </div>
     )
   } 

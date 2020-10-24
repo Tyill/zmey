@@ -111,6 +111,15 @@ void mainCycleNotify(){
   }
 }
 
+void mainCycleSleep(int delayMS){
+  _isMainCycleRun = false;
+  std::mutex mtx;
+  {std::unique_lock<std::mutex> lck(mtx);
+    _cv.wait_for(lck, std::chrono::milliseconds(delayMS)); 
+  }
+  _isMainCycleRun = true;
+}
+
 void closeHandler(int sig){
   _fClose = true;
 }
@@ -172,7 +181,6 @@ int main(int argc, char* argv[]){
                frSendAllMessToDB; 
   ZM_Aux::TimerDelay timer;
   const int minCycleTimeMS = 10;
-  std::mutex mtxPause;
 
   #define FUTURE_RUN(fut, db, func)                                                 \
     if(!fut.valid() || (fut.wait_for(chrono::seconds(0)) == future_status::ready)){ \
@@ -197,22 +205,17 @@ int main(int argc, char* argv[]){
       FUTURE_RUN(frSendAllMessToDB, dbSendMess, sendAllMessToDB);
     }    
     // check status of workers
-    if(timer.onDelaySec(true, cng.checkWorkerTOutSec, 0)){
-      timer.onDelaySec(false, cng.checkWorkerTOutSec, 0);    
+    if(timer.onDelayOncSec(true, cng.checkWorkerTOutSec, 0)){
       checkStatusWorkers(_schedr, _workers, _messToDB);
     }
     // current state
-    if(timer.onDelaySec(true, cng.currentStateTOutSec, 1)){
-      timer.onDelaySec(false, cng.currentStateTOutSec, 1);    
+    if(timer.onDelayOncSec(true, cng.currentStateTOutSec, 1)){
       _messToDB.push(ZM_DB::MessSchedr{ 
         _schedr.state == ZM_Base::StateType::RUNNING ? ZM_Base::MessType::START_SCHEDR : ZM_Base::MessType::PAUSE_SCHEDR
       });
     }
     // added delay
-    _isMainCycleRun = false;
-    std::unique_lock<std::mutex> lck(mtxPause);
-    _cv.wait_for(lck, std::chrono::milliseconds(minCycleTimeMS)); 
-    _isMainCycleRun = true;   
+    mainCycleSleep(minCycleTimeMS);
   }
   ZM_Tcp::stopServer();
   sendAllMessToDB(*dbSendMess);

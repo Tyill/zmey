@@ -73,6 +73,15 @@ void mainCycleNotify(){
   }
 }
 
+void mainCycleSleep(int delayMS){
+  _isMainCycleRun = false;
+  std::mutex mtx;
+  {std::unique_lock<std::mutex> lck(mtx);
+    _cv.wait_for(lck, std::chrono::milliseconds(delayMS)); 
+  }
+  _isMainCycleRun = true;
+}
+
 void statusMess(const string& mess){
   lock_guard<std::mutex> lock(_mtxSts);
   cout << ZM_Aux::currDateTimeMs() << " " << mess << std::endl;
@@ -146,7 +155,6 @@ int main(int argc, char* argv[]){
     
   ZM_Aux::TimerDelay timer;
   const int minCycleTimeMS = 10;
-  std::mutex mtxPause;
    
   // main cycle
   while (1){
@@ -168,13 +176,11 @@ int main(int argc, char* argv[]){
     }
 
     // progress of tasks
-    if(timer.onDelaySec(true, cng.progressTasksTOutSec, 1)){
-      timer.onDelaySec(false, cng.progressTasksTOutSec, 1);
+    if(timer.onDelayOncSec(true, cng.progressTasksTOutSec, 1)){
       progressToSchedr(worker, cng.schedrConnPnt, _procs);
     }
     // ping to schedr
-    if(timer.onDelaySec(true, cng.pingSchedrTOutSec, 2)){
-      timer.onDelaySec(false, cng.pingSchedrTOutSec, 2);
+    if(timer.onDelayOncSec(true, cng.pingSchedrTOutSec, 2)){
       pingToSchedr(worker, cng.schedrConnPnt);
     }        
     // errors
@@ -182,10 +188,7 @@ int main(int argc, char* argv[]){
       errorToSchedr(worker, cng.schedrConnPnt, _errMess);
     }    
     // added delay
-    _isMainCycleRun = false;
-    std::unique_lock<std::mutex> lck(mtxPause);
-    _cv.wait_for(lck, std::chrono::milliseconds(minCycleTimeMS)); 
-    _isMainCycleRun = true;      
+    mainCycleSleep(minCycleTimeMS);     
   }
   return 0;
 }
