@@ -36,9 +36,9 @@ void errorToSchedr(const ZM_Base::Worker& worker, const std::string& schedrConnP
   string mess;
   while(err.tryPop(mess)){
     map<string, string> data{
-      make_pair("command", to_string((int)ZM_Base::MessType::INTERN_ERROR)),
-      make_pair("connectPnt", worker.connectPnt),
-      make_pair("message", mess)
+      {"command", to_string((int)ZM_Base::MessType::INTERN_ERROR)},
+      {"connectPnt", worker.connectPnt},
+      {"message", mess}
     };      
     ZM_Tcp::sendData(schedrConnPnt, ZM_Aux::serialn(data));
   }

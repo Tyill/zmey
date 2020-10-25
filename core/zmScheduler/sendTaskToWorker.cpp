@@ -74,13 +74,13 @@ void sendTaskToWorker(const ZM_Base::Scheduler& schedr,
       STask t;
       tasks.tryPop(t);
       map<string, string> data{
-        make_pair("command",         to_string((int)ZM_Base::MessType::NEW_TASK)),
-        make_pair("connectPnt",      schedr.connectPnt),
-        make_pair("taskId",          to_string(t.qTaskId)),
-        make_pair("params",          t.params), 
-        make_pair("script",          t.base.script),
-        make_pair("averDurationSec", to_string(t.base.averDurationSec)), 
-        make_pair("maxDurationSec",  to_string(t.base.maxDurationSec))
+        {"command",         to_string((int)ZM_Base::MessType::NEW_TASK)},
+        {"connectPnt",      schedr.connectPnt},
+        {"taskId",          to_string(t.qTaskId)},
+        {"params",          t.params}, 
+        {"script",          t.base.script},
+        {"averDurationSec", to_string(t.base.averDurationSec)}, 
+        {"maxDurationSec",  to_string(t.base.maxDurationSec)}
       };
       ++(*iWr)->activeTask;
       workers[(*iWr)->connectPnt].base.activeTask = (*iWr)->activeTask;

@@ -35,15 +35,13 @@ using namespace std;
 void progressToSchedr(const ZM_Base::Worker& worker, const std::string& schedrConnPnt, list<Process>& procs){
 
   map<string, string> data{
-    make_pair("command", to_string((int)ZM_Base::MessType::PROGRESS)),
-    make_pair("connectPnt", worker.connectPnt),
+    {"command", to_string((int)ZM_Base::MessType::PROGRESS)},
+    {"connectPnt", worker.connectPnt},
   };      
   int i = 0;
   for (auto& p : procs){
-    data.insert(make_pair("taskId" + to_string(i),
-                          to_string(p.getTask().base.id)));
-    data.insert(make_pair("progress" + to_string(i),
-                          to_string(p.getProgress())));
+    data.insert({"taskId" + to_string(i), to_string(p.getTask().base.id)});
+    data.insert({"progress" + to_string(i), to_string(p.getProgress())});
     ++i;
   }
   ZM_Tcp::sendData(schedrConnPnt, ZM_Aux::serialn(data));

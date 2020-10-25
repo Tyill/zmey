@@ -34,11 +34,11 @@ using namespace std;
 void sendMessToSchedr(const ZM_Base::Worker& worker, const std::string& schedrConnPnt, const Mess2schedr& mess){
   
   map<string, string> data{
-        make_pair("command",    to_string((int)mess.MessType)),
-        make_pair("connectPnt", worker.connectPnt),
-        make_pair("taskId",     to_string(mess.taskId)),
-        make_pair("activeTask", to_string(worker.activeTask)),
-        make_pair("taskResult", mess.taskResult),
+        {"command",    to_string((int)mess.MessType)},
+        {"connectPnt", worker.connectPnt},
+        {"taskId",     to_string(mess.taskId)},
+        {"activeTask", to_string(worker.activeTask)},
+        {"taskResult", mess.taskResult}
   };
   ZM_Tcp::sendData(schedrConnPnt,  ZM_Aux::serialn(data), false);
 }

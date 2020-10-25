@@ -1387,8 +1387,8 @@ bool DbProvider::setChangeTaskStateCBack(uint64_t tId, changeTaskStateCBack cbac
     _notifyTaskStateCBack[tId] = {ZM_Base::StateType::UNDEFINED, cback};
   }  
   if (!_thrEndTask.joinable()){
-    const int toutMs = 10; // tough 
     _thrEndTask = thread([this](){
+      const int toutMs = 10; // tough 
       while (!_fClose){
         if (_notifyTaskStateCBack.empty()){
           ZM_Aux::sleepMs(toutMs); 
