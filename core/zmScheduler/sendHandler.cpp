@@ -42,20 +42,25 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
   _messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::INTERN_ERROR, wId, mess}); \
   statusMess(mess);
 
-#define checkFieldNum(field) \
-  if (mess.find(#field) == mess.end()){ \
-    ERROR_MESS(string("schedr::sendHandler Error mess.find ") + #field + " from: " + cp, wId); \
-    return;  \
-  } \
-  if (!ZM_Aux::isNumber(mess[#field])){ \
-    ERROR_MESS("schedr::sendHandler Error !ZM_Aux::isNumber " + mess[#field] + " from: " + cp, wId); \
-    return; \
-  }
-#define checkField(field) \
-  if (mess.find(#field) == mess.end()){  \
-    ERROR_MESS(string("schedr::sendHandler Error mess.find ") + #field + " from: " + cp, wId);  \
-    return;  \
-  }
+#ifdef DEBUG
+  #define checkFieldNum(field) \
+    if (mess.find(#field) == mess.end()){ \
+      ERROR_MESS(string("schedr::sendHandler Error mess.find ") + #field + " from: " + cp, wId); \
+      return;  \
+    } \
+    if (!ZM_Aux::isNumber(mess[#field])){ \
+      ERROR_MESS("schedr::sendHandler Error !ZM_Aux::isNumber " + mess[#field] + " from: " + cp, wId); \
+      return; \
+    }
+  #define checkField(field) \
+    if (mess.find(#field) == mess.end()){  \
+      ERROR_MESS(string("schedr::sendHandler Error mess.find ") + #field + " from: " + cp, wId);  \
+      return;  \
+    }
+#else
+  #define checkFieldNum(field)
+  #define checkField(field)
+#endif
 
   // error from worker
   auto mess = ZM_Aux::deserialn(data);

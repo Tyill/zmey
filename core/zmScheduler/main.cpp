@@ -182,7 +182,7 @@ int main(int argc, char* argv[]){
   ZM_Aux::TimerDelay timer;
   const int minCycleTimeMS = 10;
 
-  #define FUTURE_RUN(fut, db, func)                                                 \
+  #define ASYNC(fut, db, func)                                                      \
     if(!fut.valid() || (fut.wait_for(chrono::seconds(0)) == future_status::ready)){ \
       fut = async(launch::async, [&db]{                                             \
         func(*db);                                                                  \
@@ -195,14 +195,14 @@ int main(int argc, char* argv[]){
 
     // get new tasks from DB
     if((_tasks.size() < _schedr.capacityTask) && (_schedr.state != ZM_Base::StateType::PAUSE)){
-      FUTURE_RUN(frGetNewTask, dbNewTask, getNewTaskFromDB);
+      ASYNC(frGetNewTask, dbNewTask, getNewTaskFromDB);
     }        
     // send task to worker    
     sendTaskToWorker(_schedr, _workers, _tasks, _messToDB);    
 
     // send all mess to DB
     if(!_messToDB.empty()){      
-      FUTURE_RUN(frSendAllMessToDB, dbSendMess, sendAllMessToDB);
+      ASYNC(frSendAllMessToDB, dbSendMess, sendAllMessToDB);
     }    
     // check status of workers
     if(timer.onDelayOncSec(true, cng.checkWorkerTOutSec, 0)){

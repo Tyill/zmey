@@ -47,20 +47,26 @@ void receiveHandler(const string& remcp, const string& data){
     ERROR_MESS("schedr::receiveHandler error deserialn data from: " + remcp, 0);    
     return;
   } 
-#define checkFieldNum(field) \
-  if (mess.find(#field) == mess.end()){ \
-    ERROR_MESS(string("schedr::receiveHandler error mess.find ") + #field + " from: " + cp, wId); \
-    return;  \
-  } \
-  if (!ZM_Aux::isNumber(mess[#field])){ \
-    ERROR_MESS("schedr::receiveHandler error !ZM_Aux::isNumber " + mess[#field] + " from: " + cp, wId); \
-    return; \
-  }
-#define checkField(field) \
-  if (mess.find(#field) == mess.end()){  \
-    ERROR_MESS(string("schedr::receiveHandler error mess.find ") + #field + " from: " + cp, wId);  \
-    return;  \
-  }
+#ifdef DEBUG
+  #define checkFieldNum(field) \
+    if (mess.find(#field) == mess.end()){ \
+      ERROR_MESS(string("schedr::receiveHandler error mess.find ") + #field + " from: " + cp, wId); \
+      return;  \
+    } \
+    if (!ZM_Aux::isNumber(mess[#field])){ \
+      ERROR_MESS("schedr::receiveHandler error !ZM_Aux::isNumber " + mess[#field] + " from: " + cp, wId); \
+      return; \
+    }
+  #define checkField(field) \
+    if (mess.find(#field) == mess.end()){  \
+      ERROR_MESS(string("schedr::receiveHandler error mess.find ") + #field + " from: " + cp, wId);  \
+      return;  \
+    }
+#else
+  #define checkFieldNum(field)
+  #define checkField(field)
+#endif
+
   uint64_t wId = 0;
   string cp = remcp;
   checkFieldNum(command);
