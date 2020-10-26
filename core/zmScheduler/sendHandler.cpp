@@ -32,12 +32,6 @@
 
 using namespace std;
 
-extern ZM_Aux::QueueThrSave<STask> _tasks;
-extern ZM_Aux::QueueThrSave<ZM_DB::MessSchedr> _messToDB;
-extern map<std::string, SWorker> _workers;
-extern ZM_Base::Scheduler _schedr;
-
-void sendHandler(const string& cp, const string& data, const std::error_code& ec){
 #define ERROR_MESS(mess, wId)                                                    \
   _messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::INTERN_ERROR, wId, mess}); \
   statusMess(mess);
@@ -61,6 +55,13 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
   #define checkFieldNum(field)
   #define checkField(field)
 #endif
+
+extern ZM_Aux::QueueThrSave<STask> _tasks;
+extern ZM_Aux::QueueThrSave<ZM_DB::MessSchedr> _messToDB;
+extern map<std::string, SWorker> _workers;
+extern ZM_Base::Scheduler _schedr;
+
+void sendHandler(const string& cp, const string& data, const std::error_code& ec){
 
   // error from worker
   auto mess = ZM_Aux::deserialn(data);

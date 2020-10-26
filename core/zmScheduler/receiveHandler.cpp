@@ -32,21 +32,10 @@
 
 using namespace std;
 
-extern ZM_Aux::QueueThrSave<ZM_DB::MessSchedr> _messToDB;
-extern map<std::string, SWorker> _workers;
-extern ZM_Base::Scheduler _schedr;
-
-void receiveHandler(const string& remcp, const string& data){
-
 #define ERROR_MESS(mess, wId)                                                    \
   _messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::INTERN_ERROR, wId, mess}); \
   statusMess(mess);
 
-  auto mess = ZM_Aux::deserialn(data);
-  if (mess.empty()){
-    ERROR_MESS("schedr::receiveHandler error deserialn data from: " + remcp, 0);    
-    return;
-  } 
 #ifdef DEBUG
   #define checkFieldNum(field) \
     if (mess.find(#field) == mess.end()){ \
@@ -66,6 +55,18 @@ void receiveHandler(const string& remcp, const string& data){
   #define checkFieldNum(field)
   #define checkField(field)
 #endif
+
+extern ZM_Aux::QueueThrSave<ZM_DB::MessSchedr> _messToDB;
+extern map<std::string, SWorker> _workers;
+extern ZM_Base::Scheduler _schedr;
+
+void receiveHandler(const string& remcp, const string& data){
+
+  auto mess = ZM_Aux::deserialn(data);
+  if (mess.empty()){
+    ERROR_MESS("schedr::receiveHandler error deserialn data from: " + remcp, 0);    
+    return;
+  } 
 
   uint64_t wId = 0;
   string cp = remcp;

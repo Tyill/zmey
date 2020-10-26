@@ -34,21 +34,10 @@
 
 using namespace std;
 
-extern list<Process> _procs;
-extern ZM_Aux::QueueThrSave<WTask> _newTasks;
-extern ZM_Aux::QueueThrSave<string> _errMess;
-extern mutex _mtxPrc;
-
-void receiveHandler(const string& remcp, const string& data){
 #define ERROR_MESS(mstr) \
   statusMess(mstr);      \
   _errMess.push(mstr);   \
 
-  auto mess = ZM_Aux::deserialn(data);
-  if (mess.empty()){
-    ERROR_MESS("worker::receiveHandler error deserialn data from: " + remcp);
-    return;
-  }  
 #ifdef DEBUG
   #define checkFieldNum(field) \
     if (mess.find(#field) == mess.end()){ \
@@ -68,6 +57,20 @@ void receiveHandler(const string& remcp, const string& data){
   #define checkFieldNum(field)
   #define checkField(field)
 #endif
+
+extern list<Process> _procs;
+extern ZM_Aux::QueueThrSave<WTask> _newTasks;
+extern ZM_Aux::QueueThrSave<string> _errMess;
+extern mutex _mtxPrc;
+
+void receiveHandler(const string& remcp, const string& data){
+
+  auto mess = ZM_Aux::deserialn(data);
+  if (mess.empty()){
+    ERROR_MESS("worker::receiveHandler error deserialn data from: " + remcp);
+    return;
+  }  
+
   string cp = remcp;
   checkField(connectPnt);
   cp = mess["connectPnt"];
