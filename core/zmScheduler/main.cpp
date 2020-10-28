@@ -71,21 +71,9 @@ void statusMess(const string& mess){
 }
 
 void parseArgs(int argc, char* argv[], Config& outCng){ 
-  string sargs;
-  for (int i = 1; i < argc; ++i){
-    sargs += argv[i];
-  }
-  map<string, string> sprms;
-  auto argPair = ZM_Aux::split(sargs, '-');
-  for (auto& arg : argPair){
-    arg = ZM_Aux::trim(arg);
-    size_t sp = min(arg.find_first_of("="), arg.find_first_of(" "));
-    if (sp != std::string::npos){
-      sprms[ZM_Aux::trim(arg.substr(0, sp))] = ZM_Aux::trim(arg.substr(sp + 1));
-    }else{
-      sprms[ZM_Aux::trim(arg)] = "";
-    }
-  }
+  
+  map<string, string> sprms = ZM_Aux::parseCMDArgs(argc, argv);
+  
 #define SET_PARAM(nm, prm) \
   if (sprms.find(#nm) != sprms.end()){ \
     outCng.prm = sprms[#nm]; \

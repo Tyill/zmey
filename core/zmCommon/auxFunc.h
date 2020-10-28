@@ -27,6 +27,7 @@
         
 #include <string>
 #include <vector>
+#include <map>
 #include <cstdint>
 
 namespace ZM_Aux {
@@ -52,6 +53,8 @@ bool isNumber(const std::string& s);
 void sleepMs(uint64_t ms);      
 
 std::string trim(std::string str);
+
+std::map<std::string, std::string> parseCMDArgs(int argc, char* argv[]);
 
 class CounterTick{
   int _valmem = -1;

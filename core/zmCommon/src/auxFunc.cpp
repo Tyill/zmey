@@ -25,7 +25,6 @@
 //
 
 #include "zmCommon/auxFunc.h"
-#include <string>
 #include <sstream>
 #include <thread>
 #include <chrono>
@@ -124,6 +123,27 @@ bool isNumber(const std::string& s){
   }
   return !s.empty();
 }
+
+std::map<std::string, std::string> 
+parseCMDArgs(int argc, char* argv[]){
+  string sargs;
+  for (int i = 1; i < argc; ++i){
+    sargs += argv[i];
+  }
+  map<string, string> sprms;
+  auto argPair = ZM_Aux::split(sargs, '-');
+  for (auto& arg : argPair){
+    arg = ZM_Aux::trim(arg);
+    size_t sp = min(arg.find_first_of("="), arg.find_first_of(" "));
+    if (sp != std::string::npos){
+      sprms[ZM_Aux::trim(arg.substr(0, sp))] = ZM_Aux::trim(arg.substr(sp + 1));
+    }else{
+      sprms[ZM_Aux::trim(arg)] = "";
+    }
+  }
+  return sprms;
+}
+
 void sleepMs(uint64_t ms){
   std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 }    
