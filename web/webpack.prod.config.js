@@ -2,8 +2,8 @@
 module.exports = {
   entry: './tsx/app.tsx',  
   output: {
-    publicPath: 'js/',
-    path: __dirname + '/js/',
+    publicPath: 'static/js/',
+    path: __dirname + '/static/js/',
     filename: 'bundle.js'
   },
   resolve: {

@@ -7,8 +7,8 @@ module.exports = {
     './tsx/app.tsx',
   ],  
   output: {
-    publicPath: 'js/',
-    path: __dirname + '/js/',
+    publicPath: 'static/js/',
+    path: __dirname + '/static/js/',
     filename: 'bundle.js'
   },
   devtool:  '#sourcemap',
