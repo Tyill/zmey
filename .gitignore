@@ -1,6 +1,6 @@
 build
 __pycache__
 .vscode
-web/node_modules
-web/js
-web/pyenv
+web/frontend/node_modules
+web/frontend/js
+web/backend/pyenv
