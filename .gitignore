@@ -3,4 +3,5 @@ __pycache__
 .vscode
 web/node_modules
 web/js
-web/server/pyenv
+web/pyenv
+instance/*
