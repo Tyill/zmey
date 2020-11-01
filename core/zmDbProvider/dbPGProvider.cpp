@@ -247,8 +247,7 @@ bool DbProvider::createTables(){
         "taskGroup    INT REFERENCES tblUTaskGroup,"
         "qtask        INT REFERENCES tblTaskQueue,"
         "priority     INT NOT NULL DEFAULT 1 CHECK (priority BETWEEN 1 AND 3),"
-        "prevTasks    INT[] NOT NULL,"     // [..]  
-        "nextTasks    INT[] NOT NULL,"     // [..]
+        "prevTasks    INT[] NOT NULL,"     // [..]
         "params       TEXT[] NOT NULL);";  // ['param1','param2'..]
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
     
@@ -278,22 +277,14 @@ bool DbProvider::createTables(){
         "      IF NOT FOUND THEN"
         "        RETURN 0;"
         "      END IF;"
-        "    END LOOP;"
-        "  FOREACH t IN ARRAY task.nextTasks"
-        "    LOOP"
-        "      PERFORM id FROM tblUPipelineTask WHERE id = t;"
-        "      IF NOT FOUND THEN"
-        "        RETURN 0;"
-        "      END IF;"
-        "    END LOOP;"
+        "    END LOOP;"       
         "  INSERT INTO tblUPipelineTask (pipeline, taskTempl, taskGroup, priority,"
-        "                                prevTasks, nextTasks, params)"
+        "                                prevTasks, params)"
         "    VALUES(task.pipeline,"
         "           task.taskTempl,"
         "           NULLIF(task.taskGroup, 0),"
         "           task.priority,"
         "           task.prevTasks,"
-        "           task.nextTasks,"
         "           task.params) RETURNING id INTO tId;"
         "  RETURN tId;" 
         "END;"
@@ -313,21 +304,13 @@ bool DbProvider::createTables(){
         "      IF NOT FOUND THEN"
         "        RETURN 0;"
         "      END IF;"
-        "    END LOOP;"
-        "  FOREACH t IN ARRAY task.nextTasks"
-        "    LOOP"
-        "      PERFORM id FROM tblUPipelineTask WHERE id = t;"
-        "      IF NOT FOUND THEN"
-        "        RETURN 0;"
-        "      END IF;"
-        "    END LOOP;"
+        "    END LOOP;"     
         "  UPDATE tblUPipelineTask SET "
         "    pipeline = task.pipeline,"
         "    taskTempl = task.taskTempl,"
         "    taskGroup = NULLIF(task.taskGroup, 0),"
         "    priority = task.priority,"
         "    prevTasks = task.prevTasks,"
-        "    nextTasks = task.nextTasks,"
         "    params = task.params"
         "  WHERE id = task.id;"
         "  IF NOT FOUND THEN"
@@ -1121,7 +1104,6 @@ bool DbProvider::addTask(const ZM_Base::UTask& cng, uint64_t& outTId){
   lock_guard<mutex> lk(_mtx);
   
   string prevTasks = "[" + cng.prevTasks + "]",
-         nextTasks = "[" + cng.nextTasks + "]",
          params = "['" + cng.base.params + "']";
   ZM_Aux::replace(params, ",", "','");
   
@@ -1134,7 +1116,6 @@ bool DbProvider::addTask(const ZM_Base::UTask& cng, uint64_t& outTId){
             << 0 << ","
             << cng.base.priority << ","
             << "ARRAY" << prevTasks << "::INT[],"
-            << "ARRAY" << nextTasks << "::INT[],"
             << "ARRAY" << params << "::TEXT[]));";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
@@ -1152,7 +1133,7 @@ bool DbProvider::addTask(const ZM_Base::UTask& cng, uint64_t& outTId){
 bool DbProvider::getTask(uint64_t tId, ZM_Base::UTask& outTCng){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
-  ss << "SELECT pipeline, COALESCE(taskGroup, 0), taskTempl, priority, prevTasks, nextTasks, params "
+  ss << "SELECT pipeline, COALESCE(taskGroup, 0), taskTempl, priority, prevTasks, params "
         "FROM tblUPipelineTask "
         "WHERE id = " << tId << ";";
 
@@ -1170,12 +1151,9 @@ bool DbProvider::getTask(uint64_t tId, ZM_Base::UTask& outTCng){
   outTCng.base.tId = stoull(PQgetvalue(pgr.res, 0, 2));
   outTCng.base.priority = atoi(PQgetvalue(pgr.res, 0, 3));  
   outTCng.prevTasks = PQgetvalue(pgr.res, 0, 4);
-  outTCng.prevTasks = outTCng.prevTasks.substr(1,  outTCng.prevTasks.size() - 2);
+  outTCng.prevTasks = outTCng.prevTasks.substr(1,  outTCng.prevTasks.size() - 2);  
   
-  outTCng.nextTasks = PQgetvalue(pgr.res, 0, 5);
-  outTCng.nextTasks = outTCng.nextTasks.substr(1,  outTCng.nextTasks.size() - 2);
-  
-  outTCng.base.params = PQgetvalue(pgr.res, 0, 6);
+  outTCng.base.params = PQgetvalue(pgr.res, 0, 5);
   ZM_Aux::replace(outTCng.base.params, "\"", "");
   outTCng.base.params = outTCng.base.params.substr(1, outTCng.base.params.size() - 2); // remove { and }
   return true;
@@ -1184,7 +1162,6 @@ bool DbProvider::changeTask(uint64_t tId, const ZM_Base::UTask& newCng){
   lock_guard<mutex> lk(_mtx);
 
   string prevTasks = "[" + newCng.prevTasks + "]",
-         nextTasks = "[" + newCng.nextTasks + "]",
          params = "['" + newCng.base.params + "']";
   ZM_Aux::replace(params, ",", "','");
 
@@ -1197,7 +1174,6 @@ bool DbProvider::changeTask(uint64_t tId, const ZM_Base::UTask& newCng){
             << 0 << ","
             << newCng.base.priority << ","
             << "ARRAY" << prevTasks << "::INT[],"
-            << "ARRAY" << nextTasks << "::INT[],"
             << "ARRAY" << params << "::TEXT[]));";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));

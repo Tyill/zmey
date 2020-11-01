@@ -602,7 +602,6 @@ bool zmAddTask(zmConn zo, zmTask cng, uint64_t* outQTId){
   task.gId = cng.gId;
   task.base.params = cng.params ? cng.params : "";
   task.prevTasks = cng.prevTasksId ? cng.prevTasksId : "";
-  task.nextTasks = cng.nextTasksId ? cng.nextTasksId : "";
   task.base.priority = cng.priority;
   task.base.tId = cng.ttId;
   
@@ -622,9 +621,7 @@ bool zmGetTask(zmConn zo, uint64_t qtId, zmTask* outCng){
     outCng->ttId = task.base.tId;
     outCng->priority = task.base.priority;
     outCng->prevTasksId = (char*)realloc(outCng->prevTasksId, task.prevTasks.size() + 1);
-    strcpy(outCng->prevTasksId, task.prevTasks.c_str());    
-    outCng->nextTasksId = (char*)realloc(outCng->nextTasksId, task.nextTasks.size() + 1);
-    strcpy(outCng->nextTasksId, task.nextTasks.c_str());    
+    strcpy(outCng->prevTasksId, task.prevTasks.c_str());  
     outCng->params = (char*)realloc(outCng->params, task.base.params.size() + 1);
     strcpy(outCng->params, task.base.params.c_str());  
     return true;
@@ -640,7 +637,6 @@ bool zmChangeTask(zmConn zo, uint64_t qtId, zmTask newCng){
   task.base.tId = newCng.ttId;
   task.base.priority = newCng.priority;
   task.prevTasks = newCng.prevTasksId ? newCng.prevTasksId : "";
-  task.nextTasks = newCng.nextTasksId ? newCng.nextTasksId : "";
   task.base.params = newCng.params ? newCng.params : "";
 
   return static_cast<ZM_DB::DbProvider*>(zo)->changeTask(qtId, task);

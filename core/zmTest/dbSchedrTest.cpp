@@ -125,7 +125,6 @@ TEST_F(DBSchedrTest, getTaskOfSchedr){
   task.base.priority = 1;
   task.base.tId = ttId;
   task.base.params = "param11,param12,param13";
-  task.nextTasks = "";
   task.prevTasks = "";
   uint64_t tId1 = 0;  
   EXPECT_TRUE(_pDb->addTask(task, tId1) && (tId1 > 0)) << _pDb->getLastError();  
@@ -136,7 +135,6 @@ TEST_F(DBSchedrTest, getTaskOfSchedr){
   task.base.priority = 1;
   task.base.tId = ttId;
   task.base.params = "param21,param22,param23";
-  task.nextTasks = "";
   task.prevTasks = to_string(tId1);
   uint64_t tId2 = 0;  
   EXPECT_TRUE(_pDb->addTask(task, tId2) && (tId2 > 0)) << _pDb->getLastError();  
@@ -244,7 +242,6 @@ TEST_F(DBSchedrTest, getNewTasksForSchedr){
   task.base.priority = 1;
   task.base.tId = ttId;
   task.base.params = "param11,param12,param13";
-  task.nextTasks = "";
   task.prevTasks = "";
   task.base.result = "result1";
   uint64_t tId1 = 0;  
@@ -256,7 +253,6 @@ TEST_F(DBSchedrTest, getNewTasksForSchedr){
   task.base.priority = 1;
   task.base.tId = ttId;
   task.base.params = "param21,param22,param23";
-  task.nextTasks = "";
   task.prevTasks = "[" + to_string(tId1) + "]";
   task.base.result = "result2";
   uint64_t tId2 = 0;  
@@ -332,7 +328,6 @@ TEST_F(DBSchedrTest, getWorkerByTask){
   task.base.priority = 1;
   task.base.tId = ttId;
   task.base.params = "param11,param12,param13";
-  task.nextTasks = "";
   task.prevTasks = "";
   task.base.result = "result1";
   uint64_t tId1 = 0;  
@@ -344,7 +339,6 @@ TEST_F(DBSchedrTest, getWorkerByTask){
   task.base.priority = 1;
   task.base.tId = ttId;
   task.base.params = "param21,param22,param23";
-  task.nextTasks = "";
   task.prevTasks = "[" + to_string(tId1) + "]";
   task.base.result = "result2";
   uint64_t tId2 = 0;  

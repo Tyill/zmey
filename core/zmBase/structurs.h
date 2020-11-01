@@ -117,7 +117,6 @@ namespace ZM_Base{
     uint64_t pplId;           // id tblUPipeline
     uint64_t gId;             // id tblUGroup
     std::string prevTasks;    // queue task id tblUTask of previous tasks to be completed: {tId,..}
-    std::string nextTasks;    // queue task id tblUTask of next tasks: {tId,..}
     QueueTask base; 
   };
   // tblScheduler
