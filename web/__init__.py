@@ -7,17 +7,19 @@ def create_app():
                         static_folder='',
                         template_folder='templates') 
   app.config.from_mapping(
-      SECRET_KEY='dev',
+    SECRET_KEY='dev',
   )
-  app.config.from_pyfile('config.cfg', silent=True) 
+  app.config.from_pyfile('config.ini', silent=True) 
 
   try:
-      print(app.config) 
-      os.makedirs(app.instance_path)
+    os.makedirs(app.instance_path)
   except OSError:
-      pass
+    pass
+
+  from . import user
+  user.initApp(app)
       
-  from . import auth
+  from . import auth 
   app.register_blueprint(auth.bp)
 
   # from . import blog
