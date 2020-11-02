@@ -70,15 +70,15 @@ ZMEY_API void zmVersionLib(char* outVersion /*sz 8*/);
 /// Connection with DB
 
 /// connection config
-struct zmConnect{
+struct zmConfig{
   char* connectStr;         ///< connection string
 };
 
 /// create connection
-/// @param[in] zmConnect - connection config
+/// @param[in] zmConfig - connection config
 /// @param[out] err - error string. The memory is allocated by the user
 /// @return object connect
-ZMEY_API zmConn zmCreateConnection(zmConnect, char* err /*sz 256*/);
+ZMEY_API zmConn zmCreateConnection(zmConfig, char* err /*sz 256*/);
 
 /// disconnect !!! zmConn after the call will be deleted !!! 
 /// @param[in] zmConn - object connect
@@ -110,8 +110,8 @@ ZMEY_API bool zmGetLastError(zmConn, char* err/*sz 256*/);
 
 /// user config
 struct zmUser{  
-  char name[255];    ///< unique name
-  char passw[255];   ///< password  
+  char name[256];    ///< unique name
+  char passw[256];   ///< password  
   char* description; ///< the memory is allocated by the user. May be NULL  
 };
 
@@ -161,7 +161,7 @@ ZMEY_API uint32_t zmGetAllUsers(zmConn, uint64_t** outUserId);
 /// scheduler config
 struct zmSchedr{
   uint32_t capacityTask = 10000; ///< permissible simultaneous number of tasks 
-  char connectPnt[255];          ///< remote connection point: IP or DNS:port  
+  char connectPnt[256];          ///< remote connection point: IP or DNS:port  
 };
 /// add new scheduler
 /// @param[in] zmConn - object connect
@@ -229,7 +229,7 @@ ZMEY_API uint32_t zmGetAllSchedulers(zmConn, zmStateType state, uint64_t** outSc
 struct zmWorker{
   uint64_t sId;               ///< scheduler id 
   uint32_t capacityTask = 10; ///< permissible simultaneous number of tasks
-  char connectPnt[255];       ///< remote connection point: IP or DNS:port   
+  char connectPnt[256];       ///< remote connection point: IP or DNS:port   
 };
   
 /// add new worker
@@ -299,7 +299,7 @@ ZMEY_API uint32_t zmGetAllWorkers(zmConn, uint64_t sId, zmStateType state, uint6
 /// pipeline config
 struct zmPipeline{
   uint64_t userId;         ///< user id
-  char name[255];          ///< pipeline name
+  char name[256];          ///< pipeline name
   char* description;       ///< description of pipeline. The memory is allocated by the user. May be NULL
 };
 
@@ -343,7 +343,7 @@ ZMEY_API uint32_t zmGetAllPipelines(zmConn, uint64_t userId, uint64_t** outPPLId
 /// group config
 struct zmGroup{
   uint64_t pplId;          ///< pipeline id
-  char name[255];          ///< group name
+  char name[256];          ///< group name
   char* description;       ///< description of group. The memory is allocated by the user. May be NULL
 };
 
@@ -389,7 +389,7 @@ struct zmTaskTemplate{
   uint64_t userId;          ///< user id
   uint32_t averDurationSec; ///< estimated lead time 
   uint32_t maxDurationSec;  ///< maximum lead time
-  char name[255];           ///< task template name
+  char name[256];           ///< task template name
   char* description;        ///< description of task. The memory is allocated by the user. May be NULL
   char* script;             ///< script on bash, python or cmd. The memory is allocated by the user
 };
@@ -566,7 +566,7 @@ struct zmInternError{
 /// @param[in] zmConn - object connect
 /// @param[in] sId - scheduler id. If '0' then all
 /// @param[in] wId - worker id. If '0' then all
-/// @param[in] mCnt - last mess max count. If '0' then all 
+/// @param[in] mCnt - last mess max count
 /// @param[out] outErrors. The memory is allocated by the user
 /// @return count of errors
 ZMEY_API uint32_t zmGetInternErrors(zmConn, uint64_t sId, uint64_t wId, uint32_t mCnt, zmInternError* outErrors);

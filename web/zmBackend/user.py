@@ -1,5 +1,5 @@
 import sqlite3
-from flask import current_app, g, Blueprint
+from flask import current_app, g, Blueprint, render_template
 from zmBackend.auth import login_required
 
 def _db(uname : str):
@@ -17,7 +17,7 @@ def _closeDb(e=None):
     if db is not None:
         db.close()
 
-def initApp(app):
+def initApp(app): 
     app.teardown_appcontext(_closeDb)
 
 bp = Blueprint('user', __name__)

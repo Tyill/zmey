@@ -10,7 +10,7 @@ def create_app():
   app.config['SECRET_KEY'] = 'dev'
   app.config['ZMEY_CONN_STR'] = 'host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10'
   app.config.from_pyfile('config.ini', silent=True) 
-
+  
   try: 
     os.makedirs(app.instance_path)
   except OSError:

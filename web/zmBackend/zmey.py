@@ -23,14 +23,13 @@ def getUser(uname : str, passw : str) -> User:
   return usr if _zmCommon.getUserId(usr) else None
 
 def addUser(usr : User) -> bool:
-  _zmCommon.addUser(usr)
+  return _zmCommon.addUser(usr)
 
 def delUser(usr : User) -> bool:
-  _zmCommon.delUser(usr.id)
+  return _zmCommon.delUser(usr.id)
 
 def allUsers() -> [User]:
-  _zmCommon.getAllUsers()
-
+  return _zmCommon.getAllUsers()
 
 def hChangeTask(tId : int, prevState : zm.StateType, newState : zm.StateType):
   pass

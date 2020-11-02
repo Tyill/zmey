@@ -5,6 +5,15 @@
 {% endblock %}
 
 {% block content %}
+  <nav>
+    <ul>
+      <li><a href="{{ url_for('auth.register') }}">Register</a>
+      <li><a href="{{ url_for('auth.login') }}">Log In</a>
+    </ul>
+  </nav>
+  {% for message in get_flashed_messages() %}
+    <div class="flash">{{ message }}</div>
+  {% endfor %}
   <form method="post">
     <label for="username">Username</label>
     <input name="username" id="username" required>

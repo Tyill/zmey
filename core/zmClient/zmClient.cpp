@@ -45,7 +45,7 @@ void zmVersionLib(char* outVersion /*sz 8*/){
 ///////////////////////////////////////////////////////////////////////////////
 /// Connection with DB
 
-zmConn zmCreateConnection(zmConnect cng, char* err/*sz 256*/){
+zmConn zmCreateConnection(zmConfig cng, char* err/*sz 256*/){
   
   ZM_DB::ConnectCng connCng{ cng.connectStr};
   ZM_DB::DbProvider* pDb = new ZM_DB::DbProvider(connCng);

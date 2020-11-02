@@ -1,5 +1,4 @@
 import functools
-
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for
 )
@@ -28,7 +27,7 @@ def register():
 
     flash(error)
 
-    return render_template('auth/register.html')
+  return render_template('auth/register.html')
 
 @bp.route('/login', methods=('GET', 'POST'))
 def login():
@@ -40,11 +39,10 @@ def login():
     usr = zm.getUser(username, password)
     if usr is None:
       error = 'Incorrect username or password.'
-   
     if error is None:
-        session.clear()
-        session['userId'] = usr.id
-        return redirect(url_for('index'))
+      session.clear()
+      session['userId'] = usr.id
+      return redirect(url_for('index'))
 
     flash(error)
 
@@ -52,19 +50,19 @@ def login():
 
 @bp.before_app_request
 def load_logged_in_user():
-    g.userId = session.get('userId')
+  g.userId = session.get('userId')
     
 @bp.route('/logout')
 def logout():
-    session.clear()
-    return redirect(url_for('index'))
+  session.clear()
+  return redirect(url_for('index'))
 
 def login_required(view):
-    @functools.wraps(view)
-    def wrapped_view(**kwargs):
-        if g.userId is None:
-            return redirect(url_for('auth.login'))
+  @functools.wraps(view)
+  def wrapped_view(**kwargs):
+    if g.userId is None:
+      return redirect(url_for('auth.login'))
 
-        return view(**kwargs)
+    return view(**kwargs)
 
-    return wrapped_view
+  return wrapped_view

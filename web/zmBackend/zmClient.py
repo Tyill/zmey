@@ -229,7 +229,7 @@ def version() -> str:
 class Connection:
   """Connection object"""
   
-  _zmConn = None
+  _zmConn = 0
   _userErrCBack : ctypes.CFUNCTYPE(None, ctypes.c_char_p, ctypes.c_void_p) = 0
   _changeTaskStateCBack : ctypes.CFUNCTYPE(None, ctypes.c_uint64, ctypes.c_int32, ctypes.c_int32) = 0
   _cerr : str = ""
@@ -257,7 +257,7 @@ class Connection:
   ### Connection with DB
 
   def isOK(self) -> bool:
-    return self._zmConn != None 
+    return self._zmConn != 0 
   def setErrorCBack(self, ucb):
     """
     Set ERROR callback
