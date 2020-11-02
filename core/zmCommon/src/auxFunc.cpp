@@ -51,9 +51,7 @@ string currDateTimeMs() {
   time (&ct);
   tm* lct = localtime (&ct);
 
-  uint64_t ms = chrono::time_point_cast<chrono::milliseconds>(chrono::system_clock::now()).time_since_epoch().count();
-  uint64_t mspr = ms / 1000;
-  ms -= mspr * 1000;
+  uint64_t ms = chrono::time_point_cast<chrono::milliseconds>(chrono::system_clock::now()).time_since_epoch().count() % 1000;
 
   char curDate[24];
   strftime(curDate, 24, "%Y-%m-%d %H:%M:%S:", lct);

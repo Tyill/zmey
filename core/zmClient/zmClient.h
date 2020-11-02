@@ -51,15 +51,15 @@ typedef void* zmConn;
 
 /// state
 enum zmStateType{
-  zmUndefined     = -1,
-  zmReady         = 0,
-  zmStart         = 1,
-  zmRunning       = 2,
-  zmPause         = 3,
-  zmStop          = 4,    
-  zmCompleted     = 5,
-  zmError         = 6,
-  zmNotResponding = 7,
+  zmUndefined = -1,
+  zmReady,
+  zmStart,
+  zmRunning,
+  zmPause,
+  zmStop,    
+  zmCompleted,
+  zmError,
+  zmNotResponding,
 };
 
 /// version lib

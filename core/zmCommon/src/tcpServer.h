@@ -29,8 +29,7 @@ extern ZM_Tcp::receiveDataCBack _receiveDataCBack;
 
 using namespace asio::ip;
 
-class TcpSession
-  : public std::enable_shared_from_this<TcpSession>{
+class TcpSession : public std::enable_shared_from_this<TcpSession>{
 public:
   TcpSession(tcp::socket socket)
     : _socket(std::move(socket)){

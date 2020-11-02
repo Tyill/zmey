@@ -15,15 +15,13 @@ def create_app():
     os.makedirs(app.instance_path)
   except OSError:
     pass
-
-  from . import user
-  user.initApp(app)
-      
+        
   from . import auth 
   app.register_blueprint(auth.bp)
 
-  # from . import blog
-  # app.register_blueprint(blog.bp)
-  # app.add_url_rule('/', endpoint='index')
+  from . import user
+  user.initApp(app)
+  app.register_blueprint(user.bp)
+  app.add_url_rule('/', endpoint='index')
 
   return app

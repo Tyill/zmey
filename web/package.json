@@ -6,7 +6,7 @@
   "scripts": {
     "build": "./node_modules/.bin/webpack --config webpack.prod.config.js",
     "wds": "./node_modules/.bin/webpack-dev-server --config webpack.dev.config.js",
-    "serverTest": "set FLASK_APP=serverTest.py && set FLASK_DEBUG=1 && flask run"
+    "server": "set FLASK_APP=backend&& set FLASK_ENV=development&& flask run"
   },
   "repository": {
     "type": "git",
