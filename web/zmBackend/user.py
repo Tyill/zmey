@@ -1,5 +1,6 @@
 import sqlite3
-from flask import current_app, g
+from flask import current_app, g, Blueprint
+from zmBackend.auth import login_required
 
 def _db(uname : str):
   if 'db' not in g:
@@ -18,3 +19,10 @@ def _closeDb(e=None):
 
 def initApp(app):
     app.teardown_appcontext(_closeDb)
+
+bp = Blueprint('user', __name__)
+
+@bp.route('/')
+@login_required
+def index():
+  return render_template('user/index.html')

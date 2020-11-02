@@ -35,19 +35,19 @@ _LIB = ctypes.CDLL(os.path.expanduser("~") + '/cpp/zmey/build/Release/libzmClien
 #############################################################################
 ### Common
 
-class stateType(Enum):
+class StateType(Enum):
   """State type"""
-  undefined     = -1
-  ready         = 0
-  start         = 1
-  running       = 2
-  pause         = 3
-  stop          = 4    
-  completed     = 5
-  error         = 6
-  cancel        = 7
-  notResponding = 8
-class user: 
+  UNDEFINED      = -1
+  READY          = 0
+  START          = 1
+  RUNNING        = 2
+  PAUSE          = 3
+  STOP           = 4    
+  COMPLETED      = 5
+  ERROR          = 6
+  CANCEL         = 7
+  NOT_RESPONDING = 8
+class User: 
   """User config""" 
   def __init__(self, 
                id : int = 0,
@@ -58,31 +58,31 @@ class user:
     self.name = name
     self.passw = passw
     self.description = description
-class schedr: 
+class Schedr: 
   """Schedr config""" 
   def __init__(self,
                id : int = 0, 
-               state : stateType = stateType.ready,
+               state : StateType = StateType.READY,
                connectPnt : str = "",
                capacityTask : int = 10000):
     self.id = id
     self.state = state
     self.connectPnt = connectPnt     # remote connection point: IP or DNS:port
     self.capacityTask = capacityTask # permissible simultaneous number of tasks 
-class worker: 
+class Worker: 
   """Worker config""" 
   def __init__(self,
                id : int = 0,
                sId : int = 0, 
-               state : stateType = stateType.ready,
+               state : StateType = StateType.READY,
                connectPnt : str = "",
                capacityTask : int = 10000):
     self.id = id
-    self.sId = sId                   # schedr id
+    self.sId = sId                   # Schedr id
     self.state = state
     self.connectPnt = connectPnt     # remote connection point: IP or DNS:port
     self.capacityTask = capacityTask # permissible simultaneous number of tasks 
-class pipeline: 
+class Pipeline: 
   """Pipeline config""" 
   def __init__(self,
                id : int = 0,
@@ -90,10 +90,10 @@ class pipeline:
                name : str = "",
                description : str = ""):
     self.id = id
-    self.uId = uId                   # user id
+    self.uId = uId                   # User id
     self.name = name    
     self.description = description 
-class group: 
+class Group: 
   """Group config""" 
   def __init__(self,
                id : int = 0,
@@ -101,10 +101,10 @@ class group:
                name : str = "",
                description : str = ""):
     self.id = id
-    self.pplId = pplId               # pipeline id
+    self.pplId = pplId               # Pipeline id
     self.name = name    
     self.description = description 
-class taskTemplate: 
+class TaskTemplate: 
   """TaskTemplate config""" 
   def __init__(self,
                id : int = 0,
@@ -115,13 +115,13 @@ class taskTemplate:
                description : str = "",
                script: str = ""):
     self.id = id
-    self.uId = uId                   # user id
+    self.uId = uId                   # User id
     self.averDurationSec = averDurationSec
     self.maxDurationSec = maxDurationSec
     self.name = name    
     self.description = description
     self.script = script 
-class task: 
+class Task: 
   """Task config""" 
   def __init__(self,
                id : int = 0,
@@ -131,7 +131,7 @@ class task:
                priority : int = 1,
                prevTasksId : [int] = [],
                params : [str] = [],
-               state : stateType = stateType.ready, 
+               state : StateType = StateType.READY, 
                progress : int = 0,
                result : str = "",
                createTime : str = "",
@@ -139,11 +139,11 @@ class task:
                startTime : str = "",
                stopTime : str = ""):
     self.id = id
-    self.pplId = pplId                 # pipeline id    
-    self.ttId = ttId                   # taskTemplate id
+    self.pplId = pplId                 # Pipeline id    
+    self.ttId = ttId                   # TaskTemplate id
     self.gId = gId                     # taskGroup id
     self.priority = priority           # [1..3]
-    self.prevTasksId = prevTasksId     # pipeline task id of previous tasks to be completed: [qtId,..] 
+    self.prevTasksId = prevTasksId     # Pipeline Task id of previous tasks to be COMPLETED: [qtId,..] 
     self.params = params               # CLI params for script: ['param1','param2'..]
     self.state = state
     self.progress = progress
@@ -152,15 +152,15 @@ class task:
     self.takeInWorkTime = takeInWorkTime
     self.startTime = startTime
     self.stopTime = stopTime
-class internError: 
-  """Internal error""" 
+class InternError: 
+  """Internal ERROR""" 
   def __init__(self,
                sId : int = 0,
                wId : int = 0,
                createTime : str = 0,
                message : str = ""):
-    self.sId = sId                 # schedr id    
-    self.wId = wId                 # worker id
+    self.sId = sId                 # Schedr id    
+    self.wId = wId                 # Worker id
     self.createTime = createTime   
     self.message = message          
   
@@ -226,17 +226,14 @@ def version() -> str:
   pfun(ver)
   return ver.value.decode("utf-8")
 
-class ZMObj:
+class Connection:
   """Connection object"""
   
-  _zmConn = 0
+  _zmConn = None
   _userErrCBack : ctypes.CFUNCTYPE(None, ctypes.c_char_p, ctypes.c_void_p) = 0
   _changeTaskStateCBack : ctypes.CFUNCTYPE(None, ctypes.c_uint64, ctypes.c_int32, ctypes.c_int32) = 0
   _cerr : str = ""
-     
-  #############################################################################
-  ### Connection with DB
-
+  
   def __init__(self, connStr : str):
     cng = _connectCng()
     cng.connStr = connStr.encode("utf-8")
@@ -246,6 +243,7 @@ class ZMObj:
     pfun.restype = ctypes.c_void_p
     err = ctypes.create_string_buffer(256)
     self._zmConn = pfun(cng, err)
+    _cerr = err.value
   def __enter__(self):
     return self
   def __exit__(self, exc_type, exc_value, traceback):
@@ -255,9 +253,14 @@ class ZMObj:
       pfun.argtypes = (ctypes.c_void_p,)
       pfun(self._zmConn)
 
+  #############################################################################
+  ### Connection with DB
+
+  def isOK(self) -> bool:
+    return self._zmConn != None 
   def setErrorCBack(self, ucb):
     """
-    Set error callback
+    Set ERROR callback
     :param ucb: def func(err : str)
     """
     if (self._zmConn):      
@@ -273,7 +276,7 @@ class ZMObj:
       return pfun(self._zmConn, self._userErrCBack, 0)
   def getLastError(self) -> str:
     """
-    Last error strind
+    Last ERROR strind
     :return: errStr
     """
     if (self._zmConn):
@@ -283,7 +286,7 @@ class ZMObj:
       err = ctypes.create_string_buffer(256)
       pfun(self._zmConn, err)
       return err.value
-    return "no connection with DB" 
+    return _cerr
   def createTables(self) -> bool:
     """
     Create tables, will be created if not exist
@@ -299,10 +302,10 @@ class ZMObj:
   #############################################################################
   ### User
   
-  def addUser(self, iousr : user) -> bool:
+  def addUser(self, iousr : User) -> bool:
     """
-    Add new user
-    :param iousr: new user config
+    Add new User
+    :param iousr: new User config
     :return: True - ok
     """
     if (self._zmConn):
@@ -320,10 +323,10 @@ class ZMObj:
         iousr.id = uid.value
         return True
     return False
-  def getUserId(self, iousr : user)-> bool:
+  def getUserId(self, iousr : User)-> bool:
     """
-    Get exist user id
-    :param iousr: user config
+    Get exist User id
+    :param iousr: User config
     :return: True - ok
     """
     if (self._zmConn):
@@ -341,10 +344,10 @@ class ZMObj:
         iousr.id = uid.value
         return True
     return False
-  def getUserCng(self, iousr : user) -> bool:
+  def getUserCng(self, iousr : User) -> bool:
     """
-    Get user config by ID
-    :param iousr: user config
+    Get User config by ID
+    :param iousr: User config
     :return: True - ok
     """
     if (self._zmConn):
@@ -361,10 +364,10 @@ class ZMObj:
         iousr.description = ucng.description.decode('utf-8')
         return True
     return False
-  def changeUser(self, iusr : user) -> bool:
+  def changeUser(self, iusr : User) -> bool:
     """
-    Change user config
-    :param iusr: new user config
+    Change User config
+    :param iusr: new User config
     :return: True - ok
     """
     if (self._zmConn):
@@ -381,8 +384,8 @@ class ZMObj:
     return False
   def delUser(self, usrId) -> bool:
     """
-    Delete user
-    :param usrId: user id
+    Delete User
+    :param usrId: User id
     :return: True - ok
     """
     if (self._zmConn):
@@ -393,7 +396,7 @@ class ZMObj:
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, uid)
     return False
-  def getAllUsers(self) -> [user]:
+  def getAllUsers(self) -> [User]:
     """
     Get all users
     :return: list of users
@@ -413,7 +416,7 @@ class ZMObj:
 
       ousr = []
       for i in range(osz):
-        u = user(oid[i])
+        u = User(oid[i])
         self.getUserCng(u)
         ousr.append(u)
       return ousr
@@ -422,10 +425,10 @@ class ZMObj:
   #############################################################################
   ### Scheduler
   
-  def addScheduler(self, iosch : schedr) -> bool:
+  def addScheduler(self, iosch : Schedr) -> bool:
     """
     Add new scheduler
-    :param iosch: new schedr config
+    :param iosch: new Schedr config
     :return: True - ok
     """
     if (self._zmConn):
@@ -442,10 +445,10 @@ class ZMObj:
         iosch.id = sid.value
         return True
     return False
-  def getScheduler(self, iosch : schedr) -> bool:
+  def getScheduler(self, iosch : Schedr) -> bool:
     """
-    Get schedr config by ID
-    :param iosch: schedr config
+    Get Schedr config by ID
+    :param iosch: Schedr config
     :return: True - ok
     """
     if (self._zmConn):
@@ -461,10 +464,10 @@ class ZMObj:
         iosch.capacityTask = scng.capacityTask
       return True
     return False
-  def changeScheduler(self, isch : schedr) -> bool:
+  def changeScheduler(self, isch : Schedr) -> bool:
     """
-    Change schedr config
-    :param isch: new schedr config
+    Change Schedr config
+    :param isch: new Schedr config
     :return: True - ok
     """
     if (self._zmConn):
@@ -481,7 +484,7 @@ class ZMObj:
   def delScheduler(self, schId) -> bool:
     """
     Delete scheduler
-    :param schId: schedr id
+    :param schId: Schedr id
     :return: True - ok
     """
     if (self._zmConn):
@@ -495,7 +498,7 @@ class ZMObj:
   def startScheduler(self, schId) -> bool:
     """
     Start scheduler
-    :param schId: schedr id
+    :param schId: Schedr id
     :return: True - ok
     """
     if (self._zmConn):
@@ -509,7 +512,7 @@ class ZMObj:
   def pauseScheduler(self, schId) -> bool:
     """
     Pause scheduler
-    :param schId: schedr id
+    :param schId: Schedr id
     :return: True - ok
     """
     if (self._zmConn):
@@ -523,7 +526,7 @@ class ZMObj:
   def pingScheduler(self, schId) -> bool:
     """
     Ping scheduler
-    :param schId: schedr id
+    :param schId: Schedr id
     :return: True - ok
     """
     if (self._zmConn):
@@ -534,10 +537,10 @@ class ZMObj:
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, sid)
     return False
-  def schedulerState(self, iosch : schedr) -> bool:
+  def schedulerState(self, iosch : Schedr) -> bool:
     """
     Schedr state
-    :param iosch: schedr config
+    :param iosch: Schedr config
     :return: True - ok
     """
     if (self._zmConn):
@@ -550,14 +553,14 @@ class ZMObj:
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(ctypes.c_int32))
       pfun.restype = ctypes.c_bool
       if (pfun(self._zmConn, sid, ctypes.byref(sstate))):      
-        iosch.state = stateType(sstate.value) 
+        iosch.state = StateType(sstate.value) 
         return True
     return False
-  def getAllSchedulers(self, state : stateType=stateType.undefined) -> [schedr]:
+  def getAllSchedulers(self, state : StateType=StateType.UNDEFINED) -> [Schedr]:
     """
     Get all schedrs
-    :param state: choose with current state. If the state is 'undefined', select all
-    :return: list of schedr
+    :param state: choose with current state. If the state is 'UNDEFINED', select all
+    :return: list of Schedr
     """
     if (self._zmConn):
       sstate = ctypes.c_int32(state.value)
@@ -576,7 +579,7 @@ class ZMObj:
 
       osch = []
       for i in range(osz):
-        s = schedr(oid[i])
+        s = Schedr(oid[i])
         self.getScheduler(s)
         osch.append(s)
       return osch
@@ -585,10 +588,10 @@ class ZMObj:
   #############################################################################
   ### Worker
 
-  def addWorker(self, iowkr : worker) -> bool:
+  def addWorker(self, iowkr : Worker) -> bool:
     """
-    Add new worker
-    :param iowkr: new worker config
+    Add new Worker
+    :param iowkr: new Worker config
     :return: True - ok
     """
     if (self._zmConn):
@@ -606,10 +609,10 @@ class ZMObj:
         iowkr.id = wid.value
         return True
     return False
-  def getWorker(self, iowkr : worker) -> bool:
+  def getWorker(self, iowkr : Worker) -> bool:
     """
-    Get worker config by ID
-    :param iowkr: worker config
+    Get Worker config by ID
+    :param iowkr: Worker config
     :return: True - ok
     """
     if (self._zmConn):
@@ -626,10 +629,10 @@ class ZMObj:
         iowkr.capacityTask = wcng.capacityTask
         return True
     return False
-  def changeWorker(self, iwkr : worker) -> bool:
+  def changeWorker(self, iwkr : Worker) -> bool:
     """
-    Change worker config
-    :param iwkr: new worker config
+    Change Worker config
+    :param iwkr: new Worker config
     :return: True - ok
     """
     if (self._zmConn):
@@ -646,8 +649,8 @@ class ZMObj:
     return False
   def delWorker(self, wkrId) -> bool:
     """
-    Delete worker
-    :param wkrId: worker id
+    Delete Worker
+    :param wkrId: Worker id
     :return: True - ok
     """
     if (self._zmConn):
@@ -660,8 +663,8 @@ class ZMObj:
     return False
   def startWorker(self, wkrId) -> bool:
     """
-    Start worker
-    :param wkrId: worker id
+    Start Worker
+    :param wkrId: Worker id
     :return: True - ok
     """
     if (self._zmConn):
@@ -674,8 +677,8 @@ class ZMObj:
     return False
   def pauseWorker(self, wkrId) -> bool:
     """
-    Pause worker
-    :param wkrId: worker id
+    Pause Worker
+    :param wkrId: Worker id
     :return: True - ok
     """
     if (self._zmConn):
@@ -688,8 +691,8 @@ class ZMObj:
     return False
   def pingWorker(self, wkrId) -> bool:
     """
-    Ping worker
-    :param wkrId: worker id
+    Ping Worker
+    :param wkrId: Worker id
     :return: True - ok
     """
     if (self._zmConn):
@@ -700,7 +703,7 @@ class ZMObj:
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, wid)
     return False
-  def workerState(self, iowkrs : [worker]) -> bool:
+  def workerState(self, iowkrs : [Worker]) -> bool:
     """
     Worker state
     :param iowkrs: workers config
@@ -721,15 +724,15 @@ class ZMObj:
 
       if (pfun(self._zmConn, idBuffer, cwsz, stateBuffer)):      
         for i in range(wsz):
-          iowkrs[i].state = stateType(stateBuffer[i])
+          iowkrs[i].state = StateType(stateBuffer[i])
         return True
     return False
-  def getAllWorkers(self, sId : int, state : stateType=stateType.undefined) -> [worker]:
+  def getAllWorkers(self, sId : int, state : StateType=StateType.UNDEFINED) -> [Worker]:
     """
     Get all workers
-    :param sId: schedr id
-    :param state: choose with current state. If the state is 'undefined', select all
-    :return: list of worker
+    :param sId: Schedr id
+    :param state: choose with current state. If the state is 'UNDEFINED', select all
+    :return: list of Worker
     """
     if (self._zmConn):
       schId = ctypes.c_uint64(sId)
@@ -749,7 +752,7 @@ class ZMObj:
 
       owkr = []
       for i in range(osz):
-        w = worker(oid[i])
+        w = Worker(oid[i])
         self.getWorker(w)
         owkr.append(w)
       return owkr
@@ -758,10 +761,10 @@ class ZMObj:
   #############################################################################
   ### Pipeline of tasks
   
-  def addPipeline(self, ioppl : pipeline) -> bool:
+  def addPipeline(self, ioppl : Pipeline) -> bool:
     """
-    Add new pipeline
-    :param ioppl: new pipeline config
+    Add new Pipeline
+    :param ioppl: new Pipeline config
     :return: True - ok
     """
     if (self._zmConn):
@@ -779,10 +782,10 @@ class ZMObj:
         ioppl.id = pplid.value
         return True
     return False
-  def getPipeline(self, ioppl : pipeline) -> bool:
+  def getPipeline(self, ioppl : Pipeline) -> bool:
     """
-    Get pipeline config by ID
-    :param ioppl: pipeline config
+    Get Pipeline config by ID
+    :param ioppl: Pipeline config
     :return: True - ok
     """
     if (self._zmConn):
@@ -799,10 +802,10 @@ class ZMObj:
         ioppl.description = pcng.description.decode('utf-8')
         return True
     return False
-  def changePipeline(self, ippl : user) -> bool:
+  def changePipeline(self, ippl : User) -> bool:
     """
-    Change pipeline config
-    :param ippl: new pipeline config
+    Change Pipeline config
+    :param ippl: new Pipeline config
     :return: True - ok
     """
     if (self._zmConn):
@@ -819,8 +822,8 @@ class ZMObj:
     return False
   def delPipeline(self, pplId : int) -> bool:
     """
-    Delete pipeline
-    :param pplId: pipeline id
+    Delete Pipeline
+    :param pplId: Pipeline id
     :return: True - ok
     """
     if (self._zmConn):
@@ -831,11 +834,11 @@ class ZMObj:
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, pid)
     return False
-  def getAllPipelines(self, uId : int) -> [pipeline]:
+  def getAllPipelines(self, uId : int) -> [Pipeline]:
     """
     Get all pipelines
-    :param uId: user id
-    :return: list of pipeline
+    :param uId: User id
+    :return: list of Pipeline
     """
     if (self._zmConn):
       userId = ctypes.c_uint64(uId)
@@ -854,7 +857,7 @@ class ZMObj:
 
       oppl = []
       for i in range(osz):
-        p = pipeline(oid[i])
+        p = Pipeline(oid[i])
         self.getPipeline(p)
         oppl.append(p)
       return oppl
@@ -863,10 +866,10 @@ class ZMObj:
 #############################################################################
   ### Group of tasks
   
-  def addGroup(self, iogrp : group) -> bool:
+  def addGroup(self, iogrp : Group) -> bool:
     """
-    Add new group
-    :param iogrp: new group config
+    Add new Group
+    :param iogrp: new Group config
     :return: True - ok
     """
     if (self._zmConn):
@@ -884,10 +887,10 @@ class ZMObj:
         iogrp.id = gid.value
         return True
     return False
-  def getGroup(self, iogrp : group) -> bool:
+  def getGroup(self, iogrp : Group) -> bool:
     """
-    Get group config by ID
-    :param iogrp: group config
+    Get Group config by ID
+    :param iogrp: Group config
     :return: True - ok
     """
     if (self._zmConn):
@@ -904,10 +907,10 @@ class ZMObj:
         iogrp.description = gcng.description.decode('utf-8')
         return True
     return False
-  def changeGroup(self, igrp : user) -> bool:
+  def changeGroup(self, igrp : User) -> bool:
     """
-    Change group config
-    :param igrp: new group config
+    Change Group config
+    :param igrp: new Group config
     :return: True - ok
     """
     if (self._zmConn):
@@ -924,8 +927,8 @@ class ZMObj:
     return False
   def delGroup(self, grpId : int) -> bool:
     """
-    Delete group
-    :param grpId: group id
+    Delete Group
+    :param grpId: Group id
     :return: True - ok
     """
     if (self._zmConn):
@@ -936,10 +939,10 @@ class ZMObj:
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, gid)
     return False
-  def getAllGroups(self, pplId : int) -> [pipeline]:
+  def getAllGroups(self, pplId : int) -> [Pipeline]:
     """
     Get all groups
-    :param pplId: pipeline id
+    :param pplId: Pipeline id
     :return: list of groups
     """
     if (self._zmConn):
@@ -959,7 +962,7 @@ class ZMObj:
 
       ogrp = []
       for i in range(osz):
-        g = group(oid[i])
+        g = Group(oid[i])
         self.getGroup(g)
         ogrp.append(g)
       return ogrp
@@ -968,9 +971,9 @@ class ZMObj:
   #############################################################################
   ### Task template 
 
-  def addTaskTemplate(self, iott : taskTemplate) -> bool:
+  def addTaskTemplate(self, iott : TaskTemplate) -> bool:
     """
-    Add new taskTemplate
+    Add new TaskTemplate
     :param iott: new tasktempl config
     :return: True - ok
     """
@@ -992,10 +995,10 @@ class ZMObj:
         iott.id = ttid.value
         return True
     return False
-  def getTaskTemplate(self, iott : taskTemplate) -> bool:
+  def getTaskTemplate(self, iott : TaskTemplate) -> bool:
     """
-    Get taskTemplate config by ID
-    :param iott: taskTemplate config
+    Get TaskTemplate config by ID
+    :param iott: TaskTemplate config
     :return: True - ok
     """
     if (self._zmConn):
@@ -1015,10 +1018,10 @@ class ZMObj:
         iott.script = tcng.script.decode('utf-8')
         return True
     return False
-  def changeTaskTemplate(self, iott : taskTemplate) -> bool:
+  def changeTaskTemplate(self, iott : TaskTemplate) -> bool:
     """
-    Change taskTemplate config
-    :param iott: new taskTemplate config
+    Change TaskTemplate config
+    :param iott: new TaskTemplate config
     :return: True - ok
     """
     if (self._zmConn):
@@ -1050,11 +1053,11 @@ class ZMObj:
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, tid)
     return False
-  def getAllTaskTemplates(self, uId : int) -> [taskTemplate]:
+  def getAllTaskTemplates(self, uId : int) -> [TaskTemplate]:
     """
     Get all taskTemplates
-    :param uId: user id
-    :return: list of taskTemplate
+    :param uId: User id
+    :return: list of TaskTemplate
     """
     if (self._zmConn):
       userId = ctypes.c_uint64(uId)
@@ -1073,19 +1076,19 @@ class ZMObj:
 
       ott = []
       for i in range(osz):
-        t = taskTemplate(oid[i])
+        t = TaskTemplate(oid[i])
         self.getTaskTemplate(t)
         ott.append(t)
       return ott
     return []
 
   #############################################################################
-  ### Task of pipeline
+  ### Task of Pipeline
  
-  def addTask(self, iot : task) -> bool:
+  def addTask(self, iot : Task) -> bool:
     """
-    Add new task
-    :param iot: new task config
+    Add new Task
+    :param iot: new Task config
     :return: True - ok
     """
     if (self._zmConn):
@@ -1106,10 +1109,10 @@ class ZMObj:
         iot.id = tid.value
         return True
     return False
-  def getTask(self, iot : task) -> bool:
+  def getTask(self, iot : Task) -> bool:
     """
-    Get task config by ID
-    :param iot: task config
+    Get Task config by ID
+    :param iot: Task config
     :return: True - ok
     """
     if (self._zmConn):
@@ -1131,10 +1134,10 @@ class ZMObj:
           iot.params = tcng.params.decode('utf-8').split(',')
         return True
     return False
-  def changeTask(self, iot : task) -> bool:
+  def changeTask(self, iot : Task) -> bool:
     """
-    Change task config
-    :param iot: new task config
+    Change Task config
+    :param iot: new Task config
     :return: True - ok
     """
     if (self._zmConn):
@@ -1154,8 +1157,8 @@ class ZMObj:
     return False
   def delTask(self, tId : int) -> bool:
     """
-    Delete task
-    :param tId: task id
+    Delete Task
+    :param tId: Task id
     :return: True - ok
     """
     if (self._zmConn):
@@ -1168,8 +1171,8 @@ class ZMObj:
     return False
   def startTask(self, tId) -> bool:
     """
-    Start task
-    :param tId: task id
+    Start Task
+    :param tId: Task id
     :return: True - ok
     """
     if (self._zmConn):
@@ -1182,8 +1185,8 @@ class ZMObj:
     return False
   def stopTask(self, tId) -> bool:
     """
-    Stop task
-    :param tId: task id
+    Stop Task
+    :param tId: Task id
     :return: True - ok
     """
     if (self._zmConn):
@@ -1196,8 +1199,8 @@ class ZMObj:
     return False
   def pauseTask(self, tId) -> bool:
     """
-    Pause task
-    :param tId: task id
+    Pause Task
+    :param tId: Task id
     :return: True - ok
     """
     if (self._zmConn):
@@ -1210,8 +1213,8 @@ class ZMObj:
     return False
   def cancelTask(self, tId) -> bool:
     """
-    Cancel task
-    :param tId: task id
+    Cancel Task
+    :param tId: Task id
     :return: True - ok
     """
     if (self._zmConn):
@@ -1224,8 +1227,8 @@ class ZMObj:
     return False
   def continueTask(self, tId) -> bool:
     """
-    Continue task
-    :param tId: task id
+    Continue Task
+    :param tId: Task id
     :return: True - ok
     """
     if (self._zmConn):
@@ -1236,7 +1239,7 @@ class ZMObj:
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, tid)
     return False
-  def taskState(self, iot : [task]) -> bool:
+  def taskState(self, iot : [Task]) -> bool:
     """
     Task state
     :param iot: tasks config
@@ -1257,14 +1260,14 @@ class ZMObj:
 
       if (pfun(self._zmConn, idBuffer, ctsz, stateBuffer)):      
         for i in range(tsz):
-          iot[i].state = stateType(stateBuffer[i].state)
+          iot[i].state = StateType(stateBuffer[i].state)
           iot[i].progress = stateBuffer[i].progress          
         return True
     return False
-  def taskResult(self, iot : task) -> bool:
+  def taskResult(self, iot : Task) -> bool:
     """
     Task result
-    :param iot: task config
+    :param iot: Task config
     :return: True - ok
     """
     if (self._zmConn):
@@ -1283,10 +1286,10 @@ class ZMObj:
         pfun(None, tresult)
         return True
     return False
-  def taskTime(self, iot : task) -> bool:
+  def taskTime(self, iot : Task) -> bool:
     """
     Task time
-    :param iot: task config
+    :param iot: Task config
     :return: True - ok
     """
     if (self._zmConn):
@@ -1303,12 +1306,12 @@ class ZMObj:
         iot.stopTime = ttime.stopTime.decode('utf-8')
         return True
     return False
-  def getAllTasks(self, pplId : int, state : stateType=stateType.undefined) -> [task]:
+  def getAllTasks(self, pplId : int, state : StateType=StateType.UNDEFINED) -> [Task]:
     """
     Get all tasks
-    :param pplId: pipeline id
+    :param pplId: Pipeline id
     :param state: state type
-    :return: list of task
+    :return: list of Task
     """
     if (self._zmConn):
       cpplId = ctypes.c_uint64(pplId)
@@ -1328,15 +1331,15 @@ class ZMObj:
 
       ott = []
       for i in range(osz):
-        t = task(oid[i])
+        t = Task(oid[i])
         self.getTask(t)
         ott.append(t)
       return ott
     return []
   def setChangeTaskStateCBack(self, tId : int, ucb):
     """
-    Set change task state callback
-    :param ucb: def func(tId : uint64, prevState : stateType, newState : stateType)
+    Set change Task state callback
+    :param ucb: def func(tId : uint64, prevState : StateType, newState : StateType)
     """
     if (self._zmConn):   
       c_tid = ctypes.c_uint64(tId)
@@ -1354,11 +1357,11 @@ class ZMObj:
   #############################################################################
   ### Internal errors
  
-  def getInternErrors(self, sId : int, wId : int, mCnt : int) -> [internError]:
+  def getInternErrors(self, sId : int, wId : int, mCnt : int) -> [InternError]:
     """
     Get internal errors
-    :param sId: schedr id
-    :param wId: worker id
+    :param sId: Schedr id
+    :param wId: Worker id
     :param mCnt: max mess count
     :return: list of errors
     """

@@ -1,7 +1,7 @@
 build
 __pycache__
 .vscode
-web/node_modules
-web/js
-web/backend/pyenv
-web/instance
+pyenv
+node_modules
+instance
+npm-debug.log
