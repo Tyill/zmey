@@ -1421,7 +1421,6 @@ bool DbProvider::setChangeTaskStateCBack(uint64_t tId, changeTaskStateCBack cbac
             }    
           }
         }
-        ZM_Aux::sleepMs(toutMs);     
       }      
     });
   }

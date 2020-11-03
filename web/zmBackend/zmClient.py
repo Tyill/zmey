@@ -26,7 +26,6 @@
 
 from __future__ import absolute_import
 import os
-import sys
 import ctypes
 from enum import Enum
 
@@ -863,7 +862,7 @@ class Connection:
       return oppl
     return []
 
-#############################################################################
+  #############################################################################
   ### Group of tasks
   
   def addGroup(self, iogrp : Group) -> bool:
