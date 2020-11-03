@@ -15,9 +15,13 @@ def create_app():
     os.makedirs(app.instance_path + '/users')
   except OSError:
     pass
+
+  from . import zmey
+  zmey.initApp(app.config['ZMEY_CONNECTION_STR']) 
+  app.register_blueprint(zmey.bp)
    
   from . import gui
-  gui.initApp(app, app.config['ZMEY_CONNECTION_STR']) 
+  gui.initApp(app) 
   app.register_blueprint(gui.bp)
   app.add_url_rule('/', endpoint='index')
 

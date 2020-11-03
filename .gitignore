@@ -5,3 +5,4 @@ pyenv
 node_modules
 instance
 npm-debug.log
+bundle.js
