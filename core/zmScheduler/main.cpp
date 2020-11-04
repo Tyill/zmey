@@ -61,7 +61,8 @@ struct Config{
   int capacityTask = 10000;
   int checkWorkerTOutSec = 120; 
   const int currentStateTOutSec = 10; 
-  std::string connectPnt;
+  std::string localConnPnt;
+  std::string remoteConnPnt;
   ZM_DB::ConnectCng dbConnCng;
 };
 
@@ -74,22 +75,28 @@ void parseArgs(int argc, char* argv[], Config& outCng){
   
   map<string, string> sprms = ZM_Aux::parseCMDArgs(argc, argv);
   
-#define SET_PARAM(nm, prm) \
-  if (sprms.find(#nm) != sprms.end()){ \
-    outCng.prm = sprms[#nm]; \
+#define SET_PARAM(shortName, longName, prm)        \
+  if (sprms.find(#longName) != sprms.end()){       \
+    outCng.prm = sprms[#longName];                 \
+  }                                                \
+  else if (sprms.find(#shortName) != sprms.end()){ \
+    outCng.prm = sprms[#shortName];                \
   }
-  SET_PARAM(cp, connectPnt);
-  SET_PARAM(db, dbConnCng.connectStr);
- 
-#define SET_PARAM_NUM(nm, prm) \
-  if (sprms.find(#nm) != sprms.end() && ZM_Aux::isNumber(sprms[#nm])){ \
-    outCng.prm = stoi(sprms[#nm]); \
-  }  
-  SET_PARAM_NUM(ctk, capacityTask);
-  SET_PARAM_NUM(chw, checkWorkerTOutSec);
 
-#undef SET_PARAM
-#undef SET_PARAM_NUM
+  SET_PARAM(lcp, localCP, localConnPnt); 
+  SET_PARAM(rcp, remoteCP, remoteConnPnt);
+  SET_PARAM(db, dbConnStr, dbConnCng.connectStr);
+ 
+#define SET_PARAM_NUM(shortName, longName, prm)                                           \
+  if (sprms.find(#longName) != sprms.end() && ZM_Aux::isNumber(sprms[#longName])){        \
+    outCng.prm = stoi(sprms[#longName]);                                                  \
+  }                                                                                       \
+  else if (sprms.find(#shortName) != sprms.end() && ZM_Aux::isNumber(sprms[#shortName])){ \
+    outCng.prm = stoi(sprms[#shortName]);                                                 \
+  }
+
+  SET_PARAM_NUM(ctk, capacityTask, capacityTask);
+  SET_PARAM_NUM(chw, checkWorkerTOut, checkWorkerTOutSec);
 }
 
 void mainCycleNotify(){
@@ -134,8 +141,9 @@ int main(int argc, char* argv[]){
   Config cng;
   parseArgs(argc, argv, cng);
   
-  CHECK(cng.connectPnt.empty(), "Not set param '-cp' - scheduler connection point: IP or DNS:port");
-  CHECK(cng.dbConnCng.connectStr.empty(), "Not set param '-db' - db connection string");
+  CHECK(cng.localConnPnt.empty() || (ZM_Aux::split(cng.localConnPnt, ':').size() != 2), "Not set param '--localCP[-lcp]' - scheduler local connection point: IP or DNS:port");
+  CHECK(cng.remoteConnPnt.empty() || (ZM_Aux::split(cng.remoteConnPnt, ':').size() != 2), "Not set param '--remoteCP[-rcp]' - scheduler remote connection point: IP or DNS:port");
+  CHECK(cng.dbConnCng.connectStr.empty(), "Not set param '--dbConnStr[-db]' - data base connection string");
  
   signal(SIGHUP, closeHandler);
   signal(SIGINT, closeHandler);
@@ -150,8 +158,8 @@ int main(int argc, char* argv[]){
   CHECK(!dbNewTask || !dbSendMess, "Schedr DB connect error " + err + ": " + cng.dbConnCng.connectStr); 
     
   // schedr from DB
-  dbNewTask->getSchedr(cng.connectPnt, _schedr);
-  CHECK(_schedr.id == 0, "Schedr not found in DB for connectPnt " + cng.connectPnt);
+  dbNewTask->getSchedr(cng.remoteConnPnt, _schedr);
+  CHECK(_schedr.id == 0, "Schedr not found in DB for connectPnt " + cng.remoteConnPnt);
       
   // prev tasks and workers
   getPrevTaskFromDB(*dbNewTask, _schedr, _tasks);
@@ -160,8 +168,8 @@ int main(int argc, char* argv[]){
   // TCP server
   ZM_Tcp::setReceiveCBack(receiveHandler);
   ZM_Tcp::setStsSendCBack(sendHandler);
-  CHECK(!ZM_Tcp::startServer(cng.connectPnt, err), "Schedr error: " + cng.connectPnt + " " + err);
-  statusMess("Schedr running: " + cng.connectPnt);
+  CHECK(!ZM_Tcp::startServer(cng.localConnPnt, err), "Schedr error: " + cng.localConnPnt + " " + err);
+  statusMess("Schedr running: " + cng.localConnPnt);
   
   ///////////////////////////////////////////////////////
 

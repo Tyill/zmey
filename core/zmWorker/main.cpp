@@ -62,7 +62,8 @@ struct Config{
   int progressTasksTOutSec = 30;
   int pingSchedrTOutSec = 20; 
   const int sendAckTOutSec = 1; 
-  std::string connectPnt;
+  std::string localConnPnt;
+  std::string remoteConnPnt;
   std::string schedrConnPnt;
 };
 
@@ -91,22 +92,28 @@ void parseArgs(int argc, char* argv[], Config& outCng){
   
   map<string, string> sprms = ZM_Aux::parseCMDArgs(argc, argv);
   
-#define SET_PARAM(nm, prm) \
-  if (sprms.find(#nm) != sprms.end()){ \
-    outCng.prm = sprms[#nm]; \
+#define SET_PARAM(shortName, longName, prm)        \
+  if (sprms.find(#longName) != sprms.end()){       \
+    outCng.prm = sprms[#longName];                 \
+  }                                                \
+  else if (sprms.find(#shortName) != sprms.end()){ \
+    outCng.prm = sprms[#shortName];                \
   }
-  SET_PARAM(cp,  connectPnt);
-  SET_PARAM(scp, schedrConnPnt);
 
-#define SET_PARAM_NUM(nm, prm) \
-  if (sprms.find(#nm) != sprms.end() && ZM_Aux::isNumber(sprms[#nm])){ \
-    outCng.prm = stoi(sprms[#nm]); \
+  SET_PARAM(lcp, localCP, localConnPnt); 
+  SET_PARAM(rcp, remoteCP, remoteConnPnt);
+  SET_PARAM(scp, schedrCP, schedrConnPnt);
+
+#define SET_PARAM_NUM(shortName, longName, prm)                                           \
+  if (sprms.find(#longName) != sprms.end() && ZM_Aux::isNumber(sprms[#longName])){        \
+    outCng.prm = stoi(sprms[#longName]);                                                  \
+  }                                                                                       \
+  else if (sprms.find(#shortName) != sprms.end() && ZM_Aux::isNumber(sprms[#shortName])){ \
+    outCng.prm = stoi(sprms[#shortName]);                                                 \
   }
-  SET_PARAM_NUM(prg, progressTasksTOutSec);
-  SET_PARAM_NUM(png, pingSchedrTOutSec);
 
-#undef SET_PARAM
-#undef SET_PARAM_NUM
+  SET_PARAM_NUM(prg, progressTOut, progressTasksTOutSec);
+  SET_PARAM_NUM(png, pingSchedrTOut, pingSchedrTOutSec);
 }
 
 #define CHECK(fun, mess) \
@@ -120,8 +127,9 @@ int main(int argc, char* argv[]){
   Config cng;
   parseArgs(argc, argv, cng); 
 
-  CHECK(cng.connectPnt.empty(), "Not set param '-cp' - worker connection point: IP or DNS:port");
-  CHECK(cng.schedrConnPnt.empty(), "Not set param '-scp' - scheduler connection point: IP or DNS:port");
+  CHECK(cng.localConnPnt.empty() || (ZM_Aux::split(cng.localConnPnt, ':').size() != 2), "Not set param '--localCP[-lcp]' - worker local connection point: IP or DNS:port");
+  CHECK(cng.remoteConnPnt.empty() || (ZM_Aux::split(cng.remoteConnPnt, ':').size() != 2), "Not set param '--remoteCP[-rcp]' - worker remote connection point: IP or DNS:port");
+  CHECK(cng.schedrConnPnt.empty() || (ZM_Aux::split(cng.schedrConnPnt, ':').size() != 2), "Not set param '--schedrCP[-scp]' - scheduler connection point: IP or DNS:port");
     
   signal(SIGPIPE, SIG_IGN);
 
@@ -132,13 +140,13 @@ int main(int argc, char* argv[]){
   ZM_Tcp::setReceiveCBack(receiveHandler);
   ZM_Tcp::setStsSendCBack(sendHandler);
   string err;
-  CHECK(!ZM_Tcp::startServer(cng.connectPnt, err, 1), "Worker error: " + cng.connectPnt + " " + err);
-  statusMess("Worker running: " + cng.connectPnt);
+  CHECK(!ZM_Tcp::startServer(cng.localConnPnt, err, 1), "Worker error: " + cng.localConnPnt + " " + err);
+  statusMess("Worker running: " + cng.localConnPnt);
   
   ///////////////////////////////////////////////////////
   
   ZM_Base::Worker worker;
-  worker.connectPnt = cng.connectPnt;
+  worker.connectPnt = cng.remoteConnPnt;
     
   ZM_Aux::TimerDelay timer;
   const int minCycleTimeMS = 10;

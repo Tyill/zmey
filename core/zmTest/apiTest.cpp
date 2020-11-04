@@ -42,7 +42,7 @@ public:
 
     string connStr = "host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10";
     char err[256]{0};
-    _zc = zmey::zmCreateConnection(zmey::zmConnect{ (char*)connStr.c_str() },
+    _zc = zmey::zmCreateConnection(zmey::zmConfig{ (char*)connStr.c_str() },
                                                    err);
     if (strlen(err) > 0){    
       TEST_COUT << err << endl;
@@ -1000,7 +1000,7 @@ TEST_F(APITest, addTask){
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
-  zmTask task;
+  zmTask task{0};
   task.pplId = pId;
   task.gId = 0; 
   task.priority = 1;
@@ -1043,7 +1043,7 @@ TEST_F(APITest, getTask){
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
-  zmTask task;
+  zmTask task{0};
   task.pplId = pId; 
   task.gId = 0; 
   task.priority = 1;
@@ -1096,7 +1096,7 @@ TEST_F(APITest, changeTask){
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
-  zmTask task;
+  zmTask task{0};
   task.pplId = pId; 
   task.gId = 0;
   task.priority = 1;
@@ -1163,7 +1163,7 @@ TEST_F(APITest, delTask){
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
-  zmTask task;
+  zmTask task{0};
   task.pplId = pId; 
   task.gId = 0; 
   task.priority = 1;
@@ -1216,7 +1216,7 @@ TEST_F(APITest, startTask){
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
-  zmTask task;
+  zmTask task{0};
   task.pplId = pId; 
   task.gId = 0; 
   task.priority = 1;
@@ -1257,7 +1257,7 @@ TEST_F(APITest, cancelTask){
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
-  zmTask task;
+  zmTask task{0};
   task.pplId = pId;
   task.gId = 0;  
   task.priority = 1;
@@ -1300,7 +1300,7 @@ TEST_F(APITest, taskState){
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
-  zmTask task;
+  zmTask task{0};
   task.pplId = pId; 
   task.gId = 0; 
   task.priority = 1;
@@ -1361,7 +1361,7 @@ TEST_F(APITest, taskResult){
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
-  zmTask task;
+  zmTask task{0};
   task.pplId = pId; 
   task.gId = 0; 
   task.priority = 1;
@@ -1405,7 +1405,7 @@ TEST_F(APITest, TaskTime){
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
-  zmTask task;
+  zmTask task{0};
   task.pplId = pId; 
   task.gId = 0; 
   task.priority = 1;
@@ -1449,7 +1449,7 @@ TEST_F(APITest, getAllTask){
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
-  zmTask task;
+  zmTask task{0};
   task.pplId = pId; 
   task.gId = 0; 
   task.priority = 1;

@@ -21,18 +21,12 @@ def userDb(uname : str):
       initUserDb(uname)
   return g.db
 def initUserDb(db):
-  cr = db.cursor()
+  cr = db.cursor() 
   cr.execute(
-    "CREATE TABLE tblTaskState (      \
-      taskId     INTEGER PRIMARY KEY, \
-      pipeline   INTEGER NOT NULL,    \
-      taskGroup  INTEGER,             \
-      currState  INTEGER NOT NULL,    \
-      prevState  INTEGER NOT NULL,    \
-      prevTask   TEXT,                \
-      nextTask   TEXT,                \
-      lastResult TEXT);"
-  )  
+    "CREATE TABLE tblMessType (             \
+      id INTEGER PRIMARY KEY AUTOINCREMENT, \
+      name       TEXT NOT NULL);"
+  ) 
   cr.execute(
     "CREATE TABLE tblJournalMess (          \
       id INTEGER PRIMARY KEY AUTOINCREMENT, \
@@ -41,7 +35,18 @@ def initUserDb(db):
       dateTime   TEXT NOT NULL);"
   )
   cr.execute(
-    "CREATE TABLE tblViewObject (            \
+    "CREATE TABLE tblTaskHistory (          \
+      id INTEGER PRIMARY KEY AUTOINCREMENT, \
+      taskId     INTEGER NOT NULL,          \
+      stateJSON  TEXT NOT NULL);"
+  ) 
+  cr.execute(
+    "CREATE TABLE tblViewObjectType (       \
+      id INTEGER PRIMARY KEY AUTOINCREMENT, \
+      name       TEXT NOT NULL);"
+  ) 
+  cr.execute(
+    "CREATE TABLE tblView (                 \
       id INTEGER PRIMARY KEY AUTOINCREMENT, \
       pipeline   INTEGER,                   \
       objType    INTEGER NOT NULL,          \

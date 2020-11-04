@@ -119,7 +119,7 @@ TEST_F(DBSchedrTest, getTaskOfSchedr){
   uint64_t ttId = 0;  
   EXPECT_TRUE(_pDb->addTaskTemplate(templ, ttId) && (ttId > 0)) << _pDb->getLastError(); 
 
-  ZM_Base::UTask task;
+  ZM_Base::UTask task{0};
   task.pplId = pId; 
   task.gId = 0; 
   task.base.priority = 1;
@@ -236,7 +236,7 @@ TEST_F(DBSchedrTest, getNewTasksForSchedr){
   uint64_t ttId = 0;  
   EXPECT_TRUE(_pDb->addTaskTemplate(templ, ttId) && (ttId > 0)) << _pDb->getLastError(); 
 
-  ZM_Base::UTask task;
+  ZM_Base::UTask task{0};
   task.pplId = pId; 
   task.gId = 0; 
   task.base.priority = 1;
@@ -322,7 +322,7 @@ TEST_F(DBSchedrTest, getWorkerByTask){
   uint64_t ttId = 0;  
   EXPECT_TRUE(_pDb->addTaskTemplate(templ, ttId) && (ttId > 0)) << _pDb->getLastError(); 
 
-  ZM_Base::UTask task;
+  ZM_Base::UTask task{0};
   task.pplId = pId; 
   task.gId = 0; 
   task.base.priority = 1;

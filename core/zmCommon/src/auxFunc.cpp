@@ -130,8 +130,9 @@ parseCMDArgs(int argc, char* argv[]){
   }
   map<string, string> sprms;
   auto argPair = ZM_Aux::split(sargs, '-');
-  for (auto& arg : argPair){
+  for (auto& arg : argPair){    
     arg = ZM_Aux::trim(arg);
+    if (arg.empty()) continue;
     size_t sp = min(arg.find_first_of("="), arg.find_first_of(" "));
     if (sp != std::string::npos){
       sprms[ZM_Aux::trim(arg.substr(0, sp))] = ZM_Aux::trim(arg.substr(sp + 1));
