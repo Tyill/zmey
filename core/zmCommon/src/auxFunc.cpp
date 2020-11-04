@@ -28,6 +28,7 @@
 #include <sstream>
 #include <thread>
 #include <chrono>
+#include <fstream>
 #include <algorithm>
 
 using namespace std;
@@ -146,4 +147,47 @@ parseCMDArgs(int argc, char* argv[]){
 void sleepMs(uint64_t ms){
   std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 }    
+
+CPUData::CPUData(){
+  load();
+}
+int CPUData::load(){
+  std::ifstream fileStat("/proc/stat");  
+  std::string line;
+  while(std::getline(fileStat, line)){
+    if (startWith(line, "cpu")){
+      auto times = split(line, ' ');
+      for (auto it = times.begin(); it != times.end();){
+        if (it->empty() || !isNumber(*it)){
+          it = times.erase(it);
+        }else{
+          ++it;
+        }
+      }
+      if (times.size() >= (size_t)States::NUM_STATES){
+        int activeTime = stoi(times[(int)States::S_USER]) +
+                         stoi(times[(int)States::S_NICE]) +
+                         stoi(times[(int)States::S_SYSTEM]) +
+                         stoi(times[(int)States::S_IRQ]) +
+                         stoi(times[(int)States::S_SOFTIRQ]) +
+                         stoi(times[(int)States::S_STEAL]) +
+                         stoi(times[(int)States::S_GUEST]) +
+                         stoi(times[(int)States::S_GUEST_NICE]); 
+        int idleTime = stoi(times[(int)States::S_IDLE]) +
+                       stoi(times[(int)States::S_IOWAIT]);   
+
+        int activeTimeTotal = activeTime - _prevActiveTime,
+            idleTimeTotal = idleTime - _prevIdleTime,
+            totalTime = activeTimeTotal + idleTimeTotal;
+
+        _prevActiveTime = activeTime;
+        _prevIdleTime = idleTime;
+
+        return bound(0, (100 * activeTimeTotal) / std::max(1, totalTime), 100);
+      }
+    } 
+  }
+  return 0;    
+}
+
 }

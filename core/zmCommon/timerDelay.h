@@ -48,5 +48,6 @@ public:
   bool onDelayMS(bool start, int delay, int id);
   bool offDelayMS(bool start, int delay, int id);
   bool onDelayOncSec(bool start, int delay, int id);
+  bool onDelayOncMS(bool start, int delay, int id);
 };
 }

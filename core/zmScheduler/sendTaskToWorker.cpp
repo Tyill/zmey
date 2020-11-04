@@ -58,12 +58,13 @@ void sendTaskToWorker(const ZM_Base::Scheduler& schedr,
   for (; iw != workers.cend(); ++iw, ++iwcp){
     iwcp->activeTask = iw->second.base.activeTask;
     iwcp->rating = iw->second.base.rating;
+    iwcp->load = iw->second.base.load;
     iwcp->state = iw->second.base.state;
   }
   
   while (!tasks.empty()){
     sort(refWorkers.begin(), refWorkers.end(), [](const ZM_Base::Worker* l, const ZM_Base::Worker* r){
-      return (float)l->activeTask / l->rating < (float)r->activeTask / r->rating;
+      return float(l->activeTask + l->load / 10.f) / l->rating < float(r->activeTask + r->load / 10.f) / r->rating;
     });
     auto iWr = find_if(refWorkers.begin(), refWorkers.end(),
       [](const ZM_Base::Worker* w){

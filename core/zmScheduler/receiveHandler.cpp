@@ -121,7 +121,9 @@ void receiveHandler(const string& remcp, const string& data){
         break;
       case ZM_Base::MessType::PING_WORKER:
         checkFieldNum(activeTask);
-        worker.base.activeTask = stoi(mess["activeTask"]);        
+        checkFieldNum(load);
+        worker.base.activeTask = stoi(mess["activeTask"]);  
+        worker.base.load = stoi(mess["load"]);
         break;
       default:
         ERROR_MESS("schedr::receiveHandler unknown command from worker: " + mess["command"], wId);

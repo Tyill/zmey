@@ -136,6 +136,7 @@ namespace ZM_Base{
     int capacityTask;         // the number of tasks that can be performed simultaneously  
     int activeTask;           // number of running tasks (approximate quantity)
     int rating;               // manager is assigned a rating to the worker[1..10]
+    int load;                 // current load [0..100]
     std::string connectPnt;   // connection point: IP or DNS ':' port
     static const int RATING_MAX = 10;
   };

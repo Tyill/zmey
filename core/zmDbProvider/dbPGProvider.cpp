@@ -155,6 +155,7 @@ bool DbProvider::createTables(){
         "state        INT NOT NULL REFERENCES tblState,"
         "capacityTask INT NOT NULL DEFAULT 10 CHECK (capacityTask > 0),"
         "activeTask   INT NOT NULL DEFAULT 0 CHECK (activeTask >= 0),"
+        "load         INT NOT NULL DEFAULT 0 CHECK (load BETWEEN 0 AND 100),"
         "rating       INT NOT NULL DEFAULT 10 CHECK (rating BETWEEN 1 AND 10),"
         "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
@@ -1551,6 +1552,7 @@ bool DbProvider::getWorkersOfSchedr(uint64_t sId, std::vector<ZM_Base::Worker>& 
                                    atoi(PQgetvalue(pgr.res, i, 2)),
                                    atoi(PQgetvalue(pgr.res, i, 3)),
                                    atoi(PQgetvalue(pgr.res, i, 4)),
+                                   0,
                                    PQgetvalue(pgr.res, i, 5) + string(":") + PQgetvalue(pgr.res, i, 6)});
   }
   return true;

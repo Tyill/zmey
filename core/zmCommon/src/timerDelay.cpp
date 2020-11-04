@@ -130,4 +130,22 @@ bool TimerDelay::onDelayOncSec(bool start, int delay, int id){
   _tmrs[id].tmActiv = true;
   return res;
 }
+bool TimerDelay::onDelayOncMS(bool start, int delay, int id){
+  if (id >= _tmSz){
+    _tmrs.resize(id + 1, tmBase{0, false});
+    _tmSz = id + 1;
+  }
+  bool res = false;
+  if (start) {
+    _tmrs[id].tmCnt += (int)_cycleTm;
+    if (_tmrs[id].tmCnt >= delay){
+      _tmrs[id].tmCnt = 0;
+      res = true;
+    }
+  } else{
+    _tmrs[id].tmCnt = 0;
+  }
+  _tmrs[id].tmActiv = true;
+  return res;
+}
 }
