@@ -1066,7 +1066,7 @@ TEST_F(APITest, getTask){
              (task.gId == 0) &&
              (task.priority == 1) &&
              (strcmp(task.params, "par am1,param2,param3") == 0) &&
-             (strcmp(task.prevTasksId, "") == 0) &&
+             (task.prevTasksId == nullptr) &&
              (task.ttId == ttId));          
 }
 TEST_F(APITest, changeTask){
@@ -1187,7 +1187,7 @@ TEST_F(APITest, delTask){
              (task.priority == 2) &&
              (strcmp(task.params, "['e','paramr2','patyram3']") == 0) &&
              (strcmp(task.prevTasksId, "[c]") == 0) &&
-            (task.ttId == ttId + 1));             
+             (task.ttId == ttId + 1));             
 }
 TEST_F(APITest, startTask){
   zmUser usr;

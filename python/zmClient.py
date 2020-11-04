@@ -168,29 +168,29 @@ class InternError:
 class _connectCng(ctypes.Structure):
   _fields_ = [('connStr', ctypes.c_char_p)]
 class _userCng(ctypes.Structure):
-  _fields_ = [('name', ctypes.c_char * 255),
-              ('passw', ctypes.c_char * 255),
+  _fields_ = [('name', ctypes.c_char * 256),
+              ('passw', ctypes.c_char * 256),
               ('description', ctypes.c_char_p)]
 class _schedrCng(ctypes.Structure):
   _fields_ = [('capacityTask', ctypes.c_uint32),
-              ('connectPnt', ctypes.c_char * 255)]
+              ('connectPnt', ctypes.c_char * 256)]
 class _workerCng(ctypes.Structure):
   _fields_ = [('schedrId', ctypes.c_uint64),
               ('capacityTask', ctypes.c_uint32),
-              ('connectPnt', ctypes.c_char * 255)]
+              ('connectPnt', ctypes.c_char * 256)]
 class _pipelineCng(ctypes.Structure):
   _fields_ = [('userId', ctypes.c_uint64),
-              ('name', ctypes.c_char * 255),
+              ('name', ctypes.c_char * 256),
               ('description', ctypes.c_char_p)]
 class _groupCng(ctypes.Structure):
   _fields_ = [('pplId', ctypes.c_uint64),
-              ('name', ctypes.c_char * 255),
+              ('name', ctypes.c_char * 256),
               ('description', ctypes.c_char_p)]
 class _taskTemplCng(ctypes.Structure):
   _fields_ = [('userId', ctypes.c_uint64),
               ('averDurationSec', ctypes.c_uint32),
               ('maxDurationSec', ctypes.c_uint32),
-              ('name', ctypes.c_char * 255),
+              ('name', ctypes.c_char * 256),
               ('description', ctypes.c_char_p),
               ('script', ctypes.c_char_p)]
 class _taskCng(ctypes.Structure):
@@ -363,7 +363,9 @@ class Connection:
       if (pfun(self._zmConn, uid, ctypes.byref(ucng))):      
         iousr.name = ucng.name.decode('utf-8')
         iousr.passw = ucng.passw.decode('utf-8')
-        iousr.description = ucng.description.decode('utf-8')
+        if ucng.description:
+          iousr.description = ucng.description.decode('utf-8')
+          self._freeResources(None, ucng.description)      
         return True
     return False
   def changeUser(self, iusr : User) -> bool:
@@ -409,19 +411,17 @@ class Connection:
       pfun.restype = ctypes.c_uint32
       dbuffer = ctypes.POINTER(ctypes.c_uint64)()
       osz = pfun(self._zmConn, ctypes.byref(dbuffer))
-      oid = [dbuffer[i] for i in range(osz)]
-      
-      pfun = _LIB.zmFreeResources
-      pfun.restype = None
-      pfun.argtypes = (ctypes.POINTER(ctypes.c_uint64), ctypes.c_char_p)
-      pfun(dbuffer, ctypes.c_char_p(0))
+                  
+      if dbuffer and (osz > 0):
+        oid = [dbuffer[i] for i in range(osz)]
+        self._freeResources(dbuffer, ctypes.c_char_p(0))
 
-      ousr = []
-      for i in range(osz):
-        u = User(oid[i])
-        self.getUserCng(u)
-        ousr.append(u)
-      return ousr
+        ousr = []
+        for i in range(osz):
+          u = User(oid[i])
+          self.getUserCng(u)
+          ousr.append(u)
+        return ousr
     return []
 
   #############################################################################
@@ -572,19 +572,17 @@ class Connection:
       pfun.restype = ctypes.c_uint32
       dbuffer = ctypes.POINTER(ctypes.c_uint64)()
       osz = pfun(self._zmConn, sstate, ctypes.byref(dbuffer))
-      oid = [dbuffer[i] for i in range(osz)]
       
-      pfun = _LIB.zmFreeResources
-      pfun.restype = None
-      pfun.argtypes = (ctypes.POINTER(ctypes.c_uint64), ctypes.c_char_p)
-      pfun(dbuffer, ctypes.c_char_p(0))
+      if dbuffer and (osz > 0):
+        oid = [dbuffer[i] for i in range(osz)]
+        self._freeResources(dbuffer, ctypes.c_char_p(0))
 
-      osch = []
-      for i in range(osz):
-        s = Schedr(oid[i])
-        self.getScheduler(s)
-        osch.append(s)
-      return osch
+        osch = []
+        for i in range(osz):
+          s = Schedr(oid[i])
+          self.getScheduler(s)
+          osch.append(s)
+        return osch
     return []
 
   #############################################################################
@@ -745,19 +743,17 @@ class Connection:
       pfun.restype = ctypes.c_uint32
       dbuffer = ctypes.POINTER(ctypes.c_uint64)()
       osz = pfun(self._zmConn, schId, sstate, ctypes.byref(dbuffer))
-      oid = [dbuffer[i] for i in range(osz)]
       
-      pfun = _LIB.zmFreeResources
-      pfun.restype = None
-      pfun.argtypes = (ctypes.POINTER(ctypes.c_uint64), ctypes.c_char_p)
-      pfun(dbuffer, ctypes.c_char_p(0))
+      if dbuffer and (osz > 0):
+        oid = [dbuffer[i] for i in range(osz)]
+        self._freeResources(dbuffer, ctypes.c_char_p(0))
 
-      owkr = []
-      for i in range(osz):
-        w = Worker(oid[i])
-        self.getWorker(w)
-        owkr.append(w)
-      return owkr
+        owkr = []
+        for i in range(osz):
+          w = Worker(oid[i])
+          self.getWorker(w)
+          owkr.append(w)
+        return owkr
     return []
   
   #############################################################################
@@ -801,7 +797,9 @@ class Connection:
       if (pfun(self._zmConn, pplid, ctypes.byref(pcng))):      
         ioppl.uId = pcng.userId
         ioppl.name = pcng.name.decode('utf-8')
-        ioppl.description = pcng.description.decode('utf-8')
+        if pcng.description:
+          ioppl.description = pcng.description.decode('utf-8')
+          self._freeResources(None, pcng.description)
         return True
     return False
   def changePipeline(self, ippl : User) -> bool:
@@ -850,19 +848,17 @@ class Connection:
       pfun.restype = ctypes.c_uint32
       dbuffer = ctypes.POINTER(ctypes.c_uint64)()
       osz = pfun(self._zmConn, userId, ctypes.byref(dbuffer))
-      oid = [dbuffer[i] for i in range(osz)]
       
-      pfun = _LIB.zmFreeResources
-      pfun.restype = None
-      pfun.argtypes = (ctypes.POINTER(ctypes.c_uint64), ctypes.c_char_p)
-      pfun(dbuffer, ctypes.c_char_p(0))
+      if dbuffer and (osz > 0):
+        oid = [dbuffer[i] for i in range(osz)]
+        self._freeResources(dbuffer, ctypes.c_char_p(0))
 
-      oppl = []
-      for i in range(osz):
-        p = Pipeline(oid[i])
-        self.getPipeline(p)
-        oppl.append(p)
-      return oppl
+        oppl = []
+        for i in range(osz):
+          p = Pipeline(oid[i])
+          self.getPipeline(p)
+          oppl.append(p)
+        return oppl
     return []
 
   #############################################################################
@@ -906,7 +902,9 @@ class Connection:
       if (pfun(self._zmConn, gid, ctypes.byref(gcng))):      
         iogrp.pplId = gcng.pplId
         iogrp.name = gcng.name.decode('utf-8')
-        iogrp.description = gcng.description.decode('utf-8')
+        if gcng.description:
+          iogrp.description = gcng.description.decode('utf-8')
+          self._freeResources(None, gcng.description)
         return True
     return False
   def changeGroup(self, igrp : User) -> bool:
@@ -955,19 +953,17 @@ class Connection:
       pfun.restype = ctypes.c_uint32
       dbuffer = ctypes.POINTER(ctypes.c_uint64)()
       osz = pfun(self._zmConn, plineId, ctypes.byref(dbuffer))
-      oid = [dbuffer[i] for i in range(osz)]
       
-      pfun = _LIB.zmFreeResources
-      pfun.restype = None
-      pfun.argtypes = (ctypes.POINTER(ctypes.c_uint64), ctypes.c_char_p)
-      pfun(dbuffer, ctypes.c_char_p(0))
+      if dbuffer and (osz > 0):
+        oid = [dbuffer[i] for i in range(osz)]
+        self._freeResources(dbuffer, ctypes.c_char_p(0))
 
-      ogrp = []
-      for i in range(osz):
-        g = Group(oid[i])
-        self.getGroup(g)
-        ogrp.append(g)
-      return ogrp
+        ogrp = []
+        for i in range(osz):
+          g = Group(oid[i])
+          self.getGroup(g)
+          ogrp.append(g)
+        return ogrp
     return []
 
   #############################################################################
@@ -1016,8 +1012,12 @@ class Connection:
         iott.averDurationSec = tcng.averDurationSec
         iott.maxDurationSec = tcng.maxDurationSec
         iott.name = tcng.name.decode('utf-8')
-        iott.description = tcng.description.decode('utf-8')
-        iott.script = tcng.script.decode('utf-8')
+        if tcng.description:
+          iott.description = tcng.description.decode('utf-8')
+          self._freeResources(None, tcng.description)
+        if tcng.script:
+          iott.script = tcng.script.decode('utf-8')
+          self._freeResources(None, tcng.script)
         return True
     return False
   def changeTaskTemplate(self, iott : TaskTemplate) -> bool:
@@ -1069,19 +1069,17 @@ class Connection:
       pfun.restype = ctypes.c_uint32
       dbuffer = ctypes.POINTER(ctypes.c_uint64)()
       osz = pfun(self._zmConn, userId, ctypes.byref(dbuffer))
-      oid = [dbuffer[i] for i in range(osz)]
-      
-      pfun = _LIB.zmFreeResources
-      pfun.restype = None
-      pfun.argtypes = (ctypes.POINTER(ctypes.c_uint64), ctypes.c_char_p)
-      pfun(dbuffer, ctypes.c_char_p(0))
 
-      ott = []
-      for i in range(osz):
-        t = TaskTemplate(oid[i])
-        self.getTaskTemplate(t)
-        ott.append(t)
-      return ott
+      if dbuffer and (osz > 0):
+        oid = [dbuffer[i] for i in range(osz)]
+        self._freeResources(dbuffer, ctypes.c_char_p(0))
+
+        ott = []
+        for i in range(osz):
+          t = TaskTemplate(oid[i])
+          self.getTaskTemplate(t)
+          ott.append(t)
+        return ott
     return []
 
   #############################################################################
@@ -1131,12 +1129,15 @@ class Connection:
         iot.ttId = tcng.ttId
         iot.gId = tcng.gId
         iot.priority = tcng.priority
-        if (len(tcng.prevTasksId) > 0):
+        if tcng.prevTasksId:
           iot.prevTasksId = [int(i) for i in tcng.prevTasksId.decode('utf-8').split(',')]
-        if (len(tcng.nextTasksId) > 0):
+          self._freeResources(None, tcng.prevTasksId)
+        if tcng.nextTasksId:
           iot.nextTasksId = [int(i) for i in tcng.nextTasksId.decode('utf-8').split(',')]
-        if (len(tcng.params) > 0):
+          self._freeResources(None, tcng.nextTasksId)
+        if tcng.params:
           iot.params = tcng.params.decode('utf-8').split(',')
+          self._freeResources(None, tcng.params)
         return True
     return False
   def changeTask(self, iot : Task) -> bool:
@@ -1284,12 +1285,9 @@ class Connection:
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(ctypes.c_char_p))
       pfun.restype = ctypes.c_bool
       if (pfun(self._zmConn, tid, ctypes.byref(tresult))):      
-        iot.result = tresult.value
-      
-        pfun = _LIB.zmFreeResources
-        pfun.restype = None
-        pfun.argtypes = (ctypes.POINTER(ctypes.c_uint64), ctypes.c_char_p)
-        pfun(None, tresult)
+        if tresult:
+          iot.result = tresult.value  
+          self._freeResources(None, tresult)
         return True
     return False
   def taskTime(self, iot : Task) -> bool:
@@ -1328,19 +1326,17 @@ class Connection:
       pfun.restype = ctypes.c_uint32
       dbuffer = ctypes.POINTER(ctypes.c_uint64)()
       osz = pfun(self._zmConn, cpplId, cstate, ctypes.byref(dbuffer))
-      oid = [dbuffer[i] for i in range(osz)]
+            
+      if dbuffer and (osz > 0):
+        oid = [dbuffer[i] for i in range(osz)]
+        self._freeResources(dbuffer, ctypes.c_char_p(0))
       
-      pfun = _LIB.zmFreeResources
-      pfun.restype = None
-      pfun.argtypes = (ctypes.POINTER(ctypes.c_uint64), ctypes.c_char_p)
-      pfun(dbuffer, ctypes.c_char_p(0))
-
-      ott = []
-      for i in range(osz):
-        t = Task(oid[i])
-        self.getTask(t)
-        ott.append(t)
-      return ott
+        ott = []
+        for i in range(osz):
+          t = Task(oid[i])
+          self.getTask(t)
+          ott.append(t)
+        return ott
     return []
   def setChangeTaskStateCBack(self, tId : int, ucb):
     """
@@ -1390,3 +1386,9 @@ class Connection:
         oerr[i].message = dbuffer[i].message
       return oerr
     return []
+
+  def _freeResources(self, puint64 : ctypes.POINTER(ctypes.c_uint64), pchar : ctypes.c_char_p):
+    pfun = _LIB.zmFreeResources
+    pfun.restype = None
+    pfun.argtypes = (ctypes.POINTER(ctypes.c_uint64), ctypes.c_char_p)
+    pfun(puint64, pchar)

@@ -41,12 +41,12 @@ def initUserDb(db):
       stateJSON  TEXT NOT NULL);"
   ) 
   cr.execute(
-    "CREATE TABLE tblViewObjectType (       \
+    "CREATE TABLE tblObjectType (           \
       id INTEGER PRIMARY KEY AUTOINCREMENT, \
       name       TEXT NOT NULL);"
   ) 
   cr.execute(
-    "CREATE TABLE tblView (                 \
+    "CREATE TABLE tblViewObject (           \
       id INTEGER PRIMARY KEY AUTOINCREMENT, \
       pipeline   INTEGER,                   \
       objType    INTEGER NOT NULL,          \
