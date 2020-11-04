@@ -43,17 +43,19 @@ struct MessSchedr{
   uint64_t taskId;
   int progress;
   int workerRating;
+  int workerLoad;
   int schedrActiveTask;
   int workerActiveTask;
   std::string result; // if type is 'error', then errorMess
 
   MessSchedr(ZM_Base::MessType _type = ZM_Base::MessType::INTERN_ERROR, uint64_t _workerId = 0, uint64_t _taskId = 0, int _progress = 0,
-    int _workerRating = 0, int _schedrActiveTask = 0, int _workerActiveTask = 0, const std::string& _result = "") :
+    int _workerRating = 0, int _workerLoad = 0, int _schedrActiveTask = 0, int _workerActiveTask = 0, const std::string& _result = "") :
     type(_type),
     workerId(_workerId),
     taskId(_taskId),
     progress(_progress),
     workerRating(_workerRating),
+    workerLoad(_workerLoad),
     schedrActiveTask(_schedrActiveTask),
     workerActiveTask(_workerActiveTask),
     result(_result){}
@@ -64,6 +66,7 @@ struct MessSchedr{
     taskId(0),
     progress(0),
     workerRating(0),
+    workerLoad(0),
     schedrActiveTask(0),
     workerActiveTask(0),
     result(_result){}

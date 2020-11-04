@@ -27,17 +27,16 @@
 #include "zmBase/structurs.h"
 #include "zmCommon/tcp.h"
 #include "zmCommon/serial.h"
-#include "zmCommon/auxFunc.h"
 
 using namespace std;
 
-void pingToSchedr(const ZM_Base::Worker& worker, const std::string& schedrConnPnt, ZM_Aux::CPUData& cpu){
+void pingToSchedr(const ZM_Base::Worker& worker, const std::string& schedrConnPnt){
   
   map<string, string> data{
     {"command", to_string((int)ZM_Base::MessType::PING_WORKER)},
     {"connectPnt", worker.connectPnt},
     {"activeTask", to_string(worker.activeTask)},
-    {"load", to_string(cpu.load())}
+    {"load", to_string(worker.load)}
   };      
   ZM_Tcp::sendData(schedrConnPnt, ZM_Aux::serialn(data));
 }

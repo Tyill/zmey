@@ -89,13 +89,16 @@ void receiveHandler(const string& remcp, const string& data){
       case ZM_Base::MessType::TASK_STOP:
         checkFieldNum(taskId);
         checkFieldNum(activeTask);
+        checkFieldNum(load);
         checkField(taskResult);
         worker.base.activeTask = stoi(mess["activeTask"]);
+        worker.base.load = stoi(mess["load"]);
         _messToDB.push(ZM_DB::MessSchedr{mtype, 
                                          wId,
                                          stoull(mess["taskId"]),
                                          0,
                                          0,
+                                         worker.base.load,
                                          _schedr.activeTask,
                                          worker.base.activeTask,
                                          mess["taskResult"]});

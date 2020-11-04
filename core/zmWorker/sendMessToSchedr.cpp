@@ -38,6 +38,7 @@ void sendMessToSchedr(const ZM_Base::Worker& worker, const std::string& schedrCo
         {"connectPnt", worker.connectPnt},
         {"taskId",     to_string(mess.taskId)},
         {"activeTask", to_string(worker.activeTask)},
+        {"load",       to_string(worker.load)},
         {"taskResult", mess.taskResult}
   };
   ZM_Tcp::sendData(schedrConnPnt,  ZM_Aux::serialn(data), false);

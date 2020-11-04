@@ -179,11 +179,13 @@ int CPUData::load(){
         int activeTimeTotal = activeTime - _prevActiveTime,
             idleTimeTotal = idleTime - _prevIdleTime,
             totalTime = activeTimeTotal + idleTimeTotal;
+  
+        if (totalTime == 0) totalTime = 1;  
 
         _prevActiveTime = activeTime;
         _prevIdleTime = idleTime;
 
-        return bound(0, (100 * activeTimeTotal) / std::max(1, totalTime), 100);
+        return bound(0, (100 * activeTimeTotal) / totalTime, 100);
       }
     } 
   }

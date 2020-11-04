@@ -38,7 +38,12 @@ def initUserDb(db):
     "CREATE TABLE tblTaskHistory (          \
       id INTEGER PRIMARY KEY AUTOINCREMENT, \
       taskId     INTEGER NOT NULL,          \
-      stateJSON  TEXT NOT NULL);"
+      taskState  INTEGER NOT NULL,          \
+      beginTime  TEXT NOT NULL,             \
+      endTime    TEXT NOT NULL,             \
+      params     TEXT NOT NULL,             \
+      result     TEXT NOT NULL,             \
+      otherJSON  TEXT NOT NULL);"
   ) 
   cr.execute(
     "CREATE TABLE tblObjectType (           \

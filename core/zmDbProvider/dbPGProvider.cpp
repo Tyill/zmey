@@ -1617,7 +1617,8 @@ bool DbProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::MessSche
               "WHERE id = " << sId << ";"
 
               "UPDATE tblWorker SET "
-              "activeTask = " << m.workerActiveTask << " "
+              "activeTask = " << m.workerActiveTask << ", "
+              "load = " << m.workerLoad << " "
               "WHERE id = " << m.workerId << ";";
         break; 
       case ZM_Base::MessType::TASK_COMPLETED: 
@@ -1641,7 +1642,8 @@ bool DbProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::MessSche
               "WHERE id = " << sId << ";"
 
               "UPDATE tblWorker SET "
-              "activeTask = " << m.workerActiveTask << " "
+              "activeTask = " << m.workerActiveTask << ", "
+              "load = " << m.workerLoad << " "
               "WHERE id = " << m.workerId << ";";
         break;  
       case ZM_Base::MessType::TASK_START:   // schedr talk, when send task to worker 

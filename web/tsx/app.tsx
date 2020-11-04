@@ -3,7 +3,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import { connect, Provider } from "react-redux";
-import {Container, Row, Col, Button, Modal} from "react-bootstrap";
+import {Container, Row, Col, Button, Modal, ListGroup} from "react-bootstrap";
 import TreeNav, {ITreeNavDir} from "./treeNav";
  
 // import { updateFromServer, 
@@ -48,8 +48,17 @@ class App extends React.Component{
               style = {{  border: "1px solid #dbdbdb", borderRadius: "5px"}}>
             <Col className="col-auto"> 
               {/* <TreeNav dirs={dirs} />             */}
+              <ListGroup>
+  <ListGroup.Item>Cras justo odio</ListGroup.Item>
+  <ListGroup.Item>Dapibus ac facilisis in</ListGroup.Item>
+  <ListGroup.Item>Morbi leo risus</ListGroup.Item>
+  <ListGroup.Item>Porta ac consectetur ac</ListGroup.Item>
+  <ListGroup.Item>Vestibulum at eros</ListGroup.Item>
+</ListGroup>
             </Col>            
             <Col className="col"> 
+              <Button variant="primary">Primary</Button>
+              <Button variant="secondary">Secondary</Button>
             </Col>
           </Row>
         </Container> 

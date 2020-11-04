@@ -44,7 +44,7 @@ void receiveHandler(const string& cp, const string& data);
 void sendHandler(const string& cp, const string& data, const std::error_code& ec);
 void sendMessToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt, const Mess2schedr&);
 void progressToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt, list<Process>&);
-void pingToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt, ZM_Aux::CPUData&);
+void pingToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt);
 void errorToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt, ZM_Aux::QueueThrSave<string>& );
 void updateListTasks(ZM_Base::Worker& iow, ZM_Aux::QueueThrSave<WTask>& newTasks, list<Process>& procs);
 void waitProcess(ZM_Base::Worker&, list<Process>& procs, ZM_Aux::QueueThrSave<Mess2schedr>& messForSchedr);
@@ -176,13 +176,13 @@ int main(int argc, char* argv[]){
     if(timer.onDelayOncSec(true, cng.progressTasksTOutSec, 1)){
       progressToSchedr(worker, cng.schedrConnPnt, _procs);
     }
-    // CPU load
+    // load CPU
     if(timer.onDelayOncSec(true, 1, 2)){
-      cpu.load();
+      worker.load = cpu.load();
     } 
     // ping to schedr
     if(timer.onDelayOncSec(true, cng.pingSchedrTOutSec, 3)){
-      pingToSchedr(worker, cng.schedrConnPnt, cpu);
+      pingToSchedr(worker, cng.schedrConnPnt);
     }        
     // errors
     if (!_errMess.empty()){ 
