@@ -1228,7 +1228,9 @@ TEST_F(APITest, startTask){
   uint64_t tId1 = 0;  
   EXPECT_TRUE(zmAddTask(_zc, task, &tId1) && (tId1 > 0));  
 
-  EXPECT_TRUE(zmStartTask(_zc, tId1));           
+  EXPECT_TRUE(zmStartTask(_zc, tId1)); 
+
+  EXPECT_TRUE(!zmStartTask(_zc, tId1));           
 }
 TEST_F(APITest, cancelTask){
   zmUser usr;

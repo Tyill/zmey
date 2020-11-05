@@ -4,8 +4,8 @@ import React from "react";
 import ReactDOM from "react-dom";
 import { connect, Provider } from "react-redux";
 import {Container, Row, Col, Button, Modal, ListGroup} from "react-bootstrap";
-import TreeNav, {ITreeNavDir} from "./treeNav";
- 
+import DialogTaskTemplateRedux from "./dialogTaskTemplate";
+
 import * as Action from "./redux/actions"; 
 import Store from "./redux/store"; 
 import { IUser, IPipeline, ITaskGroup, ITaskTemplate, ITask } from "./types";
@@ -15,25 +15,26 @@ import "bootstrap/dist/css/bootstrap.min.css";
 
 
 interface IProps {
-  user : IUser;
-  pipelines : Map<number, IPipeline>;
-  taskGroups : Map<number, ITaskGroup>;
-  taskTemplates : Map<number, ITaskTemplate>;
-  tasks : Map<number, ITask>;
-  onAddPipeline : (pipeline : IPipeline) => any;
-  onChangePipeline : (pipeline : IPipeline) => any;
-  onDelPipeline : (pipeline : IPipeline) => any;
-  onAddTaskGroup : (taskgroup : ITaskGroup) => any;
-  onChangeTaskGroup : (taskgroup : ITaskGroup) => any;
-  onDelTaskGroup : (taskgroup : ITaskGroup) => any;
-  onAddTaskTemplate : (tasktemplate : ITaskTemplate) => any;
-  onChangeTaskTemplate : (tasktemplate : ITaskTemplate) => any;
-  onDelTaskTemplate : (tasktemplate : ITaskTemplate) => any;
-  onAddTask : (task : ITask) => any;
-  onChangeTask : (task : ITask) => any;
-  onDelTask : (task : ITask) => any;
-  onStartTask : (task : ITask) => any;
-  onStopTask : (task : ITask) => any;
+  user : IUser;                                                 // | Store
+  pipelines : Map<number, IPipeline>;                           // | 
+  taskGroups : Map<number, ITaskGroup>;                         // |
+  taskTemplates : Map<number, ITaskTemplate>;                   // |
+  tasks : Map<number, ITask>;                                   // |
+
+  onAddPipeline : (pipeline : IPipeline) => any;                // | Actions
+  onChangePipeline : (pipeline : IPipeline) => any;             // |
+  onDelPipeline : (pipeline : IPipeline) => any;                // |
+  onAddTaskGroup : (taskgroup : ITaskGroup) => any;             // |
+  onChangeTaskGroup : (taskgroup : ITaskGroup) => any;          // |
+  onDelTaskGroup : (taskgroup : ITaskGroup) => any;             // |
+  onAddTaskTemplate : (tasktemplate : ITaskTemplate) => any;    // |
+  onChangeTaskTemplate : (tasktemplate : ITaskTemplate) => any; // |
+  onDelTaskTemplate : (tasktemplate : ITaskTemplate) => any;    // |
+  onAddTask : (task : ITask) => any;                            // |
+  onChangeTask : (task : ITask) => any;                         // |
+  onDelTask : (task : ITask) => any;                            // |
+  onStartTask : (task : ITask) => any;                          // |
+  onStopTask : (task : ITask) => any;                           // |
 };
 
 interface IState {
@@ -184,8 +185,8 @@ class App extends React.Component<IProps, IState>{
             </Col> 
             <Col className="col"> 
               <Button variant="primary"
-                      onClick={this.hAddTaskTemplate}>Primary</Button>
-              <Button variant="secondary"
+                      onClick={ (e) => DialogTaskTemplateRedux({isShow : true, ...this.props})}>Primary</Button>
+              <Button variant="secondary" 
                       onClick={this.hDelTaskTemplate}>Secondary</Button>
             </Col>
           </Row>

@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import {IUser, IPipeline, ITaskGroup, ITaskTemplate, ITask } from "../types"
+import { IPipeline, ITaskGroup, ITaskTemplate, ITask } from "../types"
 
 export
 enum EnumActions{

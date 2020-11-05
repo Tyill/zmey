@@ -43,7 +43,7 @@ def login():
       session.clear()
       session['userName'] = username
       session['userId'] = usr.id
-      return redirect(url_for('index'))
+      return redirect(url_for('gui.index'))
 
     flash(error)
 
@@ -57,4 +57,4 @@ def load_logged_in_user():
 @bp.route('/logout')
 def logout():
   session.clear()
-  return redirect(url_for('index'))
+  return redirect(url_for('gui.index'))

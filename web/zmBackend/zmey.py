@@ -46,25 +46,17 @@ def adminRequired(view):
 ###############################################################################
 ### User
 
-@bp.route('/addUser')
-@adminRequired
 def addUser(usr : User) -> bool:
   return _zmCommon.addUser(usr)
 
-@bp.route('/getUser')
-@adminRequired
 def getUser(uname : str, passw : str) -> User:  
   usr = User(0, uname, passw)
   return usr if _zmCommon.getUserId(usr) else None
 
-@bp.route('/changeUser')
-@adminRequired
 def changeUser():
   jn = request.get_json(silent=True)
   return None#_zmCommon.addScheduler(schr)
 
-@bp.route('/allUsers')
-@adminRequired   
 def allUsers() -> [User]:
   return _zmCommon.getAllUsers()
 

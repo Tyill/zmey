@@ -70,9 +70,9 @@ def loginRequired(view):
     return view(**kwargs)
   return wrapped_view
 
-bp = Blueprint('gui', __name__, url_prefix='/gui')
+bp = Blueprint('gui', __name__)
 
-@bp.route('/index')
+@bp.route('/')
 @loginRequired
 def index():
   return render_template('gui/index.html')

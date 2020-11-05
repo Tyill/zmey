@@ -23,7 +23,7 @@ def create_app():
   from . import gui
   gui.initApp(app) 
   app.register_blueprint(gui.bp)
-  app.add_url_rule('/', endpoint='gui/index')
+  app.add_url_rule('/', endpoint='/index')
 
   from . import auth 
   app.register_blueprint(auth.bp)

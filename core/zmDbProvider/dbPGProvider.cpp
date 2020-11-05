@@ -357,6 +357,13 @@ bool DbProvider::createTables(){
         "    RETURN 0;"
         "  END IF;"
 
+        "  PERFORM id FROM tblTaskQueue tq "
+        "  JOIN tblTaskState ts ON ts.qtask = tq.id "
+        "  WHERE tq.id = task.qtask AND (ts.state BETWEEN " << (int)ZM_Base::StateType::READY << " AND " << (int)ZM_Base::StateType::PAUSE << ");"
+        "  IF FOUND THEN"
+        "    RETURN -1;"
+        "  END IF;"
+
         "  INSERT INTO tblTaskQueue (task, usr) VALUES("
         "    task.taskTempl,"
         "    (SELECT usr FROM tblUPipeline WHERE id = task.pipeline)) RETURNING id INTO qId;"
@@ -1233,9 +1240,13 @@ bool DbProvider::startTask(uint64_t tId){
     errorMess(string("startTask error: ") + PQerrorMessage(_pg));
     return false;
   }
-  if (stoull(PQgetvalue(pgr.res, 0, 0)) == 0){
-    errorMess("startTask error: previously deleted task is start OR \
-               not found one or more task from prevTask or nextTasks");
+  auto res = stoull(PQgetvalue(pgr.res, 0, 0));
+  if (res == 0){
+    errorMess("startTask error: previously deleted task is start");
+    return false;
+  }
+  if (res == -1){
+    errorMess("startTask error: task is already running");
     return false;
   }
   return true;
