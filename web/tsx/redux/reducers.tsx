@@ -1,77 +1,30 @@
 /* eslint-disable no-unused-vars */
 
-import { UPDATE_FROM_SERVER,
-         SET_DATA_PARAMS,
-         SET_SIGNALS_FROM_SERVER,
-         SIGNAL_BUFFER_ENABLE,
-         CHANGE_CONFIG } from "./actions.jsx";
+import { EnumActions } from "./actions.jsx";
 import { combineReducers } from 'redux'
+import {IUser, IPipeline, ITaskGroup, ITaskTemplate, ITask } from "../types"
 
 
-function signals(curSignals = {}, action){
-
-  switch (action.type) {
-    case UPDATE_FROM_SERVER:{     
-     
-      let signalsCpy = Object.assign({}, curSignals);// no deep clone
-
-      for (let k in action.newSignData){
-
-        signalsCpy[k].buffVals.push(action.newSignData[k]);
-      }      
-
-      return signalsCpy;
-    }
-
-    case SET_SIGNALS_FROM_SERVER:     
-      return action.signals;
-
-    case SIGNAL_BUFFER_ENABLE:{
-
-      let signalsCpy = Object.assign({}, curSignals),// no deep clone
-          sname = action.sname;
-
-      signalsCpy[sname].isBuffEna = action.set;
-      
-      if (!action.set)
-        signalsCpy[sname].buffVals = [];
-
-      return signalsCpy;
-    }
-
-     
-    default:
-      return curSignals;
- }
+function user(curState : IUser, action : EnumActions) : IUser{
+  return {name : ''};
 }
 
-function dataParams(curParams, action){
-
-  switch (action.type) {
-    case SET_DATA_PARAMS:     
-      return action.dataParams;
-    
-    default: 
-      return curParams ? curParams : { 
-          packetSize : 10,
-          cycleTimeMs : 100,
-        };
- }
+function pipelines(curState : Map<number, IPipeline>, action : EnumActions) : Map<number, IPipeline>{
+  return new Map<number, IPipeline>();
 }
 
-function config(curConfig, action){
-
-  switch (action.type) {
-    case CHANGE_CONFIG:     
-      return action.config;
-    
-    default: 
-      return curConfig ? curConfig : { 
-        backgroundColor : "white",
-      };
- }
+function taskGroups(curState : Map<number, ITaskGroup>, action : EnumActions) : Map<number, ITaskGroup>{
+  return new Map<number, ITaskGroup>();
 }
 
-const ComboReducer = combineReducers({config, signals, dataParams});
+function taskTemplates(curState : Map<number, ITaskTemplate>, action : EnumActions) : Map<number, ITaskTemplate>{
+  return new Map<number, ITaskTemplate>();
+}
+
+function tasks(curState : Map<number, ITask>, action : EnumActions) : Map<number, ITask>{
+  return new Map<number, ITask>();
+}
+
+const ComboReducer = combineReducers({user, pipelines, taskGroups, taskTemplates, tasks });
 
 export default ComboReducer;

@@ -25,7 +25,7 @@ def lastError() -> str:
 def isConnection() -> bool:
   return _zmCommon.isOK()
 
-bp = Blueprint('zmey', __name__)
+bp = Blueprint('zmey', __name__, url_prefix='/api')
 
 def loginRequired(view):
   @functools.wraps(view)
@@ -46,13 +46,25 @@ def adminRequired(view):
 ###############################################################################
 ### User
 
+@bp.route('/addUser')
+@adminRequired
+def addUser(usr : User) -> bool:
+  return _zmCommon.addUser(usr)
+
+@bp.route('/getUser')
+@adminRequired
 def getUser(uname : str, passw : str) -> User:  
   usr = User(0, uname, passw)
   return usr if _zmCommon.getUserId(usr) else None
 
-def addUser(usr : User) -> bool:
-  return _zmCommon.addUser(usr)
-   
+@bp.route('/changeUser')
+@adminRequired
+def changeUser():
+  jn = request.get_json(silent=True)
+  return None#_zmCommon.addScheduler(schr)
+
+@bp.route('/allUsers')
+@adminRequired   
 def allUsers() -> [User]:
   return _zmCommon.getAllUsers()
 

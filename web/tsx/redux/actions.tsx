@@ -1,62 +1,108 @@
 /* eslint-disable no-unused-vars */
-export const SET_SIGNALS_FROM_SERVER = "SET_SIGNALS_FROM_SERVER";
-export const UPDATE_FROM_SERVER = "UPDATE_FROM_SERVER";
-export const SET_DATA_PARAMS = "SET_DATA_PARAMS";
-export const SIGNAL_BUFFER_ENABLE = "SIGNAL_BUFFER_ENABLE";
-export const CHANGE_CONFIG = "CHANGE_CONFIG";
+import {IUser, IPipeline, ITaskGroup, ITaskTemplate, ITask } from "../types"
 
 export
-function changeConfig(dispatch){
-    
-    return function(config){
-
-      dispatch({ type : CHANGE_CONFIG,
-                 config,
-               });
-    }
+enum EnumActions{
+  ADD_PIPELINE,
+  CHANGE_PIPELINE,
+  DEL_PIPELINE,
+  ADD_TASKGROUP,
+  CHANGE_TASKGROUP,
+  DEL_TASKGROUP,
+  ADD_TASKTEMPLATE,
+  CHANGE_TASKTEMPLATE,
+  DEL_TASKTEMPLATE,
+  ADD_TASK,
+  CHANGE_TASK,
+  START_TASK,
+  STOP_TASK,
+  DEL_TASK,
 }
 
 export
-function setSignalsFromServer(dispatch){
-    
-    return function(signals){
-
-      dispatch({ type : SET_SIGNALS_FROM_SERVER,
-                 signals,
-               });
-    }
+function addPipeline(dispatch){
+  return function(pipeline : IPipeline){
+    dispatch({ type : EnumActions.ADD_PIPELINE, pipeline });
+  }
+}
+export
+function changePipeline(dispatch){
+  return function(pipeline : IPipeline){
+    dispatch({ type : EnumActions.CHANGE_PIPELINE, pipeline });
+  }
+}
+export
+function delPipeline(dispatch){
+  return function(pipeline : IPipeline){
+    dispatch({ type : EnumActions.DEL_PIPELINE, pipeline });
+  }
 }
 
 export
-function updateFromServer(dispatch){
-    
-    return function(newSignData){
-
-      dispatch({ type : UPDATE_FROM_SERVER,
-                 newSignData,
-               });
-    }
+function addTaskGroup(dispatch){
+  return function(taskgroup : ITaskGroup){
+    dispatch({ type : EnumActions.ADD_TASKGROUP, taskgroup });
+  }
+}
+export
+function changeTaskGroup(dispatch){
+  return function(taskgroup : ITaskGroup){
+    dispatch({ type : EnumActions.CHANGE_TASKGROUP, taskgroup });
+  }
+}
+export
+function delTaskGroup(dispatch){
+  return function(taskgroup : ITaskGroup){
+    dispatch({ type : EnumActions.DEL_TASKGROUP, taskgroup });
+  }
 }
 
 export
-function setDataParams(dispatch){
-    
-    return function(dataParams){
-    
-      dispatch({ type : SET_DATA_PARAMS,
-                 dataParams,
-               });
-    }
+function addTaskTemplate(dispatch){
+  return function(tasktemplate : ITaskTemplate){
+    dispatch({ type : EnumActions.ADD_TASKTEMPLATE, tasktemplate });
+  }
+}
+export
+function changeTaskTemplate(dispatch){
+  return function(tasktemplate : ITaskTemplate){
+    dispatch({ type : EnumActions.CHANGE_TASKTEMPLATE, tasktemplate });
+  }
+}
+export
+function delTaskTemplate(dispatch){
+  return function(tasktemplate : ITaskTemplate){
+    dispatch({ type : EnumActions.DEL_TASKTEMPLATE, tasktemplate });
+  }
 }
 
 export
-function signalBufferEnable(dispatch){
-    
-    return function(sname, set){
-    
-      dispatch({ type : SIGNAL_BUFFER_ENABLE,
-                 sname,
-                 set,
-               });
-    }
+function addTask(dispatch){
+  return function(task : ITask){
+    dispatch({ type : EnumActions.ADD_TASK, task });
+  }
+}
+export
+function changeTask(dispatch){
+  return function(task : ITask){
+    dispatch({ type : EnumActions.CHANGE_TASK, task });
+  }
+}
+export
+function delTask(dispatch){
+  return function(task : ITask){
+    dispatch({ type : EnumActions.DEL_TASK, task });
+  }
+}
+export
+function startTask(dispatch){
+  return function(task : ITask){
+    dispatch({ type : EnumActions.START_TASK, task });
+  }
+}
+export
+function stopTask(dispatch){
+  return function(task : ITask){
+    dispatch({ type : EnumActions.STOP_TASK, task });
+  }
 }
