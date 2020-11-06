@@ -26,6 +26,7 @@
 
 #include "zmCommon/auxFunc.h"
 #include <sstream>
+#include <cctype>
 #include <thread>
 #include <chrono>
 #include <fstream>

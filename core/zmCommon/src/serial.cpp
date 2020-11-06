@@ -34,7 +34,7 @@ namespace ZM_Aux {
 
   std::string serialn(const std::map<std::string, std::string>& data){
 
-    int vcnt = data.size() * 2;    
+    int vcnt = (int)data.size() * 2;    
     vector<int> dataSz;
     dataSz.reserve(vcnt); 
     for (auto& v : data){

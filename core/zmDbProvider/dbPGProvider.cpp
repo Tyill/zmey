@@ -831,7 +831,7 @@ bool DbProvider::workerState(const std::vector<uint64_t>& wId, std::vector<ZM_Ba
   }
   state.resize(wsz);
   for (size_t i = 0; i < wsz; ++i){
-    state[i] = (ZM_Base::StateType)atoi(PQgetvalue(pgr.res, i, 0));
+    state[i] = (ZM_Base::StateType)atoi(PQgetvalue(pgr.res, (int)i, 0));
   }
   return true;
 }
@@ -1300,8 +1300,8 @@ bool DbProvider::taskState(const std::vector<uint64_t>& tId, std::vector<ZM_DB::
   }
   outState.resize(tsz);
   for (size_t i = 0; i < tsz; ++i){
-    outState[i].state = (ZM_Base::StateType)atoi(PQgetvalue(pgr.res, i, 1));
-    outState[i].progress = atoi(PQgetvalue(pgr.res, i, 2));
+    outState[i].state = (ZM_Base::StateType)atoi(PQgetvalue(pgr.res, (int)i, 1));
+    outState[i].progress = atoi(PQgetvalue(pgr.res, (int)i, 2));
   }
   return true;
 }
@@ -1426,8 +1426,8 @@ bool DbProvider::setChangeTaskStateCBack(uint64_t tId, changeTaskStateCBack cbac
           if (PQresultStatus(pgr.res) == PGRES_TUPLES_OK){
             size_t tsz = PQntuples(pgr.res);
             for (size_t i = 0; i < tsz; ++i){
-              uint64_t tId = stoull(PQgetvalue(pgr.res, i, 0));
-              ZM_Base::StateType state = (ZM_Base::StateType)atoi(PQgetvalue(pgr.res, i, 1));
+              uint64_t tId = stoull(PQgetvalue(pgr.res, (int)i, 0));
+              ZM_Base::StateType state = (ZM_Base::StateType)atoi(PQgetvalue(pgr.res, (int)i, 1));
               if (state != notifyTask[tId].first){
                 notifyRes.push_back(make_pair(tId, state));
               }

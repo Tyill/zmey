@@ -1,6 +1,10 @@
 from flask import Flask
 import os
 
+appPath = os.path.dirname(__file__)
+
+os.environ['PATH'] = appPath + os.pathsep + os.environ['PATH']
+
 def create_app():
   app = Flask(__name__, instance_relative_config=True, 
                         static_url_path='', 

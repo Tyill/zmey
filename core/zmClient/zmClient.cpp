@@ -68,7 +68,7 @@ void zmDisconnect(zmConn zo){
 bool zmCreateTables(zmConn zo){
   if (!zo) return false;
 
-  static_cast<ZM_DB::DbProvider*>(zo)->createTables();
+  return static_cast<ZM_DB::DbProvider*>(zo)->createTables();
 }
 bool zmSetErrorCBack(zmConn zo, zmErrorCBack ecb, zmUData ud){
   if (!zo) return false;

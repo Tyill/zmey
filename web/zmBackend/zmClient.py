@@ -29,7 +29,12 @@ import os
 import ctypes
 from enum import Enum
 
-_LIB = ctypes.CDLL(os.path.expanduser("~") + '/cpp/zmey/build/Release/libzmClient.so')
+libname = 'zmClient.so'
+if os.name == 'nt':
+    libname = 'zmClient.dll'
+#_LIB = ctypes.CDLL(os.path.expanduser("~") + '/cpp/zmey/build/Release/libzmClient.so')
+
+_LIB = ctypes.CDLL('c:/cpp/zmey/web/zmBackend/' + libname)
 
 #############################################################################
 ### Common
