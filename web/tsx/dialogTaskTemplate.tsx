@@ -13,7 +13,8 @@ import "../css/app.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 interface IProps {
-  isShow : boolean;
+  show : boolean;
+  onHide : () => any;
   user : IUser;                                                 // | Store
   pipelines : Map<number, IPipeline>;                           // | 
   taskGroups : Map<number, ITaskGroup>;                         // |
@@ -26,7 +27,6 @@ interface IProps {
 };
 
 interface IState {
-  name : string;
 };
 
 class DialogTaskTemplate extends React.Component<IProps, IState>{
@@ -39,7 +39,7 @@ class DialogTaskTemplate extends React.Component<IProps, IState>{
 
   render(){  
     return (
-      <Modal show={this.props.isShow}>
+      <Modal show={this.props.show} onHide={this.props.onHide} >
         <Modal.Header closeButton>
           <Modal.Title>Modal title</Modal.Title>
         </Modal.Header>

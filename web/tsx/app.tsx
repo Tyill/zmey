@@ -38,7 +38,7 @@ interface IProps {
 };
 
 interface IState {
-  name : string;
+  isShowTaskTemplateConfig : boolean;
 };
 
 
@@ -47,10 +47,11 @@ class App extends React.Component<IProps, IState>{
   constructor(props : IProps){
     super(props);
     
-    this.state  = { name : "" };
+    this.state  = { isShowTaskTemplateConfig : false };
 
     this.hAddTaskTemplate = this.hAddTaskTemplate.bind(this); 
     this.hDelTaskTemplate = this.hDelTaskTemplate.bind(this); 
+    this.hShowTaskTemplateConfig = this.hShowTaskTemplateConfig.bind(this); 
   }
     
   hAddTaskTemplate(){
@@ -148,6 +149,16 @@ class App extends React.Component<IProps, IState>{
     // }
   }
 
+  hShowTaskTemplateConfig(){
+
+    this.setState((oldState, props)=>{
+
+      let isShowTaskTemplateConfig = !oldState.isShowTaskTemplateConfig;
+
+      return {isShowTaskTemplateConfig};
+    });
+  }
+
   render(){
 
     // let obj : ITreeNavDir = { name : "dir2222222222222222222222221",
@@ -169,6 +180,7 @@ class App extends React.Component<IProps, IState>{
     let clientHeight = document.documentElement ? document.documentElement.clientHeight : 300;
 
     return (
+      <div>
         <Container className="col app-container"
                    style={{overflow: "auto", height: clientHeight}}>
           <Row noGutters={true} className="m-1 p-2"
@@ -184,13 +196,16 @@ class App extends React.Component<IProps, IState>{
             </ListGroup>
             </Col> 
             <Col className="col"> 
-              <Button variant="primary"
-                      onClick={ (e) => DialogTaskTemplateRedux({isShow : true, ...this.props})}>Primary</Button>
+              <Button variant="primary" 
+                      onClick= {this.hShowTaskTemplateConfig}>Primary</Button>
               <Button variant="secondary" 
                       onClick={this.hDelTaskTemplate}>Secondary</Button>
             </Col>
           </Row>
         </Container> 
+
+        <DialogTaskTemplateRedux show = {this.state.isShowTaskTemplateConfig} onHide = {this.hShowTaskTemplateConfig}/>
+      </div>
     )
   } 
 }
