@@ -42,6 +42,7 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
     if (!smess.empty() && (stoi(smess["command"]) == int(mess.MessType)) &&
         (stoull(smess["taskId"]) == mess.taskId)){ 
       _messForSchedr.tryPop(mess);
+      mainCycleNotify();
     }
     _isSendAck = true;
     ctickSH.reset();

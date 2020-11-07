@@ -189,7 +189,9 @@ int main(int argc, char* argv[]){
       errorToSchedr(worker, cng.schedrConnPnt, _errMess);
     }    
     // added delay
-    mainCycleSleep(minCycleTimeMS);     
+    if (_newTasks.empty()){
+      mainCycleSleep(minCycleTimeMS);     
+    }
   }
   return 0;
 }

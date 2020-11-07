@@ -211,7 +211,9 @@ int main(int argc, char* argv[]){
       });
     }
     // added delay
-    mainCycleSleep(minCycleTimeMS);
+    if (_tasks.empty() && _messToDB.empty()){ 
+      mainCycleSleep(minCycleTimeMS);
+    }
   }
   ZM_Tcp::stopServer();
   sendAllMessToDB(*dbSendMess);

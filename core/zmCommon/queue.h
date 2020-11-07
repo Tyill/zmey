@@ -76,14 +76,18 @@ public:
   }
   bool tryPop(T& value){
     std::unique_ptr<node> const oldHead = tryPopHead(value);    
-    return oldHead.get() != nullptr;
+    bool isExist = oldHead.get() != nullptr;
+    if (!isExist){
+      _sz = 0;
+    }
+    return isExist;
   }
   T front(){
     std::lock_guard<std::mutex> lock(_headMtx);
     return *_head->data;
   }
   int size(){
-    return _sz;
+    return _sz; // not steady
   }
   bool empty(){
     std::lock_guard<std::mutex> lock(_headMtx);

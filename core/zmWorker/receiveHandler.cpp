@@ -90,6 +90,7 @@ void receiveHandler(const string& remcp, const string& data){
     _newTasks.push(WTask{t, 
                          ZM_Base::StateType::READY,
                          mess["params"]});
+    mainCycleNotify();
   }
   else if (mtype == ZM_Base::MessType::PING_WORKER){  // only check
     return;
@@ -116,6 +117,5 @@ void receiveHandler(const string& remcp, const string& data){
         ERROR_MESS("worker::receiveHandler iPrc == _procs.end() for taskId: " + mess["taskId"]);
       }
     }
-  }
-  mainCycleNotify();
+  }  
 }
