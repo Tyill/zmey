@@ -29,13 +29,19 @@ import os
 import ctypes
 from enum import Enum
 
-libname = 'zmClient.so'
-if os.name == 'nt':
-    libname = 'zmClient.dll'
-#_LIB = ctypes.CDLL(os.path.expanduser("~") + '/cpp/zmey/build/Release/libzmClient.so')
+# libname = 'libzmClient.so'
+# if os.name == 'nt':
+#     libname = 'zmClient.dll'
+#     os.add_dll_directory(os.environ['Postgre'])  
+    
+# os.add_dll_directory(os.path.dirname(__file__))
 
-_LIB = ctypes.CDLL('c:/cpp/zmey/web/zmBackend/' + libname)
+_LIB = None
 
+def loadLib(path : str):
+  global _LIB
+  _LIB = ctypes.CDLL(path)
+  
 #############################################################################
 ### Common
 
@@ -236,9 +242,9 @@ def version() -> str:
 class Connection:
   """Connection object"""
   
-  _zmConn = 0
-  _userErrCBack : ctypes.CFUNCTYPE(None, ctypes.c_char_p, ctypes.c_void_p) = 0
-  _changeTaskStateCBack : ctypes.CFUNCTYPE(None, ctypes.c_uint64, ctypes.c_int32, ctypes.c_int32) = 0
+  _zmConn = None
+  _userErrCBack : ctypes.CFUNCTYPE(None, ctypes.c_char_p, ctypes.c_void_p) = None
+  _changeTaskStateCBack : ctypes.CFUNCTYPE(None, ctypes.c_uint64, ctypes.c_int32, ctypes.c_int32) = None
   _cerr : str = ""
   
   def __init__(self, connStr : str):
@@ -250,7 +256,7 @@ class Connection:
     pfun.restype = ctypes.c_void_p
     err = ctypes.create_string_buffer(256)
     self._zmConn = pfun(cng, err)
-    _cerr = err.value
+    self._cerr = err.value.decode('utf-8')
   def __enter__(self):
     return self
   def __exit__(self, exc_type, exc_value, traceback):
@@ -264,7 +270,7 @@ class Connection:
   ### Connection with DB
 
   def isOK(self) -> bool:
-    return self._zmConn != 0 
+    return self._zmConn is not None
   def setErrorCBack(self, ucb):
     """
     Set ERROR callback
@@ -292,8 +298,8 @@ class Connection:
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_char_p)
       err = ctypes.create_string_buffer(256)
       pfun(self._zmConn, err)
-      return err.value
-    return _cerr
+      return err.value.decode("utf-8") 
+    return self._cerr
   def createTables(self) -> bool:
     """
     Create tables, will be created if not exist
@@ -1291,7 +1297,7 @@ class Connection:
       pfun.restype = ctypes.c_bool
       if (pfun(self._zmConn, tid, ctypes.byref(tresult))):      
         if tresult:
-          iot.result = tresult.value  
+          iot.result = tresult.decode("utf-8")  
           self._freeResources(None, tresult)
         return True
     return False

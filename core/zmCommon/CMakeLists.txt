@@ -11,6 +11,6 @@ endif(UNIX)
 if(WIN32)         
   add_definitions(-DASIO_STANDALONE)  
   add_definitions(-D_WIN32_WINDOWS)
-endif(WIN32)
+endif()
 
 add_library(zmCommon STATIC ${SRC_zmCmn})

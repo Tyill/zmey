@@ -2,7 +2,7 @@ from markupsafe import escape
 from flask import (
   Blueprint, flash, g, redirect, render_template, request, session, url_for
 )
-import zmBackend.zmey as zm
+import zmBackend.api as api
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -17,10 +17,10 @@ def register():
       error = 'Username is required.'
     elif not password:
       error = 'Password is required.'
-    elif len([usr for usr in zm.allUsers() if usr.name == username]):    
+    elif len([usr for usr in api.allUsers() if usr.name == username]):    
       error = 'User {} is already registered.'.format(username)
-    elif not zm.addUser(zm.User(0, username, password)):      
-      error = zm.getLastError()
+    elif not api.addUser(api.User(0, username, password)):      
+      error = api.lastError()
     
     if error is None:
       return redirect(url_for('auth.login'))
@@ -36,7 +36,7 @@ def login():
     password = escape(request.form['password'])
    
     error = None
-    usr = zm.getUser(username, password)
+    usr = api.getUser(username, password)
     if usr is None:
       error = 'Incorrect username or password.'
     if error is None:

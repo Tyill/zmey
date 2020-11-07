@@ -10,20 +10,26 @@ from flask import(
 _zmCommon = None
 _zmTaskWatch = None
 
-def initApp(connStr : str):
+def initApp(zmeyConnStr : str, zmeyClientLibPath : str):
+
+  zm.loadLib(zmeyClientLibPath)
+  
   global _zmCommon
-  _zmCommon = zm.Connection(connStr)
-  global _zmTaskWatch 
-  _zmTaskWatch = zm.Connection(connStr)  
+  _zmCommon = zm.Connection(zmeyConnStr)
+
+  if not _zmCommon.isOK():
+    raise RuntimeError('Error connection with PostgreSQL: ' + _zmCommon.getLastError())
+    
   _zmCommon.createTables()
 
+  global _zmTaskWatch 
+  _zmTaskWatch = zm.Connection(zmeyConnStr)  
+  
 ###############################################################################
 ### Common
 
 def lastError() -> str:
   _zmCommon.getLastError()
-def isConnection() -> bool:
-  return _zmCommon.isOK()
 
 bp = Blueprint('zmey', __name__, url_prefix='/api')
 

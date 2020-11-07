@@ -1,10 +1,6 @@
 from flask import Flask
 import os
 
-appPath = os.path.dirname(__file__)
-
-os.environ['PATH'] = appPath + os.pathsep + os.environ['PATH']
-
 def create_app():
   app = Flask(__name__, instance_relative_config=True, 
                         static_url_path='', 
@@ -12,17 +8,17 @@ def create_app():
                         template_folder='templates') 
   
   app.config['SECRET_KEY'] = os.urandom(16)
-  app.config['ZMEY_CONNECTION_STR'] = 'host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10'
-  app.config.from_pyfile('config.ini', silent=True) 
+  app.config['ZmeyConnectStr'] = 'host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10'
+  app.config['ZmeyClientLibPath'] = 'c:/cpp/other/zmey/build/Release/zmClient.dll'
+  app.config['PostgreLibPath'] = 'c:/Program Files/PostgreSQL/10/bin/'
   
-  try: 
-    os.makedirs(app.instance_path + '/users')
-  except OSError:
-    pass
+  os.add_dll_directory(app.config['PostgreLibPath'])
 
-  from . import zmey
-  zmey.initApp(app.config['ZMEY_CONNECTION_STR']) 
-  app.register_blueprint(zmey.bp)
+  os.makedirs(app.instance_path + '/users', exist_ok = True) 
+  
+  from . import api
+  api.initApp(app.config['ZmeyConnectStr'], app.config['ZmeyClientLibPath'])
+  app.register_blueprint(api.bp)
    
   from . import gui
   gui.initApp(app) 
