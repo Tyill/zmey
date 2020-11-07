@@ -9,15 +9,15 @@ def create_app():
   
   app.config['SECRET_KEY'] = os.urandom(16)
   app.config['ZmeyConnectStr'] = 'host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10'
-  app.config['ZmeyClientLibPath'] = 'c:/cpp/other/zmey/build/Release/zmClient.dll'
   app.config['PostgreLibPath'] = 'c:/Program Files/PostgreSQL/10/bin/'
   
   os.add_dll_directory(app.config['PostgreLibPath'])
+  os.add_dll_directory(os.path.dirname(__file__))
 
   os.makedirs(app.instance_path + '/users', exist_ok = True) 
   
   from . import api
-  api.initApp(app.config['ZmeyConnectStr'], app.config['ZmeyClientLibPath'])
+  api.initApp(app.config['ZmeyConnectStr'])
   app.register_blueprint(api.bp)
    
   from . import gui

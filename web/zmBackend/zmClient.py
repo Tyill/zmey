@@ -25,16 +25,8 @@
 # coding: utf-8
 
 from __future__ import absolute_import
-import os
 import ctypes
 from enum import Enum
-
-# libname = 'libzmClient.so'
-# if os.name == 'nt':
-#     libname = 'zmClient.dll'
-#     os.add_dll_directory(os.environ['Postgre'])  
-    
-# os.add_dll_directory(os.path.dirname(__file__))
 
 _LIB = None
 

@@ -1,3 +1,4 @@
+import os
 import zmBackend.zmClient as zm
 from zmBackend.zmClient import(
   User
@@ -10,9 +11,13 @@ from flask import(
 _zmCommon = None
 _zmTaskWatch = None
 
-def initApp(zmeyConnStr : str, zmeyClientLibPath : str):
+def initApp(zmeyConnStr : str):
 
-  zm.loadLib(zmeyClientLibPath)
+  libname = 'libzmClient.so'
+  if os.name == 'nt':
+    libname = 'zmClient.dll'
+      
+  zm.loadLib(libname)
   
   global _zmCommon
   _zmCommon = zm.Connection(zmeyConnStr)
@@ -23,7 +28,7 @@ def initApp(zmeyConnStr : str, zmeyClientLibPath : str):
   _zmCommon.createTables()
 
   global _zmTaskWatch 
-  _zmTaskWatch = zm.Connection(zmeyConnStr)  
+  _zmTaskWatch = zm.Connection(zmeyConnStr) 
   
 ###############################################################################
 ### Common
