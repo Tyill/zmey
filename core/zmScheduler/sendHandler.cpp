@@ -86,6 +86,7 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
         t.base.averDurationSec = stoi(mess["averDurationSec"]);
         t.base.maxDurationSec = stoi(mess["maxDurationSec"]);
         _tasks.push(move(t));
+        --worker.base.activeTask;
         }
         break;
       default:

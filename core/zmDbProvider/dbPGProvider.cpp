@@ -1748,7 +1748,7 @@ bool DbProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::MessSche
         break;
       case ZM_Base::MessType::START_AFTER_PAUSE_SCHEDR:
         ss << "UPDATE tblScheduler SET "
-              "state = " << (int)ZM_Base::StateType::RUNNING << ", "
+              "state = " << (int)ZM_Base::StateType::RUNNING << " "
               "WHERE id = " << sId << ";";
         break;
       case ZM_Base::MessType::PAUSE_WORKER:
@@ -1770,7 +1770,7 @@ bool DbProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::MessSche
         break;
       case ZM_Base::MessType::START_AFTER_PAUSE_WORKER:
         ss << "UPDATE tblWorker SET "
-              "state = " << (int)ZM_Base::StateType::RUNNING << ", "
+              "state = " << (int)ZM_Base::StateType::RUNNING << " "
               "WHERE id = " << m.workerId << ";";
         break;
       case ZM_Base::MessType::WORKER_RATING:

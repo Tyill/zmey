@@ -35,7 +35,6 @@ void pingToSchedr(const ZM_Base::Worker& worker, const std::string& schedrConnPn
   map<string, string> data{
     {"command", to_string((int)ZM_Base::MessType::PING_WORKER)},
     {"connectPnt", worker.connectPnt},
-    {"activeTask", to_string(worker.activeTask)},
     {"load", to_string(worker.load)}
   };      
   ZM_Tcp::sendData(schedrConnPnt, ZM_Aux::serialn(data));

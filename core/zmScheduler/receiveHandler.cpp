@@ -123,9 +123,7 @@ void receiveHandler(const string& remcp, const string& data){
         }
         break;
       case ZM_Base::MessType::PING_WORKER:
-        checkFieldNum(activeTask);
         checkFieldNum(load);
-        worker.base.activeTask = stoi(mess["activeTask"]);  
         worker.base.load = stoi(mess["load"]);
         break;
       default:

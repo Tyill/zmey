@@ -39,6 +39,7 @@
 using namespace std;
 
 extern ZM_Aux::QueueThrSave<string> _errMess;
+extern mutex _mtxTaskCount;
 
 void waitProcess(ZM_Base::Worker& worker, list<Process>& procs, ZM_Aux::QueueThrSave<Mess2schedr>& messForSchedr){
   
@@ -48,6 +49,7 @@ void waitProcess(ZM_Base::Worker& worker, list<Process>& procs, ZM_Aux::QueueThr
 
   pid_t pid;
   int sts = 0;
+  
   while ((pid = waitpid(-1, &sts, WNOHANG | WUNTRACED | WCONTINUED)) > 0){
 
     auto itPrc = find_if(procs.begin(), procs.end(),[pid](const Process& p){
@@ -95,10 +97,13 @@ void waitProcess(ZM_Base::Worker& worker, list<Process>& procs, ZM_Aux::QueueThr
         st = ZM_Base::StateType::ERROR;
       }
       itPrc->setTaskState(st);
-      --worker.activeTask;
+      {std::lock_guard<std::mutex> lock(_mtxTaskCount);
+        worker.activeTask = max(0, worker.activeTask - 1);
+      }      
       messForSchedr.push(Mess2schedr{itPrc->getTask().base.id,
                                       mt,
                                       result});
+
       if (remove(resultFile.c_str()) == -1){
         ERROR_MESS("worker::waitProcess error remove " + resultFile + ": " + string(strerror(errno)));
       }

@@ -61,7 +61,8 @@ using namespace std;
 extern list<Process> _procs;
 extern ZM_Aux::QueueThrSave<WTask> _newTasks;
 extern ZM_Aux::QueueThrSave<string> _errMess;
-extern mutex _mtxPrc;
+extern ZM_Base::Worker _worker;
+extern mutex _mtxPrc, _mtxTaskCount;
 
 void receiveHandler(const string& remcp, const string& data){
 
@@ -82,6 +83,7 @@ void receiveHandler(const string& remcp, const string& data){
     checkField(script);
     checkFieldNum(averDurationSec);
     checkFieldNum(maxDurationSec);
+    checkFieldNum(taskCount);
     ZM_Base::Task t;
     t.id = stoull(mess["taskId"]);
     t.averDurationSec = stoi(mess["averDurationSec"]);
@@ -89,7 +91,10 @@ void receiveHandler(const string& remcp, const string& data){
     t.script = mess["script"];
     _newTasks.push(WTask{t, 
                          ZM_Base::StateType::READY,
-                         mess["params"]});
+                         mess["params"]}); 
+    {std::lock_guard<std::mutex> lock(_mtxTaskCount);
+      _worker.activeTask = stoi(mess["taskCount"]);     
+    }
     mainCycleNotify();
   }
   else if (mtype == ZM_Base::MessType::PING_WORKER){  // only check

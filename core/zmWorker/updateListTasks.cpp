@@ -32,7 +32,7 @@ using namespace std;
 
 extern mutex _mtxPrc;
 
-void updateListTasks(ZM_Base::Worker& worker, ZM_Aux::QueueThrSave<WTask>& newTasks, list<Process>& procs){
+void updateListTasks(ZM_Aux::QueueThrSave<WTask>& newTasks, list<Process>& procs){
   lock_guard<std::mutex> lock(_mtxPrc);
 
   WTask tsk;
@@ -53,5 +53,4 @@ void updateListTasks(ZM_Base::Worker& worker, ZM_Aux::QueueThrSave<WTask>& newTa
       ++ip;
     }
   }
-  worker.activeTask = procs.size();  
 }

@@ -44,7 +44,7 @@ void sendAllMessToDB(ZM_DB::DbProvider& db){
     for (auto& m : mess){
       _messToDB.push(move(m));
     }
-    if (ctickAD(1000)){ // every 1000 cycle
+    if (ctickAD(100)){ // every 100 cycle
       statusMess("sendAllMessToDB db error: " + db.getLastError());
     }
   }else{

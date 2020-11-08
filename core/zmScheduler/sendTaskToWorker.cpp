@@ -81,7 +81,8 @@ void sendTaskToWorker(const ZM_Base::Scheduler& schedr,
         {"params",          t.params}, 
         {"script",          t.base.script},
         {"averDurationSec", to_string(t.base.averDurationSec)}, 
-        {"maxDurationSec",  to_string(t.base.maxDurationSec)}
+        {"maxDurationSec",  to_string(t.base.maxDurationSec)},
+        {"taskCount",       to_string((*iWr)->activeTask + 1)}        
       };
       ++(*iWr)->activeTask;
       workers[(*iWr)->connectPnt].base.activeTask = (*iWr)->activeTask;

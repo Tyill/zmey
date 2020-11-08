@@ -46,14 +46,15 @@ void sendMessToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt, 
 void progressToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt, list<Process>&);
 void pingToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt);
 void errorToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt, ZM_Aux::QueueThrSave<string>& );
-void updateListTasks(ZM_Base::Worker& iow, ZM_Aux::QueueThrSave<WTask>& newTasks, list<Process>& procs);
+void updateListTasks(ZM_Aux::QueueThrSave<WTask>& newTasks, list<Process>& procs);
 void waitProcess(ZM_Base::Worker&, list<Process>& procs, ZM_Aux::QueueThrSave<Mess2schedr>& messForSchedr);
 
 ZM_Aux::QueueThrSave<Mess2schedr> _messForSchedr;
 ZM_Aux::QueueThrSave<WTask> _newTasks;
 ZM_Aux::QueueThrSave<string> _errMess;
 list<Process> _procs;
-mutex _mtxPrc, _mtxSts;
+ZM_Base::Worker _worker;
+mutex _mtxPrc, _mtxSts, _mtxTaskCount;
 std::condition_variable _cv;
 volatile bool _isSendAck = true,
               _isMainCycleRun = false;
@@ -146,8 +147,7 @@ int main(int argc, char* argv[]){
   
   ///////////////////////////////////////////////////////
   
-  ZM_Base::Worker worker;
-  worker.connectPnt = cng.remoteConnPnt;
+  _worker.connectPnt = cng.remoteConnPnt;
     
   ZM_Aux::TimerDelay timer;
   const int minCycleTimeMS = 10;
@@ -162,16 +162,16 @@ int main(int argc, char* argv[]){
     timer.updateCycTime();   
 
     // update list of tasks
-    updateListTasks(worker, _newTasks, _procs);
+    updateListTasks(_newTasks, _procs);
 
     // check child process
-    waitProcess(worker, _procs, _messForSchedr);
+    waitProcess(_worker, _procs, _messForSchedr);
 
     // send mess to schedr (send constantly until it receives)
     Mess2schedr mess;
     if (_isSendAck && _messForSchedr.front(mess)){ 
       _isSendAck = false;
-      sendMessToSchedr(worker, cng.schedrConnPnt, mess);
+      sendMessToSchedr(_worker, cng.schedrConnPnt, mess);
     }
     else if (!_isSendAck && timer.onDelaySec(true, cng.sendAckTOutSec, 0)){
       _isSendAck = true;
@@ -179,19 +179,19 @@ int main(int argc, char* argv[]){
 
     // progress of tasks
     if(timer.onDelayOncSec(true, cng.progressTasksTOutSec, 1)){
-      progressToSchedr(worker, cng.schedrConnPnt, _procs);
+      progressToSchedr(_worker, cng.schedrConnPnt, _procs);
     }
     // load CPU
     if(timer.onDelayOncSec(true, 1, 2)){
-      worker.load = cpu.load();
+      _worker.load = cpu.load();
     } 
     // ping to schedr
     if(timer.onDelayOncSec(true, cng.pingSchedrTOutSec, 3)){
-      pingToSchedr(worker, cng.schedrConnPnt);
+      pingToSchedr(_worker, cng.schedrConnPnt);
     }        
     // errors
     if (!_errMess.empty()){ 
-      errorToSchedr(worker, cng.schedrConnPnt, _errMess);
+      errorToSchedr(_worker, cng.schedrConnPnt, _errMess);
     }    
     // added delay
     if (_newTasks.empty()){
