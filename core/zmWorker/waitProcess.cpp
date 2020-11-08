@@ -41,6 +41,8 @@ using namespace std;
 extern ZM_Aux::QueueThrSave<string> _errMess;
 extern mutex _mtxTaskCount;
 
+int taskCountCompl = 0;
+
 void waitProcess(ZM_Base::Worker& worker, list<Process>& procs, ZM_Aux::QueueThrSave<Mess2schedr>& messForSchedr){
   
 #define ERROR_MESS(mstr) \
@@ -97,9 +99,9 @@ void waitProcess(ZM_Base::Worker& worker, list<Process>& procs, ZM_Aux::QueueThr
         st = ZM_Base::StateType::ERROR;
       }
       itPrc->setTaskState(st);
-      {std::lock_guard<std::mutex> lock(_mtxTaskCount);
-        worker.activeTask = max(0, worker.activeTask - 1);
-      }      
+
+      ++taskCountCompl;
+
       messForSchedr.push(Mess2schedr{itPrc->getTask().base.id,
                                       mt,
                                       result});
@@ -127,10 +129,16 @@ void waitProcess(ZM_Base::Worker& worker, list<Process>& procs, ZM_Aux::QueueThr
                                       ""});    
     } 
   }  
-  // check max run time
-  // for(auto& p : procs){
-  //   if (p.checkMaxRunTime() && (p.getTask().state == ZM_Base::StateType::RUNNING)){
-  //     p.stop();
-  //   }
-  // }
+
+  if (taskCountCompl > 0){
+    std::lock_guard<std::mutex> lock(_mtxTaskCount);
+    worker.activeTask = max(0, worker.activeTask - taskCountCompl);
+  }  
+
+  check max run time
+  for(auto& p : procs){
+    if (p.checkMaxRunTime() && (p.getTask().state == ZM_Base::StateType::RUNNING)){
+      p.stop();
+    }
+  }
 }

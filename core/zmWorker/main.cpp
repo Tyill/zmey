@@ -188,6 +188,11 @@ int main(int argc, char* argv[]){
     // ping to schedr
     if(timer.onDelayOncSec(true, cng.pingSchedrTOutSec, 3)){
       pingToSchedr(_worker, cng.schedrConnPnt);
+    } 
+    // smooth adaptive task count
+    if(timer.onDelayOncSec(true, 1, 4)){
+      std::lock_guard<std::mutex> lock(_mtxTaskCount);
+      _worker.activeTask = round(_worker.activeTask * 0.9 + _procs.size() * 0.1);
     }        
     // errors
     if (!_errMess.empty()){ 

@@ -83,7 +83,7 @@ void receiveHandler(const string& remcp, const string& data){
     checkField(script);
     checkFieldNum(averDurationSec);
     checkFieldNum(maxDurationSec);
-    checkFieldNum(taskCount);
+    checkFieldNum(activeTask);
     ZM_Base::Task t;
     t.id = stoull(mess["taskId"]);
     t.averDurationSec = stoi(mess["averDurationSec"]);
@@ -93,7 +93,7 @@ void receiveHandler(const string& remcp, const string& data){
                          ZM_Base::StateType::READY,
                          mess["params"]}); 
     {std::lock_guard<std::mutex> lock(_mtxTaskCount);
-      _worker.activeTask = stoi(mess["taskCount"]);     
+      _worker.activeTask = stoi(mess["activeTask"]);     
     }
     mainCycleNotify();
   }
