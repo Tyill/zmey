@@ -7,7 +7,7 @@ import psycopg2
 sys.path.append(os.path.expanduser("~") + '/cpp/zmey/python/')
 import zmClient as zm
 
-#### 1 schedr, 30 workers, 1000 tasks on one machine
+#### 5 schedr, 5 * 20 workers, 10000 tasks on one machine
 
 # del all tables
 with psycopg2.connect(dbname='zmeyDb', user='alm', password='123', host='localhost') as pg:
@@ -53,9 +53,9 @@ if (not zo.addPipeline(ppl)):
 
 # add and start schedulers and workers
 print('Add and start schedulers and workers')  
-sCnt = 1
-wCnt = 30
-wCapty = 10
+sCnt = 5
+wCnt = 20
+wCapty = 5
 schPrc = [] 
 wkrPrc = []
 for i in range(sCnt):
@@ -66,15 +66,13 @@ for i in range(sCnt):
     if (not zo.addWorker(zm.Worker(sId=sch.id, connectPnt='localhost:' + str(4450 + i * wCnt + j), capacityTask=wCapty))):
       exit(-1)
   schPrc.append(subprocess.Popen([os.path.expanduser("~") + '/cpp/zmey/build/Release/zmScheduler',
-                                  '-lcp=localhost:' + str(4440 + i),
-                                  '-rcp=localhost:' + str(4440 + i),
+                                  '-la=localhost:' + str(4440 + i),
                                   "-db=host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10"]))
   time.sleep(3)
   for j in range(wCnt):
     wkrPrc.append(subprocess.Popen([os.path.expanduser("~") + '/cpp/zmey/build/Release/zmWorker',
-                                    '-scp=localhost:' + str(4440 + i),
-                                    '-lcp=localhost:' + str(4450 + i * wCnt + j),
-                                    '-rcp=localhost:' + str(4450 + i * wCnt + j)]))
+                                    '-sa=localhost:' + str(4440 + i),
+                                    '-la=localhost:' + str(4450 + i * wCnt + j)]))
 # pause schedrs
 allSch = zo.getAllSchedulers()
 for i in range(len(allSch)):
@@ -83,7 +81,7 @@ for i in range(len(allSch)):
 time.sleep(3)
 
 # add and start tasks
-taskCnt = 1000
+taskCnt = 10000
 print('Add and start', taskCnt, 'tasks')  
 tasks = []
 for j in range(taskCnt):

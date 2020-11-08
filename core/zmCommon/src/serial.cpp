@@ -88,9 +88,7 @@ namespace ZM_Aux {
       int vsz = *((int*)(pData + offs)); offs += intSz; 
       
       if (offs + vsz > allSz) break;
-      string val(pData + offs, vsz);     offs += vsz;   
-
-      out[key] = val;
+      out[key] = string(pData + offs, vsz); offs += vsz;   
     }
     return vcnt == out.size() ? out : map<string, string>();
   }          

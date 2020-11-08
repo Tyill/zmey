@@ -83,8 +83,8 @@ void parseArgs(int argc, char* argv[], Config& outCng){
     outCng.prm = sprms[#shortName];                \
   }
 
-  SET_PARAM(lcp, localCP, localConnPnt); 
-  SET_PARAM(rcp, remoteCP, remoteConnPnt);
+  SET_PARAM(la, localAddr, localConnPnt); 
+  SET_PARAM(ra, remoteAddr, remoteConnPnt);
   SET_PARAM(db, dbConnStr, dbConnCng.connectStr);
  
 #define SET_PARAM_NUM(shortName, longName, prm)                                           \
@@ -95,8 +95,8 @@ void parseArgs(int argc, char* argv[], Config& outCng){
     outCng.prm = stoi(sprms[#shortName]);                                                 \
   }
 
-  SET_PARAM_NUM(ctk, capacityTask, capacityTask);
-  SET_PARAM_NUM(chw, checkWorkerTOut, checkWorkerTOutSec);
+  SET_PARAM_NUM(ct, capacityTask, capacityTask);
+  SET_PARAM_NUM(cw, checkWorkerTOut, checkWorkerTOutSec);
 }
 
 void mainCycleNotify(){
@@ -141,8 +141,12 @@ int main(int argc, char* argv[]){
   Config cng;
   parseArgs(argc, argv, cng);
   
-  CHECK(cng.localConnPnt.empty() || (ZM_Aux::split(cng.localConnPnt, ':').size() != 2), "Not set param '--localCP[-lcp]' - scheduler local connection point: IP or DNS:port");
-  CHECK(cng.remoteConnPnt.empty() || (ZM_Aux::split(cng.remoteConnPnt, ':').size() != 2), "Not set param '--remoteCP[-rcp]' - scheduler remote connection point: IP or DNS:port");
+  if (cng.remoteConnPnt.empty()){  // when without NAT
+    cng.remoteConnPnt = cng.localConnPnt;
+  } 
+
+  CHECK(cng.localConnPnt.empty() || (ZM_Aux::split(cng.localConnPnt, ':').size() != 2), "Not set param '--localAddr[-la]' - scheduler local connection point: IP or DNS:port");
+  CHECK(cng.remoteConnPnt.empty() || (ZM_Aux::split(cng.remoteConnPnt, ':').size() != 2), "Not set param '--remoteAddr[-ra]' - scheduler remote connection point: IP or DNS:port");
   CHECK(cng.dbConnCng.connectStr.empty(), "Not set param '--dbConnStr[-db]' - data base connection string");
  
   signal(SIGHUP, closeHandler);

@@ -100,9 +100,9 @@ void parseArgs(int argc, char* argv[], Config& outCng){
     outCng.prm = sprms[#shortName];                \
   }
 
-  SET_PARAM(lcp, localCP, localConnPnt); 
-  SET_PARAM(rcp, remoteCP, remoteConnPnt);
-  SET_PARAM(scp, schedrCP, schedrConnPnt);
+  SET_PARAM(la, localAddr, localConnPnt); 
+  SET_PARAM(ra, remoteAddr, remoteConnPnt);
+  SET_PARAM(sa, schedrAddr, schedrConnPnt);
 
 #define SET_PARAM_NUM(shortName, longName, prm)                                           \
   if (sprms.find(#longName) != sprms.end() && ZM_Aux::isNumber(sprms[#longName])){        \
@@ -112,8 +112,8 @@ void parseArgs(int argc, char* argv[], Config& outCng){
     outCng.prm = stoi(sprms[#shortName]);                                                 \
   }
 
-  SET_PARAM_NUM(prg, progressTOut, progressTasksTOutSec);
-  SET_PARAM_NUM(png, pingSchedrTOut, pingSchedrTOutSec);
+  SET_PARAM_NUM(pt, progressTOut, progressTasksTOutSec);
+  SET_PARAM_NUM(st, pingSchedrTOut, pingSchedrTOutSec);
 }
 
 #define CHECK(fun, mess) \
@@ -127,9 +127,13 @@ int main(int argc, char* argv[]){
   Config cng;
   parseArgs(argc, argv, cng); 
 
-  CHECK(cng.localConnPnt.empty() || (ZM_Aux::split(cng.localConnPnt, ':').size() != 2), "Not set param '--localCP[-lcp]' - worker local connection point: IP or DNS:port");
-  CHECK(cng.remoteConnPnt.empty() || (ZM_Aux::split(cng.remoteConnPnt, ':').size() != 2), "Not set param '--remoteCP[-rcp]' - worker remote connection point: IP or DNS:port");
-  CHECK(cng.schedrConnPnt.empty() || (ZM_Aux::split(cng.schedrConnPnt, ':').size() != 2), "Not set param '--schedrCP[-scp]' - scheduler connection point: IP or DNS:port");
+  if (cng.remoteConnPnt.empty()){  // when without NAT
+    cng.remoteConnPnt = cng.localConnPnt;
+  } 
+
+  CHECK(cng.localConnPnt.empty() || (ZM_Aux::split(cng.localConnPnt, ':').size() != 2), "Not set param '--localAddr[-la]' - worker local connection point: IP or DNS:port");
+  CHECK(cng.remoteConnPnt.empty() || (ZM_Aux::split(cng.remoteConnPnt, ':').size() != 2), "Not set param '--remoteAddr[-ra]' - worker remote connection point: IP or DNS:port");
+  CHECK(cng.schedrConnPnt.empty() || (ZM_Aux::split(cng.schedrConnPnt, ':').size() != 2), "Not set param '--schedrAddr[-sa]' - scheduler connection point: IP or DNS:port");
     
   signal(SIGPIPE, SIG_IGN);
 
