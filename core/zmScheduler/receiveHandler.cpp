@@ -167,7 +167,7 @@ void receiveHandler(const string& remcp, const string& data){
         }
         _schedr.state = ZM_Base::StateType::PAUSE;
         break;
-      case ZM_Base::MessType::START_SCHEDR:
+      case ZM_Base::MessType::START_AFTER_PAUSE_SCHEDR:
         if (_schedr.state != ZM_Base::StateType::RUNNING){
           _messToDB.push(ZM_DB::MessSchedr{mtype});
         }
@@ -176,19 +176,21 @@ void receiveHandler(const string& remcp, const string& data){
       case ZM_Base::MessType::PAUSE_WORKER:{
         checkField(workerConnPnt);
         auto& worker = _workers[mess["workerConnPnt"]];
-        if (worker.base.state != ZM_Base::StateType::PAUSE){
-          _messToDB.push(ZM_DB::MessSchedr{mtype, worker.base.id});
-        }
-        worker.base.state = worker.stateMem = ZM_Base::StateType::PAUSE;
-        } break;
-      case ZM_Base::MessType::START_WORKER:{
+        if (worker.base.state != ZM_Base::StateType::NOT_RESPONDING){
+          if (worker.base.state != ZM_Base::StateType::PAUSE){
+            _messToDB.push(ZM_DB::MessSchedr{mtype, worker.base.id});
+          }
+          worker.base.state = worker.stateMem = ZM_Base::StateType::PAUSE;
+        }} break;
+      case ZM_Base::MessType::START_AFTER_PAUSE_WORKER:{
         checkField(workerConnPnt);
-        auto& worker = _workers[mess["workerConnPnt"]];        
-        if (worker.base.state != ZM_Base::StateType::RUNNING){
-          _messToDB.push(ZM_DB::MessSchedr{mtype, worker.base.id});
-        }
-        worker.base.state = worker.stateMem = ZM_Base::StateType::RUNNING;
-        } break;
+        auto& worker = _workers[mess["workerConnPnt"]]; 
+        if (worker.base.state != ZM_Base::StateType::NOT_RESPONDING){
+          if (worker.base.state != ZM_Base::StateType::RUNNING){
+            _messToDB.push(ZM_DB::MessSchedr{mtype, worker.base.id});
+          }
+          worker.base.state = worker.stateMem = ZM_Base::StateType::RUNNING;
+        }} break;
       default:
         ERROR_MESS("schedr::receiveHandler wrong command from manager: " + mess["command"], 0);
         break;

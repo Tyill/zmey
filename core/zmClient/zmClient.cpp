@@ -212,7 +212,7 @@ bool zmStartScheduler(zmConn zo, uint64_t sId){
     
   auto connCng = static_cast<ZM_DB::DbProvider*>(zo)->getConnectCng();  
   map<string, string> data{
-            {"command", to_string((int)ZM_Base::MessType::START_SCHEDR)},
+            {"command", to_string((int)ZM_Base::MessType::START_AFTER_PAUSE_SCHEDR)},
             {"connectPnt", connCng.connectStr}
           };
   zmSchedr cng;  
@@ -326,7 +326,7 @@ bool zmStartWorker(zmConn zo, uint64_t wId){
   auto connCng = static_cast<ZM_DB::DbProvider*>(zo)->getConnectCng();  
   if (zmGetWorker(zo, wId, &wcng) && zmGetScheduler(zo, wcng.sId, &scng)){
     map<string, string> data{
-            {"command", to_string((int)ZM_Base::MessType::START_WORKER)},
+            {"command", to_string((int)ZM_Base::MessType::START_AFTER_PAUSE_WORKER)},
             {"connectPnt", connCng.connectStr},
             {"workerConnPnt", wcng.connectPnt}
           };

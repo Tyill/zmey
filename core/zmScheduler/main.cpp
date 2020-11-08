@@ -187,6 +187,9 @@ int main(int argc, char* argv[]){
       });                                                                           \
     }
 
+  // on start
+  _messToDB.push(ZM_DB::MessSchedr{ ZM_Base::MessType::START_SCHEDR });
+  
   // main cycle  
   while (!_fClose){
     timer.updateCycTime();   
@@ -195,29 +198,27 @@ int main(int argc, char* argv[]){
     if((_tasks.size() < _schedr.capacityTask) && (_schedr.state != ZM_Base::StateType::PAUSE)){
       ASYNC(frGetNewTask, dbNewTask, getNewTaskFromDB);
     }        
+
     // send task to worker    
     sendTaskToWorker(_schedr, _workers, _tasks, _messToDB);    
 
     // send all mess to DB
     if(!_messToDB.empty()){      
       ASYNC(frSendAllMessToDB, dbSendMess, sendAllMessToDB);
-    }    
+    }
+
     // check status of workers
     if(timer.onDelayOncSec(true, cng.checkWorkerTOutSec, 0)){
       checkStatusWorkers(_schedr, _workers, _messToDB);
     }
-    // current state
-    if(timer.onDelayOncSec(true, cng.currentStateTOutSec, 1)){
-      _messToDB.push(ZM_DB::MessSchedr{ 
-        _schedr.state == ZM_Base::StateType::RUNNING ? ZM_Base::MessType::START_SCHEDR : ZM_Base::MessType::PAUSE_SCHEDR
-      });
-    }
+    
     // added delay
     if (_tasks.empty() && _messToDB.empty()){ 
       mainCycleSleep(minCycleTimeMS);
     }
   }
   ZM_Tcp::stopServer();
+  _messToDB.push(ZM_DB::MessSchedr{ ZM_Base::MessType::STOP_SCHEDR });
   sendAllMessToDB(*dbSendMess);
   return 0;
 }

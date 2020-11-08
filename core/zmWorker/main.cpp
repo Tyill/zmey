@@ -137,9 +137,6 @@ int main(int argc, char* argv[]){
     
   signal(SIGPIPE, SIG_IGN);
 
-  // on start
-  _messForSchedr.push(Mess2schedr{0, ZM_Base::MessType::JUST_START_WORKER});
-
   // TCP server
   ZM_Tcp::setReceiveCBack(receiveHandler);
   ZM_Tcp::setStsSendCBack(sendHandler);
@@ -156,6 +153,9 @@ int main(int argc, char* argv[]){
   const int minCycleTimeMS = 10;
    
   ZM_Aux::CPUData cpu;
+
+  // on start
+  _messForSchedr.push(Mess2schedr{0, ZM_Base::MessType::JUST_START_WORKER});
 
   // main cycle
   while (1){

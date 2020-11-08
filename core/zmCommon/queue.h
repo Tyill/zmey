@@ -84,7 +84,7 @@ public:
   }
   bool front(T& value){
     std::lock_guard<std::mutex> lock(_headMtx);
-    bool isExist = _head->data;
+    bool isExist = (_head.get() != getTail());
     if (isExist){
       value = *_head->data;
     }

@@ -123,9 +123,9 @@ void waitProcess(ZM_Base::Worker& worker, list<Process>& procs, ZM_Aux::QueueThr
     } 
   }  
   // check max run time
-  for(auto& p : procs){
-    if (p.checkMaxRunTime() && (p.getTask().state == ZM_Base::StateType::RUNNING)){
-      p.stop();
-    }
-  }
+  // for(auto& p : procs){
+  //   if (p.checkMaxRunTime() && (p.getTask().state == ZM_Base::StateType::RUNNING)){
+  //     p.stop();
+  //   }
+  // }
 }
