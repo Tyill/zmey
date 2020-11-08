@@ -58,7 +58,6 @@ volatile bool _fClose = false,
               _isMainCycleRun = false;
 
 struct Config{
-  int capacityTask = 10000;
   int checkWorkerTOutSec = 120; 
   const int currentStateTOutSec = 10; 
   std::string localConnPnt;
@@ -95,7 +94,6 @@ void parseArgs(int argc, char* argv[], Config& outCng){
     outCng.prm = stoi(sprms[#shortName]);                                                 \
   }
 
-  SET_PARAM_NUM(ct, capacityTask, capacityTask);
   SET_PARAM_NUM(cw, checkWorkerTOut, checkWorkerTOutSec);
 }
 

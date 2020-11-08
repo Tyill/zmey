@@ -36,14 +36,14 @@ extern bool _isSendAck;
 extern ZM_Aux::QueueThrSave<Mess2schedr> _messForSchedr;
 
 void sendHandler(const string& cp, const string& data, const std::error_code& ec){
-  if (!ec){   
-    auto smess = ZM_Aux::deserialn(data);
-    Mess2schedr mess = _messForSchedr.front();                    
+  Mess2schedr mess;
+  if (!ec && _messForSchedr.front(mess)){
+    auto smess = ZM_Aux::deserialn(data);    
     if (!smess.empty() && (stoi(smess["command"]) == int(mess.MessType)) &&
         (stoull(smess["taskId"]) == mess.taskId)){ 
       _messForSchedr.tryPop(mess);
       mainCycleNotify();
-    }
+    }  
     _isSendAck = true;
     ctickSH.reset();
   }else{

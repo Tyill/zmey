@@ -23,6 +23,7 @@
 // THE SOFTWARE.
 //
 #include <map>
+#include <cmath>
 #include "zmDbProvider/dbProvider.h"
 #include "zmCommon/queue.h"
 #include "zmCommon/tcp.h"
@@ -42,7 +43,7 @@ void checkStatusWorkers(const ZM_Base::Scheduler& schedr,
       w.second.isActive = false;
     }
   }
-  if (wkrNotResp.size() < workers.size() * 3/4){ 
+  if (wkrNotResp.size() < round(workers.size() * 0.75)){ 
     for(auto w : wkrNotResp){
       if (w->base.state != ZM_Base::StateType::NOT_RESPONDING){
         messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::WORKER_NOT_RESPONDING,

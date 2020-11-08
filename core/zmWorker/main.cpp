@@ -168,9 +168,10 @@ int main(int argc, char* argv[]){
     waitProcess(worker, _procs, _messForSchedr);
 
     // send mess to schedr (send constantly until it receives)
-    if (_isSendAck && !_messForSchedr.empty()){ 
+    Mess2schedr mess;
+    if (_isSendAck && _messForSchedr.front(mess)){ 
       _isSendAck = false;
-      sendMessToSchedr(worker, cng.schedrConnPnt, _messForSchedr.front());
+      sendMessToSchedr(worker, cng.schedrConnPnt, mess);
     }
     else if (!_isSendAck && timer.onDelaySec(true, cng.sendAckTOutSec, 0)){
       _isSendAck = true;

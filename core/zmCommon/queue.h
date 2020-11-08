@@ -82,12 +82,16 @@ public:
     }
     return isExist;
   }
-  T front(){
+  bool front(T& value){
     std::lock_guard<std::mutex> lock(_headMtx);
-    return *_head->data;
+    bool isExist = _head->data;
+    if (isExist){
+      value = *_head->data;
+    }
+    return isExist;
   }
   int size(){
-    return _sz; // not steady
+    return std::max(0, _sz); // not steady
   }
   bool empty(){
     std::lock_guard<std::mutex> lock(_headMtx);
