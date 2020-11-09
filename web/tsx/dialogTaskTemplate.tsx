@@ -15,6 +15,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 interface IProps {
   show : boolean;
   onHide : () => any;
+  setTaskTempl : ITaskTemplate;
   user : IUser;                                                 // | Store
   pipelines : Map<number, IPipeline>;                           // | 
   taskGroups : Map<number, ITaskGroup>;                         // |
@@ -23,71 +24,85 @@ interface IProps {
   
   onAddTaskTemplate : (tasktemplate : ITaskTemplate) => any;    // | Actions
   onChangeTaskTemplate : (tasktemplate : ITaskTemplate) => any; // |
-  onDelTaskTemplate : (tasktemplate : ITaskTemplate) => any;    // |
 };
 
 interface IState {
-  accountNumber : string;
+  name : string;
+  description : string;
+  script : string;
+  averDuration : number;
+  maxDuration : number;
 };
 
 class DialogTaskTemplate extends React.Component<IProps, IState>{
    
+  private _refObj : object;
+
   constructor(props : IProps){
     super(props);
-   
+       
+    this.state = {name : "",
+                  description : "",
+                  script : "",
+                  averDuration : 1,
+                  maxDuration : 10};
+    if (this.props.setTaskTempl){
+      this.state = {name : this.props.setTaskTempl.name,
+                    description : this.props.setTaskTempl.description,
+                    script : this.props.setTaskTempl.script,
+                    averDuration : this.props.setTaskTempl.averDurationSec,
+                    maxDuration : this.props.setTaskTempl.maxDurationSec};
+    }
     this.hSubmit = this.hSubmit.bind(this); 
-    this.handleChange = this.handleChange.bind(this); 
-
-    this.state = {accountNumber: ''}
+    this._refObj = {};
   }
 
   hSubmit(event) {
-    console.log("dfdsfdsf")
-    this.setState({accountNumber: '12345'});
-  }
-
-  handleChange(event){
-    console.log("dsfffffffffff")
-    this.setState({accountNumber: event.target.value.replace(/[^0-9]/ig,'')});
+    
+    let error = "";
+    if (!this._refObj["Form.Name"].value){
+      error = "Name is empty"; 
+    }
+    //else if ()
   }
 
   render(){  
     return (
-      <Modal  show={this.props.show} onHide={this.props.onHide} >
+      <Modal show={this.props.show} onHide={this.props.onHide} >
         <Modal.Header closeButton>
           <Modal.Title>Task template</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Form onSubmit={this.hSubmit}>
+          <Form>
             <Form.Row>
               <Form.Group as={Col} controlId="taskTemplateForm.Name">
                 <Form.Label>Name</Form.Label>
-                <Form.Control type="text" placeholder="any name" value={this.state.accountNumber} onChange={this.handleChange}/>
+                <Form.Control type="text" ref={(input) => {this._refObj["Form.Name"] = input }} placeholder="any name" defaultValue={this.state.name}/>
               </Form.Group>
-              <Form.Group as={Col} controlId="taskTemplateForm.Description">
+              <Form.Group as={Col} controlId="Form.Description">
                 <Form.Label>Description</Form.Label>
-                <Form.Control type="text" placeholder="optional description" />
+                <Form.Control type="text" ref={(input) => {this._refObj["Form.Description"] = input }} placeholder="optional description" defaultValue={this.state.description}/>
               </Form.Group>
             </Form.Row>
-            <Form.Group controlId="taskTemplateForm.Script">
+            <Form.Group controlId="Form.Script">
               <Form.Label>Script</Form.Label>
-              <Form.Control as="textarea" placeholder="required script" rows={6} />
+              <Form.Control as="textarea" ref={(input) => {this._refObj["Form.Script"] = input }} placeholder="required script" defaultValue={this.state.script} rows={6} />
             </Form.Group>
             <Form.Row>
-              <Form.Group as={Col} controlId="taskTemplateForm.averDurationSec">
+              <Form.Group as={Col} controlId="Form.averDurationSec">
                 <Form.Label>Average duration, sec</Form.Label>
-                <Form.Control type="number" placeholder="from 1 sec" />
+                <Form.Control type="number" ref={(input) => {this._refObj["Form.averDurationSec"] = input }} placeholder="from 1 sec" defaultValue={this.state.averDuration} />
               </Form.Group>
-              <Form.Group as={Col} controlId="taskTemplateForm.maxDurationSec">
+              <Form.Group as={Col} controlId="Form.maxDurationSec">
                 <Form.Label>Maximum duration, sec</Form.Label>
-                <Form.Control type="number" placeholder="from 1 sec, -1 - not limited" />
+                <Form.Control type="number" ref={(input) => {this._refObj["Form.maxDurationSec"] = input }} placeholder="from 1 sec, -1 - not limited" defaultValue={this.state.maxDuration} />
               </Form.Group>
           </Form.Row>
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" type="close" onClick={this.props.onHide} >Close</Button>
-          <Button variant="primary" type="submit" onClick={this.hSubmit} >Save changes</Button>
+          <Button variant="secondary" type="close" onClick={this.props.onHide}>Close</Button>
+          <Button variant="primary" type="submit" onClick={this.hSubmit}>Save changes</Button>
         </Modal.Footer>
       </Modal>
     )
@@ -105,7 +120,6 @@ const mapDispatchToProps = (dispatch) => {
   return {
     onAddTaskTemplate : Action.addTaskTemplate(dispatch),
     onChangeTaskTemplate : Action.changeTaskTemplate(dispatch),
-    onDelTaskTemplate : Action.delTaskTemplate(dispatch),
   }
 };
 
