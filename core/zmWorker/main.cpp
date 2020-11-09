@@ -30,6 +30,7 @@
 #include <condition_variable>
 #include <list>
 #include <mutex>
+#include <cmath>
 #include "zmCommon/tcp.h"
 #include "zmCommon/timerDelay.h"
 #include "zmCommon/auxFunc.h"
@@ -192,7 +193,7 @@ int main(int argc, char* argv[]){
     // smooth adaptive task count
     if(timer.onDelayOncSec(true, 1, 4)){
       std::lock_guard<std::mutex> lock(_mtxTaskCount);
-      _worker.activeTask = round(_worker.activeTask * 0.9 + _procs.size() * 0.1);
+      _worker.activeTask = floor(_worker.activeTask * 0.9 + (_newTasks.size() + _procs.size()) * 0.1);
     }        
     // errors
     if (!_errMess.empty()){ 

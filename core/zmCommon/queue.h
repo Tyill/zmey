@@ -90,7 +90,7 @@ public:
     }
     return isExist;
   }
-  int size(){
+  int size() const{
     return std::max(0, _sz); // not steady
   }
   bool empty(){

@@ -41,7 +41,6 @@ using namespace std;
 extern ZM_Aux::QueueThrSave<string> _errMess;
 extern mutex _mtxTaskCount;
 
-int taskCountCompl = 0;
 
 void waitProcess(ZM_Base::Worker& worker, list<Process>& procs, ZM_Aux::QueueThrSave<Mess2schedr>& messForSchedr){
   
@@ -50,7 +49,7 @@ void waitProcess(ZM_Base::Worker& worker, list<Process>& procs, ZM_Aux::QueueThr
   _errMess.push(mstr);   \
 
   pid_t pid;
-  int sts = 0;
+  int sts = 0, taskCountCompl = 0;
   
   while ((pid = waitpid(-1, &sts, WNOHANG | WUNTRACED | WCONTINUED)) > 0){
 
@@ -132,10 +131,10 @@ void waitProcess(ZM_Base::Worker& worker, list<Process>& procs, ZM_Aux::QueueThr
 
   if (taskCountCompl > 0){
     std::lock_guard<std::mutex> lock(_mtxTaskCount);
-    worker.activeTask = max(0, worker.activeTask - taskCountCompl);
+    worker.activeTask = max(0, worker.activeTask - taskCountCompl);    
   }  
 
-  check max run time
+  // check max run time
   for(auto& p : procs){
     if (p.checkMaxRunTime() && (p.getTask().state == ZM_Base::StateType::RUNNING)){
       p.stop();
