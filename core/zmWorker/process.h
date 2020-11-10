@@ -31,8 +31,8 @@
 class Process{
     pid_t _pid = 1; 
     WTask _task;
-    ZM_Aux::TimerDelay _timer;
-    uint64_t _cdeltaTime = 0;
+    ZM_Aux::TimerDelay _timerProgress, _timerDuration;
+    uint64_t _cdeltaTimeProgress, _cdeltaTimeDuration  = 0;
     bool _isPause = false;
   public:
     Process(const WTask&);

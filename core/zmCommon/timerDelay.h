@@ -37,8 +37,8 @@ class TimerDelay {
   };
   std::vector<tmBase> _tmrs;
   int _tmSz;	
-  uint64_t _prevCycTm;
-  uint64_t _cycleTm;  
+  uint64_t _prevTm;
+  uint64_t _deltaTm;  
 public:
   TimerDelay();
   void updateCycTime();

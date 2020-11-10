@@ -28,14 +28,14 @@
 namespace ZM_Aux{
 
 TimerDelay::TimerDelay(){
-  _prevCycTm = currDateTimeSinceEpochMs();
-  _cycleTm = 0;
+  _prevTm = currDateTimeSinceEpochMs();
+  _deltaTm = 0;
   _tmSz = 0;
 }
 void TimerDelay::updateCycTime(){
   uint64_t ct = currDateTimeSinceEpochMs();
-  _cycleTm = ct - _prevCycTm;
-  _prevCycTm = ct;
+  _deltaTm = ct - _prevTm;
+  _prevTm = ct;
   for (int i = 0; i < _tmSz; ++i) {
     if (!_tmrs[i].tmActiv){
       _tmrs[i].tmCnt = 0;
@@ -44,7 +44,7 @@ void TimerDelay::updateCycTime(){
   }  
 }
 uint64_t TimerDelay::getDeltaTimeMS(){
-  return currDateTimeSinceEpochMs() - _prevCycTm;
+  return currDateTimeSinceEpochMs() - _prevTm;
 }
 bool TimerDelay::onDelaySec(bool start, int delay, int id){
   if (id >= _tmSz){
@@ -53,7 +53,7 @@ bool TimerDelay::onDelaySec(bool start, int delay, int id){
   }
   bool res = false;
   if (start) {
-    _tmrs[id].tmCnt += (int)_cycleTm;
+    _tmrs[id].tmCnt += (int)_deltaTm;
     if (_tmrs[id].tmCnt >= delay * 1000){
       res = true;
     } 
@@ -74,7 +74,7 @@ bool TimerDelay::offDelaySec(bool start, int delay, int id){
   }
   else if (_tmrs[id].tmCnt > 0){
     res = true;
-    _tmrs[id].tmCnt -= (int)_cycleTm;
+    _tmrs[id].tmCnt -= (int)_deltaTm;
   }
   _tmrs[id].tmActiv = true;
   return (start || res);
@@ -86,7 +86,7 @@ bool TimerDelay::onDelayMS(bool start, int delay, int id){
   }
   bool res = false;
   if (start) {
-    _tmrs[id].tmCnt += (int)_cycleTm;
+    _tmrs[id].tmCnt += (int)_deltaTm;
     if (_tmrs[id].tmCnt >= delay){
       res = true;
     }
@@ -107,7 +107,7 @@ bool TimerDelay::offDelayMS(bool start, int delay, int id){
   }
   else if (_tmrs[id].tmCnt > 0){      
     res = true;
-    _tmrs[id].tmCnt -= (int)_cycleTm;
+    _tmrs[id].tmCnt -= (int)_deltaTm;
   }
   _tmrs[id].tmActiv = true;
   return (start || res);
@@ -119,7 +119,7 @@ bool TimerDelay::onDelayOncSec(bool start, int delay, int id){
   }
   bool res = false;
   if (start) {
-    _tmrs[id].tmCnt += (int)_cycleTm;
+    _tmrs[id].tmCnt += (int)_deltaTm;
     if (_tmrs[id].tmCnt >= delay * 1000){
       _tmrs[id].tmCnt = 0;
       res = true;
@@ -137,7 +137,7 @@ bool TimerDelay::onDelayOncMS(bool start, int delay, int id){
   }
   bool res = false;
   if (start) {
-    _tmrs[id].tmCnt += (int)_cycleTm;
+    _tmrs[id].tmCnt += (int)_deltaTm;
     if (_tmrs[id].tmCnt >= delay){
       _tmrs[id].tmCnt = 0;
       res = true;

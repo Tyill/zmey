@@ -86,7 +86,8 @@ Process::Process(const WTask& tsk):
       break;
     // parent                
     default:
-      _timer.updateCycTime();
+      _timerProgress.updateCycTime();
+      _timerDuration.updateCycTime();
       _task.state = ZM_Base::StateType::RUNNING;
       _messForSchedr.push(Mess2schedr{tsk.base.id, ZM_Base::MessType::TASK_RUNNING, ""});
       break;
@@ -104,18 +105,18 @@ pid_t Process::getPid() const{
 }
 int Process::getProgress(){
   if (!_isPause){
-    _cdeltaTime += _timer.getDeltaTimeMS();
+    _cdeltaTimeProgress += _timerProgress.getDeltaTimeMS();
   }
-  _timer.updateCycTime();
-  int dt = (int)_cdeltaTime / 1000;
+  _timerProgress.updateCycTime();
+  int dt = (int)_cdeltaTimeProgress / 1000;
   return min(100, dt * 100 / max(1, _task.base.averDurationSec));
 }
 bool Process::checkMaxRunTime(){
   if (!_isPause){
-    _cdeltaTime += _timer.getDeltaTimeMS();
+    _cdeltaTimeDuration += _timerDuration.getDeltaTimeMS();
   }
-  _timer.updateCycTime();
-  return int(_cdeltaTime / 1000) > _task.base.maxDurationSec;
+  _timerDuration.updateCycTime();
+  return int(_cdeltaTimeDuration / 1000) > _task.base.maxDurationSec;
 }
 void Process::setTaskState(ZM_Base::StateType st){
   _task.state = st;
