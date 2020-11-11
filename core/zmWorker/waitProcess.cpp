@@ -42,7 +42,7 @@ extern ZM_Aux::QueueThrSave<string> _errMess;
 extern mutex _mtxTaskCount;
 
 
-void waitProcess(ZM_Base::Worker& worker, list<Process>& procs, ZM_Aux::QueueThrSave<Mess2schedr>& messForSchedr){
+void waitProcess(ZM_Base::Worker& worker, list<Process>& procs, ZM_Aux::QueueThrSave<MessToSchedr>& listMessForSchedr){
   
 #define ERROR_MESS(mstr) \
   statusMess(mstr);      \
@@ -101,9 +101,9 @@ void waitProcess(ZM_Base::Worker& worker, list<Process>& procs, ZM_Aux::QueueThr
 
       ++taskCountCompl;
 
-      messForSchedr.push(Mess2schedr{itPrc->getTask().base.id,
-                                      mt,
-                                      result});
+      listMessForSchedr.push(MessToSchedr{itPrc->getTask().base.id,
+                                          mt,
+                                          result});
 
       if (remove(resultFile.c_str()) == -1){
         ERROR_MESS("worker::waitProcess error remove " + resultFile + ": " + string(strerror(errno)));
@@ -116,16 +116,16 @@ void waitProcess(ZM_Base::Worker& worker, list<Process>& procs, ZM_Aux::QueueThr
     // stop
     else if (WIFSTOPPED(sts)){
       itPrc->setTaskState(ZM_Base::StateType::PAUSE);
-      messForSchedr.push(Mess2schedr{itPrc->getTask().base.id,
-                                      ZM_Base::MessType::TASK_PAUSE,
-                                      ""});
+      listMessForSchedr.push(MessToSchedr{itPrc->getTask().base.id,
+                                          ZM_Base::MessType::TASK_PAUSE,
+                                          ""});
     } 
     // continue
     else if (WIFCONTINUED(sts)){
       itPrc->setTaskState(ZM_Base::StateType::RUNNING);
-      messForSchedr.push(Mess2schedr{itPrc->getTask().base.id,
-                                      ZM_Base::MessType::TASK_CONTINUE,
-                                      ""});    
+      listMessForSchedr.push(MessToSchedr{itPrc->getTask().base.id,
+                                          ZM_Base::MessType::TASK_CONTINUE,
+                                          ""});    
     } 
   }  
 

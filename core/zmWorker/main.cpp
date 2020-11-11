@@ -43,14 +43,14 @@ using namespace std;
 
 void receiveHandler(const string& cp, const string& data);
 void sendHandler(const string& cp, const string& data, const std::error_code& ec);
-void sendMessToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt, const Mess2schedr&);
+void sendMessToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt, const MessToSchedr&);
 void progressToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt, list<Process>&);
 void pingToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt);
 void errorToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt, ZM_Aux::QueueThrSave<string>& );
-void updateListTasks(ZM_Aux::QueueThrSave<WTask>& newTasks, list<Process>& procs);
-void waitProcess(ZM_Base::Worker&, list<Process>& procs, ZM_Aux::QueueThrSave<Mess2schedr>& messForSchedr);
+void updateListTasks(ZM_Aux::QueueThrSave<WTask>& newTasks, list<Process>& procs, ZM_Aux::QueueThrSave<MessToSchedr>& listMessForSchedr);
+void waitProcess(ZM_Base::Worker&, list<Process>& procs, ZM_Aux::QueueThrSave<MessToSchedr>& listMessForSchedr);
 
-ZM_Aux::QueueThrSave<Mess2schedr> _messForSchedr;
+ZM_Aux::QueueThrSave<MessToSchedr> _listMessForSchedr;
 ZM_Aux::QueueThrSave<WTask> _newTasks;
 ZM_Aux::QueueThrSave<string> _errMess;
 list<Process> _procs;
@@ -94,6 +94,15 @@ void parseArgs(int argc, char* argv[], Config& outCng){
   
   map<string, string> sprms = ZM_Aux::parseCMDArgs(argc, argv);
   
+  if (sprms.find("help") != sprms.end()){
+    cout << "Usage: --localAddr[-la] worker local connection point: IP or DNS:port. Required\n"
+         << "       --remoteAddr[-ra] worker remote connection point (if from NAT): IP or DNS:port. Optional\n"
+         << "       --schedrAddr[-sa] schedr remote connection point: IP or DNS:port. Required\n"
+         << "       --progressTOut[-pt] send progress of tasks to schedr, sec. Default 30s\n"
+         << "       --pingSchedrTOut[-st] send ping to schedr, sec. Default 20s\n";
+    exit(0);  
+  }
+
 #define SET_PARAM(shortName, longName, prm)        \
   if (sprms.find(#longName) != sprms.end()){       \
     outCng.prm = sprms[#longName];                 \
@@ -156,21 +165,21 @@ int main(int argc, char* argv[]){
   ZM_Aux::CPUData cpu;
 
   // on start
-  _messForSchedr.push(Mess2schedr{0, ZM_Base::MessType::JUST_START_WORKER});
+  _listMessForSchedr.push(MessToSchedr{0, ZM_Base::MessType::JUST_START_WORKER});
 
   // main cycle
   while (1){
     timer.updateCycTime();   
 
     // update list of tasks
-    updateListTasks(_newTasks, _procs);
+    updateListTasks(_newTasks, _procs, _listMessForSchedr);
 
     // check child process
-    waitProcess(_worker, _procs, _messForSchedr);
+    waitProcess(_worker, _procs, _listMessForSchedr);
 
     // send mess to schedr (send constantly until it receives)
-    Mess2schedr mess;
-    if (_isSendAck && _messForSchedr.front(mess)){ 
+    MessToSchedr mess;
+    if (_isSendAck && _listMessForSchedr.front(mess)){ 
       _isSendAck = false;
       sendMessToSchedr(_worker, cng.schedrConnPnt, mess);
     }

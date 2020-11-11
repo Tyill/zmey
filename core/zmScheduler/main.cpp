@@ -58,8 +58,7 @@ volatile bool _fClose = false,
               _isMainCycleRun = false;
 
 struct Config{
-  int checkWorkerTOutSec = 120; 
-  const int currentStateTOutSec = 10; 
+  int checkWorkerTOutSec = 120;
   std::string localConnPnt;
   std::string remoteConnPnt;
   ZM_DB::ConnectCng dbConnCng;
@@ -73,6 +72,14 @@ void statusMess(const string& mess){
 void parseArgs(int argc, char* argv[], Config& outCng){ 
   
   map<string, string> sprms = ZM_Aux::parseCMDArgs(argc, argv);
+
+  if (sprms.find("help") != sprms.end()){
+    cout << "Usage: --localAddr[-la] schedr local connection point: IP or DNS:port. Required\n"
+         << "       --remoteAddr[-ra] schedr remote connection point (if from NAT): IP or DNS:port. Optional\n"
+         << "       --dbConnStr[-db] database connection string\n"
+         << "       --checkWorkerTOut[-cw] check ping from workers, sec. Default 120s\n";
+    exit(0);  
+  }
   
 #define SET_PARAM(shortName, longName, prm)        \
   if (sprms.find(#longName) != sprms.end()){       \
@@ -145,7 +152,7 @@ int main(int argc, char* argv[]){
 
   CHECK(cng.localConnPnt.empty() || (ZM_Aux::split(cng.localConnPnt, ':').size() != 2), "Not set param '--localAddr[-la]' - scheduler local connection point: IP or DNS:port");
   CHECK(cng.remoteConnPnt.empty() || (ZM_Aux::split(cng.remoteConnPnt, ':').size() != 2), "Not set param '--remoteAddr[-ra]' - scheduler remote connection point: IP or DNS:port");
-  CHECK(cng.dbConnCng.connectStr.empty(), "Not set param '--dbConnStr[-db]' - data base connection string");
+  CHECK(cng.dbConnCng.connectStr.empty(), "Not set param '--dbConnStr[-db]' - database connection string");
  
   signal(SIGHUP, closeHandler);
   signal(SIGINT, closeHandler);

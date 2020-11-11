@@ -38,7 +38,6 @@
 
 using namespace std;
 
-extern ZM_Aux::QueueThrSave<Mess2schedr> _messForSchedr;
 extern ZM_Aux::QueueThrSave<string> _errMess;
 
 Process::Process(const WTask& tsk):
@@ -89,7 +88,6 @@ Process::Process(const WTask& tsk):
       _timerProgress.updateCycTime();
       _timerDuration.updateCycTime();
       _task.state = ZM_Base::StateType::RUNNING;
-      _messForSchedr.push(Mess2schedr{tsk.base.id, ZM_Base::MessType::TASK_RUNNING, ""});
       break;
  }
 

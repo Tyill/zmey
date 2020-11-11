@@ -30,7 +30,7 @@ void statusMess(const std::string& mess);
 
 void mainCycleNotify();
 
-struct Mess2schedr{
+struct MessToSchedr{
   uint64_t taskId;
   ZM_Base::MessType MessType;
   std::string taskResult;

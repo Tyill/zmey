@@ -33,15 +33,15 @@ using namespace std;
 
 ZM_Aux::CounterTick ctickSH;
 extern bool _isSendAck;
-extern ZM_Aux::QueueThrSave<Mess2schedr> _messForSchedr;
+extern ZM_Aux::QueueThrSave<MessToSchedr> _listMessForSchedr;
 
 void sendHandler(const string& cp, const string& data, const std::error_code& ec){
-  Mess2schedr mess;
-  if (!ec && _messForSchedr.front(mess)){
+  MessToSchedr mess;
+  if (!ec && _listMessForSchedr.front(mess)){
     auto smess = ZM_Aux::deserialn(data);    
     if (!smess.empty() && (stoi(smess["command"]) == int(mess.MessType)) &&
         (stoull(smess["taskId"]) == mess.taskId)){ 
-      _messForSchedr.tryPop(mess);
+      _listMessForSchedr.tryPop(mess);
       mainCycleNotify();
     }  
     _isSendAck = true;
