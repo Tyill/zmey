@@ -44,5 +44,5 @@ void progressToSchedr(const ZM_Base::Worker& worker, const std::string& schedrCo
     data.insert({"progress" + to_string(i), to_string(p.getProgress())});
     ++i;
   }
-  ZM_Tcp::sendData(schedrConnPnt, ZM_Aux::serialn(data));
+  ZM_Tcp::asyncSendData(schedrConnPnt, ZM_Aux::serialn(data));
 }

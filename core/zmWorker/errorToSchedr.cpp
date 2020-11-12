@@ -40,6 +40,6 @@ void errorToSchedr(const ZM_Base::Worker& worker, const std::string& schedrConnP
       {"connectPnt", worker.connectPnt},
       {"message", mess}
     };      
-    ZM_Tcp::sendData(schedrConnPnt, ZM_Aux::serialn(data));
+    ZM_Tcp::asyncSendData(schedrConnPnt, ZM_Aux::serialn(data));
   }
 }

@@ -64,7 +64,7 @@ extern ZM_Aux::QueueThrSave<string> _errMess;
 extern ZM_Base::Worker _worker;
 extern mutex _mtxPrc, _mtxTaskCount;
 
-void receiveHandler(const string& remcp, const string& data){
+void receiveHandler(const string& remcp, const string& data, const std::error_code& ec){
 
   auto mess = ZM_Aux::deserialn(data);
   if (mess.empty()){

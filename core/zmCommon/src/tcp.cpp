@@ -29,10 +29,13 @@
 #include "../tcp.h"
 #include "../auxFunc.h"
 
-ZM_Tcp::receiveDataCBack _receiveDataCBack = nullptr;
-ZM_Tcp::stsSendCBack _stsSendCBack = nullptr;
 
 namespace ZM_Tcp{
+
+receiveDataCBack _receiveDataCBack = nullptr;
+stsSendCBack _stsSendCBack = nullptr;
+
+std::map<std::string, std::shared_ptr<TcpClient>> _clientSockets;
 
 asio::io_context ioc;
 TcpServer* _pSrv = nullptr;
@@ -80,17 +83,31 @@ void stopServer(){
   }
 };
 
-void sendData(const std::string& connPnt, const std::string& data, bool isCBackIfError){
-  auto cp = ZM_Aux::split(connPnt, ':');
-  std::make_shared<TcpClient>(ioc, cp[0], cp[1])->write(data, isCBackIfError);  
+void asyncSendData(const std::string& connPnt, const std::string& data, bool isCBackIfError){
+  if (_clientSockets.find(connPnt) != _clientSockets.end()){
+    if (!_clientSockets[connPnt].second || !_clientSockets[connPnt].second->isConnect()){      
+      auto socket = std::make_shared<TcpClient>(ioc, connPnt);
+      if (socket->isConnect()){
+        _clientSockets[connPnt] = move(socket);      
+      }else{
+        if (_stsSendCBack) 
+          _stsSendCBack(connPnt, data, socket->error_code());
+        return;
+      }
+    }
+    _clientSockets[connPnt].second->write(data, isCBackIfError); 
+  }
+  else{
+    std::make_shared<TcpClient>(ioc, connPnt)->write(data, isCBackIfError);
+  }  
 };
 
-bool synchSendData(const std::string& connPnt, const std::string& inData){  
-  auto cp = ZM_Aux::split(connPnt, ':');
+bool syncSendData(const std::string& connPnt, const std::string& inData){  
   asio::io_context io;
   tcp::socket s(io);
   tcp::resolver resolver(io);
 
+  auto cp = ZM_Aux::split(connPnt, ':');
   asio::error_code ec;
   asio::connect(s, resolver.resolve(cp[0], cp[1]), ec);
   if (!ec){  
@@ -98,6 +115,14 @@ bool synchSendData(const std::string& connPnt, const std::string& inData){
   }
   return !ec;
 };
+
+void addSendConnectPnt(const std::string& connPnt){
+  _clientSockets[connPnt] = nullptr;
+}
+
+void addReveiveConnectPnt(const std::string& connPnt){
+  _serverSockets[connPnt] = nullptr;
+}
 
 void setReceiveCBack(receiveDataCBack cb){
   _receiveDataCBack = cb;

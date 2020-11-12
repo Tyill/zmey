@@ -43,13 +43,19 @@ void stopServer();
 /// [in] connPnt - connection point: IP or DNS ':' port
 /// [in] data - data for send
 /// [in] isStsCBackIfError - status send call back only if an error
-void sendData(const std::string& connPnt, const std::string& data, bool isStsCBackIfError = true);
+void asyncSendData(const std::string& connPnt, const std::string& data, bool isStsCBackIfError = true);
 
 /// synchronous data sending once to receiver whithout answer
 /// [in] connPnt - connection point of receiver: IP or DNS ':' port
 /// [in] data - data for send
 /// return true - ok
-bool synchSendData(const std::string& connPnt, const std::string& data);
+bool syncSendData(const std::string& connPnt, const std::string& data);
+
+/// pre-created pool for receivers
+void addSendConnectPnt(const std::string& connPnt);
+
+/// pre-created pool for senders
+void addReveiveConnectPnt(const std::string& connPnt);
 
 /// status send data to receiver 
 /// [in] connPnt - connection point: IP or DNS ':' port
@@ -58,12 +64,15 @@ bool synchSendData(const std::string& connPnt, const std::string& data);
 typedef std::function<void(const std::string& connPnt,                           
                            const std::string& data,
                            const std::error_code& ec)> stsSendCBack;
-void setStsSendCBack(stsSendCBack);
+void setStatusSendCBack(stsSendCBack);
 
 /// received data from sender
 /// [in] connPnt - connection point: IP or DNS ':' port
 /// [in] data - data from sender
-typedef std::function<void(const std::string& connPnt, const std::string& data)> receiveDataCBack;
+/// [in] ec - system error code 
+typedef std::function<void(const std::string& connPnt,
+                           const std::string& data,
+                           const std::error_code& ec)> receiveDataCBack;
 void setReceiveCBack(receiveDataCBack);
 
 }

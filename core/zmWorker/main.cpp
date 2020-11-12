@@ -41,7 +41,7 @@
 
 using namespace std;
 
-void receiveHandler(const string& cp, const string& data);
+void receiveHandler(const string& cp, const string& data, const std::error_code& ec);
 void sendHandler(const string& cp, const string& data, const std::error_code& ec);
 void sendMessToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt, const MessForSchedr&);
 void progressToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt, list<Process>&);
@@ -150,7 +150,9 @@ int main(int argc, char* argv[]){
 
   // TCP server
   ZM_Tcp::setReceiveCBack(receiveHandler);
-  ZM_Tcp::setStsSendCBack(sendHandler);
+  ZM_Tcp::setStatusSendCBack(sendHandler);
+  ZM_Tcp::addSendConnectPnt(cng.schedrConnPnt);
+  ZM_Tcp::addReceiveConnectPnt(cng.schedrConnPnt);
   string err;
   CHECK(!ZM_Tcp::startServer(cng.localConnPnt, err, 1), "Worker error: " + cng.localConnPnt + " " + err);
   statusMess("Worker running: " + cng.localConnPnt);

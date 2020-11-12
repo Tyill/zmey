@@ -25,6 +25,7 @@
 #include <asio.hpp>
 #include "../tcp.h"
 
+extern std::map<std::string, std::shared_ptr<TcpSession>> _serverSockets;
 extern ZM_Tcp::receiveDataCBack _receiveDataCBack;
 
 using namespace asio::ip;
@@ -36,8 +37,7 @@ public:
       std::error_code ec;
       auto endpoint = _socket.remote_endpoint(ec);
       if (!ec){
-        _addr = endpoint.address().to_string();
-        _port = endpoint.port();
+        _connPnt = endpoint.address().to_string() + ":" + std::to_string(endpoint.port());
       }
     }
   
@@ -54,20 +54,21 @@ public:
             }
           }          
           if (ec || (length < MAX_LENGTH)){
-            if (_receiveDataCBack && !_mess.empty() && !_isSendReceive){ 
-              _isSendReceive = true;
-              _receiveDataCBack(_addr + ":" + std::to_string(_port), _mess);
+            if (_receiveDataCBack && !_mess.empty()){ 
+              _receiveDataCBack(_connPnt, _mess, ec);
+              _mess.clear();
             }
           }
         });
   } 
+  std::string connectPnt() const{
+    return _connPnt;
+  }
   tcp::socket _socket;
-  std::string _addr;
-  int _port; 
+  std::string _connPnt;
   enum { MAX_LENGTH = 4096 };
   char _data[MAX_LENGTH];
   std::string _mess;
-  bool _isSendReceive = false;
 };
 
 class TcpServer{
@@ -87,7 +88,9 @@ private:
     _acceptor.async_accept(
         [this](std::error_code ec, tcp::socket socket){
           if (!ec){
-            std::make_shared<TcpSession>(std::move(socket))->read();
+            auto session = std::make_shared<TcpSession>(std::move(socket))->read();
+            if (_serverSockets.find(session->connectPnt()) != _serverSockets.end())
+              _serverSockets[session->connectPnt()] = session;
           }
           accept();
         });

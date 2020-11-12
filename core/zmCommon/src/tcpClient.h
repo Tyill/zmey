@@ -33,34 +33,47 @@ using namespace asio::ip;
 
 class TcpClient : public std::enable_shared_from_this<TcpClient>{
 public:
-  TcpClient(asio::io_context& ioc, const std::string& addr, const std::string& port)
-  : _ioc(ioc), _addr(addr), _port(port), _socket(ioc){}
+  TcpClient(asio::io_context& ioc, const std::string& connPnt)
+  : _ioc(ioc), _connPnt(connPnt), _socket(ioc){
+    auto cp = ZM_Aux::split(connPnt, ':');
+    asio::connect(_socket, tcp::resolver(_ioc).resolve(cp[0], cp[1]), _ec);
+    _isConnect = !_ec;
+  }
 
-  void write(const std::string& msg, bool isCBackIfError){    
-    auto self(shared_from_this());
-    asio::async_connect(_socket, tcp::resolver(_ioc).resolve(_addr, _port),
-    [this, self, msg, isCBackIfError](std::error_code ec, tcp::endpoint ep){
-      if (!ec){
-        asio::async_write(_socket, asio::buffer(msg.data(), msg.size()),
-          [this, self, msg, isCBackIfError](std::error_code ec, std::size_t /*length*/){
-            if (_stsSendCBack && (ec || !isCBackIfError) && !_isSendCBack){
-              _isSendCBack = true;
-              _stsSendCBack(_addr + ":" + _port, msg, ec);
-            }
-          });
-      }else{
-        if (_stsSendCBack && !_isSendCBack){
-          _isSendCBack = true;
-          _stsSendCBack(_addr + ":" + _port, msg, ec); 
+  bool isConnect(){
+    return _isConnect;     
+  }
+
+  void write(const std::string& msg, bool isCBackIfError){  
+    if (!_isConnect){
+      if (_stsSendCBack)
+        _stsSendCBack(_connPnt, msg, _ec);
+      return;
+    } 
+    while(!_isSendCBack){
+      std::this_thread::yield();
+    } 
+    auto self(shared_from_this()); 
+    asio::async_write(_socket, asio::buffer(msg.data(), msg.size()),
+      [this, self, msg, isCBackIfError](std::error_code ec, std::size_t /*length*/){
+        if (_stsSendCBack && (ec || !isCBackIfError){
+          _ec = ec;
+          _stsSendCBack(_connPnt, msg, ec);          
         }
-      }
-    });   
+        _isSendCBack = true;
+      });
+    );   
+  }
+
+  std::error_code errorCode(){
+    return _ec;
   }
   
 private:
+  bool _isConnect = false;
+  bool _isSendCBack = true;
   asio::io_context& _ioc;
   tcp::socket _socket;
-  std::string _addr;
-  std::string _port;
-  bool _isSendCBack = false;
+  std::error_code _ec;
+  std::string _connPnt;
 };

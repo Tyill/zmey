@@ -87,7 +87,7 @@ void sendTaskToWorker(const ZM_Base::Scheduler& schedr,
       ++(*iWr)->activeTask;
       workers[(*iWr)->connectPnt].base.activeTask = (*iWr)->activeTask;
 
-      ZM_Tcp::sendData((*iWr)->connectPnt, ZM_Aux::serialn(data));
+      ZM_Tcp::asyncSendData((*iWr)->connectPnt, ZM_Aux::serialn(data));
 
       messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::TASK_START, 
                                       (*iWr)->id,
