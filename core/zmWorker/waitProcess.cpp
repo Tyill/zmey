@@ -42,7 +42,7 @@ extern ZM_Aux::QueueThrSave<string> _errMess;
 extern mutex _mtxTaskCount;
 
 
-void waitProcess(ZM_Base::Worker& worker, list<Process>& procs, ZM_Aux::QueueThrSave<MessToSchedr>& listMessForSchedr){
+void waitProcess(ZM_Base::Worker& worker, list<Process>& procs, ZM_Aux::QueueThrSave<MessForSchedr>& listMessForSchedr){
   
 #define ERROR_MESS(mstr) \
   statusMess(mstr);      \
@@ -101,7 +101,7 @@ void waitProcess(ZM_Base::Worker& worker, list<Process>& procs, ZM_Aux::QueueThr
 
       ++taskCountCompl;
 
-      listMessForSchedr.push(MessToSchedr{itPrc->getTask().base.id,
+      listMessForSchedr.push(MessForSchedr{itPrc->getTask().base.id,
                                           mt,
                                           result});
 
@@ -116,14 +116,14 @@ void waitProcess(ZM_Base::Worker& worker, list<Process>& procs, ZM_Aux::QueueThr
     // stop
     else if (WIFSTOPPED(sts)){
       itPrc->setTaskState(ZM_Base::StateType::PAUSE);
-      listMessForSchedr.push(MessToSchedr{itPrc->getTask().base.id,
+      listMessForSchedr.push(MessForSchedr{itPrc->getTask().base.id,
                                           ZM_Base::MessType::TASK_PAUSE,
                                           ""});
     } 
     // continue
     else if (WIFCONTINUED(sts)){
       itPrc->setTaskState(ZM_Base::StateType::RUNNING);
-      listMessForSchedr.push(MessToSchedr{itPrc->getTask().base.id,
+      listMessForSchedr.push(MessForSchedr{itPrc->getTask().base.id,
                                           ZM_Base::MessType::TASK_CONTINUE,
                                           ""});    
     } 

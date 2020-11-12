@@ -31,7 +31,7 @@
 
 using namespace std;
 
-void sendMessToSchedr(const ZM_Base::Worker& worker, const std::string& schedrConnPnt, const MessToSchedr& mess){
+void sendMessToSchedr(const ZM_Base::Worker& worker, const std::string& schedrConnPnt, const MessForSchedr& mess){
   
   map<string, string> data{
         {"command",    to_string((int)mess.MessType)},

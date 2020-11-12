@@ -43,14 +43,14 @@ using namespace std;
 
 void receiveHandler(const string& cp, const string& data);
 void sendHandler(const string& cp, const string& data, const std::error_code& ec);
-void sendMessToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt, const MessToSchedr&);
+void sendMessToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt, const MessForSchedr&);
 void progressToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt, list<Process>&);
 void pingToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt);
 void errorToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt, ZM_Aux::QueueThrSave<string>& );
-void updateListTasks(ZM_Aux::QueueThrSave<WTask>& newTasks, list<Process>& procs, ZM_Aux::QueueThrSave<MessToSchedr>& listMessForSchedr);
-void waitProcess(ZM_Base::Worker&, list<Process>& procs, ZM_Aux::QueueThrSave<MessToSchedr>& listMessForSchedr);
+void updateListTasks(ZM_Aux::QueueThrSave<WTask>& newTasks, list<Process>& procs, ZM_Aux::QueueThrSave<MessForSchedr>& listMessForSchedr);
+void waitProcess(ZM_Base::Worker&, list<Process>& procs, ZM_Aux::QueueThrSave<MessForSchedr>& listMessForSchedr);
 
-ZM_Aux::QueueThrSave<MessToSchedr> _listMessForSchedr;
+ZM_Aux::QueueThrSave<MessForSchedr> _listMessForSchedr;
 ZM_Aux::QueueThrSave<WTask> _newTasks;
 ZM_Aux::QueueThrSave<string> _errMess;
 list<Process> _procs;
@@ -61,7 +61,7 @@ volatile bool _isSendAck = true,
               _isMainCycleRun = false;
 
 struct Config{
-  int progressTasksTOutSec = 30;
+  int progressTasksTOutSec = 10;
   int pingSchedrTOutSec = 20; 
   const int sendAckTOutSec = 1; 
   std::string localConnPnt;
@@ -94,12 +94,12 @@ void parseArgs(int argc, char* argv[], Config& outCng){
   
   map<string, string> sprms = ZM_Aux::parseCMDArgs(argc, argv);
   
-  if (sprms.find("help") != sprms.end()){
+  if (sprms.empty() || (sprms.cbegin()->first == "help")){
     cout << "Usage: --localAddr[-la] worker local connection point: IP or DNS:port. Required\n"
          << "       --remoteAddr[-ra] worker remote connection point (if from NAT): IP or DNS:port. Optional\n"
          << "       --schedrAddr[-sa] schedr remote connection point: IP or DNS:port. Required\n"
-         << "       --progressTOut[-pt] send progress of tasks to schedr, sec. Default 30s\n"
-         << "       --pingSchedrTOut[-st] send ping to schedr, sec. Default 20s\n";
+         << "       --progressTOut[-pt] send progress of tasks to schedr, sec. Default 10 sec\n"
+         << "       --pingSchedrTOut[-st] send ping to schedr, sec. Default 20 sec\n";
     exit(0);  
   }
 
@@ -165,7 +165,7 @@ int main(int argc, char* argv[]){
   ZM_Aux::CPUData cpu;
 
   // on start
-  _listMessForSchedr.push(MessToSchedr{0, ZM_Base::MessType::JUST_START_WORKER});
+  _listMessForSchedr.push(MessForSchedr{0, ZM_Base::MessType::JUST_START_WORKER});
 
   // main cycle
   while (1){
@@ -178,7 +178,7 @@ int main(int argc, char* argv[]){
     waitProcess(_worker, _procs, _listMessForSchedr);
 
     // send mess to schedr (send constantly until it receives)
-    MessToSchedr mess;
+    MessForSchedr mess;
     if (_isSendAck && _listMessForSchedr.front(mess)){ 
       _isSendAck = false;
       sendMessToSchedr(_worker, cng.schedrConnPnt, mess);

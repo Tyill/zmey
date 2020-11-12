@@ -42,7 +42,7 @@ if (not zo.addUser(usr)):
   exit(-1)
   
 # add taskTemplate
-tt = zm.TaskTemplate(name='tt', uId=usr.id, maxDurationSec = 10, script="#! /bin/sh \n sleep 1; echo res ")
+tt = zm.TaskTemplate(name='tt', uId=usr.id, averDurationSec = 1, maxDurationSec = 10, script="#! /bin/sh \n sleep 1; echo res ")
 if (not zo.addTaskTemplate(tt)):
   exit(-1)
   

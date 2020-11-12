@@ -73,11 +73,11 @@ void parseArgs(int argc, char* argv[], Config& outCng){
   
   map<string, string> sprms = ZM_Aux::parseCMDArgs(argc, argv);
 
-  if (sprms.find("help") != sprms.end()){
+  if (sprms.empty() || (sprms.cbegin()->first == "help")){
     cout << "Usage: --localAddr[-la] schedr local connection point: IP or DNS:port. Required\n"
          << "       --remoteAddr[-ra] schedr remote connection point (if from NAT): IP or DNS:port. Optional\n"
          << "       --dbConnStr[-db] database connection string\n"
-         << "       --checkWorkerTOut[-cw] check ping from workers, sec. Default 120s\n";
+         << "       --checkWorkerTOut[-cw] check ping from workers, sec. Default 120 sec\n";
     exit(0);  
   }
   

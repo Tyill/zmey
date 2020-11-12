@@ -32,7 +32,7 @@ using namespace std;
 
 extern mutex _mtxPrc;
 
-void updateListTasks(ZM_Aux::QueueThrSave<WTask>& newTasks, list<Process>& procs, ZM_Aux::QueueThrSave<MessToSchedr>& listMessForSchedr){
+void updateListTasks(ZM_Aux::QueueThrSave<WTask>& newTasks, list<Process>& procs, ZM_Aux::QueueThrSave<MessForSchedr>& listMessForSchedr){
   lock_guard<std::mutex> lock(_mtxPrc);
 
   WTask tsk;
@@ -43,7 +43,7 @@ void updateListTasks(ZM_Aux::QueueThrSave<WTask>& newTasks, list<Process>& procs
       break;
     }
     procs.push_back(move(prc));
-    listMessForSchedr.push(MessToSchedr{tsk.base.id, ZM_Base::MessType::TASK_RUNNING, ""});
+    listMessForSchedr.push(MessForSchedr{tsk.base.id, ZM_Base::MessType::TASK_RUNNING, ""});
   }
   for (auto ip = procs.begin(); ip != procs.end();){
     ZM_Base::StateType TaskState = ip->getTask().state;
