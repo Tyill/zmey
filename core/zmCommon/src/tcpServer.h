@@ -23,7 +23,10 @@
 // THE SOFTWARE.
 //
 #include <asio.hpp>
+#include <map>
 #include "../tcp.h"
+
+class TcpSession;
 
 extern std::map<std::string, std::shared_ptr<TcpSession>> _serverSockets;
 extern ZM_Tcp::receiveDataCBack _receiveDataCBack;
@@ -88,9 +91,10 @@ private:
     _acceptor.async_accept(
         [this](std::error_code ec, tcp::socket socket){
           if (!ec){
-            auto session = std::make_shared<TcpSession>(std::move(socket))->read();
+            auto session = std::make_shared<TcpSession>(std::move(socket));
             if (_serverSockets.find(session->connectPnt()) != _serverSockets.end())
               _serverSockets[session->connectPnt()] = session;
+            session->read();
           }
           accept();
         });

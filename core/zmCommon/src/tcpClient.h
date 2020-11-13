@@ -26,6 +26,7 @@
 
 #include <asio.hpp>
 #include "../tcp.h"
+#include "../auxFunc.h"
 
 extern ZM_Tcp::stsSendCBack _stsSendCBack;
 
@@ -56,13 +57,12 @@ public:
     auto self(shared_from_this()); 
     asio::async_write(_socket, asio::buffer(msg.data(), msg.size()),
       [this, self, msg, isCBackIfError](std::error_code ec, std::size_t /*length*/){
-        if (_stsSendCBack && (ec || !isCBackIfError){
+        if (_stsSendCBack && (ec || !isCBackIfError)){
           _ec = ec;
           _stsSendCBack(_connPnt, msg, ec);          
         }
         _isSendCBack = true;
       });
-    );   
   }
 
   std::error_code errorCode(){

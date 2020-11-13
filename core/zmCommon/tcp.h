@@ -55,7 +55,7 @@ bool syncSendData(const std::string& connPnt, const std::string& data);
 void addSendConnectPnt(const std::string& connPnt);
 
 /// pre-created pool for senders
-void addReveiveConnectPnt(const std::string& connPnt);
+void addReceiveConnectPnt(const std::string& connPnt);
 
 /// status send data to receiver 
 /// [in] connPnt - connection point: IP or DNS ':' port

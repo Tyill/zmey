@@ -30,12 +30,13 @@
 #include "../auxFunc.h"
 
 
-namespace ZM_Tcp{
-
-receiveDataCBack _receiveDataCBack = nullptr;
-stsSendCBack _stsSendCBack = nullptr;
+ZM_Tcp::receiveDataCBack _receiveDataCBack = nullptr;
+ZM_Tcp::stsSendCBack _stsSendCBack = nullptr; 
 
 std::map<std::string, std::shared_ptr<TcpClient>> _clientSockets;
+std::map<std::string, std::shared_ptr<TcpSession>> _serverSockets;
+
+namespace ZM_Tcp{
 
 asio::io_context ioc;
 TcpServer* _pSrv = nullptr;
@@ -85,17 +86,17 @@ void stopServer(){
 
 void asyncSendData(const std::string& connPnt, const std::string& data, bool isCBackIfError){
   if (_clientSockets.find(connPnt) != _clientSockets.end()){
-    if (!_clientSockets[connPnt].second || !_clientSockets[connPnt].second->isConnect()){      
+    if (!_clientSockets[connPnt] || !_clientSockets[connPnt]->isConnect()){      
       auto socket = std::make_shared<TcpClient>(ioc, connPnt);
       if (socket->isConnect()){
         _clientSockets[connPnt] = move(socket);      
       }else{
         if (_stsSendCBack) 
-          _stsSendCBack(connPnt, data, socket->error_code());
+          _stsSendCBack(connPnt, data, socket->errorCode());
         return;
       }
     }
-    _clientSockets[connPnt].second->write(data, isCBackIfError); 
+    _clientSockets[connPnt]->write(data, isCBackIfError); 
   }
   else{
     std::make_shared<TcpClient>(ioc, connPnt)->write(data, isCBackIfError);
@@ -120,7 +121,7 @@ void addSendConnectPnt(const std::string& connPnt){
   _clientSockets[connPnt] = nullptr;
 }
 
-void addReveiveConnectPnt(const std::string& connPnt){
+void addReceiveConnectPnt(const std::string& connPnt){
   _serverSockets[connPnt] = nullptr;
 }
 
@@ -128,7 +129,7 @@ void setReceiveCBack(receiveDataCBack cb){
   _receiveDataCBack = cb;
 };
 
-void setStsSendCBack(stsSendCBack cb){
+void setStatusSendCBack(stsSendCBack cb){
   _stsSendCBack = cb;
 };
 };
