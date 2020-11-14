@@ -61,8 +61,7 @@ using namespace std;
 extern list<Process> _procs;
 extern ZM_Aux::QueueThrSave<WTask> _newTasks;
 extern ZM_Aux::QueueThrSave<string> _errMess;
-extern ZM_Base::Worker _worker;
-extern mutex _mtxPrc, _mtxTaskCount;
+extern mutex _mtxPrc;
 
 void receiveHandler(const string& remcp, const string& data, const std::error_code& ec){
 
@@ -92,9 +91,6 @@ void receiveHandler(const string& remcp, const string& data, const std::error_co
     _newTasks.push(WTask{t, 
                          ZM_Base::StateType::READY,
                          mess["params"]}); 
-    {std::lock_guard<std::mutex> lock(_mtxTaskCount);
-      _worker.activeTask = stoi(mess["activeTask"]);     
-    }
     mainCycleNotify();
   }
   else if (mtype == ZM_Base::MessType::PING_WORKER){  // only check

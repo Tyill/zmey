@@ -23,56 +23,10 @@
 // THE SOFTWARE.
 //
 #include <asio.hpp>
-#include <map>
-#include "../tcp.h"
+#include "tcpSession.h"
 
-class TcpSession;
-
-extern std::map<std::string, std::shared_ptr<TcpSession>> _serverSockets;
-extern ZM_Tcp::receiveDataCBack _receiveDataCBack;
-
-using namespace asio::ip;
-
-class TcpSession : public std::enable_shared_from_this<TcpSession>{
-public:
-  TcpSession(tcp::socket socket)
-    : _socket(std::move(socket)){
-      std::error_code ec;
-      auto endpoint = _socket.remote_endpoint(ec);
-      if (!ec){
-        _connPnt = endpoint.address().to_string() + ":" + std::to_string(endpoint.port());
-      }
-    }
-  
-  void read(){  
-    auto self(shared_from_this());
-    _socket.async_read_some(asio::buffer(_data, MAX_LENGTH),
-        [this, self](std::error_code ec, std::size_t length){
-          if (!ec){
-            size_t csz = _mess.size();
-            _mess.resize(csz + length);
-            memcpy((void*)(_mess.data() + csz), _data, length);
-            if (length == MAX_LENGTH){ 
-              read();
-            }
-          }          
-          if (ec || (length < MAX_LENGTH)){
-            if (_receiveDataCBack && !_mess.empty()){ 
-              _receiveDataCBack(_connPnt, _mess, ec);
-              _mess.clear();
-            }
-          }
-        });
-  } 
-  std::string connectPnt() const{
-    return _connPnt;
-  }
-  tcp::socket _socket;
-  std::string _connPnt;
-  enum { MAX_LENGTH = 4096 };
-  char _data[MAX_LENGTH];
-  std::string _mess;
-};
+extern std::mutex _mtxSession;
+extern std::map<std::string, std::shared_ptr<TcpSession>> _sessions;
 
 class TcpServer{
 public:
@@ -92,8 +46,10 @@ private:
         [this](std::error_code ec, tcp::socket socket){
           if (!ec){
             auto session = std::make_shared<TcpSession>(std::move(socket));
-            if (_serverSockets.find(session->connectPnt()) != _serverSockets.end())
-              _serverSockets[session->connectPnt()] = session;
+            if (_sessions.find(session->connectPnt()) != _sessions.end()){
+              std::lock_guard<std::mutex> lock(_mtxSession);
+              _sessions[session->connectPnt()] = session;
+            }
             session->read();
           }
           accept();

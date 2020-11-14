@@ -24,17 +24,16 @@
 //
 
 #include <numeric>
+#include <mutex>
 #include "tcpServer.h"
-#include "tcpClient.h"
 #include "../tcp.h"
 #include "../auxFunc.h"
 
-
+std::mutex _mtxSession;
 ZM_Tcp::receiveDataCBack _receiveDataCBack = nullptr;
 ZM_Tcp::stsSendCBack _stsSendCBack = nullptr; 
 
-std::map<std::string, std::shared_ptr<TcpClient>> _clientSockets;
-std::map<std::string, std::shared_ptr<TcpSession>> _serverSockets;
+std::map<std::string, std::shared_ptr<TcpSession>> _sessions;
 
 namespace ZM_Tcp{
 
@@ -85,21 +84,33 @@ void stopServer(){
 };
 
 void asyncSendData(const std::string& connPnt, const std::string& data, bool isCBackIfError){
-  if (_clientSockets.find(connPnt) != _clientSockets.end()){
-    if (!_clientSockets[connPnt] || !_clientSockets[connPnt]->isConnect()){      
-      auto socket = std::make_shared<TcpClient>(ioc, connPnt);
-      if (socket->isConnect()){
-        _clientSockets[connPnt] = move(socket);      
+  if (_sessions.find(connPnt) != _sessions.end()){
+    if (!_sessions[connPnt] || !_sessions[connPnt]->isConnect()){
+      tcp::socket socket(_ioc);
+      std::error_code ec;
+      auto cp = ZM_Aux::split(connPnt, ':');
+      asio::connect(socket, tcp::resolver(_ioc).resolve(cp[0], cp[1]), ec);
+      if (!ec){    
+        std::lock_guard<std::mutex> lock(_mtxSession);
+        _sessions[connPnt] = std::make_shared<TcpSession>(std::move(socket));  
       }else{
         if (_stsSendCBack) 
-          _stsSendCBack(connPnt, data, socket->errorCode());
+          _stsSendCBack(connPnt, data, ec);
         return;
       }
     }
-    _clientSockets[connPnt]->write(data, isCBackIfError); 
+    _sessions[connPnt]->write(data, isCBackIfError); 
   }
   else{
-    std::make_shared<TcpClient>(ioc, connPnt)->write(data, isCBackIfError);
+    tcp::socket socket(_ioc);
+    std::error_code ec;
+    auto cp = ZM_Aux::split(connPnt, ':');
+    asio::connect(socket, tcp::resolver(_ioc).resolve(cp[0], cp[1]), ec);
+    if (!ec){    
+      std::make_shared<TcpClient>(std::move(socket))->write(data, isCBackIfError);
+    }else if (_stsSendCBack){      
+      _stsSendCBack(connPnt, data, ec);
+    }
   }  
 };
 
@@ -117,12 +128,8 @@ bool syncSendData(const std::string& connPnt, const std::string& inData){
   return !ec;
 };
 
-void addSendConnectPnt(const std::string& connPnt){
+void addPreConnectPnt(const std::string& connPnt){
   _clientSockets[connPnt] = nullptr;
-}
-
-void addReceiveConnectPnt(const std::string& connPnt){
-  _serverSockets[connPnt] = nullptr;
 }
 
 void setReceiveCBack(receiveDataCBack cb){

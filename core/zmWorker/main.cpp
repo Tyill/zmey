@@ -55,10 +55,9 @@ ZM_Aux::QueueThrSave<WTask> _newTasks;
 ZM_Aux::QueueThrSave<string> _errMess;
 list<Process> _procs;
 ZM_Base::Worker _worker;
-mutex _mtxPrc, _mtxSts, _mtxTaskCount;
+mutex _mtxPrc, _mtxSts;
 std::condition_variable _cv;
-volatile bool _isSendAck = true,
-              _isMainCycleRun = false;
+volatile bool _isMainCycleRun = false;
 
 struct Config{
   int progressTasksTOutSec = 10;
@@ -151,8 +150,7 @@ int main(int argc, char* argv[]){
   // TCP server
   ZM_Tcp::setReceiveCBack(receiveHandler);
   ZM_Tcp::setStatusSendCBack(sendHandler);
-  ZM_Tcp::addSendConnectPnt(cng.schedrConnPnt);
-  ZM_Tcp::addReceiveConnectPnt(cng.schedrConnPnt);
+  ZM_Tcp::addPreConnectPnt(cng.schedrConnPnt);
   string err;
   CHECK(!ZM_Tcp::startServer(cng.localConnPnt, err, 1), "Worker error: " + cng.localConnPnt + " " + err);
   statusMess("Worker running: " + cng.localConnPnt);
@@ -172,44 +170,40 @@ int main(int argc, char* argv[]){
   // main cycle
   while (1){
     timer.updateCycTime();   
+   
+    // check child process
+    waitProcess(_worker, _procs, _listMessForSchedr);
 
     // update list of tasks
     updateListTasks(_newTasks, _procs, _listMessForSchedr);
 
-    // check child process
-    waitProcess(_worker, _procs, _listMessForSchedr);
-
     // send mess to schedr (send constantly until it receives)
     MessForSchedr mess;
-    if (_isSendAck && _listMessForSchedr.front(mess)){ 
-      _isSendAck = false;
+    if (_listMessForSchedr.front(mess)){
+      _worker.activeTask = _newTasks.size() + _procs.size();
       sendMessToSchedr(_worker, cng.schedrConnPnt, mess);
     }
-    else if (!_isSendAck && timer.onDelaySec(true, cng.sendAckTOutSec, 0)){
-      _isSendAck = true;
-    }
-
+    
     // progress of tasks
-    if(timer.onDelayOncSec(true, cng.progressTasksTOutSec, 1)){
+    if(timer.onDelayOncSec(true, cng.progressTasksTOutSec, 0)){
       progressToSchedr(_worker, cng.schedrConnPnt, _procs);
     }
+    
     // load CPU
-    if(timer.onDelayOncSec(true, 1, 2)){
+    if(timer.onDelayOncSec(true, 1, 1)){
       _worker.load = cpu.load();
     } 
+    
     // ping to schedr
-    if(timer.onDelayOncSec(true, cng.pingSchedrTOutSec, 3)){
+    if(timer.onDelayOncSec(true, cng.pingSchedrTOutSec, 2)){
       pingToSchedr(_worker, cng.schedrConnPnt);
     } 
-    // smooth adaptive task count
-    if(timer.onDelayOncSec(true, 1, 4)){
-      std::lock_guard<std::mutex> lock(_mtxTaskCount);
-      _worker.activeTask = floor(_worker.activeTask * 0.9 + (_newTasks.size() + _procs.size()) * 0.1);
-    }        
+         
     // errors
     if (!_errMess.empty()){ 
       errorToSchedr(_worker, cng.schedrConnPnt, _errMess);
     }    
+    
     // added delay
     if (_newTasks.empty()){
       mainCycleSleep(minCycleTimeMS);     

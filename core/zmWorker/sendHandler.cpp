@@ -43,12 +43,11 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
         (stoull(smess["taskId"]) == mess.taskId)){ 
       _listMessForSchedr.tryPop(mess);
       mainCycleNotify();
-    }  
-    _isSendAck = true;
+    }
     ctickSH.reset();
   }else{
     if (ctickSH(100)){
-      statusMess("worker::sendHandler error send to schedr, cp " + cp);
+      statusMess("worker::sendHandler error send to schedr");
     }
   }
 }

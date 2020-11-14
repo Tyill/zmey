@@ -51,11 +51,8 @@ void asyncSendData(const std::string& connPnt, const std::string& data, bool isS
 /// return true - ok
 bool syncSendData(const std::string& connPnt, const std::string& data);
 
-/// pre-created pool for receivers
-void addSendConnectPnt(const std::string& connPnt);
-
-/// pre-created pool for senders
-void addReceiveConnectPnt(const std::string& connPnt);
+/// add connect point to pool
+void addPreConnectPnt(const std::string& connPnt);
 
 /// status send data to receiver 
 /// [in] connPnt - connection point: IP or DNS ':' port

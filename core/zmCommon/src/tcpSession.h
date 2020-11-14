@@ -29,51 +29,70 @@
 #include "../auxFunc.h"
 
 extern ZM_Tcp::stsSendCBack _stsSendCBack;
+extern ZM_Tcp::receiveDataCBack _receiveDataCBack;
 
 using namespace asio::ip;
 
-class TcpClient : public std::enable_shared_from_this<TcpClient>{
+class TcpSession : public std::enable_shared_from_this<TcpSession>{
 public:
-  TcpClient(asio::io_context& ioc, const std::string& connPnt)
-  : _ioc(ioc), _connPnt(connPnt), _socket(ioc){
-    auto cp = ZM_Aux::split(connPnt, ':');
-    asio::connect(_socket, tcp::resolver(_ioc).resolve(cp[0], cp[1]), _ec);
-    _isConnect = !_ec;
-  }
+  TcpSession(tcp::socket socket)
+    : _socket(std::move(socket)){
+      auto endpoint = _socket.remote_endpoint(_ec);
+      if (!_ec){
+        _connPnt = endpoint.address().to_string() + ":" + std::to_string(endpoint.port());
+      }
+    }
+  
+  void read(){  
+    auto self(shared_from_this());
+    _socket.async_read_some(asio::buffer(_data, MAX_LENGTH),
+        [this, self](std::error_code ec, std::size_t length){
+          _ec = ec;
+          if (!ec){
+            size_t csz = _mess.size();
+            _mess.resize(csz + length);
+            memcpy((void*)(_mess.data() + csz), _data, length);
+            if (length == MAX_LENGTH){ 
+              read();
+            }
+          }          
+          if (ec || (length < MAX_LENGTH)){
+            if (_receiveDataCBack && !_mess.empty()){ 
+              _receiveDataCBack(_connPnt, _mess, ec);
+              _mess.clear();
+            }
+          }          
+        });
+  } 
 
   bool isConnect(){
-    return _isConnect;     
+    return !_ec;     
   }
 
   void write(const std::string& msg, bool isCBackIfError){  
-    if (!_isConnect){
+    if (_ec){
       if (_stsSendCBack)
         _stsSendCBack(_connPnt, msg, _ec);
       return;
     } 
-    while(!_isSendCBack){
-      std::this_thread::yield();
-    } 
     auto self(shared_from_this()); 
     asio::async_write(_socket, asio::buffer(msg.data(), msg.size()),
       [this, self, msg, isCBackIfError](std::error_code ec, std::size_t /*length*/){
+        _ec = ec;
         if (_stsSendCBack && (ec || !isCBackIfError)){
-          _ec = ec;
           _stsSendCBack(_connPnt, msg, ec);          
-        }
-        _isSendCBack = true;
+        } 
       });
   }
 
-  std::error_code errorCode(){
-    return _ec;
+  std::string connectPnt() const{
+    return _connPnt;
   }
-  
-private:
-  bool _isConnect = false;
-  bool _isSendCBack = true;
-  asio::io_context& _ioc;
+
   tcp::socket _socket;
-  std::error_code _ec;
   std::string _connPnt;
+  enum { MAX_LENGTH = 4096 };
+  char _data[MAX_LENGTH];
+  std::string _mess;
+  std::error_code _ec;
 };

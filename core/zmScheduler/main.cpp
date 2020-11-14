@@ -178,8 +178,7 @@ int main(int argc, char* argv[]){
   ZM_Tcp::setReceiveCBack(receiveHandler);
   ZM_Tcp::setStatusSendCBack(sendHandler);
   for (auto& w : _workers){
-    ZM_Tcp::addSendConnectPnt(w.first);
-    ZM_Tcp::addReceiveConnectPnt(w.first);
+    ZM_Tcp::addPreConnectPnt(w.first);
   }  
   CHECK(!ZM_Tcp::startServer(cng.localConnPnt, err), "Schedr error: " + cng.localConnPnt + " " + err);
   statusMess("Schedr running: " + cng.localConnPnt);
