@@ -10,7 +10,7 @@ import zmClient as zm
 #### 3 schedr, 3 * 30 workers, 3000 tasks on one machine
 
 # del all tables
-with psycopg2.connect(dbname='zmeyDb', user='alm', password='123', host='localhost') as pg:
+with psycopg2.connect(dbname='zmeydb', user='alm', password='123', host='localhost') as pg:
   csr = pg.cursor()
   csr.execute("drop table if exists tblUser cascade;" +
               "drop table if exists tblScheduler cascade;" +
@@ -30,7 +30,7 @@ with psycopg2.connect(dbname='zmeyDb', user='alm', password='123', host='localho
               "drop table if exists tblUTaskGroup cascade;")
   csr.close()
 
-zo = zm.Connection("host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10")
+zo = zm.Connection("host=localhost port=5432 password=123 dbname=zmeydb connect_timeout=10")
 
 zo.setErrorCBack(lambda err: print(err))
 
@@ -67,7 +67,7 @@ for i in range(sCnt):
       exit(-1)
   schPrc.append(subprocess.Popen([os.path.expanduser("~") + '/cpp/zmey/build/Release/zmScheduler',
                                   '-la=localhost:' + str(4440 + i),
-                                  "-db=host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10"]))
+                                  "-db=host=localhost port=5432 password=123 dbname=zmeydb connect_timeout=10"]))
   time.sleep(3)
   for j in range(wCnt):
     wkrPrc.append(subprocess.Popen([os.path.expanduser("~") + '/cpp/zmey/build/Release/zmWorker',

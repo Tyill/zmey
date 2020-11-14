@@ -39,7 +39,7 @@
 
 using namespace std;
 
-void receiveHandler(const string& cp, const string& data, const std::error_code& ec);
+void receiveHandler(const string& cp, const string& data);
 void sendHandler(const string& cp, const string& data, const std::error_code& ec);
 void getNewTaskFromDB(ZM_DB::DbProvider& db);
 void sendTaskToWorker(const ZM_Base::Scheduler&, map<std::string, SWorker>&, ZM_Aux::QueueThrSave<STask>&, ZM_Aux::QueueThrSave<ZM_DB::MessSchedr>& messToDB);
@@ -176,7 +176,7 @@ int main(int argc, char* argv[]){
  
   // TCP server
   ZM_Tcp::setReceiveCBack(receiveHandler);
-  ZM_Tcp::setStatusSendCBack(sendHandler);
+  ZM_Tcp::setSendStatusCBack(sendHandler);
   for (auto& w : _workers){
     ZM_Tcp::addPreConnectPnt(w.first);
   }  

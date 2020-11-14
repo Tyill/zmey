@@ -45,9 +45,7 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
       mainCycleNotify();
     }
     ctickSH.reset();
-  }else{
-    if (ctickSH(100)){
-      statusMess("worker::sendHandler error send to schedr");
-    }
+  }else if (ec){
+    statusMess("worker::sendHandler error send to schedr: " + ec.message());
   }
 }

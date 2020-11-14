@@ -31,7 +31,7 @@
 
 std::mutex _mtxSession;
 ZM_Tcp::receiveDataCBack _receiveDataCBack = nullptr;
-ZM_Tcp::stsSendCBack _stsSendCBack = nullptr; 
+ZM_Tcp::sendStatusCBack _sendStatusCBack = nullptr; 
 
 std::map<std::string, std::shared_ptr<TcpSession>> _sessions;
 
@@ -86,30 +86,29 @@ void stopServer(){
 void asyncSendData(const std::string& connPnt, const std::string& data, bool isCBackIfError){
   if (_sessions.find(connPnt) != _sessions.end()){
     if (!_sessions[connPnt] || !_sessions[connPnt]->isConnect()){
-      tcp::socket socket(_ioc);
+      tcp::socket socket(ioc);
       std::error_code ec;
       auto cp = ZM_Aux::split(connPnt, ':');
-      asio::connect(socket, tcp::resolver(_ioc).resolve(cp[0], cp[1]), ec);
+      asio::connect(socket, tcp::resolver(ioc).resolve(cp[0], cp[1]), ec);
       if (!ec){    
         std::lock_guard<std::mutex> lock(_mtxSession);
         _sessions[connPnt] = std::make_shared<TcpSession>(std::move(socket));  
-      }else{
-        if (_stsSendCBack) 
-          _stsSendCBack(connPnt, data, ec);
+      }else if (_sendStatusCBack){
+        _sendStatusCBack(connPnt, data, ec);
         return;
       }
     }
     _sessions[connPnt]->write(data, isCBackIfError); 
   }
   else{
-    tcp::socket socket(_ioc);
+    tcp::socket socket(ioc);
     std::error_code ec;
     auto cp = ZM_Aux::split(connPnt, ':');
-    asio::connect(socket, tcp::resolver(_ioc).resolve(cp[0], cp[1]), ec);
+    asio::connect(socket, tcp::resolver(ioc).resolve(cp[0], cp[1]), ec);
     if (!ec){    
-      std::make_shared<TcpClient>(std::move(socket))->write(data, isCBackIfError);
-    }else if (_stsSendCBack){      
-      _stsSendCBack(connPnt, data, ec);
+      std::make_shared<TcpSession>(std::move(socket))->write(data, isCBackIfError);
+    }else if (_sendStatusCBack){      
+      _sendStatusCBack(connPnt, data, ec);
     }
   }  
 };
@@ -129,14 +128,14 @@ bool syncSendData(const std::string& connPnt, const std::string& inData){
 };
 
 void addPreConnectPnt(const std::string& connPnt){
-  _clientSockets[connPnt] = nullptr;
+  _sessions[connPnt] = nullptr;
 }
 
 void setReceiveCBack(receiveDataCBack cb){
   _receiveDataCBack = cb;
 };
 
-void setStatusSendCBack(stsSendCBack cb){
-  _stsSendCBack = cb;
+void setSendStatusCBack(sendStatusCBack cb){
+  _sendStatusCBack = cb;
 };
 };

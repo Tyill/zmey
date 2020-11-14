@@ -60,7 +60,7 @@ extern ZM_Aux::QueueThrSave<ZM_DB::MessSchedr> _messToDB;
 extern map<std::string, SWorker> _workers;
 extern ZM_Base::Scheduler _schedr;
 
-void receiveHandler(const string& remcp, const string& data, const std::error_code& ec){
+void receiveHandler(const string& remcp, const string& data){
 
   auto mess = ZM_Aux::deserialn(data);
   if (mess.empty()){

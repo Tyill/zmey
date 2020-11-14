@@ -28,7 +28,7 @@
 #include "../tcp.h"
 #include "../auxFunc.h"
 
-extern ZM_Tcp::stsSendCBack _stsSendCBack;
+extern ZM_Tcp::sendStatusCBack _sendStatusCBack;
 extern ZM_Tcp::receiveDataCBack _receiveDataCBack;
 
 using namespace asio::ip;
@@ -48,20 +48,26 @@ public:
     _socket.async_read_some(asio::buffer(_data, MAX_LENGTH),
         [this, self](std::error_code ec, std::size_t length){
           _ec = ec;
-          if (!ec){
-            size_t csz = _mess.size();
-            _mess.resize(csz + length);
-            memcpy((void*)(_mess.data() + csz), _data, length);
-            if (length == MAX_LENGTH){ 
-              read();
+          if (_receiveDataCBack && (length > 0)){ 
+            size_t cbsz = _buff.size();
+            _buff.resize(cbsz + length);
+            memcpy((void*)(_buff.data() + cbsz), _data, length);           
+         
+            size_t buffSz = cbsz + length,
+                   offs = 0; 
+            auto pBuff = _buff.data();
+            while((buffSz - offs) > sizeof(int)){
+              size_t messSz = *((int*)(pBuff + offs));
+              if ((buffSz - offs) >= messSz){
+                _receiveDataCBack(_connPnt, std::string(pBuff + offs, messSz));  
+                offs += messSz;
+              }else{
+                break;
+              }
             }
-          }          
-          if (ec || (length < MAX_LENGTH)){
-            if (_receiveDataCBack && !_mess.empty()){ 
-              _receiveDataCBack(_connPnt, _mess, ec);
-              _mess.clear();
-            }
-          }          
+            if (offs > 0) _buff = std::string(pBuff + offs, buffSz - offs);
+          }
+          if (!ec) read();                                
         });
   } 
 
@@ -71,16 +77,16 @@ public:
 
   void write(const std::string& msg, bool isCBackIfError){  
     if (_ec){
-      if (_stsSendCBack)
-        _stsSendCBack(_connPnt, msg, _ec);
+      if (_sendStatusCBack)
+        _sendStatusCBack(_connPnt, msg, _ec);
       return;
-    } 
+    }
     auto self(shared_from_this()); 
     asio::async_write(_socket, asio::buffer(msg.data(), msg.size()),
       [this, self, msg, isCBackIfError](std::error_code ec, std::size_t /*length*/){
-        _ec = ec;
-        if (_stsSendCBack && (ec || !isCBackIfError)){
-          _stsSendCBack(_connPnt, msg, ec);          
+        _ec = ec;      
+        if (_sendStatusCBack && (ec || !isCBackIfError)){
+          _sendStatusCBack(_connPnt, msg, ec);          
         } 
       });
   }
@@ -93,6 +99,6 @@ public:
   std::string _connPnt;
   enum { MAX_LENGTH = 4096 };
   char _data[MAX_LENGTH];
-  std::string _mess;
+  std::string _buff;
   std::error_code _ec;
 };

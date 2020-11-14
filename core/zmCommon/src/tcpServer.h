@@ -50,7 +50,8 @@ private:
               std::lock_guard<std::mutex> lock(_mtxSession);
               _sessions[session->connectPnt()] = session;
             }
-            session->read();
+            if (session->isConnect()) 
+              session->read();
           }
           accept();
         });

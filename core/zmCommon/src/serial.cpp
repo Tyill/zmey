@@ -43,15 +43,15 @@ namespace ZM_Aux {
     }
     int vlsSz = std::accumulate(dataSz.begin(), dataSz.end(), 0),        
         intSz = 4,
+        allSz = intSz + intSz + vlsSz + vcnt * intSz,
         offs = 0,
         inx = 0;
     string out;
-    out.resize(intSz + vlsSz + vcnt * intSz);
+    out.resize(allSz);
     char* pOut = (char*)out.data();
-
-    *((int*)pOut) = vcnt / 2;                    
-    offs += intSz;   
-   
+    *((int*)pOut) = allSz;                               offs += intSz;   
+    *((int*)(pOut + offs)) = vcnt / 2;                   offs += intSz;                  
+    
     for (auto& v : data){
       *((int*)(pOut + offs)) = dataSz[inx];              offs += intSz;
       memcpy(pOut + offs, v.first.data(), dataSz[inx]);  offs += dataSz[inx]; ++inx;
@@ -68,24 +68,24 @@ namespace ZM_Aux {
     char* pData = (char*)data.data();    
     int offs = 0,
         intSz = 4,
-        allSz = (int)data.size();
-    
-    if (allSz <= intSz * 3){ // vcnt, key, vsz
+        allSz = *((int*)pData);             offs += intSz;
+
+    if (allSz != data.size()){
       return map<string, string>();
-    }
-    int vcnt = *((int*)pData);
-    offs += intSz;
+    }    
+                                            
+    int vcnt = *((int*)(pData + offs));     offs += intSz;  
 
     map<string, string> out;    
     while(offs < allSz){
       if (offs + intSz >= allSz) break;
-      int ksz = *((int*)(pData + offs)); offs += intSz;
+      int ksz = *((int*)(pData + offs));    offs += intSz;
 
       if (offs + ksz >= allSz) break;
-      string key(pData + offs, ksz);     offs += ksz;   
+      string key(pData + offs, ksz);        offs += ksz;   
 
       if (offs + intSz > allSz) break;
-      int vsz = *((int*)(pData + offs)); offs += intSz; 
+      int vsz = *((int*)(pData + offs));    offs += intSz; 
       
       if (offs + vsz > allSz) break;
       out[key] = string(pData + offs, vsz); offs += vsz;   

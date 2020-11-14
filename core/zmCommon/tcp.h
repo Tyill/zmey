@@ -60,16 +60,14 @@ void addPreConnectPnt(const std::string& connPnt);
 /// [in] ec - system error code 
 typedef std::function<void(const std::string& connPnt,                           
                            const std::string& data,
-                           const std::error_code& ec)> stsSendCBack;
-void setStatusSendCBack(stsSendCBack);
+                           const std::error_code& ec)> sendStatusCBack;
+void setSendStatusCBack(sendStatusCBack);
 
 /// received data from sender
 /// [in] connPnt - connection point: IP or DNS ':' port
 /// [in] data - data from sender
-/// [in] ec - system error code 
 typedef std::function<void(const std::string& connPnt,
-                           const std::string& data,
-                           const std::error_code& ec)> receiveDataCBack;
+                           const std::string& data)> receiveDataCBack;
 void setReceiveCBack(receiveDataCBack);
 
 }
