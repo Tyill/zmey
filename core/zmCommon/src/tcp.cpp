@@ -93,8 +93,9 @@ void asyncSendData(const std::string& connPnt, const std::string& data, bool isC
       if (!ec){    
         std::lock_guard<std::mutex> lock(_mtxSession);
         _sessions[connPnt] = std::make_shared<TcpSession>(std::move(socket));  
-      }else if (_sendStatusCBack){
-        _sendStatusCBack(connPnt, data, ec);
+      }else{
+        if (_sendStatusCBack)
+          _sendStatusCBack(connPnt, data, ec);
         return;
       }
     }
