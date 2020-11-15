@@ -8,7 +8,7 @@ def create_app():
                         template_folder='templates') 
   
   app.config['SECRET_KEY'] = os.urandom(16)
-  app.config['ZmeyConnectStr'] = 'host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10'
+  app.config['ZmeyConnectStr'] = 'host=localhost port=5432 password=123 dbname=zmeydb connect_timeout=10'
   app.config['PostgreLibPath'] = 'c:/Program Files/PostgreSQL/10/bin/'
   
   os.add_dll_directory(app.config['PostgreLibPath'])

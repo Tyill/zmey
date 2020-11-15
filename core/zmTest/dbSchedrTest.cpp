@@ -40,7 +40,7 @@ public:
   DBSchedrTest() { 
       
     ZM_DB::ConnectCng cng;
-    cng.connectStr = "host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10";
+    cng.connectStr = "host=localhost port=5432 password=123 dbname=zmeydb connect_timeout=10";
     _pDb = new ZM_DB::DbProvider(cng);
     if (_pDb){
       EXPECT_TRUE(_pDb->delAllTables())   << _pDb->getLastError();

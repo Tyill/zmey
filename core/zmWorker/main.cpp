@@ -57,7 +57,8 @@ list<Process> _procs;
 ZM_Base::Worker _worker;
 mutex _mtxPrc, _mtxSts;
 std::condition_variable _cv;
-volatile bool _isMainCycleRun = false;
+volatile bool _isMainCycleRun = false,
+              _isSendAck = true;
 
 struct Config{
   int progressTasksTOutSec = 10;
@@ -170,32 +171,37 @@ int main(int argc, char* argv[]){
   // main cycle
   while (1){
     timer.updateCycTime();   
-   
-    // check child process
-    waitProcess(_worker, _procs, _listMessForSchedr);
-
+       
     // update list of tasks
     updateListTasks(_newTasks, _procs, _listMessForSchedr);
 
     // send mess to schedr (send constantly until it receives)
     MessForSchedr mess;
-    if (_listMessForSchedr.front(mess)){
+    if (_isSendAck && _listMessForSchedr.front(mess)){ 
+      _isSendAck = false;
       _worker.activeTask = _newTasks.size() + _procs.size();
       sendMessToSchedr(_worker, cng.schedrConnPnt, mess);
     }
-    
+    else if (!_isSendAck && timer.onDelaySec(true, cng.sendAckTOutSec, 0)){
+      _isSendAck = true;
+    }
+
+    // check child process
+    waitProcess(_worker, _procs, _listMessForSchedr);
+
     // progress of tasks
-    if(timer.onDelayOncSec(true, cng.progressTasksTOutSec, 0)){
+    if(timer.onDelayOncSec(true, cng.progressTasksTOutSec, 1)){
       progressToSchedr(_worker, cng.schedrConnPnt, _procs);
     }
     
     // load CPU
-    if(timer.onDelayOncSec(true, 1, 1)){
+    if(timer.onDelayOncSec(true, 1, 2)){
       _worker.load = cpu.load();
     } 
     
     // ping to schedr
-    if(timer.onDelayOncSec(true, cng.pingSchedrTOutSec, 2)){
+    if(timer.onDelayOncSec(true, cng.pingSchedrTOutSec, 3)){
+      _worker.activeTask = _newTasks.size() + _procs.size();
       pingToSchedr(_worker, cng.schedrConnPnt);
     } 
          

@@ -44,6 +44,7 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
       _listMessForSchedr.tryPop(mess);
       mainCycleNotify();
     }
+    _isSendAck = true;
     ctickSH.reset();
   }else if (ec){
     statusMess("worker::sendHandler error send to schedr: " + ec.message());

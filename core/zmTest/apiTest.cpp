@@ -40,7 +40,7 @@ class APITest : public ::testing::Test {
 public:
   APITest() { 
 
-    string connStr = "host=localhost port=5432 password=123 dbname=zmeyDb connect_timeout=10";
+    string connStr = "host=localhost port=5432 password=123 dbname=zmeydb connect_timeout=10";
     char err[256]{0};
     _zc = zmey::zmCreateConnection(zmey::zmConfig{ (char*)connStr.c_str() },
                                                    err);

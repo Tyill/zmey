@@ -91,10 +91,6 @@ public:
       });
   }
 
-  std::string connectPnt() const{
-    return _connPnt;
-  }
-
   tcp::socket _socket;
   std::string _connPnt;
   enum { MAX_LENGTH = 4096 };

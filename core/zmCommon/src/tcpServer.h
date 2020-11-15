@@ -25,14 +25,11 @@
 #include <asio.hpp>
 #include "tcpSession.h"
 
-extern std::mutex _mtxSession;
-extern std::map<std::string, std::shared_ptr<TcpSession>> _sessions;
-
 class TcpServer{
 public:
   TcpServer(asio::io_context& ioc, const std::string& addr, int port)
     : _acceptor(ioc, *tcp::resolver(ioc).resolve(addr, std::to_string(port)).begin()){
-  #ifdef UNIX
+  #ifdef __linux__
     ioctl(_acceptor.native_handle(), FIOCLEX); //  FD_CLOEXEC
     int one = 1;
     setsockopt(_acceptor.native_handle(), SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one));
@@ -46,10 +43,6 @@ private:
         [this](std::error_code ec, tcp::socket socket){
           if (!ec){
             auto session = std::make_shared<TcpSession>(std::move(socket));
-            if (_sessions.find(session->connectPnt()) != _sessions.end()){
-              std::lock_guard<std::mutex> lock(_mtxSession);
-              _sessions[session->connectPnt()] = session;
-            }
             if (session->isConnect()) 
               session->read();
           }
