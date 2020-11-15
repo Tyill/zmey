@@ -171,7 +171,10 @@ int main(int argc, char* argv[]){
   // main cycle
   while (1){
     timer.updateCycTime();   
-       
+
+    // check child process
+    waitProcess(_worker, _procs, _listMessForSchedr);
+
     // update list of tasks
     updateListTasks(_newTasks, _procs, _listMessForSchedr);
 
@@ -185,10 +188,7 @@ int main(int argc, char* argv[]){
     else if (!_isSendAck && timer.onDelaySec(true, cng.sendAckTOutSec, 0)){
       _isSendAck = true;
     }
-
-    // check child process
-    waitProcess(_worker, _procs, _listMessForSchedr);
-
+    
     // progress of tasks
     if(timer.onDelayOncSec(true, cng.progressTasksTOutSec, 1)){
       progressToSchedr(_worker, cng.schedrConnPnt, _procs);

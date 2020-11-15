@@ -58,13 +58,13 @@ Process::Process(const WTask& tsk):
                   perror(err); \
                   _exit(127);  \
                 }    
-      string scriptFile = to_string(tsk.base.id) + ".script";
+      string scriptFile = "/tmp/" + to_string(tsk.base.id) + ".script";
       int fdSct = open(scriptFile.c_str(), O_CREAT | O_TRUNC | O_WRONLY, S_IRUSR | S_IWUSR | S_IXUSR);
       CHECK(fdSct, "create");
       CHECK(write(fdSct, tsk.base.script.data(), tsk.base.script.size()), "write");
       CHECK(close(fdSct), "close");
       
-      string resultFile = to_string(tsk.base.id) + ".result";
+      string resultFile = "/tmp/" + to_string(tsk.base.id) + ".result";
       int fdRes = open(resultFile.c_str(), O_CREAT | O_TRUNC | O_RDWR, S_IRUSR | S_IWUSR);
       CHECK(fdRes, "create");
       CHECK(dup2(fdRes, 1), "dup2(fdRes, 1)");// stdout -> fdRes

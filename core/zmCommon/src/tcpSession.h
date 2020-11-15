@@ -76,12 +76,12 @@ public:
   }
 
   void write(const std::string& msg, bool isCBackIfError){  
+    auto self(shared_from_this());
     if (_ec){
       if (_sendStatusCBack)
         _sendStatusCBack(_connPnt, msg, _ec);
       return;
-    }
-    auto self(shared_from_this()); 
+    }    
     asio::async_write(_socket, asio::buffer(msg.data(), msg.size()),
       [this, self, msg, isCBackIfError](std::error_code ec, std::size_t /*length*/){
         _ec = ec;      

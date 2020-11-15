@@ -63,7 +63,7 @@ void waitProcess(ZM_Base::Worker& worker, list<Process>& procs, ZM_Aux::QueueThr
                 
       auto tId = itPrc->getTask().base.id;
     
-      string resultFile = to_string(tId) + ".result",
+      string resultFile = "/tmp/" + to_string(tId) + ".result",
              result;
       bool isRes = true;       
       int fdRes = open(resultFile.c_str(), O_RDONLY);
@@ -104,7 +104,7 @@ void waitProcess(ZM_Base::Worker& worker, list<Process>& procs, ZM_Aux::QueueThr
       if (remove(resultFile.c_str()) == -1){
         ERROR_MESS("worker::waitProcess error remove " + resultFile + ": " + string(strerror(errno)));
       }
-      string scriptFile = to_string(tId) + ".script";
+      string scriptFile = "/tmp/" + to_string(tId) + ".script";
       if (remove(scriptFile.c_str()) == -1){
         ERROR_MESS("worker::waitProcess error remove " + scriptFile + ": " + string(strerror(errno)));
       }    
