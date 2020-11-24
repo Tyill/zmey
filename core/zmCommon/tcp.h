@@ -43,7 +43,7 @@ void stopServer();
 /// [in] connPnt - connection point: IP or DNS ':' port
 /// [in] data - data for send
 /// [in] isStsCBackIfError - status send call back only if an error
-void asyncSendData(const std::string& connPnt, const std::string& data, bool isStsCBackIfError = true);
+bool asyncSendData(const std::string& connPnt, const std::string& data, bool isStsCBackIfError = true);
 
 /// synchronous data sending once to receiver whithout answer
 /// [in] connPnt - connection point of receiver: IP or DNS ':' port

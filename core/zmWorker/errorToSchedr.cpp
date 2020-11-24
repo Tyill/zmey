@@ -34,12 +34,13 @@ using namespace std;
 void errorToSchedr(const ZM_Base::Worker& worker, const std::string& schedrConnPnt, ZM_Aux::QueueThrSave<string>& err){
 
   string mess;
-  while(err.tryPop(mess)){
+  bool isSendOk = true;
+  while(isSendOk && err.tryPop(mess)){
     map<string, string> data{
       {"command", to_string((int)ZM_Base::MessType::INTERN_ERROR)},
       {"connectPnt", worker.connectPnt},
       {"message", mess}
     };      
-    ZM_Tcp::asyncSendData(schedrConnPnt, ZM_Aux::serialn(data));
+    isSendOk = ZM_Tcp::asyncSendData(schedrConnPnt, ZM_Aux::serialn(data));
   }
 }

@@ -37,7 +37,7 @@ ZM_Aux::CounterTick ctickTW;
 vector<ZM_Base::Worker> workersCpy;
 vector<ZM_Base::Worker*> refWorkers;
 
-void sendTaskToWorker(const ZM_Base::Scheduler& schedr,
+bool sendTaskToWorker(const ZM_Base::Scheduler& schedr,
                       map<std::string, SWorker>& workers,
                       ZM_Aux::QueueThrSave<STask>& tasks, 
                       ZM_Aux::QueueThrSave<ZM_DB::MessSchedr>& messToDB){  
@@ -97,7 +97,8 @@ void sendTaskToWorker(const ZM_Base::Scheduler& schedr,
       if (ctickTW(1000)){ // every 1000 cycle
         ERROR_MESS("schedr::sendTaskToWorker not found available worker", 0);
       }
-      break;
+      return false;
     }
   }
+  return true;
 }

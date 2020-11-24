@@ -43,7 +43,7 @@ using namespace std;
 
 void receiveHandler(const string& cp, const string& data);
 void sendHandler(const string& cp, const string& data, const std::error_code& ec);
-void sendMessToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt, const MessForSchedr&);
+void sendMessToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt, ZM_Aux::QueueThrSave<MessForSchedr>& listMessForSchedr);
 void progressToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt, list<Process>&);
 void pingToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt);
 void errorToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt, ZM_Aux::QueueThrSave<string>& );
@@ -57,8 +57,7 @@ list<Process> _procs;
 ZM_Base::Worker _worker;
 mutex _mtxPrc, _mtxSts;
 std::condition_variable _cv;
-volatile bool _isMainCycleRun = false,
-              _isSendAck = true;
+volatile bool _isMainCycleRun = false;
 
 struct Config{
   int progressTasksTOutSec = 10;
@@ -148,6 +147,9 @@ int main(int argc, char* argv[]){
     
   signal(SIGPIPE, SIG_IGN);
 
+  // on start
+  _listMessForSchedr.push(MessForSchedr{0, ZM_Base::MessType::JUST_START_WORKER});
+
   // TCP server
   ZM_Tcp::setReceiveCBack(receiveHandler);
   ZM_Tcp::setSendStatusCBack(sendHandler);
@@ -165,9 +167,6 @@ int main(int argc, char* argv[]){
    
   ZM_Aux::CPUData cpu;
 
-  // on start
-  _listMessForSchedr.push(MessForSchedr{0, ZM_Base::MessType::JUST_START_WORKER});
-
   // main cycle
   while (1){
     timer.updateCycTime();   
@@ -178,29 +177,24 @@ int main(int argc, char* argv[]){
     // update list of tasks
     updateListTasks(_newTasks, _procs, _listMessForSchedr);
 
-    // send mess to schedr (send constantly until it receives)
-    MessForSchedr mess;
-    if (_isSendAck && _listMessForSchedr.front(mess)){ 
-      _isSendAck = false;
+    // send mess to schedr
+    if (!_listMessForSchedr.empty()){ 
       _worker.activeTask = _newTasks.size() + _procs.size();
-      sendMessToSchedr(_worker, cng.schedrConnPnt, mess);
+      sendMessToSchedr(_worker, cng.schedrConnPnt, _listMessForSchedr);
     }
-    else if (!_isSendAck && timer.onDelaySec(true, cng.sendAckTOutSec, 0)){
-      _isSendAck = true;
-    }
-    
+
     // progress of tasks
-    if(timer.onDelayOncSec(true, cng.progressTasksTOutSec, 1)){
+    if(timer.onDelayOncSec(true, cng.progressTasksTOutSec, 0)){
       progressToSchedr(_worker, cng.schedrConnPnt, _procs);
     }
     
     // load CPU
-    if(timer.onDelayOncSec(true, 1, 2)){
+    if(timer.onDelayOncSec(true, 1, 1)){
       _worker.load = cpu.load();
     } 
     
     // ping to schedr
-    if(timer.onDelayOncSec(true, cng.pingSchedrTOutSec, 3)){
+    if(timer.onDelayOncSec(true, cng.pingSchedrTOutSec, 2)){
       _worker.activeTask = _newTasks.size() + _procs.size();
       pingToSchedr(_worker, cng.schedrConnPnt);
     } 

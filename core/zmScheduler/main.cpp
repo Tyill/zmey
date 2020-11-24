@@ -42,7 +42,7 @@ using namespace std;
 void receiveHandler(const string& cp, const string& data);
 void sendHandler(const string& cp, const string& data, const std::error_code& ec);
 void getNewTaskFromDB(ZM_DB::DbProvider& db);
-void sendTaskToWorker(const ZM_Base::Scheduler&, map<std::string, SWorker>&, ZM_Aux::QueueThrSave<STask>&, ZM_Aux::QueueThrSave<ZM_DB::MessSchedr>& messToDB);
+bool sendTaskToWorker(const ZM_Base::Scheduler&, map<std::string, SWorker>&, ZM_Aux::QueueThrSave<STask>&, ZM_Aux::QueueThrSave<ZM_DB::MessSchedr>& messToDB);
 void sendAllMessToDB(ZM_DB::DbProvider& db);
 void checkStatusWorkers(const ZM_Base::Scheduler&, map<std::string, SWorker>&, ZM_Aux::QueueThrSave<ZM_DB::MessSchedr>&);
 void getPrevTaskFromDB(ZM_DB::DbProvider& db, ZM_Base::Scheduler&,  ZM_Aux::QueueThrSave<STask>&);
@@ -210,7 +210,7 @@ int main(int argc, char* argv[]){
     }        
 
     // send task to worker    
-    sendTaskToWorker(_schedr, _workers, _tasks, _messToDB);    
+    bool isAvailableWorkers = sendTaskToWorker(_schedr, _workers, _tasks, _messToDB);    
 
     // send all mess to DB
     if(!_messToDB.empty()){      
@@ -223,7 +223,7 @@ int main(int argc, char* argv[]){
     }
     
     // added delay
-    if (_tasks.empty() && _messToDB.empty()){ 
+    if (_messToDB.empty() && (_tasks.empty() || !isAvailableWorkers)){ 
       mainCycleSleep(minCycleTimeMS);
     }
   }

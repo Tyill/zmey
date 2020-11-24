@@ -27,20 +27,25 @@
 #include "zmBase/structurs.h"
 #include "zmCommon/tcp.h"
 #include "zmCommon/serial.h"
+#include "zmCommon/queue.h"
 #include "structurs.h"
 
 using namespace std;
 
-void sendMessToSchedr(const ZM_Base::Worker& worker, const std::string& schedrConnPnt, const MessForSchedr& mess){
+void sendMessToSchedr(const ZM_Base::Worker& worker, const std::string& schedrConnPnt, ZM_Aux::QueueThrSave<MessForSchedr>& listMessForSchedr){
   
-  map<string, string> data{
-        {"command",    to_string((int)mess.MessType)},
-        {"connectPnt", worker.connectPnt},
-        {"taskId",     to_string(mess.taskId)},
-        {"activeTask", to_string(worker.activeTask)},
-        {"load",       to_string(worker.load)},
-        {"taskResult", mess.taskResult}
-  };
-  ZM_Tcp::asyncSendData(schedrConnPnt,  ZM_Aux::serialn(data), false);
+  MessForSchedr mess; 
+  bool isSendOk = true;
+  while(isSendOk && listMessForSchedr.tryPop(mess)){
+    map<string, string> data{
+          {"command",    to_string((int)mess.MessType)},
+          {"connectPnt", worker.connectPnt},
+          {"taskId",     to_string(mess.taskId)},
+          {"activeTask", to_string(worker.activeTask)},
+          {"load",       to_string(worker.load)},
+          {"taskResult", mess.taskResult}
+    };
+    isSendOk = ZM_Tcp::asyncSendData(schedrConnPnt,  ZM_Aux::serialn(data));
+  }
 }
 

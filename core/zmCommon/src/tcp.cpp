@@ -83,7 +83,7 @@ void stopServer(){
   }
 };
 
-void asyncSendData(const std::string& connPnt, const std::string& data, bool isCBackIfError){
+bool asyncSendData(const std::string& connPnt, const std::string& data, bool isCBackIfError){
   if (_sessions.find(connPnt) != _sessions.end()){
     if (!_sessions[connPnt] || !_sessions[connPnt]->isConnect()){
       tcp::socket socket(ioc);
@@ -96,10 +96,10 @@ void asyncSendData(const std::string& connPnt, const std::string& data, bool isC
       }else{
         if (_sendStatusCBack)
           _sendStatusCBack(connPnt, data, ec);
-        return;
+        return false;
       }
     }
-    _sessions[connPnt]->write(data, isCBackIfError); 
+    _sessions[connPnt]->write(data, isCBackIfError);
   }
   else{
     tcp::socket socket(ioc);
@@ -108,10 +108,13 @@ void asyncSendData(const std::string& connPnt, const std::string& data, bool isC
     asio::connect(socket, tcp::resolver(ioc).resolve(cp[0], cp[1]), ec);
     if (!ec){    
       std::make_shared<TcpSession>(std::move(socket))->write(data, isCBackIfError);
-    }else if (_sendStatusCBack){      
-      _sendStatusCBack(connPnt, data, ec);
+    }else{
+      if (_sendStatusCBack)
+        _sendStatusCBack(connPnt, data, ec);
+      return false;  
     }
   }  
+  return true;
 };
 
 bool syncSendData(const std::string& connPnt, const std::string& inData){  

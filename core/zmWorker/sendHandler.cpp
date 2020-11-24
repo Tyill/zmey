@@ -32,21 +32,22 @@
 using namespace std;
 
 ZM_Aux::CounterTick ctickSH;
-extern bool _isSendAck;
 extern ZM_Aux::QueueThrSave<MessForSchedr> _listMessForSchedr;
 
 void sendHandler(const string& cp, const string& data, const std::error_code& ec){
-  MessForSchedr mess;
-  if (!ec && _listMessForSchedr.front(mess)){
-    auto smess = ZM_Aux::deserialn(data);    
-    if (!smess.empty() && (stoi(smess["command"]) == int(mess.MessType)) &&
-        (stoull(smess["taskId"]) == mess.taskId)){ 
-      _listMessForSchedr.tryPop(mess);
-      mainCycleNotify();
+  
+  auto smess = ZM_Aux::deserialn(data);  
+  ZM_Base::MessType messType = (ZM_Base::MessType)stoi(smess["command"]);
+  if (ec && (messType != ZM_Base::MessType::PROGRESS) &&
+            (messType != ZM_Base::MessType::INTERN_ERROR) &&
+            (messType != ZM_Base::MessType::PING_WORKER)){
+    MessForSchedr mess;
+    mess.MessType = messType;
+    mess.taskId = stoull(smess["taskId"]);
+    mess.taskResult = smess["taskResult"];
+    _listMessForSchedr.push(move(mess));
+    if (ctickSH(1000)){
+      statusMess("worker::sendHandler error send to schedr: " + ec.message());
     }
-    _isSendAck = true;
-    ctickSH.reset();
-  }else if (ec){
-    statusMess("worker::sendHandler error send to schedr: " + ec.message());
   }
 }
