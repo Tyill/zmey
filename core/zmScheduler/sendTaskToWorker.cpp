@@ -69,7 +69,8 @@ bool sendTaskToWorker(const ZM_Base::Scheduler& schedr,
     auto iWr = find_if(refWorkers.begin(), refWorkers.end(),
       [](const ZM_Base::Worker* w){
         return (w->state == ZM_Base::StateType::RUNNING) && 
-               (w->activeTask <= w->capacityTask);
+               (w->activeTask <= w->capacityTask) && 
+               (w->rating > 1);
       }); 
     if(iWr != refWorkers.end()){
       STask t;
@@ -86,11 +87,9 @@ bool sendTaskToWorker(const ZM_Base::Scheduler& schedr,
       ++(*iWr)->activeTask;
       workers[(*iWr)->connectPnt].base.activeTask = (*iWr)->activeTask;
 
-      ZM_Tcp::asyncSendData((*iWr)->connectPnt, ZM_Aux::serialn(data));
+      if (ZM_Tcp::asyncSendData((*iWr)->connectPnt, ZM_Aux::serialn(data)))
+        messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::TASK_START, (*iWr)->id, t.qTaskId});  
 
-      messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::TASK_START, 
-                                      (*iWr)->id,
-                                      t.qTaskId});      
       ctickTW.reset();
     }
     else{
