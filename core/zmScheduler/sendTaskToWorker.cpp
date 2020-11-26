@@ -87,9 +87,11 @@ bool sendTaskToWorker(const ZM_Base::Scheduler& schedr,
       ++(*iWr)->activeTask;
       workers[(*iWr)->connectPnt].base.activeTask = (*iWr)->activeTask;
 
-      if (ZM_Tcp::asyncSendData((*iWr)->connectPnt, ZM_Aux::serialn(data)))
-        messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::TASK_START, (*iWr)->id, t.qTaskId});  
-
+      if (ZM_Tcp::asyncSendData((*iWr)->connectPnt, ZM_Aux::serialn(data))){
+        messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::TASK_START, (*iWr)->id, t.qTaskId}); 
+      }else{
+        (*iWr)->rating = std::max(1, (*iWr)->rating - 1);          
+      }
       ctickTW.reset();
     }
     else{

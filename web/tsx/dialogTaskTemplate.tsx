@@ -60,10 +60,13 @@ class DialogTaskTemplate extends React.Component<IProps, IState>{
   hSubmit(event) {
     
     let error = "";
-    if (!this._refObj["Form.Name"].value){
+    if (!this._refObj["Form.name"].value){
       error = "Name is empty"; 
     }
-    //else if ()
+    else if (!this._refObj["Form.script"].value){
+      error = "Script is empty"; 
+    }
+    
   }
 
   render(){  
@@ -75,18 +78,18 @@ class DialogTaskTemplate extends React.Component<IProps, IState>{
         <Modal.Body>
           <Form>
             <Form.Row>
-              <Form.Group as={Col} controlId="taskTemplateForm.Name">
+              <Form.Group as={Col} controlId="Form.name">
                 <Form.Label>Name</Form.Label>
-                <Form.Control type="text" ref={(input) => {this._refObj["Form.Name"] = input }} placeholder="any name" defaultValue={this.state.name}/>
+                <Form.Control type="text" ref={(input) => {this._refObj["Form.name"] = input }} placeholder="any name" defaultValue={this.state.name}/>
               </Form.Group>
               <Form.Group as={Col} controlId="Form.Description">
                 <Form.Label>Description</Form.Label>
-                <Form.Control type="text" ref={(input) => {this._refObj["Form.Description"] = input }} placeholder="optional description" defaultValue={this.state.description}/>
+                <Form.Control type="text" ref={(input) => {this._refObj["Form.description"] = input }} placeholder="optional description" defaultValue={this.state.description}/>
               </Form.Group>
             </Form.Row>
             <Form.Group controlId="Form.Script">
               <Form.Label>Script</Form.Label>
-              <Form.Control as="textarea" ref={(input) => {this._refObj["Form.Script"] = input }} placeholder="required script" defaultValue={this.state.script} rows={6} />
+              <Form.Control as="textarea" ref={(input) => {this._refObj["Form.script"] = input }} placeholder="required script" defaultValue={this.state.script} rows={6} />
             </Form.Group>
             <Form.Row>
               <Form.Group as={Col} controlId="Form.averDurationSec">
