@@ -1,12 +1,10 @@
 /* eslint-disable no-unused-vars */
 
 import React from "react";
-import ReactDOM from "react-dom";
 import { connect, Provider } from "react-redux";
 import {Container, Row, Col, Button, Modal, Form, ListGroup} from "react-bootstrap";
  
 import * as Action from "./redux/actions"; 
-import Store from "./redux/store"; 
 import { IUser, IPipeline, ITaskGroup, ITaskTemplate, ITask } from "./types";
 
 import "../css/app.css";
@@ -32,6 +30,7 @@ interface IState {
   script : string;
   averDuration : number;
   maxDuration : number;
+  statusMess : string;
 };
 
 class DialogTaskTemplate extends React.Component<IProps, IState>{
@@ -45,13 +44,15 @@ class DialogTaskTemplate extends React.Component<IProps, IState>{
                   description : "",
                   script : "",
                   averDuration : 1,
-                  maxDuration : 10};
+                  maxDuration : 10,
+                  statusMess : ""};
     if (this.props.setTaskTempl){
       this.state = {name : this.props.setTaskTempl.name,
                     description : this.props.setTaskTempl.description,
                     script : this.props.setTaskTempl.script,
                     averDuration : this.props.setTaskTempl.averDurationSec,
-                    maxDuration : this.props.setTaskTempl.maxDurationSec};
+                    maxDuration : this.props.setTaskTempl.maxDurationSec,
+                    statusMess : ""};
     }
     this.hSubmit = this.hSubmit.bind(this); 
     this._refObj = {};
@@ -67,6 +68,9 @@ class DialogTaskTemplate extends React.Component<IProps, IState>{
       error = "Script is empty"; 
     }
     
+    if (error != this.state.statusMess){
+      this.setState({statusMess : error});
+    }
   }
 
   render(){  
@@ -80,7 +84,7 @@ class DialogTaskTemplate extends React.Component<IProps, IState>{
             <Form.Row>
               <Form.Group as={Col} controlId="Form.name">
                 <Form.Label>Name</Form.Label>
-                <Form.Control type="text" ref={(input) => {this._refObj["Form.name"] = input }} placeholder="any name" defaultValue={this.state.name}/>
+                <Form.Control type="text" ref={(input) => {this._refObj["Form.name"] = input }} placeholder="any" defaultValue={this.state.name}/>
               </Form.Group>
               <Form.Group as={Col} controlId="Form.Description">
                 <Form.Label>Description</Form.Label>
@@ -89,7 +93,7 @@ class DialogTaskTemplate extends React.Component<IProps, IState>{
             </Form.Row>
             <Form.Group controlId="Form.Script">
               <Form.Label>Script</Form.Label>
-              <Form.Control as="textarea" ref={(input) => {this._refObj["Form.script"] = input }} placeholder="required script" defaultValue={this.state.script} rows={6} />
+              <Form.Control as="textarea" ref={(input) => {this._refObj["Form.script"] = input }} placeholder="" defaultValue={this.state.script} rows={6} />
             </Form.Group>
             <Form.Row>
               <Form.Group as={Col} controlId="Form.averDurationSec">
@@ -100,13 +104,14 @@ class DialogTaskTemplate extends React.Component<IProps, IState>{
                 <Form.Label>Maximum duration, sec</Form.Label>
                 <Form.Control type="number" ref={(input) => {this._refObj["Form.maxDurationSec"] = input }} placeholder="from 1 sec, -1 - not limited" defaultValue={this.state.maxDuration} />
               </Form.Group>
-          </Form.Row>
-          </Form>
+          </Form.Row>          
+          <Form.Label>{this.state.statusMess}</Form.Label>      
+          </Form>          
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" type="close" onClick={this.props.onHide}>Close</Button>
           <Button variant="primary" type="submit" onClick={this.hSubmit}>Save changes</Button>
-        </Modal.Footer>
+        </Modal.Footer>        
       </Modal>
     )
   } 

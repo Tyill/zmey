@@ -58,5 +58,7 @@
     "webpack-cli": "^3.3.7",
     "webpack-dev-server": "^3.11.0"
   },
-  "dependencies": {}
+  "dependencies": {
+    "flask": "^0.2.10"
+  }
 }
