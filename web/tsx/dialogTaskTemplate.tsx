@@ -1,8 +1,8 @@
 /* eslint-disable no-unused-vars */
 
 import React from "react";
-import { connect, Provider } from "react-redux";
-import {Container, Row, Col, Button, Modal, Form, ListGroup} from "react-bootstrap";
+import { connect } from "react-redux";
+import { Col, Button, Modal, Form} from "react-bootstrap";
  
 import * as Action from "./redux/actions"; 
 import { IUser, IPipeline, ITaskGroup, ITaskTemplate, ITask } from "./types";
@@ -25,11 +25,6 @@ interface IProps {
 };
 
 interface IState {
-  name : string;
-  description : string;
-  script : string;
-  averDuration : number;
-  maxDuration : number;
   statusMess : string;
 };
 
@@ -39,21 +34,8 @@ class DialogTaskTemplate extends React.Component<IProps, IState>{
 
   constructor(props : IProps){
     super(props);
-       
-    this.state = {name : "",
-                  description : "",
-                  script : "",
-                  averDuration : 1,
-                  maxDuration : 10,
-                  statusMess : ""};
-    if (this.props.setTaskTempl){
-      this.state = {name : this.props.setTaskTempl.name,
-                    description : this.props.setTaskTempl.description,
-                    script : this.props.setTaskTempl.script,
-                    averDuration : this.props.setTaskTempl.averDurationSec,
-                    maxDuration : this.props.setTaskTempl.maxDurationSec,
-                    statusMess : ""};
-    }
+    
+    this.state = { statusMess : ""};    
     this.hSubmit = this.hSubmit.bind(this); 
     this._refObj = {};
   }
@@ -74,6 +56,9 @@ class DialogTaskTemplate extends React.Component<IProps, IState>{
   }
 
   render(){  
+
+    let ttask = this.props.setTaskTempl;
+
     return (
       <Modal show={this.props.show} onHide={this.props.onHide} >
         <Modal.Header closeButton>
@@ -84,25 +69,25 @@ class DialogTaskTemplate extends React.Component<IProps, IState>{
             <Form.Row>
               <Form.Group as={Col} controlId="Form.name">
                 <Form.Label>Name</Form.Label>
-                <Form.Control type="text" ref={(input) => {this._refObj["Form.name"] = input }} placeholder="any" defaultValue={this.state.name}/>
+                <Form.Control type="text" ref={(input) => {this._refObj["Form.name"] = input }} placeholder="any name" defaultValue={ttask.name}/>
               </Form.Group>
               <Form.Group as={Col} controlId="Form.Description">
                 <Form.Label>Description</Form.Label>
-                <Form.Control type="text" ref={(input) => {this._refObj["Form.description"] = input }} placeholder="optional description" defaultValue={this.state.description}/>
+                <Form.Control type="text" ref={(input) => {this._refObj["Form.description"] = input }} placeholder="optional description" defaultValue={ttask.description}/>
               </Form.Group>
             </Form.Row>
             <Form.Group controlId="Form.Script">
               <Form.Label>Script</Form.Label>
-              <Form.Control as="textarea" ref={(input) => {this._refObj["Form.script"] = input }} placeholder="" defaultValue={this.state.script} rows={6} />
+              <Form.Control as="textarea" ref={(input) => {this._refObj["Form.script"] = input }} placeholder="" defaultValue={ttask.script} rows={6} />
             </Form.Group>
             <Form.Row>
               <Form.Group as={Col} controlId="Form.averDurationSec">
                 <Form.Label>Average duration, sec</Form.Label>
-                <Form.Control type="number" ref={(input) => {this._refObj["Form.averDurationSec"] = input }} placeholder="from 1 sec" defaultValue={this.state.averDuration} />
+                <Form.Control type="number" ref={(input) => {this._refObj["Form.averDurationSec"] = input }} defaultValue={ttask.averDurationSec} />
               </Form.Group>
               <Form.Group as={Col} controlId="Form.maxDurationSec">
                 <Form.Label>Maximum duration, sec</Form.Label>
-                <Form.Control type="number" ref={(input) => {this._refObj["Form.maxDurationSec"] = input }} placeholder="from 1 sec, -1 - not limited" defaultValue={this.state.maxDuration} />
+                <Form.Control type="number" ref={(input) => {this._refObj["Form.maxDurationSec"] = input }}  defaultValue={ttask.maxDurationSec} />
               </Form.Group>
           </Form.Row>          
           <Form.Label>{this.state.statusMess}</Form.Label>      
