@@ -1668,7 +1668,7 @@ bool DbProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::MessSche
 
               "UPDATE tblTaskQueue SET "
               "worker = " << m.workerId << " "
-              "WHERE id = " << m.taskId << " AND worker IS NULL;";              
+              "WHERE id = " << m.taskId << ";";              
         break;         
       case ZM_Base::MessType::TASK_RUNNING: // worker talk, when first run task
         ss << "UPDATE tblTaskTime tt SET "

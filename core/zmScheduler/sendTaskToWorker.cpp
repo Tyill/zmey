@@ -69,7 +69,8 @@ bool sendTaskToWorker(const ZM_Base::Scheduler& schedr,
     auto iWr = find_if(refWorkers.begin(), refWorkers.end(),
       [](const ZM_Base::Worker* w){
         return (w->state == ZM_Base::StateType::RUNNING) && 
-               (w->activeTask <= w->capacityTask);
+               (w->activeTask <= w->capacityTask) && 
+               (w->rating > 1);
       }); 
     if(iWr != refWorkers.end()){
       STask t;
@@ -83,14 +84,14 @@ bool sendTaskToWorker(const ZM_Base::Scheduler& schedr,
         {"averDurationSec", to_string(t.base.averDurationSec)}, 
         {"maxDurationSec",  to_string(t.base.maxDurationSec)}        
       };
-      ++(*iWr)->activeTask;
-      workers[(*iWr)->connectPnt].base.activeTask = (*iWr)->activeTask;
-
-      ZM_Tcp::asyncSendData((*iWr)->connectPnt, ZM_Aux::serialn(data));
-
-      messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::TASK_START, 
-                                      (*iWr)->id,
-                                      t.qTaskId});      
+      if (ZM_Tcp::asyncSendData((*iWr)->connectPnt, ZM_Aux::serialn(data))){
+        ++(*iWr)->activeTask;
+        workers[(*iWr)->connectPnt].base.activeTask = (*iWr)->activeTask; 
+        messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::TASK_START, (*iWr)->id, t.qTaskId}); 
+      }else{
+        (*iWr)->rating = std::max(1, (*iWr)->rating - 1);
+      }
+      
       ctickTW.reset();
     }
     else{
