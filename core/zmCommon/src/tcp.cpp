@@ -111,9 +111,9 @@ bool asyncSendData(const std::string& connPnt, const std::string& data, bool isC
     }else{
       if (_sendStatusCBack)
         _sendStatusCBack(connPnt, data, ec);
-      return false;  
+      return false;
     }
-  }  
+  } 
   return true;
 };
 

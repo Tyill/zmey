@@ -35,13 +35,15 @@ using namespace asio::ip;
 
 class TcpSession : public std::enable_shared_from_this<TcpSession>{
 public:
-  TcpSession(tcp::socket socket)
-    : _socket(std::move(socket)){
+  TcpSession(asio::io_context& ioc, tcp::socket socket)
+    : _ioc(ioc), _socket(std::move(socket)){
       auto endpoint = _socket.remote_endpoint(_ec);
       if (!_ec){
         _connPnt = endpoint.address().to_string() + ":" + std::to_string(endpoint.port());
       }
     }
+  TcpSession(asio::io_context& ioc)
+    : _ioc(ioc), _socket(ioc){}
   
   TcpSession(const std::string& connPnt, tcp::socket socket)
     : _connPnt(connPnt), _socket(std::move(socket)){}
@@ -73,11 +75,7 @@ public:
           if (!ec) read();                                
         });
   } 
-
-  bool isConnect(){
-    return !_ec;     
-  }
-
+ 
   void write(const std::string& msg, bool isCBackIfError){  
     auto self(shared_from_this());
     if (_ec){
@@ -87,13 +85,39 @@ public:
     }    
     asio::async_write(_socket, asio::buffer(msg.data(), msg.size()),
       [this, self, msg, isCBackIfError](std::error_code ec, std::size_t /*length*/){
-        _ec = ec;      
+        _ec = ec;
         if (_sendStatusCBack && (ec || !isCBackIfError)){
           _sendStatusCBack(_connPnt, msg, ec);          
         } 
       });
   }
 
+  void connectAndWrite(const std::string& connPnt, const std::string& msg, bool isCBackIfError){  
+     auto self(shared_from_this());
+    _connPnt = connPnt;
+    auto cp = ZM_Aux::split(connPnt, ':');
+    asio::async_connect(_socket, tcp::resolver(_ioc).resolve(cp[0], cp[1]),
+    [this, self, msg, isCBackIfError](std::error_code ec, tcp::endpoint ep){
+      _ec = ec;
+      if (!ec){
+        asio::async_write(_socket, asio::buffer(msg.data(), msg.size()),
+          [this, self, msg, isCBackIfError](std::error_code ec, std::size_t /*length*/){
+            _ec = ec;
+            if (_sendStatusCBack && (ec || !isCBackIfError)){
+              _sendStatusCBack(_connPnt, msg, ec);
+            }
+          });
+      }else if (_sendStatusCBack){
+        _sendStatusCBack(_connPnt, msg, ec); 
+      }
+    });
+  }
+
+  bool isConnect(){
+    return !_ec;     
+  }
+
+  asio::io_context& _ioc;
   tcp::socket _socket;
   std::string _connPnt;
   enum { MAX_LENGTH = 4096 };
