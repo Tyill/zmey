@@ -28,7 +28,7 @@
 class TcpServer{
 public:
   TcpServer(asio::io_context& ioc, const std::string& addr, int port)
-    : _acceptor(ioc, *tcp::resolver(ioc).resolve(addr, std::to_string(port)).begin()){
+    : _ioc(ioc), _acceptor(ioc, *tcp::resolver(ioc).resolve(addr, std::to_string(port)).begin()){
   #ifdef __linux__
     ioctl(_acceptor.native_handle(), FIOCLEX); //  FD_CLOEXEC
     int one = 1;
@@ -42,7 +42,7 @@ private:
     _acceptor.async_accept(
         [this](std::error_code ec, tcp::socket socket){
           if (!ec){
-            auto session = std::make_shared<TcpSession>(std::move(socket));
+            auto session = std::make_shared<TcpSession>(_ioc, std::move(socket));
             if (session->isConnect()) 
               session->read();
           }
@@ -50,4 +50,5 @@ private:
         });
   }
   tcp::acceptor _acceptor;
+  asio::io_context& _ioc;
 };

@@ -83,38 +83,18 @@ void stopServer(){
   }
 };
 
-bool asyncSendData(const std::string& connPnt, const std::string& data, bool isCBackIfError){
+void asyncSendData(const std::string& connPnt, const std::string& data, bool isCBackIfError){
   if (_sessions.find(connPnt) != _sessions.end()){
     if (!_sessions[connPnt] || !_sessions[connPnt]->isConnect()){
-      tcp::socket socket(ioc);
-      std::error_code ec;
-      auto cp = ZM_Aux::split(connPnt, ':');
-      asio::connect(socket, tcp::resolver(ioc).resolve(cp[0], cp[1]), ec);
-      if (!ec){    
-        std::lock_guard<std::mutex> lock(_mtxSession);
-        _sessions[connPnt] = std::make_shared<TcpSession>(std::move(socket));  
-      }else{
-        if (_sendStatusCBack)
-          _sendStatusCBack(connPnt, data, ec);
-        return false;
-      }
-    }
-    _sessions[connPnt]->write(data, isCBackIfError);
-  }
-  else{
-    tcp::socket socket(ioc);
-    std::error_code ec;
-    auto cp = ZM_Aux::split(connPnt, ':');
-    asio::connect(socket, tcp::resolver(ioc).resolve(cp[0], cp[1]), ec);
-    if (!ec){    
-      std::make_shared<TcpSession>(std::move(socket))->write(data, isCBackIfError);
+      std::lock_guard<std::mutex> lock(_mtxSession);
+      _sessions[connPnt] = std::make_shared<TcpSession>(ioc); 
+      _sessions[connPnt]->connectAndWrite(connPnt, data, isCBackIfError); 
     }else{
-      if (_sendStatusCBack)
-        _sendStatusCBack(connPnt, data, ec);
-      return false;  
+      _sessions[connPnt]->write(data, isCBackIfError);
     }
+  }else{
+    std::make_shared<TcpSession>(ioc)->connectAndWrite(connPnt, data, isCBackIfError);
   }  
-  return true;
 };
 
 bool syncSendData(const std::string& connPnt, const std::string& inData){  
