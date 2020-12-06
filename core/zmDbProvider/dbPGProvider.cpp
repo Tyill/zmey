@@ -94,10 +94,10 @@ bool DbProvider::createTables(){
   stringstream ss;
   ss << "CREATE TABLE IF NOT EXISTS tblUser("
         "id           SERIAL PRIMARY KEY,"
+        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1),"
         "name         TEXT NOT NULL UNIQUE CHECK (name <> ''),"
         "passwHash    TEXT NOT NULL,"
-        "description  TEXT NOT NULL,"
-        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
+        "description  TEXT NOT NULL);";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   /////////////////////////////////////////////////////////////////////////////
@@ -223,27 +223,27 @@ bool DbProvider::createTables(){
   ss << "CREATE TABLE IF NOT EXISTS tblUPipeline("
         "id           SERIAL PRIMARY KEY,"
         "usr          INT NOT NULL REFERENCES tblUser,"
+        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1),"
         "name         TEXT NOT NULL CHECK (name <> ''),"
-        "description  TEXT NOT NULL,"
-        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
+        "description  TEXT NOT NULL);";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
   ss << "CREATE TABLE IF NOT EXISTS tblUTaskGroup("
         "id           SERIAL PRIMARY KEY,"
         "pipeline     INT NOT NULL REFERENCES tblUPipeline,"
+        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1),"
         "name         TEXT NOT NULL CHECK (name <> ''),"
-        "description  TEXT NOT NULL,"
-        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
+        "description  TEXT NOT NULL);";        
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
   ss << "CREATE TABLE IF NOT EXISTS tblUTaskTemplate("
         "task         INT PRIMARY KEY REFERENCES tblTask,"
         "usr          INT NOT NULL REFERENCES tblUser,"
+        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1),"
         "name         TEXT NOT NULL CHECK (name <> ''),"
-        "description  TEXT NOT NULL,"
-        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
+        "description  TEXT NOT NULL);";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
@@ -254,10 +254,10 @@ bool DbProvider::createTables(){
         "taskGroup    INT REFERENCES tblUTaskGroup,"
         "qtask        INT REFERENCES tblTaskQueue,"
         "priority     INT NOT NULL DEFAULT 1 CHECK (priority BETWEEN 1 AND 3),"
+        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1),"
         "prevTasks    INT[] NOT NULL,"     // [..]
         "nextTasks    INT[] NOT NULL,"     // [..]
-        "params       TEXT[] NOT NULL,"    // ['param1','param2'..]
-        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
+        "params       TEXT[] NOT NULL);";  // ['param1','param2'..]
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
     
   ///////////////////////////////////////////////////////////////////////////
@@ -1150,9 +1150,10 @@ bool DbProvider::addTask(const ZM_Base::UTask& cng, uint64_t& outTId){
             << cng.gId << ","
             << 0 << ","
             << cng.base.priority << ","
+            << 0 << ","
             << "ARRAY" << prevTasks << "::INT[],"
             << "ARRAY" << nextTasks << "::INT[],"
-            << "ARRAY" << params << "::TEXT[], 0));";
+            << "ARRAY" << params << "::TEXT[]));";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
@@ -1211,9 +1212,10 @@ bool DbProvider::changeTask(uint64_t tId, const ZM_Base::UTask& newCng){
             << newCng.gId << ","
             << 0 << ","
             << newCng.base.priority << ","
+            << 0 << ","
             << "ARRAY" << prevTasks << "::INT[],"
             << "ARRAY" << nextTasks << "::INT[],"
-            << "ARRAY" << params << "::TEXT[], 0));";
+            << "ARRAY" << params << "::TEXT[]));";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
