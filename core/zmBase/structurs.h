@@ -101,7 +101,7 @@ namespace ZM_Base{
   struct QueueTask{
     uint64_t id;              // id tblTaskQueue
     uint64_t tId;             // id tblTask
-    uint64_t uId;             // launcher id tblUser
+    uint64_t pltId;           // id tblUPipelineTask
     StateType state;
     int priority;             // [1..3]
     int progress;             // [0..100] 

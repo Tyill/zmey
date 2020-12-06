@@ -177,7 +177,7 @@ bool DbProvider::createTables(){
   ss << "CREATE TABLE IF NOT EXISTS tblTaskQueue("
         "id           SERIAL PRIMARY KEY,"
         "task         INT NOT NULL REFERENCES tblTask,"       
-        "usr          INT NOT NULL REFERENCES tblUser,"
+        "plTask       INT NOT NULL REFERENCES tblUPipelineTask,"
         "schedr       INT REFERENCES tblScheduler,"
         "worker       INT REFERENCES tblWorker);";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
@@ -224,7 +224,8 @@ bool DbProvider::createTables(){
         "id           SERIAL PRIMARY KEY,"
         "usr          INT NOT NULL REFERENCES tblUser,"
         "name         TEXT NOT NULL CHECK (name <> ''),"
-        "description  TEXT NOT NULL);";
+        "description  TEXT NOT NULL,"
+		"isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
@@ -232,7 +233,8 @@ bool DbProvider::createTables(){
         "id           SERIAL PRIMARY KEY,"
         "pipeline     INT NOT NULL REFERENCES tblUPipeline,"
         "name         TEXT NOT NULL CHECK (name <> ''),"
-        "description  TEXT NOT NULL);";
+        "description  TEXT NOT NULL,"
+		"isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
@@ -254,7 +256,8 @@ bool DbProvider::createTables(){
         "priority     INT NOT NULL DEFAULT 1 CHECK (priority BETWEEN 1 AND 3),"
         "prevTasks    INT[] NOT NULL,"     // [..]
         "nextTasks    INT[] NOT NULL,"     // [..]
-        "params       TEXT[] NOT NULL);";  // ['param1','param2'..]
+        "params       TEXT[] NOT NULL,"    // ['param1','param2'..]
+		"isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
     
   ///////////////////////////////////////////////////////////////////////////
@@ -334,7 +337,7 @@ bool DbProvider::createTables(){
         "    prevTasks = task.prevTasks,"
         "    nextTasks = task.nextTasks,"
         "    params = task.params"
-        "  WHERE id = task.id;"
+        "  WHERE id = task.id AND isDelete = 0;"
         "  IF NOT FOUND THEN"
         "    RETURN 0;"
         "  END IF;"
@@ -356,7 +359,7 @@ bool DbProvider::createTables(){
         "BEGIN"
         "  SELECT * INTO task "
         "  FROM tblUPipelineTask "
-        "  WHERE id = tId;"
+        "  WHERE id = tId AND isDelete = 0;"
         "  IF NOT FOUND THEN"
         "    RETURN 0;"
         "  END IF;"
@@ -368,13 +371,13 @@ bool DbProvider::createTables(){
         "    RETURN -1;"
         "  END IF;"
 
-        "  INSERT INTO tblTaskQueue (task, usr) VALUES("
+        "  INSERT INTO tblTaskQueue (task, plTask) VALUES("
         "    task.taskTempl,"
-        "    (SELECT usr FROM tblUPipeline WHERE id = task.pipeline)) RETURNING id INTO qId;"
+        "    tId) RETURNING id INTO qId;"
 
         "  UPDATE tblUPipelineTask SET"
         "    qtask = qId"
-        "  WHERE id = task.id;"
+        "  WHERE id = tId;"
 
         "  INSERT INTO tblTaskTime (qtask) VALUES("
         "    qId);"
@@ -880,7 +883,7 @@ bool DbProvider::getPipeline(uint64_t pplId, ZM_Base::UPipeline& cng){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
   ss << "SELECT usr, name, description FROM tblUPipeline "
-        "WHERE id = " << pplId << ";";
+        "WHERE id = " << pplId << " AND isDelete = 0;";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
@@ -903,7 +906,7 @@ bool DbProvider::changePipeline(uint64_t pplId, const ZM_Base::UPipeline& newCng
         "usr = '" << newCng.uId << "',"
         "name = '" << newCng.name << "',"
         "description = '" << newCng.description << "' "
-        "WHERE id = " << pplId << ";";
+        "WHERE id = " << pplId << " AND isDelete = 0;";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
@@ -915,9 +918,10 @@ bool DbProvider::changePipeline(uint64_t pplId, const ZM_Base::UPipeline& newCng
 bool DbProvider::delPipeline(uint64_t pplId){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
-  ss << "DELETE FROM tblUPipeline "
+  ss << "UPDATE tblUPipeline SET "  
+        "isDelete = 1 "
         "WHERE id = " << pplId << ";";
-
+		
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
     errorMess(string("delPipeline error: ") + PQerrorMessage(_pg));
@@ -929,7 +933,7 @@ std::vector<uint64_t> DbProvider::getAllPipelines(uint64_t userId){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
   ss << "SELECT id FROM tblUPipeline "
-        "WHERE usr = " << userId << ";";
+        "WHERE usr = " << userId << " AND isDelete = 0;";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
@@ -964,7 +968,7 @@ bool DbProvider::getGroup(uint64_t gId, ZM_Base::UGroup& cng){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
   ss << "SELECT pipeline, name, description FROM tblUTaskGroup "
-        "WHERE id = " << gId << ";";
+        "WHERE id = " << gId << " AND isDelete = 0;";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
@@ -987,7 +991,7 @@ bool DbProvider::changeGroup(uint64_t gId, const ZM_Base::UGroup& newCng){
         "pipeline = '" << newCng.pplId << "',"
         "name = '" << newCng.name << "',"
         "description = '" << newCng.description << "' "
-        "WHERE id = " << gId << ";";
+        "WHERE id = " << gId << " AND isDelete = 0;";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
@@ -999,7 +1003,8 @@ bool DbProvider::changeGroup(uint64_t gId, const ZM_Base::UGroup& newCng){
 bool DbProvider::delGroup(uint64_t gId){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
-  ss << "DELETE FROM tblUTaskGroup "
+  ss << "UPDATE tblUTaskGroup SET "  
+        "isDelete = 1 "
         "WHERE id = " << gId << ";";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
@@ -1013,7 +1018,7 @@ std::vector<uint64_t> DbProvider::getAllGroups(uint64_t pplId){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
   ss << "SELECT id FROM tblUTaskGroup "
-        "WHERE pipeline = " << pplId << ";";
+        "WHERE pipeline = " << pplId << " AND isDelete = 0;";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
@@ -1166,7 +1171,7 @@ bool DbProvider::getTask(uint64_t tId, ZM_Base::UTask& outTCng){
   stringstream ss;
   ss << "SELECT pipeline, COALESCE(taskGroup, 0), taskTempl, priority, prevTasks, nextTasks, params "
         "FROM tblUPipelineTask "
-        "WHERE id = " << tId << ";";
+        "WHERE id = " << tId << " AND isDelete = 0;";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
@@ -1224,8 +1229,9 @@ bool DbProvider::changeTask(uint64_t tId, const ZM_Base::UTask& newCng){
 bool DbProvider::delTask(uint64_t tId){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
-  ss << "DELETE FROM tblUPipelineTask "
-        "WHERE id = " << tId << ";";
+  ss << "UPDATE tblUPipelineTask SET "
+        "isDelete = 1 "
+        "WHERE task = " << tId << ";";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
@@ -1354,7 +1360,7 @@ std::vector<uint64_t> DbProvider::getAllTasks(uint64_t pplId, ZM_Base::StateType
   stringstream ss;
   ss << "SELECT ut.id FROM tblUPipelineTask ut "
         "LEFT JOIN tblTaskState ts ON ts.qtask = ut.qtask "
-        "WHERE (ts.state = " << (int)state << " OR " << (int)state << " = -1) "
+        "WHERE (ts.state = " << (int)state << " OR " << (int)state << " = -1) AND ut.isDelete = 0 "
           "AND ut.pipeline = " << pplId << ";";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
