@@ -149,11 +149,12 @@ void receiveHandler(const string& remcp, const string& data){
     }
     if (worker.base.rating < ZM_Base::Worker::RATING_MAX){
       ++worker.base.rating;
-      _messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::WORKER_RATING,
-                                       wId,
-                                       0,
-                                       0,
-                                       worker.base.rating});      
+      if (worker.base.rating == ZM_Base::Worker::RATING_MAX)
+        _messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::WORKER_RATING,
+                                        wId,
+                                        0,
+                                        0,
+                                        worker.base.rating});   
     }    
   }
   // from manager

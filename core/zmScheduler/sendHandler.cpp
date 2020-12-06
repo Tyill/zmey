@@ -96,11 +96,12 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
     ERROR_MESS("schedr::sendHandler worker not response, cp: " + cp, wId);
     if (worker.base.rating > 1){
       --worker.base.rating;
-      _messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::WORKER_RATING,
-                                       worker.base.id,
-                                       0,
-                                       0,
-                                       worker.base.rating});      
+      if (worker.base.rating == 1)
+        _messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::WORKER_RATING,
+                                        worker.base.id,
+                                        0,
+                                        0,
+                                        worker.base.rating});
     }    
   }
   else {
