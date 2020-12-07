@@ -8,16 +8,17 @@ def create_app():
                         template_folder='templates') 
   
   app.config['SECRET_KEY'] = os.urandom(16)
-  app.config['ZmeyConnectStr'] = 'host=localhost port=5432 password=123 dbname=zmeydb connect_timeout=10'
+  app.config['DbConnectStr'] = 'host=localhost port=5432 password=123 dbname=zmeydb connect_timeout=10'
   app.config['PostgreLibPath'] = 'c:/Program Files/PostgreSQL/10/bin/'
+  app.config['ClientLibPath'] = 'c:/cpp/other/zmey/build/Release/'
   
   os.add_dll_directory(app.config['PostgreLibPath'])
-  os.add_dll_directory(os.path.dirname(__file__))
+  os.add_dll_directory(app.config['ClientLibPath'])
 
   os.makedirs(app.instance_path + '/users', exist_ok = True) 
   
   from . import api
-  api.initApp(app.config['ZmeyConnectStr'])
+  api.initApp(app.config['DbConnectStr'])
   app.register_blueprint(api.bp)
    
   from . import gui

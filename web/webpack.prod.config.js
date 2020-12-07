@@ -2,8 +2,8 @@
 module.exports = {
   entry: './tsx/app.tsx',  
   output: {
-    publicPath: 'zmBackend/js/',
-    path: __dirname + '/zmBackend/js/',
+    publicPath: 'js/',
+    path: __dirname + '/js/',
     filename: 'bundle.js'
   },
   resolve: {

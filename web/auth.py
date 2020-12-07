@@ -2,7 +2,7 @@ from markupsafe import escape
 from flask import (
   Blueprint, flash, g, redirect, render_template, request, session, url_for
 )
-import zmBackend.api as api
+from . import api
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 

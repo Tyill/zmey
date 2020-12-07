@@ -1,8 +1,11 @@
 import os
-import zmBackend.zmClient as zm
-from zmBackend.zmClient import(
+import sys
+sys.path.append("../python")
+import python.zmClient as zm
+from python.zmClient import(
   User
 )
+
 import functools
 from flask import(
   g, Blueprint, redirect, url_for, request, render_template
