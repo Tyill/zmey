@@ -22,36 +22,41 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#include <list>
-#include <mutex>
+#include "zmDbProvider/db_provider.h"
 #include "zmCommon/queue.h"
-#include "process.h"
+#include "zmCommon/aux_func.h"
 #include "structurs.h"
 
 using namespace std;
 
-extern mutex _mtxPrc;
+ZM_Aux::CounterTick ctickNT;
+extern ZM_Base::Scheduler _schedr;
+extern ZM_Aux::Queue<STask> _tasks;
+extern map<std::string, SWorker> _workers;
 
-void updateListTasks(ZM_Aux::QueueThrSave<WTask>& newTasks, list<Process>& procs, ZM_Aux::QueueThrSave<MessForSchedr>& listMessForSchedr){
-  lock_guard<std::mutex> lock(_mtxPrc);
+void getNewTaskFromDB(ZM_DB::DbProvider& db){
+  
+  int actSz = 0,
+      capSz = _schedr.capacityTask;
+  for (auto& w : _workers){
+    actSz += w.second.base.activeTask;
+  }
+  actSz += _tasks.size();
+  vector<ZM_DB::SchedrTask> newTasks;
+  if ((capSz - actSz) > 0){ 
+    if (db.getNewTasksForSchedr(_schedr.id, capSz - actSz, newTasks)){
+      for(auto& t : newTasks){
+        _tasks.push(STask{t.qTaskId, t.base, t.params});
+      }      
+      ctickNT.reset();
+    }
+    else if (ctickNT(1000)){ // every 1000 cycle
+      statusMess("getNewTaskFromDB db error: " + db.getLastError());
+    }
+  }
+  _schedr.activeTask = actSz + newTasks.size();  
 
-  WTask tsk;
-  while(newTasks.tryPop(tsk)){
-    Process prc(tsk);
-    if (prc.getPid() == -1){
-      newTasks.push(move(tsk));
-      break;
-    }
-    procs.push_back(move(prc));
-    listMessForSchedr.push(MessForSchedr{tsk.base.id, ZM_Base::MessType::TASK_RUNNING, ""});
+  if (!newTasks.empty()){
+    mainCycleNotify();
   }
-  for (auto ip = procs.begin(); ip != procs.end();){
-    ZM_Base::StateType TaskState = ip->getTask().state;
-    if ((TaskState == ZM_Base::StateType::COMPLETED) ||
-        (TaskState == ZM_Base::StateType::ERROR)){
-      ip = procs.erase(ip);
-    }else{
-      ++ip;
-    }
-  }
-}
+};

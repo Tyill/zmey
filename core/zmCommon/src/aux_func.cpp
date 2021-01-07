@@ -24,7 +24,7 @@
 // THE SOFTWARE.
 //
 
-#include "zmCommon/auxFunc.h"
+#include "zmCommon/aux_func.h"
 #include <sstream>
 #include <cctype>
 #include <thread>

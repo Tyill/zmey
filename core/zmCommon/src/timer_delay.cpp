@@ -22,8 +22,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#include "../auxFunc.h"
-#include "../timerDelay.h"
+#include "../aux_func.h"
+#include "../timer_delay.h"
 
 namespace ZM_Aux{
 

@@ -27,7 +27,7 @@
 #include <mutex>
 #include "tcpServer.h"
 #include "../tcp.h"
-#include "../auxFunc.h"
+#include "../aux_func.h"
 
 std::mutex _mtxSession;
 ZM_Tcp::receiveDataCBack _receiveDataCBack = nullptr;

@@ -27,7 +27,7 @@
 #include <list>
 #include <mutex>
 #include "zmCommon/serial.h"
-#include "zmCommon/auxFunc.h"
+#include "zmCommon/aux_func.h"
 #include "zmCommon/queue.h"
 #include "structurs.h"
 #include "process.h" 
@@ -59,8 +59,8 @@ using namespace std;
 #endif
 
 extern list<Process> _procs;
-extern ZM_Aux::QueueThrSave<WTask> _newTasks;
-extern ZM_Aux::QueueThrSave<string> _errMess;
+extern ZM_Aux::Queue<WTask> _newTasks;
+extern ZM_Aux::Queue<string> _errMess;
 extern mutex _mtxPrc;
 
 void receiveHandler(const string& remcp, const string& data){

@@ -22,32 +22,32 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#include "zmDbProvider/dbProvider.h"
-#include "zmCommon/queue.h"
-#include "zmCommon/auxFunc.h"
+#include <string>
+#include <atomic>
+#include "zmCommon/queue.h" 
+#include "zmCommon/serial.h"
+#include "zmCommon/aux_func.h"
 #include "structurs.h"
 
 using namespace std;
 
-ZM_Aux::CounterTick ctickAD;
-extern ZM_Aux::QueueThrSave<ZM_DB::MessSchedr> _messToDB;
-extern ZM_Base::Scheduler _schedr;
+ZM_Aux::CounterTick ctickSH;
+extern ZM_Aux::Queue<MessForSchedr> _listMessForSchedr;
 
-void sendAllMessToDB(ZM_DB::DbProvider& db){
-
-  vector<ZM_DB::MessSchedr> mess;
-  ZM_DB::MessSchedr m;
-  while(_messToDB.tryPop(m)){
-    mess.push_back(m);
-  }
-  if (!db.sendAllMessFromSchedr(_schedr.id, mess)){
-    for (auto& m : mess){
-      _messToDB.push(move(m));
+void sendHandler(const string& cp, const string& data, const std::error_code& ec){
+  
+  auto smess = ZM_Aux::deserialn(data);  
+  ZM_Base::MessType messType = (ZM_Base::MessType)stoi(smess["command"]);
+  if (ec && (messType != ZM_Base::MessType::PROGRESS) &&
+            (messType != ZM_Base::MessType::INTERN_ERROR) &&
+            (messType != ZM_Base::MessType::PING_WORKER)){
+    MessForSchedr mess;
+    mess.MessType = messType;
+    mess.taskId = stoull(smess["taskId"]);
+    mess.taskResult = smess["taskResult"];
+    _listMessForSchedr.push(move(mess));
+    if (ctickSH(1000)){
+      statusMess("worker::sendHandler error send to schedr: " + ec.message());
     }
-    if (ctickAD(100)){ // every 100 cycle
-      statusMess("sendAllMessToDB db error: " + db.getLastError());
-    }
-  }else{
-    ctickAD.reset();
   }
 }

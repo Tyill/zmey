@@ -22,32 +22,36 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#include <string>
-#include <atomic>
-#include "zmCommon/queue.h" 
-#include "zmCommon/serial.h"
-#include "zmCommon/auxFunc.h"
+#include <list>
+#include <mutex>
+#include "zmCommon/queue.h"
+#include "process.h"
 #include "structurs.h"
 
 using namespace std;
 
-ZM_Aux::CounterTick ctickSH;
-extern ZM_Aux::QueueThrSave<MessForSchedr> _listMessForSchedr;
+extern mutex _mtxPrc;
 
-void sendHandler(const string& cp, const string& data, const std::error_code& ec){
-  
-  auto smess = ZM_Aux::deserialn(data);  
-  ZM_Base::MessType messType = (ZM_Base::MessType)stoi(smess["command"]);
-  if (ec && (messType != ZM_Base::MessType::PROGRESS) &&
-            (messType != ZM_Base::MessType::INTERN_ERROR) &&
-            (messType != ZM_Base::MessType::PING_WORKER)){
-    MessForSchedr mess;
-    mess.MessType = messType;
-    mess.taskId = stoull(smess["taskId"]);
-    mess.taskResult = smess["taskResult"];
-    _listMessForSchedr.push(move(mess));
-    if (ctickSH(1000)){
-      statusMess("worker::sendHandler error send to schedr: " + ec.message());
+void updateListTasks(ZM_Aux::Queue<WTask>& newTasks, list<Process>& procs, ZM_Aux::Queue<MessForSchedr>& listMessForSchedr){
+  lock_guard<std::mutex> lock(_mtxPrc);
+
+  WTask tsk;
+  while(newTasks.tryPop(tsk)){
+    Process prc(tsk);
+    if (prc.getPid() == -1){
+      newTasks.push(move(tsk));
+      break;
+    }
+    procs.push_back(move(prc));
+    listMessForSchedr.push(MessForSchedr{tsk.base.id, ZM_Base::MessType::TASK_RUNNING, ""});
+  }
+  for (auto ip = procs.begin(); ip != procs.end();){
+    ZM_Base::StateType TaskState = ip->getTask().state;
+    if ((TaskState == ZM_Base::StateType::COMPLETED) ||
+        (TaskState == ZM_Base::StateType::ERROR)){
+      ip = procs.erase(ip);
+    }else{
+      ++ip;
     }
   }
 }

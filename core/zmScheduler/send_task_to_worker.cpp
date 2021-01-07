@@ -27,8 +27,8 @@
 #include "zmCommon/tcp.h"
 #include "zmCommon/serial.h"
 #include "zmCommon/queue.h"
-#include "zmCommon/auxFunc.h"
-#include "zmDbProvider/dbProvider.h"
+#include "zmCommon/aux_func.h"
+#include "zmDbProvider/db_provider.h"
 #include "structurs.h"
 
 using namespace std;
@@ -39,8 +39,8 @@ vector<ZM_Base::Worker*> refWorkers;
 
 bool sendTaskToWorker(const ZM_Base::Scheduler& schedr,
                       map<std::string, SWorker>& workers,
-                      ZM_Aux::QueueThrSave<STask>& tasks, 
-                      ZM_Aux::QueueThrSave<ZM_DB::MessSchedr>& messToDB){  
+                      ZM_Aux::Queue<STask>& tasks, 
+                      ZM_Aux::Queue<ZM_DB::MessSchedr>& messToDB){  
 #define ERROR_MESS(mess, wId)                                                   \
   messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::INTERN_ERROR, wId, mess}); \
   statusMess(mess);

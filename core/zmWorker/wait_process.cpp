@@ -32,15 +32,15 @@
 #include <list>
 #include <algorithm>
 
-#include "zmCommon/auxFunc.h"
+#include "zmCommon/aux_func.h"
 #include "zmCommon/queue.h"
 #include "process.h"
 
 using namespace std;
 
-extern ZM_Aux::QueueThrSave<string> _errMess;
+extern ZM_Aux::Queue<string> _errMess;
 
-void waitProcess(ZM_Base::Worker& worker, list<Process>& procs, ZM_Aux::QueueThrSave<MessForSchedr>& listMessForSchedr){
+void waitProcess(ZM_Base::Worker& worker, list<Process>& procs, ZM_Aux::Queue<MessForSchedr>& listMessForSchedr){
   
 #define ERROR_MESS(mstr) \
   statusMess(mstr);      \

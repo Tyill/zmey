@@ -32,13 +32,13 @@
 #include <errno.h>
 #include <cstring>
 
-#include "zmCommon/auxFunc.h"
+#include "zmCommon/aux_func.h"
 #include "zmCommon/queue.h"
 #include "process.h"
 
 using namespace std;
 
-extern ZM_Aux::QueueThrSave<string> _errMess;
+extern ZM_Aux::Queue<string> _errMess;
 
 Process::Process(const WTask& tsk):
   _task(tsk){

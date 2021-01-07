@@ -25,10 +25,10 @@
 
 #include <cstring>
 #include "zmClient.h"
-#include "zmCommon/auxFunc.h"
+#include "zmCommon/aux_func.h"
 #include "zmCommon/tcp.h"
 #include "zmCommon/serial.h"
-#include "zmDbProvider/dbProvider.h"
+#include "zmDbProvider/db_provider.h"
 
 #define ZM_VERSION "1.0.0"
 

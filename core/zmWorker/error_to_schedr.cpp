@@ -22,21 +22,25 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#include "zmDbProvider/dbProvider.h"
-#include "zmCommon/queue.h"
-#include "structurs.h"
+#include <map>
+#include <string>
+#include "zmBase/structurs.h"
+#include "zmCommon/tcp.h"
+#include "zmCommon/serial.h"
+#include "zmCommon/queue.h" 
 
 using namespace std;
 
-void getPrevTaskFromDB(ZM_DB::DbProvider& db, 
-                       ZM_Base::Scheduler& schedr,
-                       ZM_Aux::QueueThrSave<STask>& outTasks){
-  vector<ZM_DB::SchedrTask> tasks;
-  if (db.getTasksOfSchedr(schedr.id, tasks)){
-    for(auto& t : tasks){
-      outTasks.push(STask{t.qTaskId, t.base, t.params});
-    }
-  }else{
-    statusMess("getPrevTaskFromDB db error: " + db.getLastError());
+void errorToSchedr(const ZM_Base::Worker& worker, const std::string& schedrConnPnt, ZM_Aux::Queue<string>& err){
+
+  string mess;
+  bool isSendOk = true;
+  while(isSendOk && err.tryPop(mess)){
+    map<string, string> data{
+      {"command", to_string((int)ZM_Base::MessType::INTERN_ERROR)},
+      {"connectPnt", worker.connectPnt},
+      {"message", mess}
+    };      
+    isSendOk = ZM_Tcp::asyncSendData(schedrConnPnt, ZM_Aux::serialn(data));
   }
-};
+}

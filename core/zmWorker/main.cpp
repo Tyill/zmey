@@ -32,8 +32,8 @@
 #include <mutex>
 #include <cmath>
 #include "zmCommon/tcp.h"
-#include "zmCommon/timerDelay.h"
-#include "zmCommon/auxFunc.h"
+#include "zmCommon/timer_delay.h"
+#include "zmCommon/aux_func.h"
 #include "zmCommon/queue.h"
 #include "zmCommon/serial.h"
 #include "structurs.h"
@@ -43,16 +43,16 @@ using namespace std;
 
 void receiveHandler(const string& cp, const string& data);
 void sendHandler(const string& cp, const string& data, const std::error_code& ec);
-void sendMessToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt, ZM_Aux::QueueThrSave<MessForSchedr>& listMessForSchedr);
+void sendMessToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt, ZM_Aux::Queue<MessForSchedr>& listMessForSchedr);
 void progressToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt, list<Process>&);
 void pingToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt);
-void errorToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt, ZM_Aux::QueueThrSave<string>& );
-void updateListTasks(ZM_Aux::QueueThrSave<WTask>& newTasks, list<Process>& procs, ZM_Aux::QueueThrSave<MessForSchedr>& listMessForSchedr);
-void waitProcess(ZM_Base::Worker&, list<Process>& procs, ZM_Aux::QueueThrSave<MessForSchedr>& listMessForSchedr);
+void errorToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt, ZM_Aux::Queue<string>& );
+void updateListTasks(ZM_Aux::Queue<WTask>& newTasks, list<Process>& procs, ZM_Aux::Queue<MessForSchedr>& listMessForSchedr);
+void waitProcess(ZM_Base::Worker&, list<Process>& procs, ZM_Aux::Queue<MessForSchedr>& listMessForSchedr);
 
-ZM_Aux::QueueThrSave<MessForSchedr> _listMessForSchedr;
-ZM_Aux::QueueThrSave<WTask> _newTasks;
-ZM_Aux::QueueThrSave<string> _errMess;
+ZM_Aux::Queue<MessForSchedr> _listMessForSchedr;
+ZM_Aux::Queue<WTask> _newTasks;
+ZM_Aux::Queue<string> _errMess;
 list<Process> _procs;
 ZM_Base::Worker _worker;
 mutex _mtxPrc, _mtxSts;

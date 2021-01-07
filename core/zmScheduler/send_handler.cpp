@@ -26,8 +26,8 @@
 #include "zmCommon/serial.h"
 #include "zmCommon/tcp.h"
 #include "zmCommon/queue.h"
-#include "zmCommon/auxFunc.h"
-#include "zmDbProvider/dbProvider.h"
+#include "zmCommon/aux_func.h"
+#include "zmDbProvider/db_provider.h"
 #include "structurs.h"
 
 using namespace std;
@@ -56,8 +56,8 @@ using namespace std;
   #define checkField(field)
 #endif
 
-extern ZM_Aux::QueueThrSave<STask> _tasks;
-extern ZM_Aux::QueueThrSave<ZM_DB::MessSchedr> _messToDB;
+extern ZM_Aux::Queue<STask> _tasks;
+extern ZM_Aux::Queue<ZM_DB::MessSchedr> _messToDB;
 extern map<std::string, SWorker> _workers;
 extern ZM_Base::Scheduler _schedr;
 

@@ -22,39 +22,32 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#include <map>
-#include <cmath>
-#include "zmDbProvider/dbProvider.h"
+#include "zmDbProvider/db_provider.h"
 #include "zmCommon/queue.h"
-#include "zmCommon/tcp.h"
-#include "zmCommon/serial.h"
+#include "zmCommon/aux_func.h"
 #include "structurs.h"
 
 using namespace std;
 
-void checkStatusWorkers(const ZM_Base::Scheduler& schedr,
-                        map<std::string, SWorker>& workers,
-                        ZM_Aux::QueueThrSave<ZM_DB::MessSchedr>& messToDB){
-  vector<SWorker*> wkrNotResp;
-  for(auto& w : workers){
-    if (!w.second.isActive){            
-      wkrNotResp.push_back(&w.second);
-    }else{
-      w.second.isActive = false;
-    }
+ZM_Aux::CounterTick ctickAD;
+extern ZM_Aux::Queue<ZM_DB::MessSchedr> _messToDB;
+extern ZM_Base::Scheduler _schedr;
+
+void sendAllMessToDB(ZM_DB::DbProvider& db){
+
+  vector<ZM_DB::MessSchedr> mess;
+  ZM_DB::MessSchedr m;
+  while(_messToDB.tryPop(m)){
+    mess.push_back(m);
   }
-  if (wkrNotResp.size() < round(workers.size() * 0.75)){ 
-    for(auto w : wkrNotResp){
-      if (w->base.state != ZM_Base::StateType::NOT_RESPONDING){
-        messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::WORKER_NOT_RESPONDING,
-                                        w->base.id});
-        w->stateMem = w->base.state;
-        w->base.state = ZM_Base::StateType::NOT_RESPONDING;
-      } 
+  if (!db.sendAllMessFromSchedr(_schedr.id, mess)){
+    for (auto& m : mess){
+      _messToDB.push(move(m));
+    }
+    if (ctickAD(100)){ // every 100 cycle
+      statusMess("sendAllMessToDB db error: " + db.getLastError());
     }
   }else{
-    string mess = "schedr::checkStatusWorkers error all workers are not available";
-    messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::INTERN_ERROR, 0, mess});                                     
-    statusMess(mess);
+    ctickAD.reset();
   }
 }

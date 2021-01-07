@@ -29,8 +29,8 @@
 #include <algorithm>
 #include <memory>
 #include "prepare.h"
-#include "zmDbProvider/dbProvider.h"
-#include "zmCommon/auxFunc.h"
+#include "zmDbProvider/db_provider.h"
+#include "zmCommon/aux_func.h"
 
 using namespace std;
 

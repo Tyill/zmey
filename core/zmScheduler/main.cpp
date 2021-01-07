@@ -31,10 +31,10 @@
 #include <map>
 #include <mutex>
 #include "zmCommon/tcp.h"
-#include "zmCommon/timerDelay.h"
+#include "zmCommon/timer_delay.h"
 #include "zmCommon/queue.h"
-#include "zmCommon/auxFunc.h"
-#include "zmDbProvider/dbProvider.h"
+#include "zmCommon/aux_func.h"
+#include "zmDbProvider/db_provider.h"
 #include "structurs.h"
 
 using namespace std;
@@ -42,15 +42,15 @@ using namespace std;
 void receiveHandler(const string& cp, const string& data);
 void sendHandler(const string& cp, const string& data, const std::error_code& ec);
 void getNewTaskFromDB(ZM_DB::DbProvider& db);
-bool sendTaskToWorker(const ZM_Base::Scheduler&, map<std::string, SWorker>&, ZM_Aux::QueueThrSave<STask>&, ZM_Aux::QueueThrSave<ZM_DB::MessSchedr>& messToDB);
+bool sendTaskToWorker(const ZM_Base::Scheduler&, map<std::string, SWorker>&, ZM_Aux::Queue<STask>&, ZM_Aux::Queue<ZM_DB::MessSchedr>& messToDB);
 void sendAllMessToDB(ZM_DB::DbProvider& db);
-void checkStatusWorkers(const ZM_Base::Scheduler&, map<std::string, SWorker>&, ZM_Aux::QueueThrSave<ZM_DB::MessSchedr>&);
-void getPrevTaskFromDB(ZM_DB::DbProvider& db, ZM_Base::Scheduler&,  ZM_Aux::QueueThrSave<STask>&);
+void checkStatusWorkers(const ZM_Base::Scheduler&, map<std::string, SWorker>&, ZM_Aux::Queue<ZM_DB::MessSchedr>&);
+void getPrevTaskFromDB(ZM_DB::DbProvider& db, ZM_Base::Scheduler&,  ZM_Aux::Queue<STask>&);
 void getPrevWorkersFromDB(ZM_DB::DbProvider& db, ZM_Base::Scheduler&, map<std::string, SWorker>&);
 
 map<std::string, SWorker> _workers;   // key - connectPnt
-ZM_Aux::QueueThrSave<STask> _tasks;
-ZM_Aux::QueueThrSave<ZM_DB::MessSchedr> _messToDB;
+ZM_Aux::Queue<STask> _tasks;
+ZM_Aux::Queue<ZM_DB::MessSchedr> _messToDB;
 ZM_Base::Scheduler _schedr;
 mutex _mtxSts;
 std::condition_variable _cv;
@@ -132,6 +132,32 @@ createDbProvider(const Config& cng, std::string& err){
     return db;
   } else{    
     return nullptr;
+  }
+}
+
+void getPrevTaskFromDB(ZM_DB::DbProvider& db, 
+                       const ZM_Base::Scheduler& schedr,
+                       ZM_Aux::Queue<STask>& outTasks){
+  vector<ZM_DB::SchedrTask> tasks;
+  if (db.getTasksOfSchedr(schedr.id, tasks)){
+    for(auto& t : tasks){
+      outTasks.push(STask{t.qTaskId, t.base, t.params});
+    }
+  }else{
+    statusMess("getPrevTaskFromDB db error: " + db.getLastError());
+  }
+};
+
+void getPrevWorkersFromDB(ZM_DB::DbProvider& db, 
+                          const ZM_Base::Scheduler& schedr,
+                          map<std::string, SWorker>& outWorkers){  
+  vector<ZM_Base::Worker> workers; 
+  if (db.getWorkersOfSchedr(schedr.id, workers)){
+    for(auto& w : workers){
+      outWorkers[w.connectPnt] = SWorker{w, w.state, w.state != ZM_Base::StateType::NOT_RESPONDING};
+    }
+  }else{
+    statusMess("getPrevWorkersFromDB db error: " + db.getLastError());
   }
 }
 

@@ -26,8 +26,8 @@
 #include <numeric>
 #include <sstream>  
 #include <libpq-fe.h>
-#include "zmCommon/auxFunc.h"
-#include "dbProvider.h"
+#include "zmCommon/aux_func.h"
+#include "db_provider.h"
 
 using namespace std;
 

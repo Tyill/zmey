@@ -23,24 +23,38 @@
 // THE SOFTWARE.
 //
 #include <map>
-#include <string>
-#include "zmBase/structurs.h"
+#include <cmath>
+#include "zmDbProvider/db_provider.h"
+#include "zmCommon/queue.h"
 #include "zmCommon/tcp.h"
 #include "zmCommon/serial.h"
-#include "zmCommon/queue.h" 
+#include "structurs.h"
 
 using namespace std;
 
-void errorToSchedr(const ZM_Base::Worker& worker, const std::string& schedrConnPnt, ZM_Aux::QueueThrSave<string>& err){
-
-  string mess;
-  bool isSendOk = true;
-  while(isSendOk && err.tryPop(mess)){
-    map<string, string> data{
-      {"command", to_string((int)ZM_Base::MessType::INTERN_ERROR)},
-      {"connectPnt", worker.connectPnt},
-      {"message", mess}
-    };      
-    isSendOk = ZM_Tcp::asyncSendData(schedrConnPnt, ZM_Aux::serialn(data));
+void checkStatusWorkers(const ZM_Base::Scheduler& schedr,
+                        map<std::string, SWorker>& workers,
+                        ZM_Aux::Queue<ZM_DB::MessSchedr>& messToDB){
+  vector<SWorker*> wkrNotResp;
+  for(auto& w : workers){
+    if (!w.second.isActive){            
+      wkrNotResp.push_back(&w.second);
+    }else{
+      w.second.isActive = false;
+    }
+  }
+  if (wkrNotResp.size() < round(workers.size() * 0.75)){ 
+    for(auto w : wkrNotResp){
+      if (w->base.state != ZM_Base::StateType::NOT_RESPONDING){
+        messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::WORKER_NOT_RESPONDING,
+                                        w->base.id});
+        w->stateMem = w->base.state;
+        w->base.state = ZM_Base::StateType::NOT_RESPONDING;
+      } 
+    }
+  }else{
+    string mess = "schedr::checkStatusWorkers error all workers are not available";
+    messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::INTERN_ERROR, 0, mess});                                     
+    statusMess(mess);
   }
 }

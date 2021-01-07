@@ -26,7 +26,7 @@
 
 #include <asio.hpp>
 #include "../tcp.h"
-#include "../auxFunc.h"
+#include "../aux_func.h"
 
 extern ZM_Tcp::sendStatusCBack _sendStatusCBack;
 extern ZM_Tcp::receiveDataCBack _receiveDataCBack;
