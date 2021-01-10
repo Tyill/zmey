@@ -31,9 +31,9 @@ namespace ZM_Aux {
 
 class Front{
   std::vector<bool> _onc;
-	int _oncSz = 0;
+  int _oncSz = 0;
 public:
-	Front();
+  Front();
   bool posFront(bool en, int id);
   bool negFront(bool en, int id);
 };

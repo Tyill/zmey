@@ -63,18 +63,18 @@ T bound(T vmin, T val, T vmax){
 
 class CPUData{  
   enum class States{
-		S_USER = 0,
-	  S_NICE,
-	  S_SYSTEM,
-	  S_IDLE,
-	  S_IOWAIT,
-	  S_IRQ,
-	  S_SOFTIRQ,
-	  S_STEAL,
-	  S_GUEST,
-	  S_GUEST_NICE,
-		NUM_STATES
-	};
+    S_USER = 0,
+    S_NICE,
+    S_SYSTEM,
+    S_IDLE,
+    S_IOWAIT,
+    S_IRQ,
+    S_SOFTIRQ,
+    S_STEAL,
+    S_GUEST,
+    S_GUEST_NICE,
+    NUM_STATES
+  };
   int _prevActiveTime = 0,
       _prevIdleTime = 0;
 public:

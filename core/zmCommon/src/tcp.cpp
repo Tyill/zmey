@@ -25,7 +25,7 @@
 
 #include <numeric>
 #include <mutex>
-#include "tcpServer.h"
+#include "tcp_server.h"
 #include "../tcp.h"
 #include "../aux_func.h"
 

@@ -135,32 +135,6 @@ createDbProvider(const Config& cng, std::string& err){
   }
 }
 
-void getPrevTaskFromDB(ZM_DB::DbProvider& db, 
-                       const ZM_Base::Scheduler& schedr,
-                       ZM_Aux::Queue<STask>& outTasks){
-  vector<ZM_DB::SchedrTask> tasks;
-  if (db.getTasksOfSchedr(schedr.id, tasks)){
-    for(auto& t : tasks){
-      outTasks.push(STask{t.qTaskId, t.base, t.params});
-    }
-  }else{
-    statusMess("getPrevTaskFromDB db error: " + db.getLastError());
-  }
-};
-
-void getPrevWorkersFromDB(ZM_DB::DbProvider& db, 
-                          const ZM_Base::Scheduler& schedr,
-                          map<std::string, SWorker>& outWorkers){  
-  vector<ZM_Base::Worker> workers; 
-  if (db.getWorkersOfSchedr(schedr.id, workers)){
-    for(auto& w : workers){
-      outWorkers[w.connectPnt] = SWorker{w, w.state, w.state != ZM_Base::StateType::NOT_RESPONDING};
-    }
-  }else{
-    statusMess("getPrevWorkersFromDB db error: " + db.getLastError());
-  }
-}
-
 #define CHECK(fun, mess) \
   if (fun){              \
     statusMess(mess);    \
@@ -216,13 +190,6 @@ int main(int argc, char* argv[]){
   ZM_Aux::TimerDelay timer;
   const int minCycleTimeMS = 10;
 
-  #define ASYNC(fut, db, func)                                                      \
-    if(!fut.valid() || (fut.wait_for(chrono::seconds(0)) == future_status::ready)){ \
-      fut = async(launch::async, [&db]{                                             \
-        func(*db);                                                                  \
-      });                                                                           \
-    }
-
   // on start
   _messToDB.push(ZM_DB::MessSchedr{ ZM_Base::MessType::START_SCHEDR });
   
@@ -232,15 +199,17 @@ int main(int argc, char* argv[]){
 
     // get new tasks from DB
     if((_tasks.size() < _schedr.capacityTask) && (_schedr.state != ZM_Base::StateType::PAUSE)){
-      ASYNC(frGetNewTask, dbNewTask, getNewTaskFromDB);
+      if(!frGetNewTask.valid() || (frGetNewTask.wait_for(chrono::seconds(0)) == future_status::ready))
+        frGetNewTask = async(launch::async, getNewTaskFromDB, *dbNewTask);                                        
     }        
 
     // send task to worker    
     bool isAvailableWorkers = sendTaskToWorker(_schedr, _workers, _tasks, _messToDB);    
 
     // send all mess to DB
-    if(!_messToDB.empty()){      
-      ASYNC(frSendAllMessToDB, dbSendMess, sendAllMessToDB);
+    if(!_messToDB.empty()){   
+    if(!frSendAllMessToDB.valid() || (frSendAllMessToDB.wait_for(chrono::seconds(0)) == future_status::ready))
+        frSendAllMessToDB = async(launch::async, sendAllMessToDB, *dbSendMess);      
     }
 
     // check status of workers
@@ -257,4 +226,30 @@ int main(int argc, char* argv[]){
   _messToDB.push(ZM_DB::MessSchedr{ ZM_Base::MessType::STOP_SCHEDR });
   sendAllMessToDB(*dbSendMess);
   return 0;
+}
+
+void getPrevTaskFromDB(ZM_DB::DbProvider& db, 
+                       const ZM_Base::Scheduler& schedr,
+                       ZM_Aux::Queue<STask>& outTasks){
+  vector<ZM_DB::SchedrTask> tasks;
+  if (db.getTasksOfSchedr(schedr.id, tasks)){
+    for(auto& t : tasks){
+      outTasks.push(STask{t.qTaskId, t.base, t.params});
+    }
+  }else{
+    statusMess("getPrevTaskFromDB db error: " + db.getLastError());
+  }
+};
+
+void getPrevWorkersFromDB(ZM_DB::DbProvider& db, 
+                          const ZM_Base::Scheduler& schedr,
+                          map<std::string, SWorker>& outWorkers){  
+  vector<ZM_Base::Worker> workers; 
+  if (db.getWorkersOfSchedr(schedr.id, workers)){
+    for(auto& w : workers){
+      outWorkers[w.connectPnt] = SWorker{w, w.state, w.state != ZM_Base::StateType::NOT_RESPONDING};
+    }
+  }else{
+    statusMess("getPrevWorkersFromDB db error: " + db.getLastError());
+  }
 }
