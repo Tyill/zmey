@@ -30,6 +30,7 @@ with psycopg2.connect(dbname='zmeydb', user='alm', password='123', host='localho
               "drop table if exists tblUTaskGroup cascade;")
   csr.close()
 
+zm.loadLib(os.path.expanduser("~") + '/cpp/zmey/build/Release/libzmClient.so')
 zo = zm.Connection("host=localhost port=5432 password=123 dbname=zmeydb connect_timeout=10")
 
 zo.setErrorCBack(lambda err: print(err))
