@@ -29,7 +29,9 @@
 #include <map>
 #include <mutex>
 #include <thread>
+#include <condition_variable>
 #include <functional>
+
 #include "zmBase/structurs.h"
 
 namespace ZM_DB{
@@ -105,6 +107,7 @@ class DbProvider{
   ZM_DB::ConnectCng _connCng;
   void* _db = nullptr; 
   std::mutex _mtx, _mtxNotifyTask;
+  std::condition_variable _cvNotifyTask;
   std::thread _thrEndTask;
   std::map<uint64_t, std::pair<ZM_Base::StateType, changeTaskStateCBack>> _notifyTaskStateCBack;
   volatile bool _fClose = false;

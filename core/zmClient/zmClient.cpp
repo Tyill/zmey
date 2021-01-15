@@ -22,8 +22,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-
 #include <cstring>
+
 #include "zmClient.h"
 #include "zmCommon/aux_func.h"
 #include "zmCommon/tcp.h"

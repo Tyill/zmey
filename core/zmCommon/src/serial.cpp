@@ -34,17 +34,17 @@ namespace ZM_Aux {
 
   std::string serialn(const std::map<std::string, std::string>& data){
 
-    int vcnt = (int)data.size() * 2;    
+    const int vcnt = (int)data.size() * 2;    
     vector<int> dataSz;
     dataSz.reserve(vcnt); 
     for (auto& v : data){
       dataSz.push_back((int)v.first.size());
       dataSz.push_back((int)v.second.size());
     }
-    int vlsSz = std::accumulate(dataSz.begin(), dataSz.end(), 0),        
-        intSz = 4,
-        allSz = intSz + intSz + vlsSz + vcnt * intSz,
-        offs = 0,
+    const int vlsSz = std::accumulate(dataSz.begin(), dataSz.end(), 0),        
+              intSz = 4,
+              allSz = intSz + intSz + vlsSz + vcnt * intSz;
+    int offs = 0,
         inx = 0;
     string out;
     out.resize(allSz);
@@ -65,16 +65,16 @@ namespace ZM_Aux {
 
   std::map<std::string, std::string> deserialn(const std::string& data){
         
-    char* pData = (char*)data.data();    
-    int offs = 0,
-        intSz = 4,
-        allSz = *((int*)pData);             offs += intSz;
-
+    char* pData = (char*)data.data(); 
+       
+    const int intSz = 4,
+              allSz = *((int*)pData);
     if (allSz != data.size()){
       return map<string, string>();
     }    
-                                            
-    int vcnt = *((int*)(pData + offs));     offs += intSz;  
+
+    int offs = intSz,                                      
+        vcnt = *((int*)(pData + offs));     offs += intSz;  
 
     map<string, string> out;    
     while(offs < allSz){

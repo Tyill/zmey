@@ -23,14 +23,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-
-#include "zmCommon/aux_func.h"
-#include <sstream>
 #include <cctype>
 #include <thread>
 #include <chrono>
+#include <sstream>
 #include <fstream>
 #include <algorithm>
+
+#include "zmCommon/aux_func.h"
 
 using namespace std;
 

@@ -23,7 +23,7 @@
 // THE SOFTWARE.
 //
 #include <string>
-#include <atomic>
+
 #include "zmCommon/queue.h" 
 #include "zmCommon/serial.h"
 #include "zmCommon/aux_func.h"

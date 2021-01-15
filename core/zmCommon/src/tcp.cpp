@@ -22,9 +22,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-
 #include <numeric>
 #include <mutex>
+
 #include "tcp_server.h"
 #include "../tcp.h"
 #include "../aux_func.h"
@@ -70,7 +70,7 @@ bool startServer(const std::string& connPnt, std::string& err, int innerThreadCn
 void stopServer(){
   if (_pSrv){
     while(true){        
-      if (std::accumulate(_isThrRun.begin(), _isThrRun.end(), false)){
+      if (std::accumulate(_isThrRun.begin(), _isThrRun.end(), 0)){
         ioc.stop();
         std::this_thread::yield();
       }

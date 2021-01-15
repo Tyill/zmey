@@ -26,6 +26,7 @@
 #include <numeric>
 #include <sstream>  
 #include <libpq-fe.h>
+
 #include "zmCommon/aux_func.h"
 #include "db_provider.h"
 
@@ -1407,14 +1408,15 @@ bool DbProvider::setChangeTaskStateCBack(uint64_t tId, changeTaskStateCBack cbac
   }
   {lock_guard<mutex> lk(_mtxNotifyTask);  
     _notifyTaskStateCBack[tId] = {ZM_Base::StateType::UNDEFINED, cback};
+    if (_notifyTaskStateCBack.size() == 1)
+      _cvNotifyTask.notify_one();
   }  
   if (!_thrEndTask.joinable()){
     _thrEndTask = thread([this](){
-      const int toutMs = 10; // tough 
       while (!_fClose){
         if (_notifyTaskStateCBack.empty()){
-          ZM_Aux::sleepMs(toutMs); 
-          continue;
+          std::unique_lock<std::mutex> lk(_mtxNotifyTask);
+          _cvNotifyTask.wait(lk); 
         }
         std::map<uint64_t, pair<ZM_Base::StateType, changeTaskStateCBack>> notifyTask;
         { lock_guard<mutex> lk(_mtxNotifyTask); 

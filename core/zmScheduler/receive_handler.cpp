@@ -23,6 +23,7 @@
 // THE SOFTWARE.
 //
 #include <map>
+
 #include "zmCommon/serial.h"
 #include "zmCommon/queue.h"
 #include "zmDbProvider/db_provider.h"
