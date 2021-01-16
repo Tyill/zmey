@@ -6,7 +6,6 @@ import { connect, Provider } from "react-redux";
 import {Container, Row, Col, Button, Modal, ListGroup} from "react-bootstrap";
 import DialogTaskTemplateRedux from "./dialogTaskTemplate";
 
-import * as Action from "./redux/actions"; 
 import Store from "./redux/store"; 
 import { IUser, IPipeline, ITaskGroup, ITaskTemplate, ITask } from "./types";
 
@@ -19,22 +18,7 @@ interface IProps {
   pipelines : Map<number, IPipeline>;                           // | 
   taskGroups : Map<number, ITaskGroup>;                         // |
   taskTemplates : Map<number, ITaskTemplate>;                   // |
-  tasks : Map<number, ITask>;                                   // |
-
-  onAddPipeline : (pipeline : IPipeline) => any;                // | Actions
-  onChangePipeline : (pipeline : IPipeline) => any;             // |
-  onDelPipeline : (pipeline : IPipeline) => any;                // |
-  onAddTaskGroup : (taskgroup : ITaskGroup) => any;             // |
-  onChangeTaskGroup : (taskgroup : ITaskGroup) => any;          // |
-  onDelTaskGroup : (taskgroup : ITaskGroup) => any;             // |
-  onAddTaskTemplate : (tasktemplate : ITaskTemplate) => any;    // |
-  onChangeTaskTemplate : (tasktemplate : ITaskTemplate) => any; // |
-  onDelTaskTemplate : (tasktemplate : ITaskTemplate) => any;    // |
-  onAddTask : (task : ITask) => any;                            // |
-  onChangeTask : (task : ITask) => any;                         // |
-  onDelTask : (task : ITask) => any;                            // |
-  onStartTask : (task : ITask) => any;                          // |
-  onStopTask : (task : ITask) => any;                           // |
+  tasks : Map<number, ITask>;                                   // |  
 };
 
 interface IState {
@@ -48,41 +32,10 @@ class App extends React.Component<IProps, IState>{
     super(props);
     
     this.state  = { isShowTaskTemplateConfig : false };
-
-    this.hAddTaskTemplate = this.hAddTaskTemplate.bind(this); 
-    this.hDelTaskTemplate = this.hDelTaskTemplate.bind(this); 
+   
     this.hShowTaskTemplateConfig = this.hShowTaskTemplateConfig.bind(this); 
   }
     
-  hAddTaskTemplate(){
-
-    // fetch('api/addTaskTemplate')
-    // .then(response => response.json())    
-    // .then(signs =>{ 
-        
-    //   for (let k in signs){
-    //     signs[k].isBuffEna = false,
-    //     signs[k].buffVals = []    
-    //   }
-      
-    //   this.props.onSetSignalsFromServer(signs);
-    
-    //   setNavScheme(signs);
-    // })
-    // .catch(() => console.log('api/allSignals error'))  
-
-
-    // this.setState((oldState, props) => (
-    //    { listGraph : [...oldState.listGraph, []] } 
-    //    ));
-  }
-  hDelTaskTemplate(){
-
-    // this.setState((oldState, props) => (
-    //    { listGraph : [...oldState.listGraph, []] } 
-    //    ));
-  }
-
   componentDidMount() {
    
     let nd = ReactDOM.findDOMNode(this);
@@ -92,61 +45,6 @@ class App extends React.Component<IProps, IState>{
       }, false);
     }
       
-    // fetch('app/allSignals')
-    // .then(response => response.json())    
-    // .then(signs =>{ 
-        
-    //   for (let k in signs){
-    //     signs[k].isBuffEna = false,
-    //     signs[k].buffVals = []    
-    //   }
-      
-    //   this.props.onSetSignalsFromServer(signs);
-    
-    //   setNavScheme(signs);
-    // })
-    // .catch(() => console.log('api/allSignals error'))  
-
-
-    // fetch('api/dataParams')
-    // .then(response => response.json())    
-    // .then(dataParams => {
-     
-    //   this.props.onSetDataParams(dataParams);
-      
-    //   this.updateSignalData(dataParams);
-    // })    
-    // .catch(() => console.log('api/dataParams error'));    
-
-
-    // let setNavScheme = (signs /*:: : {obj : signalType} */) => {
-      
-    //   let navScheme /*:: : Array<navSchemeType | string> */ = [];
-    //   for (let k in signs){
-    
-    //     let s = signs[k];
-
-    //     let it /*:: : any */ = navScheme.find((it) => {
-
-    //       return (typeof it === 'object') && (typeof it.submenu === 'string') ?
-    //                 s.module == it.submenu : false;
-    //     });
-
-    //     if (!it){ 
-
-    //       it = { submenu : s.module,
-    //                         isShow : true,
-    //                         isActive : true,
-    //                         items : []};
-
-    //       navScheme.push(it);
-    //     }
-        
-    //     it.items.push(s.name);
-    //   }
-          
-    //   this.setState({navScheme});
-    // }
   }
 
   hShowTaskTemplateConfig(){
@@ -198,8 +96,7 @@ class App extends React.Component<IProps, IState>{
             <Col className="col"> 
               <Button variant="primary" 
                       onClick= {this.hShowTaskTemplateConfig}>Primary</Button>
-              <Button variant="secondary" 
-                      onClick={this.hDelTaskTemplate}>Secondary</Button>
+              <Button variant="secondary">Secondary</Button>
             </Col>
           </Row>
         </Container> 
@@ -218,21 +115,7 @@ const mapStateToProps = (state) => {
 }
 
 const mapDispatchToProps = (dispatch) => {
-  return {
-    onAddPipeline : Action.addPipeline(dispatch),
-    onChangePipeline : Action.changePipeline(dispatch),
-    onDelPipeline : Action.delPipeline(dispatch),
-    onAddTaskGroup : Action.addTaskGroup(dispatch),
-    onChangeTaskGroup : Action.changeTaskGroup(dispatch), 
-    onDelTaskGroup : Action.delTaskGroup(dispatch),
-    onAddTaskTemplate : Action.addTaskTemplate(dispatch),
-    onChangeTaskTemplate : Action.changeTaskTemplate(dispatch),
-    onDelTaskTemplate : Action.delTaskTemplate(dispatch),
-    onAddTask : Action.addTask(dispatch),
-    onChangeTask : Action.changeTask(dispatch),
-    onDelTask : Action.delTask(dispatch),
-    onStartTask : Action.startTask(dispatch),
-    onStopTask : Action.stopTask(dispatch),
+  return {    
   }
 }
 

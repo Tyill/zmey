@@ -74,7 +74,10 @@ DbProvider::DbProvider(const ZM_DB::ConnectCng& cng)
 }
 DbProvider::~DbProvider(){  
   if (_thrEndTask.joinable()){
-    _fClose = true;
+    _fClose = true;   
+    {lock_guard<mutex> lk(_mtxNotifyTask);  
+      _cvNotifyTask.notify_one();
+    }  
     _thrEndTask.join();
   }
   if (_pg){
