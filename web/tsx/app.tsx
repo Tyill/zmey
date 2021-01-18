@@ -4,7 +4,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import { connect, Provider } from "react-redux";
 import {Container, Row, Col, Button, Modal, ListGroup} from "react-bootstrap";
-import DialogTaskTemplateRedux from "./dialogTaskTemplate";
+import DialogTaskTemplateRedux from "./taskTemplateDialog";
 
 import Store from "./redux/store"; 
 import { IUser, IPipeline, ITaskGroup, ITaskTemplate, ITask } from "./types";
@@ -58,7 +58,7 @@ class App extends React.Component<IProps, IState>{
   }
 
   render(){
-
+    
     // let obj : ITreeNavDir = { name : "dir2222222222222222222222221",
     // files : [],
     // subdirs : [],

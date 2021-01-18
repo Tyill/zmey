@@ -32,11 +32,11 @@ namespace ZM_Aux{
 
 class TimerDelay {
   struct tmBase{
-    int tmCnt;            
-    bool tmActiv;            
+    int cDelay;            
+    bool isActive;            
   };
   std::vector<tmBase> _tmrs;
-  int _tmSz;  
+  int _tmCnt;  
   uint64_t _prevTm;
   uint64_t _deltaTm;  
 public:

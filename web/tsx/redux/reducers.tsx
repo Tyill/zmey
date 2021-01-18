@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 
-import { EnumActions } from "./actions.jsx";
+import { EnumActions } from "./actions";
 import { combineReducers } from 'redux'
 import {IUser, IPipeline, ITaskGroup, ITaskTemplate, ITask } from "../types"
 
@@ -25,6 +25,8 @@ function taskGroups(curTaskGroups : Map<number, ITaskGroup>, action : {type : En
 
 function taskTemplates(curTaskTemplates : Map<number, ITaskTemplate>, action : {type : EnumActions, taskTemplate : ITaskTemplate}) :
   Map<number, ITaskTemplate>{
+  
+  if (!curTaskTemplates) return new Map<number, ITaskTemplate>();
 
   let taskTemplatesCpy = Object.assign({}, curTaskTemplates);  
   switch (action.type) {
@@ -33,7 +35,10 @@ function taskTemplates(curTaskTemplates : Map<number, ITaskTemplate>, action : {
       taskTemplatesCpy.set(action.taskTemplate.id, action.taskTemplate);
       break;
     case EnumActions.DEL_TASKTEMPLATE:
-      break;    
+      break;  
+    default:
+      taskTemplatesCpy = new Map<number, ITaskTemplate>();
+      break;
   }
   return taskTemplatesCpy; 
 }

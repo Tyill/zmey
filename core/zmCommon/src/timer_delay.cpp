@@ -30,122 +30,122 @@ namespace ZM_Aux{
 TimerDelay::TimerDelay(){
   _prevTm = currDateTimeSinceEpochMs();
   _deltaTm = 0;
-  _tmSz = 0;
+  _tmCnt = 0;
 }
 void TimerDelay::updateCycTime(){
   uint64_t ct = currDateTimeSinceEpochMs();
   _deltaTm = ct - _prevTm;
   _prevTm = ct;
-  for (int i = 0; i < _tmSz; ++i) {
-    if (!_tmrs[i].tmActiv){
-      _tmrs[i].tmCnt = 0;
+  for (int i = 0; i < _tmCnt; ++i) {
+    if (!_tmrs[i].isActive){
+      _tmrs[i].cDelay = 0;
     }
-    _tmrs[i].tmActiv = false;
+    _tmrs[i].isActive = false;
   }  
 }
 uint64_t TimerDelay::getDeltaTimeMS(){
   return currDateTimeSinceEpochMs() - _prevTm;
 }
 bool TimerDelay::onDelaySec(bool start, int delay, int id){
-  if (id >= _tmSz){
+  if (id >= _tmCnt){
     _tmrs.resize(id + 1, tmBase{0, false});
-    _tmSz = id + 1;
+    _tmCnt = id + 1;
   }
   bool res = false;
   if (start) {
-    _tmrs[id].tmCnt += (int)_deltaTm;
-    if (_tmrs[id].tmCnt >= delay * 1000){
+    _tmrs[id].cDelay += (int)_deltaTm;
+    if (_tmrs[id].cDelay >= delay * 1000){
       res = true;
     } 
   } else{
-    _tmrs[id].tmCnt = 0;
+    _tmrs[id].cDelay = 0;
   }
-  _tmrs[id].tmActiv = true;
+  _tmrs[id].isActive = true;
   return res;
 }
 bool TimerDelay::offDelaySec(bool start, int delay, int id){
-  if (id >= _tmSz){
+  if (id >= _tmCnt){
     _tmrs.resize(id + 1, tmBase{0, false});
-    _tmSz = id + 1;
+    _tmCnt = id + 1;
   }
   bool res = false;
   if (start){ 
-    _tmrs[id].tmCnt = delay * 1000;
+    _tmrs[id].cDelay = delay * 1000;
   }
-  else if (_tmrs[id].tmCnt > 0){
+  else if (_tmrs[id].cDelay > 0){
     res = true;
-    _tmrs[id].tmCnt -= (int)_deltaTm;
+    _tmrs[id].cDelay -= (int)_deltaTm;
   }
-  _tmrs[id].tmActiv = true;
+  _tmrs[id].isActive = true;
   return (start || res);
 }
 bool TimerDelay::onDelayMS(bool start, int delay, int id){
-  if (id >= _tmSz){
+  if (id >= _tmCnt){
     _tmrs.resize(id + 1, tmBase{0, false});
-    _tmSz = id + 1;
+    _tmCnt = id + 1;
   }
   bool res = false;
   if (start) {
-    _tmrs[id].tmCnt += (int)_deltaTm;
-    if (_tmrs[id].tmCnt >= delay){
+    _tmrs[id].cDelay += (int)_deltaTm;
+    if (_tmrs[id].cDelay >= delay){
       res = true;
     }
   } else{
-    _tmrs[id].tmCnt = 0;
+    _tmrs[id].cDelay = 0;
   }
-  _tmrs[id].tmActiv = true;
+  _tmrs[id].isActive = true;
   return res;
 }
 bool TimerDelay::offDelayMS(bool start, int delay, int id){    
-  if (id >= _tmSz){
+  if (id >= _tmCnt){
     _tmrs.resize(id + 1, tmBase{0, false});
-    _tmSz = id + 1;
+    _tmCnt = id + 1;
   }
   bool res = false;
   if (start){
-    _tmrs[id].tmCnt = delay;
+    _tmrs[id].cDelay = delay;
   }
-  else if (_tmrs[id].tmCnt > 0){      
+  else if (_tmrs[id].cDelay > 0){      
     res = true;
-    _tmrs[id].tmCnt -= (int)_deltaTm;
+    _tmrs[id].cDelay -= (int)_deltaTm;
   }
-  _tmrs[id].tmActiv = true;
+  _tmrs[id].isActive = true;
   return (start || res);
 }
 bool TimerDelay::onDelayOncSec(bool start, int delay, int id){
-  if (id >= _tmSz){
+  if (id >= _tmCnt){
     _tmrs.resize(id + 1, tmBase{0, false});
-    _tmSz = id + 1;
+    _tmCnt = id + 1;
   }
   bool res = false;
   if (start) {
-    _tmrs[id].tmCnt += (int)_deltaTm;
-    if (_tmrs[id].tmCnt >= delay * 1000){
-      _tmrs[id].tmCnt = 0;
+    _tmrs[id].cDelay += (int)_deltaTm;
+    if (_tmrs[id].cDelay >= delay * 1000){
+      _tmrs[id].cDelay = 0;
       res = true;
     } 
   } else{
-    _tmrs[id].tmCnt = 0;
+    _tmrs[id].cDelay = 0;
   }
-  _tmrs[id].tmActiv = true;
+  _tmrs[id].isActive = true;
   return res;
 }
 bool TimerDelay::onDelayOncMS(bool start, int delay, int id){
-  if (id >= _tmSz){
+  if (id >= _tmCnt){
     _tmrs.resize(id + 1, tmBase{0, false});
-    _tmSz = id + 1;
+    _tmCnt = id + 1;
   }
   bool res = false;
   if (start) {
-    _tmrs[id].tmCnt += (int)_deltaTm;
-    if (_tmrs[id].tmCnt >= delay){
-      _tmrs[id].tmCnt = 0;
+    _tmrs[id].cDelay += (int)_deltaTm;
+    if (_tmrs[id].cDelay >= delay){
+      _tmrs[id].cDelay = 0;
       res = true;
     }
   } else{
-    _tmrs[id].tmCnt = 0;
+    _tmrs[id].cDelay = 0;
   }
-  _tmrs[id].tmActiv = true;
+  _tmrs[id].isActive = true;
   return res;
 }
 }

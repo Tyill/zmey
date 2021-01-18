@@ -66,7 +66,7 @@ class DialogTaskTemplate extends React.Component<IProps, IState>{
     else if (!script){
       error = "Script is empty"; 
     }
-    
+    console.log(this.props)
     if (!error){
       let newTaskTemplate : ITaskTemplate = {
         id : 0,
@@ -77,6 +77,7 @@ class DialogTaskTemplate extends React.Component<IProps, IState>{
         maxDurationSec,
         description
       }
+      console.log(this.props.taskTemplates)
       if (this.props.taskTemplates.has(name))
         fetch('api/addTaskTemplate', {
           method: 'POST',
@@ -97,10 +98,11 @@ class DialogTaskTemplate extends React.Component<IProps, IState>{
           },
           body: JSON.stringify(newTaskTemplate)})
         .then(response => response.json())    
-        .then(respTaskTemplate =>{           
-          this.props.onChangeTaskTemplate(respTaskTemplate);           
+        .then(respTaskTemplate =>{   
+          console.log(respTaskTemplate);        
+          //this.props.onChangeTaskTemplate(respTaskTemplate);           
         })
-        .catch(() => console.log('api/addTaskTemplate error')); 
+        .catch(() => console.log('api/changeTaskTemplate error')); 
 
       this.setState({curTaskTempl : newTaskTemplate});
     } 

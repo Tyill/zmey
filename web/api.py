@@ -132,15 +132,19 @@ def allPipelines():
 ###############################################################################
 ### TaskTemplate
 
-@bp.route('/addTaskTemplate')
+@bp.route('/addTaskTemplate', methods=(['POST']))
 @loginRequired
 def addTaskTemplate():
+  jn = request.get_json(silent=True)
+  print(jn)
   return None#_zmCommon.addTaskTemplate(ttl)
 
-@bp.route('/changeTaskTemplate')
-@loginRequired
+@bp.route('/changeTaskTemplate', methods=(['POST']))
+#@loginRequired 
 def changeTaskTemplate():
-  return None#_zmCommon.changeTaskTemplate(ttl)
+  jn = request.get_json(silent=True)
+  print(jn)
+  return jn#_zmCommon.changeTaskTemplate(ttl)
 
 @bp.route('/delTaskTemplate')
 @loginRequired
