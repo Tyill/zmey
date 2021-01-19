@@ -40,23 +40,23 @@ function taskGroups(curTaskGroups : Map<number, ITaskGroup>, action : {type : En
 
     if (!curTaskGroups) return new Map<number, ITaskGroup>();
 
-    let curTaskGroupsCpy = Object.assign({}, curTaskGroups);  
+    let taskGroupsCpy = Object.assign({}, curTaskGroups);  
     switch (action.type) {
       case EnumActions.ADD_TASKGROUP:
       case EnumActions.CHANGE_TASKGROUP:
-        curTaskGroupsCpy.set(action.taskGroup.id, action.taskGroup);
+        taskGroupsCpy.set(action.taskGroup.id, action.taskGroup);
         break;
       case EnumActions.DEL_TASKGROUP:
         break;  
       case EnumActions.FILL_TASKGROUPS:
         for (let t of action.allTaskGroups)
-          curTaskGroupsCpy.set(t.id, t);
+          taskGroupsCpy.set(t.id, t);
         break;  
       default:
-        curTaskGroupsCpy = new Map<number, ITaskGroup>();
+        taskGroupsCpy = new Map<number, ITaskGroup>();
         break;
     }
-    return curTaskGroupsCpy; 
+    return taskGroupsCpy; 
 }
 
 function taskTemplates(curTaskTemplates : Map<number, ITaskTemplate>, action : {type : EnumActions, taskTemplate : ITaskTemplate, allTaskTemplates : Array<ITaskTemplate>}) :
@@ -88,23 +88,23 @@ function tasks(curTasks : Map<number, ITask>, action : {type : EnumActions, task
 
     if (!curTasks) return new Map<number, ITask>();
 
-    let taskTemplatesCpy = Object.assign({}, curTaskTemplates);  
+    let tasksCpy = Object.assign({}, curTasks);  
     switch (action.type) {
-      case EnumActions.ADD_TASKTEMPLATE:
-      case EnumActions.CHANGE_TASKTEMPLATE:
-        taskTemplatesCpy.set(action.taskTemplate.id, action.taskTemplate);
+      case EnumActions.ADD_TASK:
+      case EnumActions.CHANGE_TASK:
+        tasksCpy.set(action.task.id, action.task);
         break;
-      case EnumActions.DEL_TASKTEMPLATE:
+      case EnumActions.DEL_TASK:
         break;  
-      case EnumActions.FILL_TASKTEMPLATES:
-        for (let t of action.allTaskTemplates)
-          taskTemplatesCpy.set(t.id, t);
+      case EnumActions.FILL_TASKS:
+        for (let t of action.allTasks)
+          tasksCpy.set(t.id, t);
         break;  
       default:
-        taskTemplatesCpy = new Map<number, ITaskTemplate>();
+        tasksCpy = new Map<number, ITask>();
         break;
     }
-    return taskTemplatesCpy; 
+    return tasksCpy; 
 }
 
 const ComboReducer = combineReducers({user, pipelines, taskGroups, taskTemplates, tasks });

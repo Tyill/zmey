@@ -54,7 +54,7 @@ ZM_Aux::Queue<STask> _tasks;
 ZM_Aux::Queue<ZM_DB::MessSchedr> _messToDB;
 ZM_Base::Scheduler _schedr;
 mutex _mtxSts;
-std::condition_variable _cv;
+std::condition_variable _cvStandUp;
 volatile bool _fClose = false,
               _isMainCycleRun = false;
 
@@ -106,17 +106,17 @@ void parseArgs(int argc, char* argv[], Config& outCng){
 }
 
 void mainCycleNotify(){
-  if (!_isMainCycleRun){
+  if (!_isMainCycleRun){ // костыль, но кажется, что без него задергают зря
     _isMainCycleRun = true;
-    _cv.notify_one();
+    _cvStandUp.notify_one();
   }
 }
 
 void mainCycleSleep(int delayMS){
-  _isMainCycleRun = false;
+  _isMainCycleRun = false;        
   std::mutex mtx;
   {std::unique_lock<std::mutex> lck(mtx);
-    _cv.wait_for(lck, std::chrono::milliseconds(delayMS)); 
+    _cvStandUp.wait_for(lck, std::chrono::milliseconds(delayMS)); 
   }
   _isMainCycleRun = true;
 }
@@ -194,35 +194,30 @@ int main(int argc, char* argv[]){
   // on start
   _messToDB.push(ZM_DB::MessSchedr{ ZM_Base::MessType::START_SCHEDR });
   
-  // main cycle  
   while (!_fClose){
     timer.updateCycTime();   
 
-    // get new tasks from DB
     if((_tasks.size() < _schedr.capacityTask) && (_schedr.state != ZM_Base::StateType::PAUSE)){
       if(!frGetNewTask.valid() || (frGetNewTask.wait_for(chrono::seconds(0)) == future_status::ready))
         frGetNewTask = async(launch::async, [&dbNewTask]{ getNewTaskFromDB(*dbNewTask); });                                        
     }        
 
-    // send task to worker    
     bool isAvailableWorkers = sendTaskToWorker(_schedr, _workers, _tasks, _messToDB);    
 
-    // send all mess to DB
     if(!_messToDB.empty()){   
       if(!frSendAllMessToDB.valid() || (frSendAllMessToDB.wait_for(chrono::seconds(0)) == future_status::ready))
         frSendAllMessToDB = async(launch::async, [&dbSendMess]{ sendAllMessToDB(*dbSendMess); });      
     }
 
-    // check status of workers
     if(timer.onDelayOncSec(true, cng.checkWorkerTOutSec, 0)){
       checkStatusWorkers(_schedr, _workers, _messToDB);
     }
     
-    // added delay
     if (_messToDB.empty() && (_tasks.empty() || !isAvailableWorkers)){ 
       mainCycleSleep(minCycleTimeMS);
     }
   }
+
   ZM_Tcp::stopServer();
   _messToDB.push(ZM_DB::MessSchedr{ ZM_Base::MessType::STOP_SCHEDR });
   sendAllMessToDB(*dbSendMess);

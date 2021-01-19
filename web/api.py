@@ -11,6 +11,8 @@ from flask import(
   g, Blueprint, redirect, url_for, request, render_template
 )
 
+DEBUG = 1
+
 _zmCommon = None
 _zmTaskWatch = None
 
@@ -44,7 +46,7 @@ bp = Blueprint('zmey', __name__, url_prefix='/api')
 def loginRequired(view):
   @functools.wraps(view)
   def wrapped_view(**kwargs):
-    if g.userId is None:
+    if (g.userId is None) and (DEBUG == 0):
       return redirect(url_for('auth.login'))
     return view(**kwargs)
   return wrapped_view
@@ -67,7 +69,7 @@ def getUser(uname : str, passw : str) -> User:
   usr = User(0, uname, passw)
   return usr if _zmCommon.getUserId(usr) else None
 
-def changeUser() -> bool:
+def changeUser(usr : User) -> bool:
   return _zmCommon.changeUser(usr)
 
 def allUsers() -> [User]:
@@ -124,8 +126,9 @@ def delPipeline():
   return None#_zmCommon.delPipeline(ppl.id)
 
 @bp.route('/allPipelines')
-#@loginRequired
+@loginRequired
 def allPipelines():
+  request.
   ppls = _zmCommon.getAllPipelines(userId)
   return json.dumps(ppls)
 
@@ -152,7 +155,7 @@ def addTaskTemplate():
 
 
 @bp.route('/changeTaskTemplate', methods=(['POST']))
-#@loginRequired 
+@loginRequired 
 def changeTaskTemplate():
   jnTtl = request.get_json(silent=True)
   
@@ -175,7 +178,7 @@ def delTaskTemplate():
   return None#_zmCommon.delTaskTemplate(ttl.id)
 
 @bp.route('/allTaskTemplates')
-#@loginRequired
+@loginRequired
 def allTaskTemplates():
   ttls = _zmCommon.getAllTaskTemplates(g.userId)
   return json.dumps(ttls)

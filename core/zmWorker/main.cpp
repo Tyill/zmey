@@ -57,32 +57,25 @@ ZM_Aux::Queue<string> _errMess;
 list<Process> _procs;
 ZM_Base::Worker _worker;
 mutex _mtxPrc, _mtxSts;
-std::condition_variable _cv;
-volatile bool _isMainCycleRun = false;
+std::condition_variable _cvStandUp;
 
 struct Config{
   int progressTasksTOutSec = 10;
   int pingSchedrTOutSec = 20; 
-  const int sendAckTOutSec = 1; 
   std::string localConnPnt;
   std::string remoteConnPnt;
   std::string schedrConnPnt;
 };
 
 void mainCycleNotify(){
-  if (!_isMainCycleRun){
-    _isMainCycleRun = true;
-    _cv.notify_one();
-  }
+  _cvStandUp.notify_one();
 }
 
 void mainCycleSleep(int delayMS){
-  _isMainCycleRun = false;
   std::mutex mtx;
   {std::unique_lock<std::mutex> lck(mtx);
-    _cv.wait_for(lck, std::chrono::milliseconds(delayMS)); 
+    _cvStandUp.wait_for(lck, std::chrono::milliseconds(delayMS)); 
   }
-  _isMainCycleRun = true;
 }
 
 void statusMess(const string& mess){
@@ -168,44 +161,36 @@ int main(int argc, char* argv[]){
    
   ZM_Aux::CPUData cpu;
 
-  // main cycle
   while (1){
     timer.updateCycTime();   
 
     // check child process
     waitProcess(_worker, _procs, _listMessForSchedr);
 
-    // update list of tasks
     updateListTasks(_newTasks, _procs, _listMessForSchedr);
 
-    // send mess to schedr
     if (!_listMessForSchedr.empty()){ 
       _worker.activeTask = _newTasks.size() + _procs.size();
       sendMessToSchedr(_worker, cng.schedrConnPnt, _listMessForSchedr);
     }
 
-    // progress of tasks
     if(timer.onDelayOncSec(true, cng.progressTasksTOutSec, 0)){
       progressToSchedr(_worker, cng.schedrConnPnt, _procs);
     }
     
-    // load CPU
     if(timer.onDelayOncSec(true, 1, 1)){
       _worker.load = cpu.load();
     } 
     
-    // ping to schedr
     if(timer.onDelayOncSec(true, cng.pingSchedrTOutSec, 2)){
       _worker.activeTask = _newTasks.size() + _procs.size();
       pingToSchedr(_worker, cng.schedrConnPnt);
     } 
          
-    // errors
     if (!_errMess.empty()){ 
       errorToSchedr(_worker, cng.schedrConnPnt, _errMess);
     }    
     
-    // added delay
     if (_newTasks.empty()){
       mainCycleSleep(minCycleTimeMS);     
     }
