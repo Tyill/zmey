@@ -77,7 +77,6 @@ class DialogTaskTemplate extends React.Component<IProps, IState>{
         maxDurationSec,
         description
       }
-      console.log(this.props.taskTemplates)
       if (this.props.taskTemplates.has(name))
         fetch('api/addTaskTemplate', {
           method: 'POST',
@@ -126,11 +125,11 @@ class DialogTaskTemplate extends React.Component<IProps, IState>{
             <Form.Row>
               <Form.Group as={Col} controlId="name">
                 <Form.Label>Name</Form.Label>
-                <Form.Control type="text" ref={(input) => {this._refObj["name"] = input }} placeholder="any name" defaultValue={ttask.name}/>
+                <Form.Control type="text" ref={(input) => {this._refObj["name"] = input }} placeholder="any" defaultValue={ttask.name}/>
               </Form.Group>
               <Form.Group as={Col} controlId="description">
                 <Form.Label>Description</Form.Label>
-                <Form.Control type="text" ref={(input) => {this._refObj["description"] = input }} placeholder="optional description" defaultValue={ttask.description}/>
+                <Form.Control type="text" ref={(input) => {this._refObj["description"] = input }} placeholder="optional" defaultValue={ttask.description}/>
               </Form.Group>
             </Form.Row>
             <Form.Group controlId="script">

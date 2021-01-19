@@ -447,9 +447,9 @@ struct zmTask{
 /// add pipeline task
 /// @param[in] zmConn - object connect
 /// @param[in] cng - pipeline task config
-/// @param[out] outQTaskId - pipeline task id
+/// @param[out] outPtId - pipeline task id
 /// @return true - ok
-ZMEY_API bool zmAddTask(zmConn, zmTask cng, uint64_t* outQTaskId);
+ZMEY_API bool zmAddTask(zmConn, zmTask cng, uint64_t* outPtId);
 
 /// get pipeline task config
 /// @param[in] zmConn - object connect

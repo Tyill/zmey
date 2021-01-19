@@ -3,9 +3,9 @@ import sys
 sys.path.append("../python")
 import python.zmClient as zm
 from python.zmClient import(
-  User
+  User, TaskTemplate
 )
-
+import json
 import functools
 from flask import(
   g, Blueprint, redirect, url_for, request, render_template
@@ -67,9 +67,8 @@ def getUser(uname : str, passw : str) -> User:
   usr = User(0, uname, passw)
   return usr if _zmCommon.getUserId(usr) else None
 
-def changeUser():
-  jn = request.get_json(silent=True)
-  return None#_zmCommon.addScheduler(schr)
+def changeUser() -> bool:
+  return _zmCommon.changeUser(usr)
 
 def allUsers() -> [User]:
   return _zmCommon.getAllUsers()
@@ -125,9 +124,10 @@ def delPipeline():
   return None#_zmCommon.delPipeline(ppl.id)
 
 @bp.route('/allPipelines')
-@loginRequired
+#@loginRequired
 def allPipelines():
-  return None#_zmCommon.getAllPipelines(userId)
+  ppls = _zmCommon.getAllPipelines(userId)
+  return json.dumps(ppls)
 
 ###############################################################################
 ### TaskTemplate
@@ -135,16 +135,39 @@ def allPipelines():
 @bp.route('/addTaskTemplate', methods=(['POST']))
 @loginRequired
 def addTaskTemplate():
-  jn = request.get_json(silent=True)
-  print(jn)
-  return None#_zmCommon.addTaskTemplate(ttl)
+
+  jnTtl = request.get_json(silent=True)
+  
+  ttl = TaskTemplate()
+  ttl.name = jnTtl['name']
+  ttl.script = jnTtl['script']
+  ttl.averDurationSec = jnTtl['averDurationSec']
+  ttl.maxDurationSec = jnTtl['maxDurationSec']
+  ttl.description = jnTtl['description']
+  
+  if _zmCommon.addTaskTemplate(ttl):
+    return json.dumps(ttl)
+  else:
+    return "{}"
+
 
 @bp.route('/changeTaskTemplate', methods=(['POST']))
 #@loginRequired 
 def changeTaskTemplate():
-  jn = request.get_json(silent=True)
-  print(jn)
-  return jn#_zmCommon.changeTaskTemplate(ttl)
+  jnTtl = request.get_json(silent=True)
+  
+  ttl = TaskTemplate()
+  ttl.id = jnTtl['id']
+  ttl.name = jnTtl['name']
+  ttl.script = jnTtl['script']
+  ttl.averDurationSec = jnTtl['averDurationSec']
+  ttl.maxDurationSec = jnTtl['maxDurationSec']
+  ttl.description = jnTtl['description']
+  
+  if _zmCommon.changeTaskTemplate(ttl):
+    return json.dumps(ttl)
+  else:
+    return "{}"
 
 @bp.route('/delTaskTemplate')
 @loginRequired
@@ -152,9 +175,10 @@ def delTaskTemplate():
   return None#_zmCommon.delTaskTemplate(ttl.id)
 
 @bp.route('/allTaskTemplates')
-@loginRequired
+#@loginRequired
 def allTaskTemplates():
-  return None#_zmCommon.getAllTaskTemplates(userId)
+  ttls = _zmCommon.getAllTaskTemplates(g.userId)
+  return json.dumps(ttls)
 
 ###############################################################################
 ### Task
@@ -177,7 +201,9 @@ def delTask():
 @bp.route('/allTasks')
 @loginRequired
 def allTasks():
-  return None#_zmCommon.getAllTasks(pplId)
+  jn = request.get_json(silent=True)
+  tsks = _zmCommon.getAllTasks(jn["pplId"])
+  return json.dumps(tsks)
 
 @bp.route('/startTask')
 @loginRequired
@@ -192,6 +218,3 @@ def startTask():
 @loginRequired
 def stopTask():
   return None#_zmCommon.stopTask(tId)
-
-def hChangeTask(tId : int, prevState : zm.StateType, newState : zm.StateType):
-  pass

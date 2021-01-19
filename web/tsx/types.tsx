@@ -22,8 +22,6 @@ export
 interface IPipeline{
   id : number;     
   name : string;
-  taskIdList : Set<number>;    ///< task id
-  groupIdList : Set<number>;   ///< group id
   description?: string;
 };
 
@@ -31,8 +29,7 @@ export
 interface ITaskGroup{
   id : number;
   pplId : number;              ///< pipeline id
-  name : string;            
-  taskIdList : Set<number>;    ///< task id
+  name : string; 
   description?: string;     
 };
 
@@ -41,7 +38,6 @@ interface ITaskTemplate{
   id : number;
   name : string;            
   script : string;  
-  taskIdList : Set<number>;    ///< task id
   averDurationSec : number;    ///< estimated lead time 
   maxDurationSec : number;     ///< maximum lead time
   description? : string;  
@@ -49,6 +45,7 @@ interface ITaskTemplate{
 
 export
 interface ITask{
+  id : number;
   pplId : number;              ///< pipeline id
   groupId? : number;           ///< group id
   templId : number;            ///< task template id

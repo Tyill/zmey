@@ -6,17 +6,24 @@ enum EnumActions{
   ADD_PIPELINE,
   CHANGE_PIPELINE,
   DEL_PIPELINE,
+  FILL_PIPELINES,
+
   ADD_TASKGROUP,
   CHANGE_TASKGROUP,
   DEL_TASKGROUP,
+  FILL_TASKGROUPS,
+
   ADD_TASKTEMPLATE,
   CHANGE_TASKTEMPLATE,
   DEL_TASKTEMPLATE,
+  FILL_TASKTEMPLATES,
+
   ADD_TASK,
   CHANGE_TASK,
   START_TASK,
   STOP_TASK,
   DEL_TASK,
+  FILL_TASKS,
 }
 
 export
@@ -35,6 +42,12 @@ export
 function delPipeline(dispatch){
   return function(pipeline : IPipeline){
     dispatch({ type : EnumActions.DEL_PIPELINE, pipeline });
+  }
+}
+export
+function fillPipelines(dispatch){
+  return function(pipelines : Array<IPipeline>){
+    dispatch({ type : EnumActions.FILL_PIPELINES, pipelines });
   }
 }
 
@@ -56,6 +69,12 @@ function delTaskGroup(dispatch){
     dispatch({ type : EnumActions.DEL_TASKGROUP, taskgroup });
   }
 }
+export
+function fillTaskGroups(dispatch){
+  return function(taskgroups : Array<ITaskGroup>){
+    dispatch({ type : EnumActions.FILL_TASKGROUPS, taskgroups });
+  }
+}
 
 export
 function addTaskTemplate(dispatch){
@@ -73,6 +92,12 @@ export
 function delTaskTemplate(dispatch){
   return function(tasktemplate : ITaskTemplate){
     dispatch({ type : EnumActions.DEL_TASKTEMPLATE, tasktemplate });
+  }
+}
+export
+function fillTaskTemplates(dispatch){
+  return function(tasktemplates : Array<ITaskTemplate>){
+    dispatch({ type : EnumActions.FILL_TASKTEMPLATES, tasktemplates });
   }
 }
 
@@ -104,5 +129,11 @@ export
 function stopTask(dispatch){
   return function(task : ITask){
     dispatch({ type : EnumActions.STOP_TASK, task });
+  }
+}
+export
+function fillTasks(dispatch){
+  return function(tasks : Array<ITask>){
+    dispatch({ type : EnumActions.FILL_TASKS, tasks });
   }
 }

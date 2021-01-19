@@ -28,11 +28,11 @@ from __future__ import absolute_import
 import ctypes
 from enum import Enum
 
-_LIB = None
+_lib = None
 
 def loadLib(path : str):
-  global _LIB
-  _LIB = ctypes.CDLL(path)
+  global _lib
+  _lib = ctypes.CDLL(path)
   
 #############################################################################
 ### Common
@@ -168,35 +168,35 @@ class InternError:
     self.createTime = createTime   
     self.message = message          
   
-class ConnectCng_C(ctypes.Structure):
+class _ConnectCng_C(ctypes.Structure):
   _fields_ = [('connStr', ctypes.c_char_p)]
-class UserCng_C(ctypes.Structure):
+class _UserCng_C(ctypes.Structure):
   _fields_ = [('name', ctypes.c_char * 256),
               ('passw', ctypes.c_char * 256),
               ('description', ctypes.c_char_p)]
-class SchedrCng_C(ctypes.Structure):
+class _SchedrCng_C(ctypes.Structure):
   _fields_ = [('capacityTask', ctypes.c_uint32),
               ('connectPnt', ctypes.c_char * 256)]
-class WorkerCng_C(ctypes.Structure):
+class _WorkerCng_C(ctypes.Structure):
   _fields_ = [('schedrId', ctypes.c_uint64),
               ('capacityTask', ctypes.c_uint32),
               ('connectPnt', ctypes.c_char * 256)]
-class PipelineCng_C(ctypes.Structure):
+class _PipelineCng_C(ctypes.Structure):
   _fields_ = [('userId', ctypes.c_uint64),
               ('name', ctypes.c_char * 256),
               ('description', ctypes.c_char_p)]
-class GroupCng_C(ctypes.Structure):
+class _GroupCng_C(ctypes.Structure):
   _fields_ = [('pplId', ctypes.c_uint64),
               ('name', ctypes.c_char * 256),
               ('description', ctypes.c_char_p)]
-class TaskTemplCng_C(ctypes.Structure):
+class _TaskTemplCng_C(ctypes.Structure):
   _fields_ = [('userId', ctypes.c_uint64),
               ('averDurationSec', ctypes.c_uint32),
               ('maxDurationSec', ctypes.c_uint32),
               ('name', ctypes.c_char * 256),
               ('description', ctypes.c_char_p),
               ('script', ctypes.c_char_p)]
-class TaskCng_C(ctypes.Structure):
+class _TaskCng_C(ctypes.Structure):
   _fields_ = [('pplId', ctypes.c_uint64),
               ('gId', ctypes.c_uint64),
               ('ttId', ctypes.c_uint64),
@@ -204,15 +204,15 @@ class TaskCng_C(ctypes.Structure):
               ('prevTasksId', ctypes.c_char_p),
               ('nextTasksId', ctypes.c_char_p),
               ('params', ctypes.c_char_p)]
-class TaskState_C(ctypes.Structure):
+class _TaskState_C(ctypes.Structure):
   _fields_ = [('progress', ctypes.c_uint32),
               ('state', ctypes.c_int32)]
-class TaskTime_C(ctypes.Structure):
+class _TaskTime_C(ctypes.Structure):
   _fields_ = [('createTime', ctypes.c_char * 32),
               ('takeInWorkTime', ctypes.c_char * 32),
               ('startTime', ctypes.c_char * 32),
               ('stopTime', ctypes.c_char * 32)]
-class InternError_C(ctypes.Structure):
+class _InternError_C(ctypes.Structure):
   _fields_ = [('schedrId', ctypes.c_uint64),
               ('workerId', ctypes.c_uint64),
               ('createTime', ctypes.c_char * 32),
@@ -223,7 +223,7 @@ def version() -> str:
   Version library
   :return: version
   """
-  pfun = _LIB.zmVersionLib
+  pfun = _lib.zmVersionLib
   pfun.restype = None
   pfun.argtypes = (ctypes.c_char_p,)
 
@@ -240,14 +240,14 @@ class Connection:
   _cerr : str = ""
   
   def __init__(self, connStr : str):
-    if not _LIB:
+    if not _lib:
       raise Exception('lib not load')
     
-    cng = ConnectCng_C()
+    cng = _ConnectCng_C()
     cng.connStr = connStr.encode("utf-8")
     
-    pfun = _LIB.zmCreateConnection
-    pfun.argtypes = (ConnectCng_C, ctypes.c_char_p)
+    pfun = _lib.zmCreateConnection
+    pfun.argtypes = (_ConnectCng_C, ctypes.c_char_p)
     pfun.restype = ctypes.c_void_p
     err = ctypes.create_string_buffer(256)
     self._zmConn = pfun(cng, err)
@@ -256,7 +256,7 @@ class Connection:
     return self
   def __exit__(self, exc_type, exc_value, traceback):
     if (self._zmConn):
-      pfun = _LIB.zmDisconnect
+      pfun = _lib.zmDisconnect
       pfun.restype = None
       pfun.argtypes = (ctypes.c_void_p,)
       pfun(self._zmConn)
@@ -278,7 +278,7 @@ class Connection:
       errCBackType = ctypes.CFUNCTYPE(None, ctypes.c_char_p, ctypes.c_void_p)    
       self._userErrCBack = errCBackType(c_ecb)
 
-      pfun = _LIB.zmSetErrorCBack
+      pfun = _lib.zmSetErrorCBack
       pfun.restype = ctypes.c_bool
       pfun.argtypes = (ctypes.c_void_p, errCBackType, ctypes.c_void_p)
       return pfun(self._zmConn, self._userErrCBack, 0)
@@ -288,7 +288,7 @@ class Connection:
     :return: errStr
     """
     if (self._zmConn):
-      pfun = _LIB.zmGetLastError
+      pfun = _lib.zmGetLastError
       pfun.restype = ctypes.c_bool
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_char_p)
       err = ctypes.create_string_buffer(256)
@@ -301,7 +301,7 @@ class Connection:
     :return: True ok
     """
     if (self._zmConn):
-      pfun = _LIB.zmCreateTables
+      pfun = _lib.zmCreateTables
       pfun.restype = ctypes.c_bool
       pfun.argtypes = (ctypes.c_void_p,)
       return pfun(self._zmConn)
@@ -317,15 +317,15 @@ class Connection:
     :return: True - ok
     """
     if (self._zmConn):
-      ucng = UserCng_C()
+      ucng = _UserCng_C()
       ucng.name = iousr.name.encode('utf-8')
       ucng.passw = iousr.passw.encode('utf-8')
       ucng.description = iousr.description.encode('utf-8')
 
       uid = ctypes.c_uint64(0)
       
-      pfun = _LIB.zmAddUser
-      pfun.argtypes = (ctypes.c_void_p, UserCng_C, ctypes.POINTER(ctypes.c_uint64))
+      pfun = _lib.zmAddUser
+      pfun.argtypes = (ctypes.c_void_p, _UserCng_C, ctypes.POINTER(ctypes.c_uint64))
       pfun.restype = ctypes.c_bool
       if (pfun(self._zmConn, ucng, ctypes.byref(uid))):
         iousr.id = uid.value
@@ -338,15 +338,15 @@ class Connection:
     :return: True - ok
     """
     if (self._zmConn):
-      ucng = UserCng_C()
+      ucng = _UserCng_C()
       ucng.name = iousr.name.encode('utf-8')
       ucng.passw = iousr.passw.encode('utf-8')
       ucng.description = iousr.description.encode('utf-8')
 
       uid = ctypes.c_uint64(0)
       
-      pfun = _LIB.zmGetUserId
-      pfun.argtypes = (ctypes.c_void_p, UserCng_C, ctypes.POINTER(ctypes.c_uint64))
+      pfun = _lib.zmGetUserId
+      pfun.argtypes = (ctypes.c_void_p, _UserCng_C, ctypes.POINTER(ctypes.c_uint64))
       pfun.restype = ctypes.c_bool
       if (pfun(self._zmConn, ucng, ctypes.byref(uid))):
         iousr.id = uid.value
@@ -359,12 +359,12 @@ class Connection:
     :return: True - ok
     """
     if (self._zmConn):
-      ucng = UserCng_C()
+      ucng = _UserCng_C()
 
       uid = ctypes.c_uint64(iousr.id)
       
-      pfun = _LIB.zmGetUserCng
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(UserCng_C))
+      pfun = _lib.zmGetUserCng
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(_UserCng_C))
       pfun.restype = ctypes.c_bool
       if (pfun(self._zmConn, uid, ctypes.byref(ucng))):      
         iousr.name = ucng.name.decode('utf-8')
@@ -382,13 +382,13 @@ class Connection:
     """
     if (self._zmConn):
       uid = ctypes.c_uint64(iusr.id)
-      ucng = UserCng_C()
+      ucng = _UserCng_C()
       ucng.name = iusr.name.encode('utf-8')
       ucng.passw = iusr.passw.encode('utf-8')
       ucng.description = iusr.description.encode('utf-8')
       
-      pfun = _LIB.zmChangeUser
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, UserCng_C)
+      pfun = _lib.zmChangeUser
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, _UserCng_C)
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, uid, ucng)
     return False
@@ -401,7 +401,7 @@ class Connection:
     if (self._zmConn):
       uid = ctypes.c_uint64(usrId)
             
-      pfun = _LIB.zmDelUser
+      pfun = _lib.zmDelUser
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, uid)
@@ -412,7 +412,7 @@ class Connection:
     :return: list of users
     """
     if (self._zmConn):
-      pfun = _LIB.zmGetAllUsers
+      pfun = _lib.zmGetAllUsers
       pfun.argtypes = (ctypes.c_void_p, ctypes.POINTER(ctypes.POINTER(ctypes.c_uint64)))
       pfun.restype = ctypes.c_uint32
       dbuffer = ctypes.POINTER(ctypes.c_uint64)()
@@ -440,14 +440,14 @@ class Connection:
     :return: True - ok
     """
     if (self._zmConn):
-      scng = SchedrCng_C()
+      scng = _SchedrCng_C()
       scng.connectPnt = iosch.connectPnt.encode('utf-8')
       scng.capacityTask = iosch.capacityTask
       
       sid = ctypes.c_uint64(0)
       
-      pfun = _LIB.zmAddScheduler
-      pfun.argtypes = (ctypes.c_void_p, SchedrCng_C, ctypes.POINTER(ctypes.c_uint64))
+      pfun = _lib.zmAddScheduler
+      pfun.argtypes = (ctypes.c_void_p, _SchedrCng_C, ctypes.POINTER(ctypes.c_uint64))
       pfun.restype = ctypes.c_bool
       if (pfun(self._zmConn, scng, ctypes.byref(sid))):
         iosch.id = sid.value
@@ -460,12 +460,12 @@ class Connection:
     :return: True - ok
     """
     if (self._zmConn):
-      scng = SchedrCng_C()
+      scng = _SchedrCng_C()
 
       sid = ctypes.c_uint64(iosch.id)
       
-      pfun = _LIB.zmGetScheduler
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(SchedrCng_C))
+      pfun = _lib.zmGetScheduler
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(_SchedrCng_C))
       pfun.restype = ctypes.c_bool
       if (pfun(self._zmConn, sid, ctypes.byref(scng))):      
         iosch.connectPnt = scng.connectPnt.decode('utf-8')
@@ -480,12 +480,12 @@ class Connection:
     """
     if (self._zmConn):
       sid = ctypes.c_uint64(isch.id)
-      scng = SchedrCng_C()
+      scng = _SchedrCng_C()
       scng.connectPnt = isch.connectPnt.encode('utf-8')
       scng.capacityTask = isch.capacityTask
       
-      pfun = _LIB.zmChangeScheduler
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, SchedrCng_C)
+      pfun = _lib.zmChangeScheduler
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, _SchedrCng_C)
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, sid, scng)
     return False
@@ -498,7 +498,7 @@ class Connection:
     if (self._zmConn):
       sid = ctypes.c_uint64(schId)
             
-      pfun = _LIB.zmDelScheduler
+      pfun = _lib.zmDelScheduler
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, sid)
@@ -512,7 +512,7 @@ class Connection:
     if (self._zmConn):
       sid = ctypes.c_uint64(schId)
             
-      pfun = _LIB.zmStartScheduler
+      pfun = _lib.zmStartScheduler
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, sid)
@@ -526,7 +526,7 @@ class Connection:
     if (self._zmConn):
       sid = ctypes.c_uint64(schId)
             
-      pfun = _LIB.zmPauseScheduler
+      pfun = _lib.zmPauseScheduler
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, sid)
@@ -540,7 +540,7 @@ class Connection:
     if (self._zmConn):
       sid = ctypes.c_uint64(schId)
             
-      pfun = _LIB.zmPingScheduler
+      pfun = _lib.zmPingScheduler
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, sid)
@@ -552,12 +552,12 @@ class Connection:
     :return: True - ok
     """
     if (self._zmConn):
-      scng = SchedrCng_C()
+      scng = _SchedrCng_C()
 
       sid = ctypes.c_uint64(iosch.id)
       sstate = ctypes.c_int32(0)
       
-      pfun = _LIB.zmSchedulerState
+      pfun = _lib.zmSchedulerState
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(ctypes.c_int32))
       pfun.restype = ctypes.c_bool
       if (pfun(self._zmConn, sid, ctypes.byref(sstate))):      
@@ -573,7 +573,7 @@ class Connection:
     if (self._zmConn):
       sstate = ctypes.c_int32(state.value)
 
-      pfun = _LIB.zmGetAllSchedulers
+      pfun = _lib.zmGetAllSchedulers
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_int32, ctypes.POINTER(ctypes.POINTER(ctypes.c_uint64)))
       pfun.restype = ctypes.c_uint32
       dbuffer = ctypes.POINTER(ctypes.c_uint64)()
@@ -601,15 +601,15 @@ class Connection:
     :return: True - ok
     """
     if (self._zmConn):
-      wcng = WorkerCng_C()
+      wcng = _WorkerCng_C()
       wcng.schedrId = iowkr.sId
       wcng.connectPnt = iowkr.connectPnt.encode('utf-8')
       wcng.capacityTask = iowkr.capacityTask
       
       wid = ctypes.c_uint64(0)
       
-      pfun = _LIB.zmAddWorker
-      pfun.argtypes = (ctypes.c_void_p, WorkerCng_C, ctypes.POINTER(ctypes.c_uint64))
+      pfun = _lib.zmAddWorker
+      pfun.argtypes = (ctypes.c_void_p, _WorkerCng_C, ctypes.POINTER(ctypes.c_uint64))
       pfun.restype = ctypes.c_bool
       if (pfun(self._zmConn, wcng, ctypes.byref(wid))):
         iowkr.id = wid.value
@@ -622,12 +622,12 @@ class Connection:
     :return: True - ok
     """
     if (self._zmConn):
-      wcng = WorkerCng_C()
+      wcng = _WorkerCng_C()
 
       wid = ctypes.c_uint64(iowkr.id)
       
-      pfun = _LIB.zmGetWorker
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(WorkerCng_C))
+      pfun = _lib.zmGetWorker
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(_WorkerCng_C))
       pfun.restype = ctypes.c_bool
       if (pfun(self._zmConn, wid, ctypes.byref(wcng))):
         iowkr.sId = wcng.schedrId
@@ -643,13 +643,13 @@ class Connection:
     """
     if (self._zmConn):
       wid = ctypes.c_uint64(iwkr.id)
-      wcng = WorkerCng_C()
+      wcng = _WorkerCng_C()
       wcng.schedrId = iwkr.sId
       wcng.connectPnt = iwkr.connectPnt.encode('utf-8')
       wcng.capacityTask = iwkr.capacityTask
       
-      pfun = _LIB.zmChangeWorker
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, WorkerCng_C)
+      pfun = _lib.zmChangeWorker
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, _WorkerCng_C)
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, wid, wcng)
     return False
@@ -662,7 +662,7 @@ class Connection:
     if (self._zmConn):
       wid = ctypes.c_uint64(wkrId)
             
-      pfun = _LIB.zmDelWorker
+      pfun = _lib.zmDelWorker
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, wid)
@@ -676,7 +676,7 @@ class Connection:
     if (self._zmConn):
       wid = ctypes.c_uint64(wkrId)
             
-      pfun = _LIB.zmStartWorker
+      pfun = _lib.zmStartWorker
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, wid)
@@ -690,7 +690,7 @@ class Connection:
     if (self._zmConn):
       wid = ctypes.c_uint64(wkrId)
             
-      pfun = _LIB.zmPauseWorker
+      pfun = _lib.zmPauseWorker
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, wid)
@@ -704,7 +704,7 @@ class Connection:
     if (self._zmConn):
       wid = ctypes.c_uint64(wkrId)
             
-      pfun = _LIB.zmPingWorker
+      pfun = _lib.zmPingWorker
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, wid)
@@ -724,7 +724,7 @@ class Connection:
       idBuffer = (ctypes.c_uint64 * wsz)(*[iowkrs[i].id for i in range(wsz)])
       stateBuffer = (ctypes.c_int32 * wsz)()
 
-      pfun = _LIB.zmWorkerState
+      pfun = _lib.zmWorkerState
       pfun.argtypes = (ctypes.c_void_p, ctypes.POINTER(ctypes.c_uint64), ctypes.c_uint32, ctypes.POINTER(ctypes.c_int32))
       pfun.restype = ctypes.c_bool
 
@@ -744,7 +744,7 @@ class Connection:
       schId = ctypes.c_uint64(sId)
       sstate = ctypes.c_int32(state.value)
 
-      pfun = _LIB.zmGetAllWorkers
+      pfun = _lib.zmGetAllWorkers
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.c_int32, ctypes.POINTER(ctypes.POINTER(ctypes.c_uint64)))
       pfun.restype = ctypes.c_uint32
       dbuffer = ctypes.POINTER(ctypes.c_uint64)()
@@ -772,15 +772,15 @@ class Connection:
     :return: True - ok
     """
     if (self._zmConn):
-      pcng = PipelineCng_C()
+      pcng = _PipelineCng_C()
       pcng.userId = ioppl.uId
       pcng.name = ioppl.name.encode('utf-8')
       pcng.description = ioppl.description.encode('utf-8')
       
       pplid = ctypes.c_uint64(0)
       
-      pfun = _LIB.zmAddPipeline
-      pfun.argtypes = (ctypes.c_void_p, PipelineCng_C, ctypes.POINTER(ctypes.c_uint64))
+      pfun = _lib.zmAddPipeline
+      pfun.argtypes = (ctypes.c_void_p, _PipelineCng_C, ctypes.POINTER(ctypes.c_uint64))
       pfun.restype = ctypes.c_bool
       if (pfun(self._zmConn, pcng, ctypes.byref(pplid))):
         ioppl.id = pplid.value
@@ -793,12 +793,12 @@ class Connection:
     :return: True - ok
     """
     if (self._zmConn):
-      pcng = PipelineCng_C()
+      pcng = _PipelineCng_C()
 
       pplid = ctypes.c_uint64(ioppl.id)
       
-      pfun = _LIB.zmGetPipeline
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(PipelineCng_C))
+      pfun = _lib.zmGetPipeline
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(_PipelineCng_C))
       pfun.restype = ctypes.c_bool
       if (pfun(self._zmConn, pplid, ctypes.byref(pcng))):      
         ioppl.uId = pcng.userId
@@ -816,13 +816,13 @@ class Connection:
     """
     if (self._zmConn):
       pplid = ctypes.c_uint64(ippl.id)
-      pcng = PipelineCng_C()
+      pcng = _PipelineCng_C()
       pcng.userId = ippl.uId
       pcng.name = ippl.name.encode('utf-8')
       pcng.description = ippl.description.encode('utf-8')
       
-      pfun = _LIB.zmChangePipeline
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, PipelineCng_C)
+      pfun = _lib.zmChangePipeline
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, _PipelineCng_C)
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, pplid, pcng)
     return False
@@ -835,7 +835,7 @@ class Connection:
     if (self._zmConn):
       pid = ctypes.c_uint64(pplId)
             
-      pfun = _LIB.zmDelPipeline
+      pfun = _lib.zmDelPipeline
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, pid)
@@ -849,7 +849,7 @@ class Connection:
     if (self._zmConn):
       userId = ctypes.c_uint64(uId)
 
-      pfun = _LIB.zmGetAllPipelines
+      pfun = _lib.zmGetAllPipelines
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(ctypes.POINTER(ctypes.c_uint64)))
       pfun.restype = ctypes.c_uint32
       dbuffer = ctypes.POINTER(ctypes.c_uint64)()
@@ -877,15 +877,15 @@ class Connection:
     :return: True - ok
     """
     if (self._zmConn):
-      gcng = GroupCng_C()
+      gcng = _GroupCng_C()
       gcng.pplId = iogrp.pplId
       gcng.name = iogrp.name.encode('utf-8')
       gcng.description = iogrp.description.encode('utf-8')
       
       gid = ctypes.c_uint64(0)
       
-      pfun = _LIB.zmAddGroup
-      pfun.argtypes = (ctypes.c_void_p, GroupCng_C, ctypes.POINTER(ctypes.c_uint64))
+      pfun = _lib.zmAddGroup
+      pfun.argtypes = (ctypes.c_void_p, _GroupCng_C, ctypes.POINTER(ctypes.c_uint64))
       pfun.restype = ctypes.c_bool
       if (pfun(self._zmConn, pcng, ctypes.byref(gid))):
         iogrp.id = gid.value
@@ -898,12 +898,12 @@ class Connection:
     :return: True - ok
     """
     if (self._zmConn):
-      gcng = GroupCng_C()
+      gcng = _GroupCng_C()
 
       gid = ctypes.c_uint64(iogrp.id)
       
-      pfun = _LIB.zmGetGroup
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(GroupCng_C))
+      pfun = _lib.zmGetGroup
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(_GroupCng_C))
       pfun.restype = ctypes.c_bool
       if (pfun(self._zmConn, gid, ctypes.byref(gcng))):      
         iogrp.pplId = gcng.pplId
@@ -921,13 +921,13 @@ class Connection:
     """
     if (self._zmConn):
       gid = ctypes.c_uint64(igrp.id)
-      gcng = GroupCng_C()
+      gcng = _GroupCng_C()
       gcng.pplId = igrp.pplId
       gcng.name = igrp.name.encode('utf-8')
       gcng.description = igrp.description.encode('utf-8')
       
-      pfun = _LIB.zmChangeGroup
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, GroupCng_C)
+      pfun = _lib.zmChangeGroup
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, _GroupCng_C)
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, gid, gcng)
     return False
@@ -940,7 +940,7 @@ class Connection:
     if (self._zmConn):
       gid = ctypes.c_uint64(grpId)
             
-      pfun = _LIB.zmDelGroup
+      pfun = _lib.zmDelGroup
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, gid)
@@ -954,7 +954,7 @@ class Connection:
     if (self._zmConn):
       plineId = ctypes.c_uint64(pplId)
 
-      pfun = _LIB.zmGetAllGroups
+      pfun = _lib.zmGetAllGroups
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(ctypes.POINTER(ctypes.c_uint64)))
       pfun.restype = ctypes.c_uint32
       dbuffer = ctypes.POINTER(ctypes.c_uint64)()
@@ -982,7 +982,7 @@ class Connection:
     :return: True - ok
     """
     if (self._zmConn):
-      tcng = TaskTemplCng_C()
+      tcng = _TaskTemplCng_C()
       tcng.userId = iott.uId
       tcng.averDurationSec = iott.averDurationSec
       tcng.maxDurationSec = iott.maxDurationSec
@@ -992,8 +992,8 @@ class Connection:
       
       ttid = ctypes.c_uint64(0)
       
-      pfun = _LIB.zmAddTaskTemplate
-      pfun.argtypes = (ctypes.c_void_p, TaskTemplCng_C, ctypes.POINTER(ctypes.c_uint64))
+      pfun = _lib.zmAddTaskTemplate
+      pfun.argtypes = (ctypes.c_void_p, _TaskTemplCng_C, ctypes.POINTER(ctypes.c_uint64))
       pfun.restype = ctypes.c_bool
       if (pfun(self._zmConn, tcng, ctypes.byref(ttid))):
         iott.id = ttid.value
@@ -1006,12 +1006,12 @@ class Connection:
     :return: True - ok
     """
     if (self._zmConn):
-      tcng = TaskTemplCng_C()
+      tcng = _TaskTemplCng_C()
 
       ttid = ctypes.c_uint64(iott.id)
       
-      pfun = _LIB.zmGetTaskTemplate
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(TaskTemplCng_C))
+      pfun = _lib.zmGetTaskTemplate
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(_TaskTemplCng_C))
       pfun.restype = ctypes.c_bool
       if (pfun(self._zmConn, ttid, ctypes.byref(tcng))):      
         iott.uId = tcng.userId
@@ -1034,7 +1034,7 @@ class Connection:
     """
     if (self._zmConn):
       ttid = ctypes.c_uint64(iott.id)
-      tcng = TaskTemplCng_C()
+      tcng = _TaskTemplCng_C()
       tcng.userId = iott.uId
       tcng.averDurationSec = iott.averDurationSec
       tcng.maxDurationSec = iott.maxDurationSec            
@@ -1042,8 +1042,8 @@ class Connection:
       tcng.description = iott.description.encode('utf-8')
       tcng.script = iott.script.encode('utf-8')
             
-      pfun = _LIB.zmChangeTaskTemplate
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, TaskTemplCng_C)
+      pfun = _lib.zmChangeTaskTemplate
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, _TaskTemplCng_C)
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, ttid, tcng)
     return False
@@ -1056,7 +1056,7 @@ class Connection:
     if (self._zmConn):
       tid = ctypes.c_uint64(ttId)
             
-      pfun = _LIB.zmDelTaskTemplate
+      pfun = _lib.zmDelTaskTemplate
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, tid)
@@ -1070,7 +1070,7 @@ class Connection:
     if (self._zmConn):
       userId = ctypes.c_uint64(uId)
 
-      pfun = _LIB.zmGetAllTaskTemplates
+      pfun = _lib.zmGetAllTaskTemplates
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(ctypes.POINTER(ctypes.c_uint64)))
       pfun.restype = ctypes.c_uint32
       dbuffer = ctypes.POINTER(ctypes.c_uint64)()
@@ -1098,7 +1098,7 @@ class Connection:
     :return: True - ok
     """
     if (self._zmConn):
-      tcng = TaskCng_C()
+      tcng = _TaskCng_C()
       tcng.pplId = iot.pplId
       tcng.ttId = iot.ttId
       tcng.gId = iot.gId
@@ -1109,8 +1109,8 @@ class Connection:
       
       tid = ctypes.c_uint64(0)
       
-      pfun = _LIB.zmAddTask
-      pfun.argtypes = (ctypes.c_void_p, TaskCng_C, ctypes.POINTER(ctypes.c_uint64))
+      pfun = _lib.zmAddTask
+      pfun.argtypes = (ctypes.c_void_p, _TaskCng_C, ctypes.POINTER(ctypes.c_uint64))
       pfun.restype = ctypes.c_bool
       if (pfun(self._zmConn, tcng, ctypes.byref(tid))):
         iot.id = tid.value
@@ -1123,12 +1123,12 @@ class Connection:
     :return: True - ok
     """
     if (self._zmConn):
-      tcng = TaskCng_C()
+      tcng = _TaskCng_C()
 
       tid = ctypes.c_uint64(iot.id)
       
-      pfun = _LIB.zmGetTask
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(TaskCng_C))
+      pfun = _lib.zmGetTask
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(_TaskCng_C))
       pfun.restype = ctypes.c_bool
       if (pfun(self._zmConn, tid, ctypes.byref(tcng))):      
         iot.pplId = tcng.pplId
@@ -1154,7 +1154,7 @@ class Connection:
     """
     if (self._zmConn):
       tid = ctypes.c_uint64(iot.id)
-      tcng = TaskCng_C()
+      tcng = _TaskCng_C()
       tcng.pplId = iot.pplId
       tcng.ttId = iot.ttId
       tcng.gId = iot.gId
@@ -1163,8 +1163,8 @@ class Connection:
       tcng.nextTasksId = ','.join(str(i) for i in iot.nextTasksId).encode('utf-8')
       tcng.params = ','.join(iot.params).encode('utf-8')
             
-      pfun = _LIB.zmChangeTask
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, TaskCng_C)
+      pfun = _lib.zmChangeTask
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, _TaskCng_C)
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, tid, tcng)
     return False
@@ -1177,7 +1177,7 @@ class Connection:
     if (self._zmConn):
       tid = ctypes.c_uint64(tId)
             
-      pfun = _LIB.zmDelTask
+      pfun = _lib.zmDelTask
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, tid)
@@ -1191,7 +1191,7 @@ class Connection:
     if (self._zmConn):
       tid = ctypes.c_uint64(tId)
             
-      pfun = _LIB.zmStartTask
+      pfun = _lib.zmStartTask
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, tid)
@@ -1205,7 +1205,7 @@ class Connection:
     if (self._zmConn):
       tid = ctypes.c_uint64(tId)
             
-      pfun = _LIB.zmStopTask
+      pfun = _lib.zmStopTask
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, tid)
@@ -1219,7 +1219,7 @@ class Connection:
     if (self._zmConn):
       tid = ctypes.c_uint64(tId)
             
-      pfun = _LIB.zmPauseTask
+      pfun = _lib.zmPauseTask
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, tid)
@@ -1233,7 +1233,7 @@ class Connection:
     if (self._zmConn):
       tid = ctypes.c_uint64(tId)
             
-      pfun = _LIB.zmCancelTask
+      pfun = _lib.zmCancelTask
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, tid)
@@ -1247,7 +1247,7 @@ class Connection:
     if (self._zmConn):
       tid = ctypes.c_uint64(tId)
             
-      pfun = _LIB.zmContinueTask
+      pfun = _lib.zmContinueTask
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, tid)
@@ -1265,10 +1265,10 @@ class Connection:
       iot.sort(key = lambda t: t.id)
         
       idBuffer = (ctypes.c_uint64 * tsz)(*[iot[i].id for i in range(tsz)])
-      stateBuffer = (TaskState_C * tsz)()
+      stateBuffer = (_TaskState_C * tsz)()
       
-      pfun = _LIB.zmTaskState
-      pfun.argtypes = (ctypes.c_void_p, ctypes.POINTER(ctypes.c_uint64), ctypes.c_uint32, ctypes.POINTER(TaskState_C))
+      pfun = _lib.zmTaskState
+      pfun.argtypes = (ctypes.c_void_p, ctypes.POINTER(ctypes.c_uint64), ctypes.c_uint32, ctypes.POINTER(_TaskState_C))
       pfun.restype = ctypes.c_bool
 
       if (pfun(self._zmConn, idBuffer, ctsz, stateBuffer)):      
@@ -1287,7 +1287,7 @@ class Connection:
       tid = ctypes.c_uint64(iot.id)
       tresult = ctypes.c_char_p()
       
-      pfun = _LIB.zmTaskResult
+      pfun = _lib.zmTaskResult
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(ctypes.c_char_p))
       pfun.restype = ctypes.c_bool
       if (pfun(self._zmConn, tid, ctypes.byref(tresult))):      
@@ -1304,10 +1304,10 @@ class Connection:
     """
     if (self._zmConn):
       tid = ctypes.c_uint64(iot.id)
-      ttime = TaskTime_C()
+      ttime = _TaskTime_C()
       
-      pfun = _LIB.zmTaskTime
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(TaskTime_C))
+      pfun = _lib.zmTaskTime
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(_TaskTime_C))
       pfun.restype = ctypes.c_bool
       if (pfun(self._zmConn, tid, ctypes.byref(ttime))):      
         iot.createTime = ttime.createTime.decode('utf-8')
@@ -1327,7 +1327,7 @@ class Connection:
       cpplId = ctypes.c_uint64(pplId)
       cstate = ctypes.c_int32(state.value)
 
-      pfun = _LIB.zmGetAllTasks
+      pfun = _lib.zmGetAllTasks
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.c_int32, ctypes.POINTER(ctypes.POINTER(ctypes.c_uint64)))
       pfun.restype = ctypes.c_uint32
       dbuffer = ctypes.POINTER(ctypes.c_uint64)()
@@ -1357,7 +1357,7 @@ class Connection:
       taskStateCBackType : ctypes.CFUNCTYPE(None, ctypes.c_uint64, ctypes.c_int32, ctypes.c_int32)
       self._changeTaskStateCBack = taskStateCBackType(c_ucb)
 
-      pfun = _LIB.zmSetChangeTaskStateCBack
+      pfun = _lib.zmSetChangeTaskStateCBack
       pfun.restype = ctypes.c_bool
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, taskStateCBackType)
       return pfun(self._zmConn, c_tid, self._changeTaskStateCBack)
@@ -1378,10 +1378,10 @@ class Connection:
       cwId = ctypes.c_uint64(wId)
       cmCnt = ctypes.c_uint32(mCnt)
 
-      pfun = _LIB.zmGetInternErrors
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.c_uint64, ctypes.c_uint32, ctypes.POINTER(InternError_C))
+      pfun = _lib.zmGetInternErrors
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.c_uint64, ctypes.c_uint32, ctypes.POINTER(_InternError_C))
       pfun.restype = ctypes.c_uint32
-      dbuffer = (InternError_C * mCnt)()
+      dbuffer = (_InternError_C * mCnt)()
       osz = pfun(self._zmConn, csId, cwId, cmCnt, dbuffer)
       
       oerr = []
@@ -1394,7 +1394,7 @@ class Connection:
     return []
 
   def _freeResources(self, puint64 : ctypes.POINTER(ctypes.c_uint64), pchar : ctypes.c_char_p):
-    pfun = _LIB.zmFreeResources
+    pfun = _lib.zmFreeResources
     pfun.restype = None
     pfun.argtypes = (ctypes.POINTER(ctypes.c_uint64), ctypes.c_char_p)
     pfun(puint64, pchar)

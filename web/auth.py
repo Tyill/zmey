@@ -42,7 +42,7 @@ def login():
     if error is None:
       session.clear()
       session['userName'] = username
-      session['userId'] = usr.id
+      session['userId'] = usr.id      
       return redirect(url_for('gui.index'))
 
     flash(error)

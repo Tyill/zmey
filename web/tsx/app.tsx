@@ -14,11 +14,11 @@ import "bootstrap/dist/css/bootstrap.min.css";
 
 
 interface IProps {
-  user : IUser;                                                 // | Store
-  pipelines : Map<number, IPipeline>;                           // | 
-  taskGroups : Map<number, ITaskGroup>;                         // |
-  taskTemplates : Map<number, ITaskTemplate>;                   // |
-  tasks : Map<number, ITask>;                                   // |  
+  user : IUser;                                // | Store
+  pipelines : Map<number, IPipeline>;          // | 
+  taskGroups : Map<number, ITaskGroup>;        // |
+  taskTemplates : Map<number, ITaskTemplate>;  // |
+  tasks : Map<number, ITask>;                  // |  
 };
 
 interface IState {
