@@ -23,6 +23,8 @@
 // THE SOFTWARE.
 //
 #include <cstring>
+#include <vector>
+#include <map>
 
 #include "zmClient.h"
 #include "zmCommon/aux_func.h"
@@ -35,6 +37,12 @@
 using namespace std;
 
 namespace zmey{
+
+struct UserResource{
+  vector<uint64_t*> id;
+  vector<char*> str;
+}
+map<zmConn, UserResource> g_resources;
 
 void zmVersionLib(char* outVersion /*sz 8*/){
   if (outVersion){
@@ -58,6 +66,7 @@ zmConn zmCreateConnection(zmConfig cng, char* err/*sz 256*/){
     delete pDb;
     return nullptr;
   }
+  g_resources[pDb] = UserResource();
   return pDb;
 }
 void zmDisconnect(zmConn zo){
@@ -834,12 +843,13 @@ uint32_t zmGetInternErrors(zmConn zo, uint64_t sId, uint64_t wId, uint32_t mCnt,
 
 ///////////////////////////////////////////////////////////////////////////////
 /// free resouces
-void zmFreeResources(uint64_t* pUInt, char* pChar){
-  if (pUInt){
-    free(pUInt);
-  } 
-  if (pChar){
-    free(pChar);
-  }
+void zmFreeResources(){
+  
+  // if (pUInt){
+  //   free(pUInt);
+  // } 
+  // if (pChar){
+  //   free(pChar);
+  // }
 }
 }

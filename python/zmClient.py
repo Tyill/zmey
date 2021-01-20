@@ -887,7 +887,7 @@ class Connection:
       pfun = _lib.zmAddGroup
       pfun.argtypes = (ctypes.c_void_p, _GroupCng_C, ctypes.POINTER(ctypes.c_uint64))
       pfun.restype = ctypes.c_bool
-      if (pfun(self._zmConn, pcng, ctypes.byref(gid))):
+      if (pfun(self._zmConn, gcng, ctypes.byref(gid))):
         iogrp.id = gid.value
         return True
     return False
@@ -1007,9 +1007,9 @@ class Connection:
     """
     if (self._zmConn):
       tcng = _TaskTemplCng_C()
-
+     
       ttid = ctypes.c_uint64(iott.id)
-      
+            
       pfun = _lib.zmGetTaskTemplate
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(_TaskTemplCng_C))
       pfun.restype = ctypes.c_bool
@@ -1021,9 +1021,9 @@ class Connection:
         if tcng.description:
           iott.description = tcng.description.decode('utf-8')
           self._freeResources(None, tcng.description)
-        if tcng.script:
+        if tcng.script:          
           iott.script = tcng.script.decode('utf-8')
-          self._freeResources(None, tcng.script)
+          self._freeResources(None, dd)
         return True
     return False
   def changeTaskTemplate(self, iott : TaskTemplate) -> bool:
@@ -1393,8 +1393,8 @@ class Connection:
       return oerr
     return []
 
-  def _freeResources(self, puint64 : ctypes.POINTER(ctypes.c_uint64), pchar : ctypes.c_char_p):
+  def _freeResources(self, puint64 : ctypes.POINTER(ctypes.c_uint64), pchar : ctypes.POINTER(ctypes.c_char)):
     pfun = _lib.zmFreeResources
     pfun.restype = None
-    pfun.argtypes = (ctypes.POINTER(ctypes.c_uint64), ctypes.POINTER(ctypes.c_char))
-    pfun(puint64, ctypes.POINTER(ctypes.c_char).from_buffer(pchar))
+    pfun.argtypes = (ctypes.POINTER(ctypes.c_uint64), ctypes.c_char_p)
+    pfun(puint64, pchar)

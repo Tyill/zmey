@@ -14,4 +14,15 @@ zo = zm.Connection("host=localhost port=5432 password=123 dbname=zmeydb connect_
 
 zo.setErrorCBack(lambda err: print(err))
 
-ttls = zo.getAllTaskTemplates(3)
+# usr = zm.User(0, 'alm', '123')
+# ttls = zo.addUser(usr)
+
+# ttl = zm.TaskTemplate(uId=usr.id, name="ttl1", script="script")
+# zo.addTaskTemplate(ttl)
+
+#for x in range(1000000000):
+tt2 = zm.TaskTemplate(uId=4, name="ttl2", script="script")
+zo.addTaskTemplate(tt2)
+ttls = zo.getAllTaskTemplates(4)
+
+gg = False

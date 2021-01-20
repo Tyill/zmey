@@ -574,7 +574,7 @@ ZMEY_API uint32_t zmGetInternErrors(zmConn, uint64_t sId, uint64_t wId, uint32_t
 
 ///////////////////////////////////////////////////////////////////////////////
 /// free resouces
-ZMEY_API void zmFreeResources(uint64_t*, char*);
+ZMEY_API void zmFreeResources();
 
 #if defined(__cplusplus)
 }}
