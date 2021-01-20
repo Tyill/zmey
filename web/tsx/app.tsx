@@ -12,8 +12,6 @@ import { IUser, IPipeline, ITaskGroup, ITaskTemplate, ITask } from "./types";
 import "../css/app.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 
-let DEBUG = 1;
-
 interface IProps {
   user : IUser;                                // | Store
   pipelines : Map<number, IPipeline>;          // | 
@@ -39,24 +37,14 @@ class App extends React.Component<IProps, IState>{
     
   componentDidMount() {
     
-    if (DEBUG){
-      fetch('auth/login')
-      .then(response => response.json())    
-      .then(jsTaskTemplates =>{   
-        console.log(jsTaskTemplates);        
-        //this.props.onChangeTaskTemplate(respTaskTemplate);           
-      })
-      .catch(() => console.log('api/allTaskTemplates error')); 
-    }
-
-    fetch('api/allTaskTemplates?userId=1')
+    fetch('api/allTaskTemplates')
     .then(response => response.json())    
     .then(jsTaskTemplates =>{   
       console.log(jsTaskTemplates);        
       //this.props.onChangeTaskTemplate(respTaskTemplate);           
     })
     .catch(() => console.log('api/allTaskTemplates error')); 
-    
+        
   }
 
   hShowTaskTemplateConfig(){

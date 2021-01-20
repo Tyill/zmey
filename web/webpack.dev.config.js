@@ -27,7 +27,7 @@ module.exports = {
     // host: '192.168.1.3',
     // port: 8080,
     proxy: {
-      '/api': 'http://localhost:5000',      
+      '/': 'http://localhost:5000', 
     },   
   },  
   plugins: [new webpack.HotModuleReplacementPlugin()]   

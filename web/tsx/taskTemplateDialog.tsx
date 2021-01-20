@@ -41,7 +41,6 @@ class DialogTaskTemplate extends React.Component<IProps, IState>{
         id : 0,
         name : "",           
         script : "",
-        taskIdList : new Set<number>(),
         averDurationSec : 0, 
         maxDurationSec : 0,
         description : ""
@@ -72,7 +71,6 @@ class DialogTaskTemplate extends React.Component<IProps, IState>{
         id : 0,
         name,           
         script,
-        taskIdList : new Set<number>(),
         averDurationSec, 
         maxDurationSec,
         description

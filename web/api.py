@@ -128,7 +128,6 @@ def delPipeline():
 @bp.route('/allPipelines')
 @loginRequired
 def allPipelines():
-  request.
   ppls = _zmCommon.getAllPipelines(userId)
   return json.dumps(ppls)
 
@@ -180,8 +179,12 @@ def delTaskTemplate():
 @bp.route('/allTaskTemplates')
 @loginRequired
 def allTaskTemplates():
+  tt = TaskTemplate(name='tt1', uId=g.userId, averDurationSec = 1, maxDurationSec = 10, script="#! /bin/sh \n sleep 1; echo res ")
+  _zmCommon.addTaskTemplate(tt)
+  print("g.userId " + str(g.userId))
   ttls = _zmCommon.getAllTaskTemplates(g.userId)
-  return json.dumps(ttls)
+  #print(ttls)
+  return "{}"
 
 ###############################################################################
 ### Task

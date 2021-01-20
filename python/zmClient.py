@@ -1396,5 +1396,5 @@ class Connection:
   def _freeResources(self, puint64 : ctypes.POINTER(ctypes.c_uint64), pchar : ctypes.c_char_p):
     pfun = _lib.zmFreeResources
     pfun.restype = None
-    pfun.argtypes = (ctypes.POINTER(ctypes.c_uint64), ctypes.c_char_p)
-    pfun(puint64, pchar)
+    pfun.argtypes = (ctypes.POINTER(ctypes.c_uint64), ctypes.POINTER(ctypes.c_char))
+    pfun(puint64, ctypes.POINTER(ctypes.c_char).from_buffer(pchar))
