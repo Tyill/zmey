@@ -15,7 +15,7 @@ function pipelines(curPipelines : Map<number, IPipeline>, action : {type : EnumA
   Map<number, IPipeline>{
 
     if (!curPipelines) return new Map<number, IPipeline>();
-
+    
     let curPipelinesCpy = Object.assign({}, curPipelines);  
     switch (action.type) {
       case EnumActions.ADD_PIPELINE:
@@ -26,7 +26,7 @@ function pipelines(curPipelines : Map<number, IPipeline>, action : {type : EnumA
         break;  
       case EnumActions.FILL_PIPELINES:
         for (let p of action.allPipelines)
-          curPipelinesCpy.set(p.id, p);
+          curPipelinesCpy[p.id] = p;
         break;  
       default:
         curPipelinesCpy = new Map<number, IPipeline>();
@@ -64,7 +64,7 @@ function taskTemplates(curTaskTemplates : Map<number, ITaskTemplate>, action : {
   
   if (!curTaskTemplates) return new Map<number, ITaskTemplate>();
 
-  let taskTemplatesCpy = Object.assign({}, curTaskTemplates);  
+  let taskTemplatesCpy = Object.assign({}, curTaskTemplates);   
   switch (action.type) {
     case EnumActions.ADD_TASKTEMPLATE:
     case EnumActions.CHANGE_TASKTEMPLATE:
@@ -72,9 +72,9 @@ function taskTemplates(curTaskTemplates : Map<number, ITaskTemplate>, action : {
       break;
     case EnumActions.DEL_TASKTEMPLATE:
       break;  
-    case EnumActions.FILL_TASKTEMPLATES:
+    case EnumActions.FILL_TASKTEMPLATES:      
       for (let t of action.allTaskTemplates)
-        taskTemplatesCpy.set(t.id, t);
+        taskTemplatesCpy[t.id] = t; 
       break;  
     default:
       taskTemplatesCpy = new Map<number, ITaskTemplate>();

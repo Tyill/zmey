@@ -23,8 +23,6 @@
 // THE SOFTWARE.
 //
 #include <cstring>
-#include <vector>
-#include <map>
 
 #include "zmClient.h"
 #include "zmCommon/aux_func.h"
@@ -38,11 +36,13 @@ using namespace std;
 
 namespace zmey{
 
-struct UserResource{
+struct AllocResource{
   vector<uint64_t*> id;
   vector<char*> str;
-}
-map<zmConn, UserResource> g_resources;
+};
+map<zmConn, AllocResource> m_resources;
+mutex m_mtxResources;
+
 
 void zmVersionLib(char* outVersion /*sz 8*/){
   if (outVersion){
@@ -66,11 +66,14 @@ zmConn zmCreateConnection(zmConfig cng, char* err/*sz 256*/){
     delete pDb;
     return nullptr;
   }
-  g_resources[pDb] = UserResource();
+  {lock_guard<mutex> lk(m_mtxResources);
+    m_resources[pDb] = AllocResource();
+  }
   return pDb;
 }
 void zmDisconnect(zmConn zo){
   if (zo){
+    zmFreeResources(zo);
     delete static_cast<ZM_DB::DbProvider*>(zo);
   }
 }
@@ -132,6 +135,9 @@ bool zmGetUserCng(zmConn zo, uint64_t userId, zmUser* outUserCng){
     strcpy(outUserCng->name, ur.name.c_str());
     if (!ur.description.empty()){ 
       outUserCng->description = (char*)realloc(outUserCng->description, ur.description.size() + 1);
+      {lock_guard<mutex> lk(m_mtxResources);
+        m_resources[zo].str.push_back(outUserCng->description);
+      }
       strcpy(outUserCng->description, ur.description.c_str());
     }else{
       outUserCng->description = nullptr;
@@ -162,6 +168,9 @@ uint32_t zmGetAllUsers(zmConn zo, uint64_t** outUserId){
   size_t usz = users.size();
   if (usz > 0){
     *outUserId = (uint64_t*)realloc(*outUserId, usz * sizeof(uint64_t));
+    {lock_guard<mutex> lk(m_mtxResources);
+      m_resources[zo].id.push_back(*outUserId);
+    }
     memcpy(*outUserId, users.data(), usz * sizeof(uint64_t));
   }else{
     *outUserId = nullptr;
@@ -270,6 +279,9 @@ uint32_t zmGetAllSchedulers(zmConn zo, zmStateType state, uint64_t** outSchId){
   size_t ssz = schedrs.size();
   if (ssz > 0){
     *outSchId = (uint64_t*)realloc(*outSchId, ssz * sizeof(uint64_t));
+    {lock_guard<mutex> lk(m_mtxResources);
+      m_resources[zo].id.push_back(*outSchId);
+    }
     memcpy(*outSchId, schedrs.data(), ssz * sizeof(uint64_t));
   }else{
     *outSchId = nullptr;
@@ -396,6 +408,9 @@ uint32_t zmGetAllWorkers(zmConn zo, uint64_t sId, zmStateType state, uint64_t** 
   size_t wsz = workers.size();
   if (wsz > 0){ 
     *outWId = (uint64_t*)realloc(*outWId, wsz * sizeof(uint64_t));
+    {lock_guard<mutex> lk(m_mtxResources);
+      m_resources[zo].id.push_back(*outWId);
+    }
     memcpy(*outWId, workers.data(), wsz * sizeof(uint64_t));
   }else{
     *outWId = nullptr;
@@ -433,6 +448,9 @@ bool zmGetPipeline(zmConn zo, uint64_t pplId, zmPipeline* outPPLCng){
     strcpy(outPPLCng->name, pp.name.c_str());
     if (!pp.description.empty()){
       outPPLCng->description = (char*)realloc(outPPLCng->description, pp.description.size() + 1);
+      {lock_guard<mutex> lk(m_mtxResources);
+        m_resources[zo].str.push_back(outPPLCng->description);
+      }
       strcpy(outPPLCng->description, pp.description.c_str());  
     }else{
       outPPLCng->description = nullptr;
@@ -463,6 +481,9 @@ uint32_t zmGetAllPipelines(zmConn zo, uint64_t userId, uint64_t** outPPLId){
   size_t psz = ppls.size();
   if (psz > 0){
     *outPPLId = (uint64_t*)realloc(*outPPLId, psz * sizeof(uint64_t));
+    {lock_guard<mutex> lk(m_mtxResources);
+      m_resources[zo].id.push_back(*outPPLId);
+    }
     memcpy(*outPPLId, ppls.data(), psz * sizeof(uint64_t));
   }else{
     *outPPLId = nullptr;
@@ -499,6 +520,9 @@ bool zmGetGroup(zmConn zo, uint64_t gId, zmGroup* outGCng){
     strcpy(outGCng->name, gr.name.c_str());
     if (!gr.description.empty()){
       outGCng->description = (char*)realloc(outGCng->description, gr.description.size() + 1);
+      {lock_guard<mutex> lk(m_mtxResources);
+        m_resources[zo].str.push_back(outGCng->description);
+      }
       strcpy(outGCng->description, gr.description.c_str()); 
     }else{
       outGCng->description = nullptr;
@@ -529,6 +553,9 @@ uint32_t zmGetAllGroups(zmConn zo, uint64_t pplId, uint64_t** outGId){
   size_t gsz = groups.size();
   if (gsz > 0){
     *outGId = (uint64_t*)realloc(*outGId, gsz * sizeof(uint64_t));
+    {lock_guard<mutex> lk(m_mtxResources);
+      m_resources[zo].id.push_back(*outGId);
+    }
     memcpy(*outGId, groups.data(), gsz * sizeof(uint64_t));
   }else{
     *outGId = nullptr;
@@ -570,9 +597,15 @@ bool zmGetTaskTemplate(zmConn zo, uint64_t tId, zmTaskTemplate* outTCng){
     outTCng->maxDurationSec = task.base.maxDurationSec;
     outTCng->userId = task.uId;
     outTCng->script = (char*)realloc(outTCng->script, task.base.script.size() + 1);
+    {lock_guard<mutex> lk(m_mtxResources);
+      m_resources[zo].str.push_back(outTCng->script);
+    }
     strcpy(outTCng->script, task.base.script.c_str());
     if (!task.description.empty()){
       outTCng->description = (char*)realloc(outTCng->description, task.description.size() + 1);
+      {lock_guard<mutex> lk(m_mtxResources);
+        m_resources[zo].str.push_back(outTCng->description);
+      }
       strcpy(outTCng->description, task.description.c_str());
     }else{
       outTCng->description = nullptr;
@@ -605,6 +638,9 @@ uint32_t zmGetAllTaskTemplates(zmConn zo, uint64_t userId, uint64_t** outTId){
   size_t tsz = tasks.size();
   if (tsz > 0){
     *outTId = (uint64_t*)realloc(*outTId, tsz * sizeof(uint64_t));
+    {lock_guard<mutex> lk(m_mtxResources);
+      m_resources[zo].id.push_back(*outTId);
+    }
     memcpy(*outTId, tasks.data(), tsz * sizeof(uint64_t));
   }else{
     *outTId = nullptr;
@@ -648,18 +684,27 @@ bool zmGetTask(zmConn zo, uint64_t qtId, zmTask* outCng){
     outCng->priority = task.base.priority;
     if (!task.prevTasks.empty()){
       outCng->prevTasksId = (char*)realloc(outCng->prevTasksId, task.prevTasks.size() + 1);
+      {lock_guard<mutex> lk(m_mtxResources);
+        m_resources[zo].str.push_back(outCng->prevTasksId);
+      }
       strcpy(outCng->prevTasksId, task.prevTasks.c_str());  
     }else{
       outCng->prevTasksId = nullptr;
     }
     if (!task.nextTasks.empty()){
       outCng->nextTasksId = (char*)realloc(outCng->nextTasksId, task.nextTasks.size() + 1);
+      {lock_guard<mutex> lk(m_mtxResources);
+        m_resources[zo].str.push_back(outCng->nextTasksId);
+      }
       strcpy(outCng->nextTasksId, task.nextTasks.c_str());  
     }else{
       outCng->nextTasksId = nullptr;
     }
     if(!task.base.params.empty()){
       outCng->params = (char*)realloc(outCng->params, task.base.params.size() + 1);
+      {lock_guard<mutex> lk(m_mtxResources);
+        m_resources[zo].str.push_back(outCng->params);
+      }
       strcpy(outCng->params, task.base.params.c_str());  
     }else{
       outCng->params = nullptr;
@@ -778,6 +823,9 @@ bool zmTaskResult(zmConn zo, uint64_t qtId, char** outTResult){
   if (static_cast<ZM_DB::DbProvider*>(zo)->taskResult(qtId, result)){  
     if (!result.empty()){ 
       *outTResult = (char*)realloc(*outTResult, result.size() + 1); 
+      {lock_guard<mutex> lk(m_mtxResources);
+        m_resources[zo].str.push_back(*outTResult);
+      }
       strcpy(*outTResult, result.c_str());
     }else{
       *outTResult = nullptr;
@@ -810,6 +858,9 @@ uint32_t zmGetAllTasks(zmConn zo, uint64_t pplId, zmStateType state, uint64_t** 
   size_t tsz = tasks.size();
   if (tsz > 0){
     *outQTId = (uint64_t*)realloc(*outQTId, tsz * sizeof(uint64_t));
+    {lock_guard<mutex> lk(m_mtxResources);
+      m_resources[zo].id.push_back(*outQTId);
+    }
     memcpy(*outQTId, tasks.data(), tsz * sizeof(uint64_t));
   }else{
     *outQTId = nullptr;
@@ -843,13 +894,18 @@ uint32_t zmGetInternErrors(zmConn zo, uint64_t sId, uint64_t wId, uint32_t mCnt,
 
 ///////////////////////////////////////////////////////////////////////////////
 /// free resouces
-void zmFreeResources(){
+void zmFreeResources(zmConn zo){
+  if (!zo) return;
   
-  // if (pUInt){
-  //   free(pUInt);
-  // } 
-  // if (pChar){
-  //   free(pChar);
-  // }
+  {lock_guard<mutex> lk(m_mtxResources);
+    for (auto pId : m_resources[zo].id){ 
+      free(pId);
+    }
+    m_resources[zo].id.clear();
+    for (auto pStr : m_resources[zo].str){
+      free(pStr);   
+    }
+    m_resources[zo].str.clear(); 
+  }  
 }
 }

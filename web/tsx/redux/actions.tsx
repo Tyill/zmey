@@ -47,7 +47,7 @@ function delPipeline(dispatch){
 export
 function fillPipelines(dispatch){
   return function(pipelines : Array<IPipeline>){
-    dispatch({ type : EnumActions.FILL_PIPELINES, pipelines });
+    dispatch({ type : EnumActions.FILL_PIPELINES, allPipelines : pipelines });
   }
 }
 
@@ -97,7 +97,7 @@ function delTaskTemplate(dispatch){
 export
 function fillTaskTemplates(dispatch){
   return function(tasktemplates : Array<ITaskTemplate>){
-    dispatch({ type : EnumActions.FILL_TASKTEMPLATES, tasktemplates });
+    dispatch({ type : EnumActions.FILL_TASKTEMPLATES, allTaskTemplates : tasktemplates });
   }
 }
 

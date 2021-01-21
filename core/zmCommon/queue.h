@@ -26,6 +26,7 @@
 
 #include <vector>
 #include <mutex>
+#include <algorithm>
 #include <utility>
 #include <memory>
 

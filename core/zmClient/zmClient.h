@@ -574,7 +574,8 @@ ZMEY_API uint32_t zmGetInternErrors(zmConn, uint64_t sId, uint64_t wId, uint32_t
 
 ///////////////////////////////////////////////////////////////////////////////
 /// free resouces
-ZMEY_API void zmFreeResources();
+/// @param[in] zmConn - object connect
+ZMEY_API void zmFreeResources(zmConn);
 
 #if defined(__cplusplus)
 }}

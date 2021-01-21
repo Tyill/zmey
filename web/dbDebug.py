@@ -2,6 +2,7 @@
 import os
 import sys
 import time
+import json
 import subprocess
 sys.path.append('C:/cpp/other/zmey/python/')
 import zmClient as zm
@@ -17,12 +18,14 @@ zo.setErrorCBack(lambda err: print(err))
 # usr = zm.User(0, 'alm', '123')
 # ttls = zo.addUser(usr)
 
-# ttl = zm.TaskTemplate(uId=usr.id, name="ttl1", script="script")
+# ttl = zm.TaskTemplate(uId=3, name="ttl1", script="script")
+
+# d = ttl.__dict__
+
+
+
 # zo.addTaskTemplate(ttl)
 
-#for x in range(1000000000):
-tt2 = zm.TaskTemplate(uId=4, name="ttl2", script="script")
-zo.addTaskTemplate(tt2)
-ttls = zo.getAllTaskTemplates(4)
+for x in range(1000000000):
+  ttls = zo.getAllTaskTemplates(3)
 
-gg = False

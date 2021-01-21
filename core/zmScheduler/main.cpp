@@ -23,7 +23,9 @@
 // THE SOFTWARE.
 //
 #include <signal.h>
+#ifdef __linux__
 #include <unistd.h>
+#endif
 #include <future>
 #include <condition_variable>
 #include <algorithm>
@@ -154,12 +156,14 @@ int main(int argc, char* argv[]){
   CHECK(cng.localConnPnt.empty() || (ZM_Aux::split(cng.localConnPnt, ':').size() != 2), "Not set param '--localAddr[-la]' - scheduler local connection point: IP or DNS:port");
   CHECK(cng.remoteConnPnt.empty() || (ZM_Aux::split(cng.remoteConnPnt, ':').size() != 2), "Not set param '--remoteAddr[-ra]' - scheduler remote connection point: IP or DNS:port");
   CHECK(cng.dbConnCng.connectStr.empty(), "Not set param '--dbConnStr[-db]' - database connection string");
- 
-  signal(SIGHUP, closeHandler);
+   
   signal(SIGINT, closeHandler);
   signal(SIGTERM, closeHandler);
+#ifdef __linux__
+  signal(SIGHUP, closeHandler);
   signal(SIGQUIT, closeHandler);
   signal(SIGPIPE, SIG_IGN);
+#endif
   
   // db providers
   string err;

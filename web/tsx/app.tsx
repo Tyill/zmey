@@ -6,6 +6,7 @@ import { connect, Provider } from "react-redux";
 import {Container, Row, Col, Button, Modal, ListGroup} from "react-bootstrap";
 import DialogTaskTemplateRedux from "./taskTemplateDialog";
 
+import * as Action from "./redux/actions";
 import Store from "./redux/store"; 
 import { IUser, IPipeline, ITaskGroup, ITaskTemplate, ITask } from "./types";
 
@@ -18,6 +19,9 @@ interface IProps {
   taskGroups : Map<number, ITaskGroup>;        // |
   taskTemplates : Map<number, ITaskTemplate>;  // |
   tasks : Map<number, ITask>;                  // |  
+
+  onFillTaskTemplates : (tasktemplates : Array<ITaskTemplate>) => any; // | Actions
+  onFillPipelines : (pipelines : Array<IPipeline>) => any;             // |
 };
 
 interface IState {
@@ -35,16 +39,20 @@ class App extends React.Component<IProps, IState>{
     this.hShowTaskTemplateConfig = this.hShowTaskTemplateConfig.bind(this); 
   }
     
-  componentDidMount() {
-    
+  componentDidMount() {    
     fetch('api/allTaskTemplates')
     .then(response => response.json())    
     .then(jsTaskTemplates =>{   
-      console.log(jsTaskTemplates);        
-      //this.props.onChangeTaskTemplate(respTaskTemplate);           
+      this.props.onFillTaskTemplates(jsTaskTemplates);           
     })
     .catch(() => console.log('api/allTaskTemplates error')); 
-        
+    
+    fetch('api/allPipelines')
+    .then(response => response.json())    
+    .then(jsPipelines =>{   
+      this.props.onFillPipelines(jsPipelines);           
+    })
+    .catch(() => console.log('api/allPipelines error'));    
   }
 
   hShowTaskTemplateConfig(){
@@ -115,7 +123,9 @@ const mapStateToProps = (state) => {
 }
 
 const mapDispatchToProps = (dispatch) => {
-  return {    
+  return { 
+    onFillTaskTemplates : Action.fillTaskTemplates(dispatch), 
+    onFillPipelines : Action.fillPipelines(dispatch),   
   }
 }
 

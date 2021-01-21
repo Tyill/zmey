@@ -54,7 +54,7 @@ void getNewTaskFromDB(ZM_DB::DbProvider& db){
       statusMess("getNewTaskFromDB db error: " + db.getLastError());
     }
   }
-  _schedr.activeTask = actSz + newTasks.size();  
+  _schedr.activeTask = actSz + (int)newTasks.size();  
 
   if (!newTasks.empty()){
     mainCycleNotify();

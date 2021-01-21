@@ -15,14 +15,14 @@ enum EnumState{
 export
 interface IUser {
   name: string;  
-  description?: string;
+  description: string;
 }
 
 export
 interface IPipeline{
   id : number;     
   name : string;
-  description?: string;
+  description : string;
 };
 
 export
@@ -36,18 +36,19 @@ interface ITaskGroup{
 export
 interface ITaskTemplate{
   id : number;
+  uId : number;
   name : string;            
   script : string;  
   averDurationSec : number;    ///< estimated lead time 
   maxDurationSec : number;     ///< maximum lead time
-  description? : string;  
+  description : string;  
 };   
 
 export
 interface ITask{
   id : number;
   pplId : number;              ///< pipeline id
-  groupId? : number;           ///< group id
+  groupId : number;            ///< group id
   templId : number;            ///< task template id
   priority : number;           ///< [1..3]
   state : EnumState;

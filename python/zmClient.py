@@ -122,7 +122,7 @@ class TaskTemplate:
     self.maxDurationSec = maxDurationSec
     self.name = name    
     self.description = description
-    self.script = script 
+    self.script = script   
 class Task: 
   """Task config""" 
   def __init__(self,
@@ -371,7 +371,7 @@ class Connection:
         iousr.passw = ucng.passw.decode('utf-8')
         if ucng.description:
           iousr.description = ucng.description.decode('utf-8')
-          self._freeResources(None, ucng.description)      
+          self._freeResources()      
         return True
     return False
   def changeUser(self, iusr : User) -> bool:
@@ -420,7 +420,7 @@ class Connection:
                   
       if dbuffer and (osz > 0):
         oid = [dbuffer[i] for i in range(osz)]
-        self._freeResources(dbuffer, ctypes.c_char_p(0))
+        self._freeResources()
 
         ousr = []
         for i in range(osz):
@@ -581,7 +581,7 @@ class Connection:
       
       if dbuffer and (osz > 0):
         oid = [dbuffer[i] for i in range(osz)]
-        self._freeResources(dbuffer, ctypes.c_char_p(0))
+        self._freeResources()
 
         osch = []
         for i in range(osz):
@@ -752,7 +752,7 @@ class Connection:
       
       if dbuffer and (osz > 0):
         oid = [dbuffer[i] for i in range(osz)]
-        self._freeResources(dbuffer, ctypes.c_char_p(0))
+        self._freeResources()
 
         owkr = []
         for i in range(osz):
@@ -805,7 +805,7 @@ class Connection:
         ioppl.name = pcng.name.decode('utf-8')
         if pcng.description:
           ioppl.description = pcng.description.decode('utf-8')
-          self._freeResources(None, pcng.description)
+          self._freeResources()
         return True
     return False
   def changePipeline(self, ippl : User) -> bool:
@@ -857,7 +857,7 @@ class Connection:
       
       if dbuffer and (osz > 0):
         oid = [dbuffer[i] for i in range(osz)]
-        self._freeResources(dbuffer, ctypes.c_char_p(0))
+        self._freeResources()
 
         oppl = []
         for i in range(osz):
@@ -910,7 +910,7 @@ class Connection:
         iogrp.name = gcng.name.decode('utf-8')
         if gcng.description:
           iogrp.description = gcng.description.decode('utf-8')
-          self._freeResources(None, gcng.description)
+          self._freeResources()
         return True
     return False
   def changeGroup(self, igrp : User) -> bool:
@@ -962,7 +962,7 @@ class Connection:
       
       if dbuffer and (osz > 0):
         oid = [dbuffer[i] for i in range(osz)]
-        self._freeResources(dbuffer, ctypes.c_char_p(0))
+        self._freeResources()
 
         ogrp = []
         for i in range(osz):
@@ -1019,11 +1019,10 @@ class Connection:
         iott.maxDurationSec = tcng.maxDurationSec
         iott.name = tcng.name.decode('utf-8')
         if tcng.description:
-          iott.description = tcng.description.decode('utf-8')
-          self._freeResources(None, tcng.description)
+          iott.description = tcng.description.decode('utf-8')          
         if tcng.script:          
           iott.script = tcng.script.decode('utf-8')
-          self._freeResources(None, dd)
+        self._freeResources()  
         return True
     return False
   def changeTaskTemplate(self, iott : TaskTemplate) -> bool:
@@ -1078,7 +1077,7 @@ class Connection:
 
       if dbuffer and (osz > 0):
         oid = [dbuffer[i] for i in range(osz)]
-        self._freeResources(dbuffer, ctypes.c_char_p(0))
+        self._freeResources()
 
         ott = []
         for i in range(osz):
@@ -1136,14 +1135,12 @@ class Connection:
         iot.gId = tcng.gId
         iot.priority = tcng.priority
         if tcng.prevTasksId:
-          iot.prevTasksId = [int(i) for i in tcng.prevTasksId.decode('utf-8').split(',')]
-          self._freeResources(None, tcng.prevTasksId)
+          iot.prevTasksId = [int(i) for i in tcng.prevTasksId.decode('utf-8').split(',')]          
         if tcng.nextTasksId:
           iot.nextTasksId = [int(i) for i in tcng.nextTasksId.decode('utf-8').split(',')]
-          self._freeResources(None, tcng.nextTasksId)
         if tcng.params:
           iot.params = tcng.params.decode('utf-8').split(',')
-          self._freeResources(None, tcng.params)
+        self._freeResources()
         return True
     return False
   def changeTask(self, iot : Task) -> bool:
@@ -1335,7 +1332,7 @@ class Connection:
             
       if dbuffer and (osz > 0):
         oid = [dbuffer[i] for i in range(osz)]
-        self._freeResources(dbuffer, ctypes.c_char_p(0))
+        self._freeResources()
       
         ott = []
         for i in range(osz):
@@ -1393,8 +1390,9 @@ class Connection:
       return oerr
     return []
 
-  def _freeResources(self, puint64 : ctypes.POINTER(ctypes.c_uint64), pchar : ctypes.POINTER(ctypes.c_char)):
-    pfun = _lib.zmFreeResources
-    pfun.restype = None
-    pfun.argtypes = (ctypes.POINTER(ctypes.c_uint64), ctypes.c_char_p)
-    pfun(puint64, pchar)
+  def _freeResources(self):
+    if (self._zmConn):
+      pfun = _lib.zmFreeResources
+      pfun.restype = None
+      pfun.argtypes = (ctypes.c_void_p,)
+      pfun(self._zmConn)
