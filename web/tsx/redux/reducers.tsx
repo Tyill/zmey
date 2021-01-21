@@ -8,31 +8,33 @@ import {IUser, IPipeline, ITaskGroup, ITaskTemplate, ITask } from "../types"
 function user(curUser : IUser, action : {type : EnumActions, user : IUser}) :
   IUser{
 
-  return {name : 'alm'};
+  return {name : 'alm', description : ''};
 }
 
 function pipelines(curPipelines : Map<number, IPipeline>, action : {type : EnumActions, pipeline : IPipeline, allPipelines : Array<IPipeline>}) : 
   Map<number, IPipeline>{
 
     if (!curPipelines) return new Map<number, IPipeline>();
-    
-    let curPipelinesCpy = Object.assign({}, curPipelines);  
+        
+    let pipelinesCpy = new Map<number, IPipeline>();   
+    if (curPipelines instanceof Map){ 
+      for (let t of curPipelines)
+        pipelinesCpy.set(t[0], t[1]);  
+    }
+
     switch (action.type) {
       case EnumActions.ADD_PIPELINE:
       case EnumActions.CHANGE_PIPELINE:
-        curPipelinesCpy.set(action.pipeline.id, action.pipeline);
+        pipelinesCpy.set(action.pipeline.id, action.pipeline);
         break;
       case EnumActions.DEL_PIPELINE:
         break;  
       case EnumActions.FILL_PIPELINES:
         for (let p of action.allPipelines)
-          curPipelinesCpy[p.id] = p;
+          pipelinesCpy.set(p.id, p);
         break;  
-      default:
-        curPipelinesCpy = new Map<number, IPipeline>();
-        break;
     }
-    return curPipelinesCpy; 
+    return pipelinesCpy; 
 }
 
 function taskGroups(curTaskGroups : Map<number, ITaskGroup>, action : {type : EnumActions, taskGroup : ITaskGroup, allTaskGroups : Array<ITaskGroup>}) : 
@@ -40,7 +42,12 @@ function taskGroups(curTaskGroups : Map<number, ITaskGroup>, action : {type : En
 
     if (!curTaskGroups) return new Map<number, ITaskGroup>();
 
-    let taskGroupsCpy = Object.assign({}, curTaskGroups);  
+    let taskGroupsCpy = new Map<number, ITaskGroup>();   
+    if (curTaskGroups instanceof Map){ 
+      for (let t of curTaskGroups)
+        taskGroupsCpy.set(t[0], t[1]);  
+    }   
+    
     switch (action.type) {
       case EnumActions.ADD_TASKGROUP:
       case EnumActions.CHANGE_TASKGROUP:
@@ -51,9 +58,6 @@ function taskGroups(curTaskGroups : Map<number, ITaskGroup>, action : {type : En
       case EnumActions.FILL_TASKGROUPS:
         for (let t of action.allTaskGroups)
           taskGroupsCpy.set(t.id, t);
-        break;  
-      default:
-        taskGroupsCpy = new Map<number, ITaskGroup>();
         break;
     }
     return taskGroupsCpy; 
@@ -63,8 +67,13 @@ function taskTemplates(curTaskTemplates : Map<number, ITaskTemplate>, action : {
   Map<number, ITaskTemplate>{
   
   if (!curTaskTemplates) return new Map<number, ITaskTemplate>();
+  
+  let taskTemplatesCpy = new Map<number, ITaskTemplate>();   
+  if (curTaskTemplates instanceof Map){ 
+    for (let t of curTaskTemplates)
+      taskTemplatesCpy.set(t[0], t[1]);  
+  }
 
-  let taskTemplatesCpy = Object.assign({}, curTaskTemplates);   
   switch (action.type) {
     case EnumActions.ADD_TASKTEMPLATE:
     case EnumActions.CHANGE_TASKTEMPLATE:
@@ -74,12 +83,9 @@ function taskTemplates(curTaskTemplates : Map<number, ITaskTemplate>, action : {
       break;  
     case EnumActions.FILL_TASKTEMPLATES:      
       for (let t of action.allTaskTemplates)
-        taskTemplatesCpy[t.id] = t; 
-      break;  
-    default:
-      taskTemplatesCpy = new Map<number, ITaskTemplate>();
+        taskTemplatesCpy.set(t.id, t); 
       break;
-  }
+  }  
   return taskTemplatesCpy; 
 }
 
@@ -88,7 +94,12 @@ function tasks(curTasks : Map<number, ITask>, action : {type : EnumActions, task
 
     if (!curTasks) return new Map<number, ITask>();
 
-    let tasksCpy = Object.assign({}, curTasks);  
+    let tasksCpy = new Map<number, ITask>();   
+    if (curTasks instanceof Map){ 
+      for (let t of curTasks)
+        tasksCpy.set(t[0], t[1]);  
+    }
+
     switch (action.type) {
       case EnumActions.ADD_TASK:
       case EnumActions.CHANGE_TASK:
@@ -100,9 +111,6 @@ function tasks(curTasks : Map<number, ITask>, action : {type : EnumActions, task
         for (let t of action.allTasks)
           tasksCpy.set(t.id, t);
         break;  
-      default:
-        tasksCpy = new Map<number, ITask>();
-        break;
     }
     return tasksCpy; 
 }

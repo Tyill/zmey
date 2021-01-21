@@ -5,7 +5,7 @@ import { createStore } from 'redux'
 import {IStoreType, IPipeline, ITaskGroup, ITaskTemplate, ITask } from "../types"
 
 const initialState : IStoreType = {
-  user : { name : ''},
+  user : { name : '', description : ''},
   pipelines : new Map<number, IPipeline>(),
   taskGroups : new Map<number, ITaskGroup>(),
   taskTemplates : new Map<number, ITaskTemplate>(),

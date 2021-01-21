@@ -159,8 +159,8 @@ class DialogTaskTemplate extends React.Component<IProps, IState>{
 
 // //////////////////////////////////////////////////
 
-const mapStateToProps = (state) => {
-  return state;
+const mapStoreToProps = (store) => {
+  return store;
 };
 
 const mapDispatchToProps = (dispatch) => {
@@ -170,6 +170,6 @@ const mapDispatchToProps = (dispatch) => {
   }
 };
 
-let DialogTaskTemplateRedux = connect(mapStateToProps, mapDispatchToProps)(DialogTaskTemplate);
+let DialogTaskTemplateRedux = connect(mapStoreToProps, mapDispatchToProps)(DialogTaskTemplate);
 
 export default DialogTaskTemplateRedux;

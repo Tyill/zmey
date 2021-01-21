@@ -15,16 +15,29 @@ zo = zm.Connection("host=localhost port=5432 password=123 dbname=zmeydb connect_
 
 zo.setErrorCBack(lambda err: print(err))
 
-# usr = zm.User(0, 'alm', '123')
-# ttls = zo.addUser(usr)
+#usr = zm.User(0, 'alm', '123')
+#zo.addUser(usr)
 
-# ttl = zm.TaskTemplate(uId=3, name="ttl1", script="script")
+ppl = zm.Pipeline(uId=1, name="ppl1")
+zo.addPipeline(ppl)
+ppl = zm.Pipeline(uId=1, name="ppl2")
+zo.addPipeline(ppl)
+ppl = zm.Pipeline(uId=1, name="ppl3")
+zo.addPipeline(ppl)
 
+plls = zo.getAllPipelines(1)
+
+ttl = zm.TaskTemplate(uId=1, name="ttl1", script="script")
+zo.addTaskTemplate(ttl)
+ttl = zm.TaskTemplate(uId=1, name="ttl2", script="script")
+zo.addTaskTemplate(ttl)
+ttl = zm.TaskTemplate(uId=1, name="ttl3", script="script")
+zo.addTaskTemplate(ttl)
 # d = ttl.__dict__
 
 
 
-# zo.addTaskTemplate(ttl)
+# 
 
 for x in range(1000000000):
   ttls = zo.getAllTaskTemplates(3)

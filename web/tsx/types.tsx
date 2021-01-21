@@ -9,6 +9,7 @@ enum EnumState{
   STOP,    
   COMPLETED,
   ERROR,
+  CANCEL,
   NOT_RESPONDING,
 };
 
@@ -30,13 +31,12 @@ interface ITaskGroup{
   id : number;
   pplId : number;              ///< pipeline id
   name : string; 
-  description?: string;     
+  description : string;     
 };
 
 export
 interface ITaskTemplate{
   id : number;
-  uId : number;
   name : string;            
   script : string;  
   averDurationSec : number;    ///< estimated lead time 
@@ -48,13 +48,19 @@ export
 interface ITask{
   id : number;
   pplId : number;              ///< pipeline id
-  groupId : number;            ///< group id
-  templId : number;            ///< task template id
+  gId : number;                ///< group id
+  ttId : number;               ///< task template id
   priority : number;           ///< [1..3]
   state : EnumState;
+  progress : number;
+  result : string;
   prevTasksId : Array<number>; ///< pipeline task id of previous tasks
   nextTasksId : Array<number>; ///< pipeline task id of next tasks
   params : Array<string>;      ///< CLI params for script
+  createTime : string;
+  takeInWorkTime : string;
+  startTime : string;
+  stopTime : string;
 };
 
 export

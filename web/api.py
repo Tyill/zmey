@@ -140,38 +140,33 @@ def allPipelines():
 @loginRequired
 def addTaskTemplate():
 
-  jnTtl = request.get_json(silent=True)
+  jnReq = request.get_json(silent=True)
   
   ttl = TaskTemplate()
-  ttl.name = jnTtl['name']
-  ttl.script = jnTtl['script']
-  ttl.averDurationSec = jnTtl['averDurationSec']
-  ttl.maxDurationSec = jnTtl['maxDurationSec']
-  ttl.description = jnTtl['description']
+  ttl.name = jnReq['name']
+  ttl.uId = g.userId
+  ttl.script = jnReq['script']
+  ttl.averDurationSec = jnReq['averDurationSec']
+  ttl.maxDurationSec = jnReq['maxDurationSec']
+  ttl.description = jnReq['description']
   
-  if _zmCommon.addTaskTemplate(ttl):
-    return json.dumps(ttl)
-  else:
-    return "{}"
-
+  return json.dumps(ttl) if _zmCommon.addTaskTemplate(ttl) else "{}"
 
 @bp.route('/changeTaskTemplate', methods=(['POST']))
 @loginRequired 
 def changeTaskTemplate():
-  jnTtl = request.get_json(silent=True)
+  jnReq = request.get_json(silent=True)
   
   ttl = TaskTemplate()
-  ttl.id = jnTtl['id']
-  ttl.name = jnTtl['name']
-  ttl.script = jnTtl['script']
-  ttl.averDurationSec = jnTtl['averDurationSec']
-  ttl.maxDurationSec = jnTtl['maxDurationSec']
-  ttl.description = jnTtl['description']
+  ttl.id = jnReq['id']
+  ttl.uId = g.userId
+  ttl.name = jnReq['name']
+  ttl.script = jnReq['script']
+  ttl.averDurationSec = jnReq['averDurationSec']
+  ttl.maxDurationSec = jnReq['maxDurationSec']
+  ttl.description = jnReq['description']
   
-  if _zmCommon.changeTaskTemplate(ttl):
-    return json.dumps(ttl)
-  else:
-    return "{}"
+  return json.dumps(ttl) if _zmCommon.changeTaskTemplate(ttl) else "{}"
 
 @bp.route('/delTaskTemplate')
 @loginRequired
@@ -185,6 +180,31 @@ def allTaskTemplates():
   for t in _zmCommon.getAllTaskTemplates(g.userId):
     ret.append(t.__dict__)
   return json.dumps(ret)
+
+###############################################################################
+### Group of tasks
+
+@bp.route('/addTaskGroup')
+@loginRequired
+def addTaskGroup():
+  return None#_zmCommon.addTask(tsk)
+
+@bp.route('/changeTaskGroup')
+@loginRequired
+def changeTaskGroup():
+  return None#_zmCommon.changeTask(tsk)
+
+@bp.route('/delTaskGroup')
+@loginRequired
+def delTaskGroup():
+  return None#_zmCommon.delTask(tsk.id)
+
+@bp.route('/allTaskGroups')
+@loginRequired
+def allTaskGroups():
+  jn = request.get_json(silent=True)
+  grps = _zmCommon.getAllGroups(jn["pplId"])
+  return json.dumps(grps)
 
 ###############################################################################
 ### Task

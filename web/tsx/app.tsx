@@ -22,6 +22,8 @@ interface IProps {
 
   onFillTaskTemplates : (tasktemplates : Array<ITaskTemplate>) => any; // | Actions
   onFillPipelines : (pipelines : Array<IPipeline>) => any;             // |
+  onFillTaskGroups : (taskGroups : Array<ITaskGroup>) => any;          // |
+  onFillTasks : (tasks : Array<ITask>) => any;                         // |
 };
 
 interface IState {
@@ -52,7 +54,21 @@ class App extends React.Component<IProps, IState>{
     .then(jsPipelines =>{   
       this.props.onFillPipelines(jsPipelines);           
     })
-    .catch(() => console.log('api/allPipelines error'));    
+    .catch(() => console.log('api/allPipelines error'));   
+    
+    fetch('api/allGroups')
+    .then(response => response.json())    
+    .then(jsGroups =>{   
+      this.props.onFillTaskGroups(jsGroups);           
+    })
+    .catch(() => console.log('api/allGroups error'));  
+    
+    fetch('api/allTasks')
+    .then(response => response.json())    
+    .then(jsTasks =>{   
+      this.props.onFillTasks(jsTasks);           
+    })
+    .catch(() => console.log('api/allTasks error'));  
   }
 
   hShowTaskTemplateConfig(){
@@ -66,40 +82,33 @@ class App extends React.Component<IProps, IState>{
   }
 
   render(){
-    
-    // let obj : ITreeNavDir = { name : "dir2222222222222222222222221",
-    // files : [],
-    // subdirs : [],
-    // isShow : false };
-    // for(let i = 0; i < 5; ++i){
-    //   obj.files.push("f" + i);
-    // }   
-    // let obj1 : ITreeNavDir = { name : "dir2",
-    //                            files : ["f3", "f4"],
-    //                            subdirs : [],
-    //                            isShow : false };
-    // obj.subdirs.push(obj1);
-
-    // let dirs: Array<ITreeNavDir> = [];
-    // dirs.push(obj);
-
+        
     let clientHeight = document.documentElement ? document.documentElement.clientHeight : 300;
 
+    let pipelines = []
+    for (let v of this.props.pipelines.values()){
+      pipelines.push(<ListGroup.Item key={v.id}>{v.name}</ListGroup.Item>);
+    }
+    let taskTemlates = []
+    for (let v of this.props.taskTemplates.values()){
+      taskTemlates.push(<ListGroup.Item key={v.id}>{v.name}</ListGroup.Item>); 
+    }
+    
     return (
       <div>
         <Container className="col app-container"
                    style={{overflow: "auto", height: clientHeight}}>
           <Row noGutters={true} className="m-1 p-2"
               style = {{  border: "1px solid #dbdbdb", borderRadius: "5px"}}>
-            <Col className="col-auto"> 
-              {/* <TreeNav dirs={dirs} />             */}
+            <Col className="col-auto">               
               <ListGroup>
-                <ListGroup.Item>Cras justo odio</ListGroup.Item>
-                <ListGroup.Item>Dapibus ac facilisis in</ListGroup.Item>
-                <ListGroup.Item>Morbi leo risus</ListGroup.Item>
-                <ListGroup.Item>Porta ac consectetur ac</ListGroup.Item>
-                <ListGroup.Item>Vestibulum at eros</ListGroup.Item>
-            </ListGroup>
+                {taskTemlates}
+              </ListGroup>
+            </Col> 
+            <Col className="col-auto">               
+              <ListGroup>
+                {pipelines}
+              </ListGroup>
             </Col> 
             <Col className="col"> 
               <Button variant="primary" 
@@ -118,18 +127,20 @@ class App extends React.Component<IProps, IState>{
 
 // //////////////////////////////////////////////////
 
-const mapStateToProps = (state) => {
-  return state;
+const mapStoreToProps = (store) => {
+  return store;
 }
 
 const mapDispatchToProps = (dispatch) => {
   return { 
     onFillTaskTemplates : Action.fillTaskTemplates(dispatch), 
     onFillPipelines : Action.fillPipelines(dispatch),   
+    onFillTasks : Action.fillTasks(dispatch), 
+    onFillTaskGroups : Action.fillTaskGroups(dispatch), 
   }
 }
 
-let AppRedux = connect(mapStateToProps, mapDispatchToProps)(App);
+let AppRedux = connect(mapStoreToProps, mapDispatchToProps)(App);
 
 const root = document.getElementById('root')
 
