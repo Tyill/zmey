@@ -202,9 +202,11 @@ def delTaskGroup():
 @bp.route('/allTaskGroups')
 @loginRequired
 def allTaskGroups():
-  jn = request.get_json(silent=True)
-  grps = _zmCommon.getAllGroups(jn["pplId"])
-  return json.dumps(grps)
+  ret = []
+  for p in _zmCommon.getAllPipelines(g.userId):
+    for gr in _zmCommon.getAllGroups(p.id):
+      ret.append(gr.__dict__)
+  return json.dumps(ret)
 
 ###############################################################################
 ### Task
@@ -227,9 +229,12 @@ def delTask():
 @bp.route('/allTasks')
 @loginRequired
 def allTasks():
-  jn = request.get_json(silent=True)
-  tsks = _zmCommon.getAllTasks(jn["pplId"])
-  return json.dumps(tsks)
+  ret = []
+  for p in _zmCommon.getAllPipelines(g.userId):
+    for t in _zmCommon.getAllTasks(p.id):
+      t.state = t.state.value
+      ret.append(t.__dict__) 
+  return json.dumps(ret)
 
 @bp.route('/startTask')
 @loginRequired

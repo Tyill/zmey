@@ -3,7 +3,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import { connect, Provider } from "react-redux";
-import {Container, Row, Col, Button, Modal, ListGroup} from "react-bootstrap";
+import {Container, Row, Col, Tabs, Tab, Image, Card, ListGroup } from "react-bootstrap";
 import DialogTaskTemplateRedux from "./taskTemplateDialog";
 
 import * as Action from "./redux/actions";
@@ -44,29 +44,29 @@ class App extends React.Component<IProps, IState>{
   componentDidMount() {    
     fetch('api/allTaskTemplates')
     .then(response => response.json())    
-    .then(jsTaskTemplates =>{   
-      this.props.onFillTaskTemplates(jsTaskTemplates);           
+    .then(taskTemplates =>{   
+      this.props.onFillTaskTemplates(taskTemplates);           
     })
     .catch(() => console.log('api/allTaskTemplates error')); 
     
     fetch('api/allPipelines')
     .then(response => response.json())    
-    .then(jsPipelines =>{   
-      this.props.onFillPipelines(jsPipelines);           
+    .then(pipelines =>{   
+      this.props.onFillPipelines(pipelines);           
     })
     .catch(() => console.log('api/allPipelines error'));   
     
-    fetch('api/allGroups')
+    fetch('api/allTaskGroups')
     .then(response => response.json())    
-    .then(jsGroups =>{   
-      this.props.onFillTaskGroups(jsGroups);           
+    .then(groups =>{   
+      this.props.onFillTaskGroups(groups);           
     })
-    .catch(() => console.log('api/allGroups error'));  
+    .catch(() => console.log('api/allTaskGroups error'));  
     
     fetch('api/allTasks')
     .then(response => response.json())    
-    .then(jsTasks =>{   
-      this.props.onFillTasks(jsTasks);           
+    .then(tasks =>{   
+      this.props.onFillTasks(tasks);           
     })
     .catch(() => console.log('api/allTasks error'));  
   }
@@ -82,43 +82,79 @@ class App extends React.Component<IProps, IState>{
   }
 
   render(){
-        
-    let clientHeight = document.documentElement ? document.documentElement.clientHeight : 300;
-
+    
     let pipelines = []
     for (let v of this.props.pipelines.values()){
-      pipelines.push(<ListGroup.Item key={v.id}>{v.name}</ListGroup.Item>);
+      pipelines.push(<ListGroup.Item key={v.id} action >{v.name}</ListGroup.Item>);
     }
     let taskTemlates = []
     for (let v of this.props.taskTemplates.values()){
-      taskTemlates.push(<ListGroup.Item key={v.id}>{v.name}</ListGroup.Item>); 
+      taskTemlates.push(<ListGroup.Item key={v.id} action >{v.name}</ListGroup.Item>); 
     }
-    
+       
     return (
       <div>
-        <Container className="col app-container"
-                   style={{overflow: "auto", height: clientHeight}}>
-          <Row noGutters={true} className="m-1 p-2"
-              style = {{  border: "1px solid #dbdbdb", borderRadius: "5px"}}>
-            <Col className="col-auto">               
-              <ListGroup>
-                {taskTemlates}
-              </ListGroup>
-            </Col> 
-            <Col className="col-auto">               
-              <ListGroup>
-                {pipelines}
-              </ListGroup>
-            </Col> 
-            <Col className="col"> 
-              <Button variant="primary" 
-                      onClick= {this.hShowTaskTemplateConfig}>Primary</Button>
-              <Button variant="secondary">Secondary</Button>
+        <Container fluid style={{ margin: 0, padding: 0}}>
+          <Row noGutters={true} style={{borderBottom: "1px solid #dbdbdb", boxShadow: "0px 1px 5px #dbdbdb"}}>
+            <Col className="col">               
+              <Image src="/images/label.png" style={{ margin: 5}}></Image>
+            </Col>
+          </Row>
+          <Row noGutters={true} >
+            <Col className="col-2" >   
+              <Card style={{minHeight: "70vh"}}>  
+                <Card.Header as="h6">
+                  Task templates 
+                  <Image className="btnNew" title="New task" style={{marginLeft: "15px"}} onClick={(e)=>{ console.log("dfdfdf");}}></Image>
+                  <Image className="btnEdit" title="Edit task" style={{marginLeft: "15px"}} onClick={(e)=>{ console.log("dfdfdf");}}></Image>
+                  <Image className="btnDelete" title="Delete task" style={{marginLeft: "15px"}} onClick={(e)=>{ console.log("dfdfdf");}}></Image>
+                </Card.Header>
+                <ListGroup className="list-group-flush" style={{minHeight: "20vh"}} >
+                  {taskTemlates}
+                </ListGroup>               
+                <Card.Header as="h6">
+                  Pipelines
+                  <Image className="btnNew" title="New pipeline" style={{marginLeft: "57px"}} onClick={(e)=>{ console.log("dfdfdf");}}></Image>
+                  <Image className="btnEdit" title="Edit pipeline" style={{marginLeft: "15px"}} onClick={(e)=>{ console.log("dfdfdf");}}></Image>
+                  <Image className="btnDelete" title="Delete pipeline" style={{marginLeft: "15px"}} onClick={(e)=>{ console.log("dfdfdf");}}></Image>
+                </Card.Header>    
+                <ListGroup className="list-group-flush" style={{minHeight: "20vh", maxHeight: "40vh", overflowY:"auto"}}>
+                  {pipelines}
+                </ListGroup>
+              </Card>
+            </Col>
+            <Col className="col-8" >   
+            <Tabs defaultActiveKey="profile"  id="uncontrolled-tab-example" style={{height: "47px"}}>
+              <Tab eventKey="home" title="Home">
+               
+              </Tab>
+              <Tab eventKey="profile" title="Profile">
+                
+              </Tab>
+              <Tab eventKey="contact" title="Contact">
+                
+              </Tab>
+            </Tabs>
+            </Col>
+            <Col className="col-2" >   
+              <Card style={{minHeight: "40vh"}}>  
+                <Card.Header as="h6">Active tasks</Card.Header>    
+                <ListGroup className="list-group-flush">
+               
+                </ListGroup>            
+              </Card>
+            </Col>
+          </Row>
+          <Row noGutters={true} >
+            <Col className="col" >   
+              <Card> 
+                <Card.Header style={{ padding: "0px 0px 0px 10px"}}>Message list</Card.Header>
+              </Card>
             </Col>
           </Row>
         </Container> 
 
-        <DialogTaskTemplateRedux show = {this.state.isShowTaskTemplateConfig} onHide = {this.hShowTaskTemplateConfig}/>
+        <DialogTaskTemplateRedux show={this.state.isShowTaskTemplateConfig} onHide={this.hShowTaskTemplateConfig}/>
       </div>
     )
   } 
@@ -147,7 +183,7 @@ const root = document.getElementById('root')
 if (root){
   ReactDOM.render(
     <Provider store={Store}>
-       <AppRedux/>,
+       <AppRedux/>
     </Provider>,
     root
   );

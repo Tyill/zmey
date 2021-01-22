@@ -62,6 +62,7 @@ std::condition_variable _cvStandUp;
 struct Config{
   int progressTasksTOutSec = 10;
   int pingSchedrTOutSec = 20; 
+  const int checkLoadTOutSec = 1; 
   std::string localConnPnt;
   std::string remoteConnPnt;
   std::string schedrConnPnt;
@@ -178,7 +179,7 @@ int main(int argc, char* argv[]){
       progressToSchedr(_worker, cng.schedrConnPnt, _procs);
     }
     
-    if(timer.onDelayOncSec(true, 1, 1)){
+    if(timer.onDelayOncSec(true, cng.checkLoadTOutSec, 1)){
       _worker.load = cpu.load();
     } 
     

@@ -1,4 +1,21 @@
-.app-container {
-  border-radius: 9px 9px 9px 9px;
-  background: radial-gradient(ellipse at center, rgba(223,232,241,1) 0%, rgba(255,255,255,1) 100%);
+.btnEdit {
+  content: url(/images/edit.png);
+} 
+.btnEdit:active {
+  content: url(/images/editPress.png);
+} 
+
+.btnDelete {
+  content: url(/images/delete.png);
 }
+.btnDelete:active {
+  content: url(/images/deletePress.png);
+} 
+
+.btnNew {
+  content: url(/images/new.png);
+} 
+.btnNew:active {
+  content: url(/images/newPress.png);
+} 
+

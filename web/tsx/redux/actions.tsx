@@ -72,7 +72,7 @@ function delTaskGroup(dispatch){
 export
 function fillTaskGroups(dispatch){
   return function(taskgroups : Array<ITaskGroup>){
-    dispatch({ type : EnumActions.FILL_TASKGROUPS, taskgroups });
+    dispatch({ type : EnumActions.FILL_TASKGROUPS, allTaskGroups : taskgroups });
   }
 }
 
@@ -134,6 +134,6 @@ function stopTask(dispatch){
 export
 function fillTasks(dispatch){
   return function(tasks : Array<ITask>){
-    dispatch({ type : EnumActions.FILL_TASKS, tasks });
+    dispatch({ type : EnumActions.FILL_TASKS, allTasks : tasks });
   }
 }

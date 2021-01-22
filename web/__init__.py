@@ -5,7 +5,7 @@ def create_app():
   app = Flask(__name__, instance_relative_config=True, 
                         static_url_path='', 
                         static_folder='',
-                        template_folder='templates') 
+                        template_folder='html') 
   
   app.config['SECRET_KEY'] = os.urandom(16)
   app.config['DbConnectStr'] = 'host=localhost port=5432 password=123 dbname=zmeydb connect_timeout=10'
