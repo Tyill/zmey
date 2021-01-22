@@ -11,8 +11,6 @@ from flask import(
   g, Blueprint, redirect, url_for, request, render_template
 )
 
-DEBUG = 1
-
 _zmCommon = None
 _zmTaskWatch = None
 
@@ -29,7 +27,9 @@ def initApp(zmeyConnStr : str):
 
   if not _zmCommon.isOK():
     raise RuntimeError('Error connection with PostgreSQL: ' + _zmCommon.getLastError())
-    
+  
+  _zmCommon.setErrorCBack(lambda err: print(err))  
+  
   _zmCommon.createTables()
 
   global _zmTaskWatch 
@@ -46,7 +46,7 @@ bp = Blueprint('zmey', __name__, url_prefix='/api')
 def loginRequired(view):
   @functools.wraps(view)
   def wrapped_view(**kwargs):
-    if (g.userId is None) and (DEBUG == 0):
+    if (g.userId is None):
       return redirect(url_for('auth.login'))
     return view(**kwargs)
   return wrapped_view
@@ -139,24 +139,23 @@ def allPipelines():
 @bp.route('/addTaskTemplate', methods=(['POST']))
 @loginRequired
 def addTaskTemplate():
+  jnReq = request.get_json(silent=True)  
 
-  jnReq = request.get_json(silent=True)
-  
   ttl = TaskTemplate()
   ttl.name = jnReq['name']
   ttl.uId = g.userId
   ttl.script = jnReq['script']
-  ttl.averDurationSec = jnReq['averDurationSec']
-  ttl.maxDurationSec = jnReq['maxDurationSec']
+  ttl.averDurationSec = int(jnReq['averDurationSec'])
+  ttl.maxDurationSec = int(jnReq['maxDurationSec'])
   ttl.description = jnReq['description']
   
-  return json.dumps(ttl) if _zmCommon.addTaskTemplate(ttl) else "{}"
+  return json.dumps(ttl.__dict__) if _zmCommon.addTaskTemplate(ttl) else ('internal error', 500)
 
 @bp.route('/changeTaskTemplate', methods=(['POST']))
 @loginRequired 
 def changeTaskTemplate():
   jnReq = request.get_json(silent=True)
-  
+
   ttl = TaskTemplate()
   ttl.id = jnReq['id']
   ttl.uId = g.userId
@@ -166,7 +165,7 @@ def changeTaskTemplate():
   ttl.maxDurationSec = jnReq['maxDurationSec']
   ttl.description = jnReq['description']
   
-  return json.dumps(ttl) if _zmCommon.changeTaskTemplate(ttl) else "{}"
+  return json.dumps(ttl.__dict__) if _zmCommon.changeTaskTemplate(ttl) else 'internal error', 500
 
 @bp.route('/delTaskTemplate')
 @loginRequired

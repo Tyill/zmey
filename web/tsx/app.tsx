@@ -30,15 +30,14 @@ interface IState {
   isShowTaskTemplateConfig : boolean;
 };
 
-
 class App extends React.Component<IProps, IState>{
    
+  private m_selTaskTemplate : ITaskTemplate = {} as ITaskTemplate;
+
   constructor(props : IProps){
     super(props);
     
-    this.state  = { isShowTaskTemplateConfig : false };
-   
-    this.hShowTaskTemplateConfig = this.hShowTaskTemplateConfig.bind(this); 
+    this.state  = { isShowTaskTemplateConfig : false };   
   }
     
   componentDidMount() {    
@@ -70,17 +69,7 @@ class App extends React.Component<IProps, IState>{
     })
     .catch(() => console.log('api/allTasks error'));  
   }
-
-  hShowTaskTemplateConfig(){
-
-    this.setState((oldState, props)=>{
-
-      let isShowTaskTemplateConfig = !oldState.isShowTaskTemplateConfig;
-
-      return {isShowTaskTemplateConfig};
-    });
-  }
-
+ 
   render(){
     
     let pipelines = []
@@ -101,30 +90,42 @@ class App extends React.Component<IProps, IState>{
             </Col>
           </Row>
           <Row noGutters={true} >
-            <Col className="col-2" >   
+            <Col className="col-2">   
               <Card style={{minHeight: "70vh"}}>  
                 <Card.Header as="h6">
-                  Task templates 
-                  <Image className="btnNew" title="New task" style={{marginLeft: "15px"}} onClick={(e)=>{ console.log("dfdfdf");}}></Image>
-                  <Image className="btnEdit" title="Edit task" style={{marginLeft: "15px"}} onClick={(e)=>{ console.log("dfdfdf");}}></Image>
-                  <Image className="btnDelete" title="Delete task" style={{marginLeft: "15px"}} onClick={(e)=>{ console.log("dfdfdf");}}></Image>
+                  Task templates
+                  <Image className="btnNew" 
+                         title="New task template" 
+                         style={{marginLeft: "30px"}} 
+                         onClick={(e)=>{ 
+                          this.m_selTaskTemplate.id = 0;
+                          this.setState((oldState, props)=>{
+                            let isShowTaskTemplateConfig = !oldState.isShowTaskTemplateConfig;
+                            return {isShowTaskTemplateConfig};
+                          });
+                         }}>
+                  </Image>
                 </Card.Header>
-                <ListGroup className="list-group-flush" style={{minHeight: "20vh"}} >
+                <ListGroup className="list-group-flush" style={{minHeight: "20vh", maxHeight: "30vh", overflowY:"auto"}} >
                   {taskTemlates}
                 </ListGroup>               
                 <Card.Header as="h6">
-                  Pipelines
-                  <Image className="btnNew" title="New pipeline" style={{marginLeft: "57px"}} onClick={(e)=>{ console.log("dfdfdf");}}></Image>
-                  <Image className="btnEdit" title="Edit pipeline" style={{marginLeft: "15px"}} onClick={(e)=>{ console.log("dfdfdf");}}></Image>
-                  <Image className="btnDelete" title="Delete pipeline" style={{marginLeft: "15px"}} onClick={(e)=>{ console.log("dfdfdf");}}></Image>
+                  Task pipelines
+                  <Image className="btnNew" 
+                         title="New task pipeline" 
+                         style={{marginLeft: "30px"}}
+                         onClick={(e)=>{
+                           console.log("dfdfdf");
+                           }}>
+                  </Image>
                 </Card.Header>    
-                <ListGroup className="list-group-flush" style={{minHeight: "20vh", maxHeight: "40vh", overflowY:"auto"}}>
+                <ListGroup className="list-group-flush" style={{minHeight: "20vh", maxHeight: "30vh", overflowY:"auto"}}>
                   {pipelines}
                 </ListGroup>
               </Card>
             </Col>
-            <Col className="col-8" >   
-            <Tabs defaultActiveKey="profile"  id="uncontrolled-tab-example" style={{height: "47px"}}>
+            <Col className="col" >   
+            <Tabs defaultActiveKey="profile" id="uncontrolled-tab-example" style={{height: "47px"}}>
               <Tab eventKey="home" title="Home">
                
               </Tab>
@@ -139,8 +140,7 @@ class App extends React.Component<IProps, IState>{
             <Col className="col-2" >   
               <Card style={{minHeight: "40vh"}}>  
                 <Card.Header as="h6">Active tasks</Card.Header>    
-                <ListGroup className="list-group-flush">
-               
+                <ListGroup className="list-group-flush">               
                 </ListGroup>            
               </Card>
             </Col>
@@ -148,13 +148,19 @@ class App extends React.Component<IProps, IState>{
           <Row noGutters={true} >
             <Col className="col" >   
               <Card> 
-                <Card.Header style={{ padding: "0px 0px 0px 10px"}}>Message list</Card.Header>
               </Card>
             </Col>
           </Row>
         </Container> 
 
-        <DialogTaskTemplateRedux show={this.state.isShowTaskTemplateConfig} onHide={this.hShowTaskTemplateConfig}/>
+        <DialogTaskTemplateRedux selTaskTemplate={this.m_selTaskTemplate} 
+                                 show={this.state.isShowTaskTemplateConfig} 
+                                 onHide={(e)=>{
+                                  this.setState((oldState, props)=>{
+                                    let isShowTaskTemplateConfig = !oldState.isShowTaskTemplateConfig;
+                                    return {isShowTaskTemplateConfig};
+                                  });
+                                 }}/>
       </div>
     )
   } 

@@ -13,6 +13,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 interface IProps {
   show : boolean;
   onHide : () => any;
+  selTaskTemplate : ITaskTemplate;
   
   user : IUser;                                                 // | Store
   pipelines : Map<number, IPipeline>;                           // | 
@@ -25,7 +26,6 @@ interface IProps {
 };
 
 interface IState {
-  curTaskTempl : ITaskTemplate;
   statusMess : string;
 };
 
@@ -37,14 +37,6 @@ class DialogTaskTemplate extends React.Component<IProps, IState>{
     super(props);
     
     this.state = { 
-      curTaskTempl : {
-        id : 0,
-        name : "",           
-        script : "",
-        averDurationSec : 0, 
-        maxDurationSec : 0,
-        description : ""
-      }, 
       statusMess : "" 
     };    
     this.hSubmit = this.hSubmit.bind(this); 
@@ -57,66 +49,76 @@ class DialogTaskTemplate extends React.Component<IProps, IState>{
         name = this._refObj["name"].value,
         script = this._refObj["script"].value,
         description = this._refObj["description"].value,
-        averDurationSec = this._refObj["averDurationSec"].value,
-        maxDurationSec = this._refObj["maxDurationSec"].value;
-    if (!name){
+        averDurationSec = parseInt(this._refObj["averDurationSec"].value ? this._refObj["averDurationSec"].value : 1),
+        maxDurationSec = parseInt(this._refObj["maxDurationSec"].value ? this._refObj["maxDurationSec"].value : 1);
+    if (!name)
       error = "Name is empty"; 
-    }
-    else if (!script){
+    else if (!script)
       error = "Script is empty"; 
-    }
-    console.log(this.props)
-    if (!error){
-      let newTaskTemplate : ITaskTemplate = {
-        id : 0,
-        name,           
-        script,
-        averDurationSec, 
-        maxDurationSec,
-        description
-      }
-      if (this.props.taskTemplates.has(name))
-        fetch('api/addTaskTemplate', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json;charset=utf-8'
-          },
-          body: JSON.stringify(newTaskTemplate)})
-        .then(response => response.json())    
-        .then(respTaskTemplate =>{           
-          this.props.onAddTaskTemplate(respTaskTemplate);           
-        })
-        .catch(() => console.log('api/addTaskTemplate error')); 
-      else
-        fetch('api/changeTaskTemplate', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json;charset=utf-8'
-          },
-          body: JSON.stringify(newTaskTemplate)})
-        .then(response => response.json())    
-        .then(respTaskTemplate =>{   
-          console.log(respTaskTemplate);        
-          //this.props.onChangeTaskTemplate(respTaskTemplate);           
-        })
-        .catch(() => console.log('api/changeTaskTemplate error')); 
+    else if ((this.props.selTaskTemplate.id == 0) && this.props.taskTemplates.has(name))
+      error = `This name '${name}' already exists`;
 
-      this.setState({curTaskTempl : newTaskTemplate});
-    } 
-    
-    if (error != this.state.statusMess){
+    if (error){
       this.setState({statusMess : error});
-    }    
+      setTimeout(() => this.setState({statusMess : ""}), 3000);
+      return;
+    }
+  
+    let newTaskTemplate : ITaskTemplate = {
+      id : this.props.selTaskTemplate.id,
+      name,           
+      script,
+      averDurationSec, 
+      maxDurationSec,
+      description
+    }
+    if (this.props.selTaskTemplate.id == 0){
+      fetch('api/addTaskTemplate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json;charset=utf-8'
+        },
+        body: JSON.stringify(newTaskTemplate)})
+      .then(response => response.json())    
+      .then(taskTemplate =>{
+        this.props.onAddTaskTemplate(taskTemplate);      
+        this.setState({statusMess : "Success addition of task template"});    
+        setTimeout(() => this.setState({statusMess : ""}), 3000);  
+      })
+      .catch(() => {
+        this.setState({statusMess : "api/addTaskTemplate error"});
+        console.log("api/addTaskTemplate error");
+      }); 
+    }
+    else{
+      fetch('api/changeTaskTemplate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json;charset=utf-8'
+        },
+        body: JSON.stringify(newTaskTemplate)})
+      .then(response => response.json())    
+      .then(respTaskTemplate =>{ 
+        this.props.onChangeTaskTemplate(respTaskTemplate); 
+        this.setState({statusMess : "Success change of task template"}); 
+        setTimeout(() => this.setState({statusMess : ""}), 3000);         
+      })
+      .catch(() => {
+        this.setState({statusMess : "api/changeTaskTemplate error"});
+        console.log("api/changeTaskTemplate error");
+      }); 
+    }      
   }
 
   render(){  
 
-    let ttask = this.state.curTaskTempl;
+    let ttask = this.props.selTaskTemplate;
+    console.log(ttask);
 
     return (
       <Modal show={this.props.show} onHide={this.props.onHide} >
         <Modal.Header closeButton>
-          <Modal.Title>Task template</Modal.Title>
+          <Modal.Title> {ttask.id == 0 ? "Addition of task template" : "Change of task template"}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
@@ -137,11 +139,11 @@ class DialogTaskTemplate extends React.Component<IProps, IState>{
             <Form.Row>
               <Form.Group as={Col} controlId="averDurationSec">
                 <Form.Label>Average duration, sec</Form.Label>
-                <Form.Control type="number" min="0" ref={(input) => {this._refObj["averDurationSec"] = input }} defaultValue={ttask.averDurationSec} />
+                <Form.Control type="number" min="1" ref={(input) => {this._refObj["averDurationSec"] = input }} defaultValue={ttask.averDurationSec} />
               </Form.Group>
               <Form.Group as={Col} controlId="maxDurationSec">
                 <Form.Label>Maximum duration, sec</Form.Label>
-                <Form.Control type="number" min="0" ref={(input) => {this._refObj["maxDurationSec"] = input }}  defaultValue={ttask.maxDurationSec} />
+                <Form.Control type="number" min="1" ref={(input) => {this._refObj["maxDurationSec"] = input }}  defaultValue={ttask.maxDurationSec} />
               </Form.Group>
           </Form.Row>          
           <Form.Label>{this.state.statusMess}</Form.Label>      
@@ -154,7 +156,7 @@ class DialogTaskTemplate extends React.Component<IProps, IState>{
       </Modal>
     )
   } 
-}
+  }
 
 
 // //////////////////////////////////////////////////
