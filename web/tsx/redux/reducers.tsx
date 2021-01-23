@@ -28,6 +28,7 @@ function pipelines(curPipelines : Map<number, IPipeline>, action : {type : EnumA
         pipelinesCpy.set(action.pipeline.id, action.pipeline);
         break;
       case EnumActions.DEL_PIPELINE:
+        pipelinesCpy.delete(action.pipeline.id);
         break;  
       case EnumActions.FILL_PIPELINES:
         for (let p of action.allPipelines)
@@ -54,6 +55,7 @@ function taskGroups(curTaskGroups : Map<number, ITaskGroup>, action : {type : En
         taskGroupsCpy.set(action.taskGroup.id, action.taskGroup);
         break;
       case EnumActions.DEL_TASKGROUP:
+        taskGroupsCpy.delete(action.taskGroup.id);
         break;  
       case EnumActions.FILL_TASKGROUPS:
         for (let t of action.allTaskGroups)

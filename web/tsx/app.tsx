@@ -4,7 +4,8 @@ import React from "react";
 import ReactDOM from "react-dom";
 import { connect, Provider } from "react-redux";
 import {Container, Row, Col, Tabs, Tab, Image, Card, Modal, Button, ListGroup } from "react-bootstrap";
-import DialogTaskTemplateModal from "./taskTemplateDialog";
+import TaskTemplateDialogModal from "./taskTemplateDialog";
+import PipelineDialogModal from "./pipelineDialog";
 
 import * as Action from "./redux/actions";
 import Store from "./redux/store"; 
@@ -25,24 +26,28 @@ interface IPropsApp {
   onFillTaskGroups : (taskGroups : Array<ITaskGroup>) => any;          // |
   onFillTasks : (tasks : Array<ITask>) => any;                         // |
   onDelTaskTemplate : (taskTemplate : ITaskTemplate) => any;           // |
+  onDelPipeline : (pipeline : IPipeline) => any;                       // |
 };
 
 interface IStateApp {
   isShowTaskTemplateConfig : boolean;
-  isShowTaskPipelineConfig : boolean;
-  isShowAckTaskDelete : boolean;
+  isShowPipelineConfig : boolean;
+  isShowAckTaskTemplateDelete : boolean;
+  isShowAckPipelineDelete : boolean;
 };
 
 class App extends React.Component<IPropsApp, IStateApp>{
    
   private m_selTaskTemplate : ITaskTemplate = {} as ITaskTemplate;
+  private m_selPipeline : IPipeline = {} as IPipeline;
 
   constructor(props : IPropsApp){
     super(props);
     
     this.state  = { isShowTaskTemplateConfig : false,
-                    isShowTaskPipelineConfig : false,
-                    isShowAckTaskDelete : false };   
+                    isShowPipelineConfig : false,
+                    isShowAckTaskTemplateDelete : false,
+                    isShowAckPipelineDelete : false };   
   }
     
   componentDidMount() {    
@@ -79,11 +84,11 @@ class App extends React.Component<IPropsApp, IStateApp>{
     
     let pipelines = []
     for (let v of this.props.pipelines.values()){     
-      pipelines.push(<Tab key={v.id} eventKey={v.id.toString()} title={v.name} tooltip="TaskPipeline"></Tab>);
+      pipelines.push(<Tab key={v.id} eventKey={v.id.toString()} title={v.name} ></Tab>);
     }
     let taskTemlates = []
     for (let v of this.props.taskTemplates.values()){
-      taskTemlates.push(<TaskItem key={v.id} title={v.name} tooltip={v.description} tooltipEdit={"Edit Task Template"} tooltipDelete={"Delete Task Template"}
+      taskTemlates.push(<TaskItem key={v.id} title={v.name} tooltip={v.description}
                                   hEdit={()=>{
                                     this.m_selTaskTemplate = this.props.taskTemplates.get(v.id);
                                     this.setState((oldState, props)=>{
@@ -94,8 +99,8 @@ class App extends React.Component<IPropsApp, IStateApp>{
                                   hDelete={()=>{
                                     this.m_selTaskTemplate = this.props.taskTemplates.get(v.id);
                                     this.setState((oldState, props)=>{
-                                      let isShowAckTaskDelete = true;
-                                      return {isShowAckTaskDelete};
+                                      let isShowAckTaskTemplateDelete = true;
+                                      return {isShowAckTaskTemplateDelete};
                                     });
                                   }}>
                         </TaskItem>);
@@ -104,38 +109,48 @@ class App extends React.Component<IPropsApp, IStateApp>{
     return (
       <div>
         <Container fluid style={{ margin: 0, padding: 0}}>
-          <Row noGutters={true} style={{borderBottom: "1px solid #dbdbdb", boxShadow: "0px 1px 5px #dbdbdb"}}>
+          <Row noGutters={true} style={{borderBottom: "1px solid #dbdbdb"}}>
             <Col className="col menuHeader">               
               <Image src="/images/label.png" style={{ margin: 5}} title="Application for schedule and monitor workflows"></Image>
             </Col>
           </Row>
           <Row noGutters={true} >
-            <Col className="col-2">   
-              <Card style={{minHeight: "70vh"}}>  
-                <TaskHeader title="Task Templates" tooltip="New Task Template" 
-                            hNew={()=>{
-                              this.m_selTaskTemplate.id = 0;
-                              this.setState((oldState, props)=>{
-                                let isShowTaskTemplateConfig = true;
-                                return {isShowTaskTemplateConfig};
-                              });
-                }}/>                
-                <ListGroup className="list-group-flush" style={{minHeight: "20vh", maxHeight: "70vh", overflowY:"auto"}} >
-                  {taskTemlates}
-                </ListGroup>
-              </Card>
+            <Col className="col-2" style={{borderRight: "1px solid #dbdbdb"}}>   
+              <TaskHeader hNew={()=>{ 
+                            this.m_selTaskTemplate.id = 0;
+                            this.setState((oldState, props)=>{
+                              let isShowTaskTemplateConfig = true;
+                              return {isShowTaskTemplateConfig};
+                            });
+              }}/>                
+              <ListGroup className="list-group-flush" style={{minHeight: "70vh", maxHeight: "70vh", overflowY:"auto"}} >
+                {taskTemlates}
+              </ListGroup>
             </Col>
-            <Col className="col" >   
-            <Tabs defaultActiveKey="profile" id="uncontrolled-tab-example" style={{height: "47px"}}>
-              {pipelines}
-            </Tabs>
+            <Col className="col" style={{borderRight: "1px solid #dbdbdb"}}> 
+              <PipelineHeader hNew={()=>{ 
+                                this.m_selPipeline.id = 0;
+                                this.setState((oldState, props)=>{
+                                  let isShowPipelineConfig = true;
+                                  return {isShowPipelineConfig};
+                                });}}
+                              hEdit={()=>{
+                                // this.m_selPipeline = this.props.pipelines.get(v.id);
+                                this.setState((oldState, props)=>{
+                                  let isShowPipelineConfig = true;
+                                  return {isShowPipelineConfig};
+                                }); }}
+                              hDelete={()=>{
+                                // this.m_selTaskTemplate = this.props.taskTemplates.get(v.id);
+                                this.setState((oldState, props)=>{
+                                  let isShowAckPipelineDelete = true;
+                                  return {isShowAckPipelineDelete};
+                                }); }} />
+              <Tabs defaultActiveKey="profile" id="uncontrolled-tab-example" style={{height: "48px"}}>
+                {pipelines}
+              </Tabs>                                       
             </Col>
-            <Col className="col-2" >   
-              <Card style={{minHeight: "40vh"}}>  
-                <Card.Header as="h6">Active tasks</Card.Header>    
-                <ListGroup className="list-group-flush">               
-                </ListGroup>            
-              </Card>
+            <Col className="col-2" > 
             </Col>
           </Row>
           <Row noGutters={true} >
@@ -146,34 +161,67 @@ class App extends React.Component<IPropsApp, IStateApp>{
           </Row>
         </Container> 
 
-        <DialogTaskTemplateModal selTaskTemplate={this.m_selTaskTemplate} 
+        <TaskTemplateDialogModal selTaskTemplate={this.m_selTaskTemplate} 
                                  show={this.state.isShowTaskTemplateConfig} 
-                                 onHide={()=>{
+                                 onHide={(selTaskTemplate : ITaskTemplate)=>{
+                                   this.m_selTaskTemplate = selTaskTemplate;
                                    this.setState((oldState, props)=>{
                                      let isShowTaskTemplateConfig = false;
                                      return {isShowTaskTemplateConfig};
                                    });
                                  }}/>
+        
+        <PipelineDialogModal selPipeline={this.m_selPipeline} 
+                             show={this.state.isShowPipelineConfig} 
+                             onHide={(selPipeline : IPipeline)=>{
+                               this.m_selPipeline = selPipeline;
+                               this.setState((oldState, props)=>{
+                                 let isShowPipelineConfig = false;
+                                 return {isShowPipelineConfig};
+                               });
+                             }}/>
 
-        <AckTaskDeleteModal selTaskTemplate={this.m_selTaskTemplate}
-                            show={this.state.isShowAckTaskDelete}
-                            onYes={()=>{
+        <AckDeleteModal name={this.m_selTaskTemplate.name}
+                        title="Delete the Task Template?"
+                        show={this.state.isShowAckTaskTemplateDelete}
+                        onYes={()=>{
                                 fetch('api/delTaskTemplate?id=' + this.m_selTaskTemplate.id)
                                 .then(() => {
                                   let taskTemplate = this.m_selTaskTemplate;
                                   this.props.onDelTaskTemplate(taskTemplate); 
                                   this.setState((oldState, props)=>{
-                                    let isShowAckTaskDelete = false;
-                                    return {isShowAckTaskDelete};
+                                    let isShowAckTaskTemplateDelete = false;
+                                    return {isShowAckTaskTemplateDelete};
                                   }); 
                                 }) 
                                 .catch(() => console.log('api/delTaskTemplate error')); }}
-                            onHide={()=>{
-                              this.setState((oldState, props)=>{
-                                let isShowAckTaskDelete = false;
-                                return {isShowAckTaskDelete};
-                              });
-                            }}/>
+                        onHide={()=>{
+                          this.setState((oldState, props)=>{
+                            let isShowAckTaskTemplateDelete = false;
+                            return {isShowAckTaskTemplateDelete};
+                          });
+                        }}/>
+
+        <AckDeleteModal name={this.m_selPipeline.name}
+                        title="Delete the Task Pipeline?"
+                        show={this.state.isShowAckPipelineDelete}
+                        onYes={()=>{
+                                fetch('api/delPipeline?id=' + this.m_selPipeline.id)
+                                .then(() => {
+                                  let pipeline = this.m_selPipeline;
+                                  this.props.onDelPipeline(pipeline); 
+                                  this.setState((oldState, props)=>{
+                                    let isShowAckPipelineDelete = false;
+                                    return {isShowAckPipelineDelete};
+                                  }); 
+                                }) 
+                                .catch(() => console.log('api/delPipeline error')); }}
+                        onHide={()=>{
+                          this.setState((oldState, props)=>{
+                            let isShowAckPipelineDelete = false;
+                            return {isShowAckPipelineDelete};
+                          });
+                        }}/>
       </div>
     )
   } 
@@ -183,8 +231,6 @@ class App extends React.Component<IPropsApp, IStateApp>{
 ////////////////////////////////////////////////////
 
 interface IPropsTaskHeader {
-  title : string;
-  tooltip : string;
   hNew : () => any;
 };
 interface IStateTaskHeader { 
@@ -200,11 +246,11 @@ class TaskHeader extends React.Component<IPropsTaskHeader, IStateTaskHeader>{
       <Card.Header as="h6" style={{height: "46px"}}
                            onMouseEnter={(e)=>this.setState((oldState, props)=>{ let isShowBtn = true; return {isShowBtn}})}
                            onMouseLeave={(e)=>this.setState((oldState, props)=>{ let isShowBtn = false; return {isShowBtn}})}>
-        {this.props.title}
+        Task Templates
         {this.state.isShowBtn ? 
-          <Image className="btnNew" 
-                title={this.props.tooltip}
-                style={{float: "right"}} 
+          <Image className="btnNew"           
+                title="New Task Template"
+                style={{float: "right", marginTop: "2px"}} 
                 onClick={this.props.hNew}>
           </Image>
         : ""}
@@ -218,8 +264,6 @@ class TaskHeader extends React.Component<IPropsTaskHeader, IStateTaskHeader>{
 interface IPropsTaskItem { 
   title : string;
   tooltip : string;
-  tooltipEdit : string;
-  tooltipDelete : string;
   key : number;   
   hEdit : () => any;
   hDelete : () => any;
@@ -241,12 +285,12 @@ class TaskItem extends React.Component<IPropsTaskItem, IStateTaskItem>{
         {this.state.isShowBtn ?
           <span>
             <Image className="btnDelete" 
-                  title={this.props.tooltipDelete}
+                  title="Delete Task Template"
                   style={{float: "right", marginLeft: "20px", marginTop: "5px" }} 
                   onClick={this.props.hDelete}>
             </Image>
             <Image className="btnEdit" 
-                  title={this.props.tooltipEdit}
+                  title= "Edit Task Template"
                   style={{float: "right", marginTop: "5px"}} 
                   onClick={this.props.hEdit}>
             </Image>            
@@ -259,16 +303,62 @@ class TaskItem extends React.Component<IPropsTaskItem, IStateTaskItem>{
 
 ////////////////////////////////////////////////////
 
-interface IPropsAckTaskDeleteModal { 
+interface IPropsPipelineHeader {
+  hNew : () => any;
+  hEdit : () => any;
+  hDelete : () => any;
+};
+interface IStatePipelineHeader { 
+  isShowBtn : boolean; 
+};
+class PipelineHeader extends React.Component<IPropsPipelineHeader, IStatePipelineHeader>{  
+  constructor(props : IPropsPipelineHeader){
+    super(props);    
+    this.state  = { isShowBtn : false };   
+  }   
+  render(){           
+    return (
+      <Card.Header as="h6" style={{height: "46px"}}
+                           onMouseEnter={(e)=>this.setState((oldState, props)=>{ let isShowBtn = true; return {isShowBtn}})}
+                           onMouseLeave={(e)=>this.setState((oldState, props)=>{ let isShowBtn = false; return {isShowBtn}})}>
+        Task Pipelines
+        {this.state.isShowBtn ?
+         <span>
+          <Image className="btnNew" 
+            title="New Task Pipeline"
+            style={{marginLeft: "20px"}} 
+            onClick={this.props.hNew}>
+          </Image> 
+          <Image className="btnEdit" 
+            title= "Edit Task Pipeline"
+            style={{marginLeft: "20px"}} 
+            onClick={this.props.hEdit}>
+          </Image>
+          <Image className="btnDelete" 
+            title="Delete Task Pipeline"
+            style={{marginLeft: "20px" }} 
+            onClick={this.props.hDelete}>
+          </Image>
+          </span>
+        : ""}
+      </Card.Header>
+    )
+  }
+}
+
+////////////////////////////////////////////////////
+
+interface IPropsAckDeleteModal { 
   show : boolean;
-  selTaskTemplate : ITaskTemplate;
+  name : string;
+  title : string;
   onYes : () => any;  
   onHide : () => any;  
 };
-interface IStateAckTaskDeleteModal { 
+interface IStateAckDeleteModal { 
 };
-class AckTaskDeleteModal extends React.Component<IPropsAckTaskDeleteModal, IStateAckTaskDeleteModal>{  
-  constructor(props : IPropsAckTaskDeleteModal){
+class AckDeleteModal extends React.Component<IPropsAckDeleteModal, IStateAckDeleteModal>{  
+  constructor(props : IPropsAckDeleteModal){
     super(props);    
     this.state  = { isShowBtn : false };   
   }   
@@ -276,10 +366,10 @@ class AckTaskDeleteModal extends React.Component<IPropsAckTaskDeleteModal, IStat
     return (
       <Modal show={this.props.show} onHide={this.props.onHide}>
         <Modal.Header closeButton>
-          <Modal.Title>Delete the Task Template?</Modal.Title>
+          <Modal.Title>{this.props.title}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <p>{this.props.selTaskTemplate.name}</p>
+          <p>{this.props.name}</p>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" style={{minWidth:"100px"}} onClick={this.props.onYes}>Yes</Button>
@@ -302,7 +392,8 @@ const mapDispatchToProps = (dispatch) => {
     onFillPipelines : Action.fillPipelines(dispatch),   
     onFillTasks : Action.fillTasks(dispatch), 
     onFillTaskGroups : Action.fillTaskGroups(dispatch),
-    onDelTaskTemplate : Action.delTaskTemplate(dispatch), 
+    onDelTaskTemplate : Action.delTaskTemplate(dispatch),
+    onDelPipeline : Action.delPipeline(dispatch), 
   }
 }
 

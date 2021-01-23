@@ -3,7 +3,7 @@ import sys
 sys.path.append("../python")
 import python.zmClient as zm
 from python.zmClient import(
-  User, TaskTemplate
+  User, TaskTemplate, Pipeline
 )
 import json
 import functools
@@ -115,15 +115,43 @@ def allWorkers():
 ###############################################################################
 ### Pipeline
 
-@bp.route('/addPipeline')
+@bp.route('/addPipeline', methods=(['POST']))
 @loginRequired
 def addPipeline():
-  return None#_zmCommon.addPipeline(ppl)
+  try: 
+    jnReq = request.get_json(silent=True)  
+
+    ppl = Pipeline()
+    ppl.name = jnReq['name']
+    ppl.uId = g.userId
+    ppl.description = jnReq['description']  
+    return json.dumps(ppl.__dict__) if _zmCommon.addPipeline(ppl) else ('internal error', 500)
+  except Exception:
+    return ('bad request', 400)
+
+@bp.route('/changePipeline', methods=(['POST']))
+@loginRequired 
+def changePipeline():
+  try:
+    jnReq = request.get_json(silent=True)
+  
+    ppl = Pipeline()
+    ppl.id = jnReq['id']
+    ppl.uId = g.userId
+    ppl.name = jnReq['name']
+    ppl.description = jnReq['description']    
+    return json.dumps(ppl.__dict__) if _zmCommon.changePipeline(ppl) else ('internal error', 500)
+  except Exception:
+    return ('bad request', 400)
 
 @bp.route('/delPipeline')
 @loginRequired
 def delPipeline():
-  return None#_zmCommon.delPipeline(ppl.id)
+  try:
+    id = int(request.args.get('id', '0'))
+    return ('ok', 200) if _zmCommon.delPipeline(id) else ('bad request', 400)  
+  except Exception:
+    return ('bad request', 400)
 
 @bp.route('/allPipelines')
 @loginRequired
