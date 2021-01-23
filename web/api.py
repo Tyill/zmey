@@ -139,38 +139,46 @@ def allPipelines():
 @bp.route('/addTaskTemplate', methods=(['POST']))
 @loginRequired
 def addTaskTemplate():
-  jnReq = request.get_json(silent=True)  
+  try: 
+    jnReq = request.get_json(silent=True)  
 
-  ttl = TaskTemplate()
-  ttl.name = jnReq['name']
-  ttl.uId = g.userId
-  ttl.script = jnReq['script']
-  ttl.averDurationSec = int(jnReq['averDurationSec'])
-  ttl.maxDurationSec = int(jnReq['maxDurationSec'])
-  ttl.description = jnReq['description']
-  
-  return json.dumps(ttl.__dict__) if _zmCommon.addTaskTemplate(ttl) else ('internal error', 500)
+    ttl = TaskTemplate()
+    ttl.name = jnReq['name']
+    ttl.uId = g.userId
+    ttl.script = jnReq['script']
+    ttl.averDurationSec = int(jnReq['averDurationSec'])
+    ttl.maxDurationSec = int(jnReq['maxDurationSec'])
+    ttl.description = jnReq['description']  
+    return json.dumps(ttl.__dict__) if _zmCommon.addTaskTemplate(ttl) else ('internal error', 500)
+  except Exception:
+    return ('bad request', 400)
 
 @bp.route('/changeTaskTemplate', methods=(['POST']))
 @loginRequired 
 def changeTaskTemplate():
-  jnReq = request.get_json(silent=True)
-
-  ttl = TaskTemplate()
-  ttl.id = jnReq['id']
-  ttl.uId = g.userId
-  ttl.name = jnReq['name']
-  ttl.script = jnReq['script']
-  ttl.averDurationSec = jnReq['averDurationSec']
-  ttl.maxDurationSec = jnReq['maxDurationSec']
-  ttl.description = jnReq['description']
+  try:
+    jnReq = request.get_json(silent=True)
   
-  return json.dumps(ttl.__dict__) if _zmCommon.changeTaskTemplate(ttl) else 'internal error', 500
+    ttl = TaskTemplate()
+    ttl.id = jnReq['id']
+    ttl.uId = g.userId
+    ttl.name = jnReq['name']
+    ttl.script = jnReq['script']
+    ttl.averDurationSec = jnReq['averDurationSec']
+    ttl.maxDurationSec = jnReq['maxDurationSec']
+    ttl.description = jnReq['description']    
+    return json.dumps(ttl.__dict__) if _zmCommon.changeTaskTemplate(ttl) else ('internal error', 500)
+  except Exception:
+    return ('bad request', 400)
 
 @bp.route('/delTaskTemplate')
 @loginRequired
 def delTaskTemplate():
-  return None#_zmCommon.delTaskTemplate(ttl.id)
+  try:
+    id = int(request.args.get('id', '0'))
+    return ('ok', 200) if _zmCommon.delTaskTemplate(id) else ('bad request', 400)  
+  except Exception:
+    return ('bad request', 400)
 
 @bp.route('/allTaskTemplates')
 @loginRequired

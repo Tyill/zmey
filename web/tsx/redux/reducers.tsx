@@ -73,13 +73,14 @@ function taskTemplates(curTaskTemplates : Map<number, ITaskTemplate>, action : {
     for (let t of curTaskTemplates)
       taskTemplatesCpy.set(t[0], t[1]);  
   }
-
+  
   switch (action.type) {
     case EnumActions.ADD_TASKTEMPLATE:
     case EnumActions.CHANGE_TASKTEMPLATE:
       taskTemplatesCpy.set(action.taskTemplate.id, action.taskTemplate);
       break;
     case EnumActions.DEL_TASKTEMPLATE:
+      taskTemplatesCpy.delete(action.taskTemplate.id);
       break;  
     case EnumActions.FILL_TASKTEMPLATES:      
       for (let t of action.allTaskTemplates)

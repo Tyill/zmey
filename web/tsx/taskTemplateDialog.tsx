@@ -21,13 +21,13 @@ interface IProps {
   taskTemplates : Map<number, ITaskTemplate>;                   // |
   tasks : Map<number, ITask>;                                   // |
   
-  onAddTaskTemplate : (tasktemplate : ITaskTemplate) => any;    // | Actions
-  onChangeTaskTemplate : (tasktemplate : ITaskTemplate) => any; // |
+  onAddTaskTemplate : (taskTemplate : ITaskTemplate) => any;    // | Actions 
+  onChangeTaskTemplate : (taskTemplate : ITaskTemplate) => any; // |
 };
 
 interface IState {
-  statusMess : string;
-};
+  statusMess : string; 
+}; 
 
 class DialogTaskTemplate extends React.Component<IProps, IState>{
    
@@ -54,16 +54,18 @@ class DialogTaskTemplate extends React.Component<IProps, IState>{
     if (!name)
       error = "Name is empty"; 
     else if (!script)
-      error = "Script is empty"; 
-    else if ((this.props.selTaskTemplate.id == 0) && this.props.taskTemplates.has(name))
-      error = `This name '${name}' already exists`;
-
+      error = "Script is empty";
+        
     if (error){
       this.setState({statusMess : error});
       setTimeout(() => this.setState({statusMess : ""}), 3000);
       return;
     }
   
+    let existTask = [...this.props.taskTemplates].find(item => item[1].name == name);
+    if (existTask)
+      this.props.selTaskTemplate.id = existTask[1].id;
+
     let newTaskTemplate : ITaskTemplate = {
       id : this.props.selTaskTemplate.id,
       name,           
@@ -82,12 +84,13 @@ class DialogTaskTemplate extends React.Component<IProps, IState>{
       .then(response => response.json())    
       .then(taskTemplate =>{
         this.props.onAddTaskTemplate(taskTemplate);      
-        this.setState({statusMess : "Success addition of task template"});    
+        this.setState({statusMess : "Success addition of Task Template"});    
         setTimeout(() => this.setState({statusMess : ""}), 3000);  
       })
       .catch(() => {
         this.setState({statusMess : "api/addTaskTemplate error"});
         console.log("api/addTaskTemplate error");
+        setTimeout(() => this.setState({statusMess : ""}), 3000);  
       }); 
     }
     else{
@@ -100,12 +103,13 @@ class DialogTaskTemplate extends React.Component<IProps, IState>{
       .then(response => response.json())    
       .then(respTaskTemplate =>{ 
         this.props.onChangeTaskTemplate(respTaskTemplate); 
-        this.setState({statusMess : "Success change of task template"}); 
+        this.setState({statusMess : "Success change of Task Template"}); 
         setTimeout(() => this.setState({statusMess : ""}), 3000);         
       })
       .catch(() => {
         this.setState({statusMess : "api/changeTaskTemplate error"});
         console.log("api/changeTaskTemplate error");
+        setTimeout(() => this.setState({statusMess : ""}), 3000);  
       }); 
     }      
   }
@@ -113,12 +117,11 @@ class DialogTaskTemplate extends React.Component<IProps, IState>{
   render(){  
 
     let ttask = this.props.selTaskTemplate;
-    console.log(ttask);
-
+    
     return (
       <Modal show={this.props.show} onHide={this.props.onHide} >
         <Modal.Header closeButton>
-          <Modal.Title> {ttask.id == 0 ? "Addition of task template" : "Change of task template"}</Modal.Title>
+          <Modal.Title> {ttask.id == 0 ? "Addition of Task Template" : "Edit of Task Template"}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
@@ -145,8 +148,10 @@ class DialogTaskTemplate extends React.Component<IProps, IState>{
                 <Form.Label>Maximum duration, sec</Form.Label>
                 <Form.Control type="number" min="1" ref={(input) => {this._refObj["maxDurationSec"] = input }}  defaultValue={ttask.maxDurationSec} />
               </Form.Group>
-          </Form.Row>          
-          <Form.Label>{this.state.statusMess}</Form.Label>      
+          </Form.Row>  
+          <Form.Row style={{height:"20px"}}> 
+            <Form.Label style={{marginLeft:"5px"}}>{this.state.statusMess}</Form.Label>   
+          </Form.Row>  
           </Form>          
         </Modal.Body>
         <Modal.Footer>
@@ -172,6 +177,6 @@ const mapDispatchToProps = (dispatch) => {
   }
 };
 
-let DialogTaskTemplateRedux = connect(mapStoreToProps, mapDispatchToProps)(DialogTaskTemplate);
+let DialogTaskTemplateModal = connect(mapStoreToProps, mapDispatchToProps)(DialogTaskTemplate);
 
-export default DialogTaskTemplateRedux;
+export default DialogTaskTemplateModal;

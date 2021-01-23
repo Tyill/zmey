@@ -53,51 +53,51 @@ function fillPipelines(dispatch){
 
 export
 function addTaskGroup(dispatch){
-  return function(taskgroup : ITaskGroup){
-    dispatch({ type : EnumActions.ADD_TASKGROUP, taskgroup });
+  return function(taskGroup : ITaskGroup){
+    dispatch({ type : EnumActions.ADD_TASKGROUP, taskGroup });
   }
 }
 export
 function changeTaskGroup(dispatch){
-  return function(taskgroup : ITaskGroup){
-    dispatch({ type : EnumActions.CHANGE_TASKGROUP, taskgroup });
+  return function(taskGroup : ITaskGroup){
+    dispatch({ type : EnumActions.CHANGE_TASKGROUP, taskGroup });
   }
 }
 export
 function delTaskGroup(dispatch){
-  return function(taskgroup : ITaskGroup){
-    dispatch({ type : EnumActions.DEL_TASKGROUP, taskgroup });
+  return function(taskGroup : ITaskGroup){
+    dispatch({ type : EnumActions.DEL_TASKGROUP, taskGroup });
   }
 }
 export
 function fillTaskGroups(dispatch){
-  return function(taskgroups : Array<ITaskGroup>){
-    dispatch({ type : EnumActions.FILL_TASKGROUPS, allTaskGroups : taskgroups });
+  return function(taskGroups : Array<ITaskGroup>){
+    dispatch({ type : EnumActions.FILL_TASKGROUPS, allTaskGroups : taskGroups });
   }
 }
 
 export
 function addTaskTemplate(dispatch){
-  return function(tasktemplate : ITaskTemplate){
-    dispatch({ type : EnumActions.ADD_TASKTEMPLATE, tasktemplate });
+  return function(taskTemplate : ITaskTemplate){
+    dispatch({ type : EnumActions.ADD_TASKTEMPLATE, taskTemplate });
   }
 }
 export
 function changeTaskTemplate(dispatch){
-  return function(tasktemplate : ITaskTemplate){
-    dispatch({ type : EnumActions.CHANGE_TASKTEMPLATE, tasktemplate });
+  return function(taskTemplate : ITaskTemplate){
+    dispatch({ type : EnumActions.CHANGE_TASKTEMPLATE, taskTemplate });
   }
 }
 export
 function delTaskTemplate(dispatch){
-  return function(tasktemplate : ITaskTemplate){
-    dispatch({ type : EnumActions.DEL_TASKTEMPLATE, tasktemplate });
+  return function(taskTemplate : ITaskTemplate){
+    dispatch({ type : EnumActions.DEL_TASKTEMPLATE, taskTemplate });
   }
 }
 export
 function fillTaskTemplates(dispatch){
-  return function(tasktemplates : Array<ITaskTemplate>){
-    dispatch({ type : EnumActions.FILL_TASKTEMPLATES, allTaskTemplates : tasktemplates });
+  return function(taskTemplates : Array<ITaskTemplate>){
+    dispatch({ type : EnumActions.FILL_TASKTEMPLATES, allTaskTemplates : taskTemplates });
   }
 }
 
