@@ -2,7 +2,7 @@
 
 import { EnumActions } from "./actions";
 import { combineReducers } from 'redux'
-import {IUser, IPipeline, ITaskGroup, ITaskTemplate, ITask } from "../types"
+import {IUser, IPipeline, IGroup, ITaskTemplate, ITask } from "../types"
 
 
 function user(curUser : IUser, action : {type : EnumActions, user : IUser}) :
@@ -38,12 +38,12 @@ function pipelines(curPipelines : Map<number, IPipeline>, action : {type : EnumA
     return pipelinesCpy; 
 }
 
-function taskGroups(curTaskGroups : Map<number, ITaskGroup>, action : {type : EnumActions, taskGroup : ITaskGroup, allTaskGroups : Array<ITaskGroup>}) : 
-  Map<number, ITaskGroup>{
+function groups(curTaskGroups : Map<number, IGroup>, action : {type : EnumActions, taskGroup : IGroup, allTaskGroups : Array<IGroup>}) : 
+  Map<number, IGroup>{
 
-    if (!curTaskGroups) return new Map<number, ITaskGroup>();
+    if (!curTaskGroups) return new Map<number, IGroup>();
 
-    let taskGroupsCpy = new Map<number, ITaskGroup>();   
+    let taskGroupsCpy = new Map<number, IGroup>();   
     if (curTaskGroups instanceof Map){ 
       for (let t of curTaskGroups)
         taskGroupsCpy.set(t[0], t[1]);  
@@ -118,6 +118,6 @@ function tasks(curTasks : Map<number, ITask>, action : {type : EnumActions, task
     return tasksCpy; 
 }
 
-const ComboReducer = combineReducers({user, pipelines, taskGroups, taskTemplates, tasks });
+const ComboReducer = combineReducers({user, pipelines, groups, taskTemplates, tasks });
 
 export default ComboReducer;

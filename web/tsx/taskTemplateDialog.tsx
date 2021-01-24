@@ -5,9 +5,8 @@ import { connect } from "react-redux";
 import { Col, Button, Modal, Form} from "react-bootstrap";
  
 import * as Action from "./redux/actions"; 
-import { IUser, IPipeline, ITaskGroup, ITaskTemplate, ITask } from "./types";
+import { IUser, IPipeline, IGroup, ITaskTemplate, ITask } from "./types";
 
-import "../css/app.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 interface IProps {
@@ -17,7 +16,7 @@ interface IProps {
   
   user : IUser;                                                 // | Store
   pipelines : Map<number, IPipeline>;                           // | 
-  taskGroups : Map<number, ITaskGroup>;                         // |
+  groups : Map<number, IGroup>;                         // |
   taskTemplates : Map<number, ITaskTemplate>;                   // |
   tasks : Map<number, ITask>;                                   // |
   
@@ -105,7 +104,6 @@ class TaskTemplateDialog extends React.Component<IProps, IState>{
         }, 1000)})
       .catch(() => {
         this.setState({statusMess : "api/addTaskTemplate error"});
-        console.log("api/addTaskTemplate error");
         clearTimeout(this.m_tout);
         this.m_tout = setTimeout(() => this.setState({statusMess : ""}), 3000);  
       }); 
@@ -125,7 +123,6 @@ class TaskTemplateDialog extends React.Component<IProps, IState>{
         this.m_tout = setTimeout(() => this.setState({statusMess : ""}), 3000);})
       .catch(() => {
         this.setState({statusMess : "api/changeTaskTemplate error"});
-        console.log("api/changeTaskTemplate error");
         clearTimeout(this.m_tout);
         this.m_tout = setTimeout(() => this.setState({statusMess : ""}), 3000);  
       }); 

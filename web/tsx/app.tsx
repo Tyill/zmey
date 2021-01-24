@@ -3,13 +3,13 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import { connect, Provider } from "react-redux";
-import {Container, Row, Col, Tabs, Tab, Image, Card, Modal, Button, ListGroup } from "react-bootstrap";
+import {Container, Row, Col, Tabs, Tab, Image, Card, Modal, Button, OverlayTrigger, ListGroup } from "react-bootstrap";
 import TaskTemplateDialogModal from "./taskTemplateDialog";
 import PipelineDialogModal from "./pipelineDialog";
 
 import * as Action from "./redux/actions";
 import Store from "./redux/store"; 
-import { IUser, IPipeline, ITaskGroup, ITaskTemplate, ITask } from "./types";
+import { IUser, IPipeline, IGroup, ITaskTemplate, ITask } from "./types";
 
 import "../css/app.css";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -17,13 +17,13 @@ import "bootstrap/dist/css/bootstrap.min.css";
 interface IPropsApp {
   user : IUser;                                // | Store
   pipelines : Map<number, IPipeline>;          // | 
-  taskGroups : Map<number, ITaskGroup>;        // |
+  groups : Map<number, IGroup>;        // |
   taskTemplates : Map<number, ITaskTemplate>;  // |
   tasks : Map<number, ITask>;                  // |  
 
   onFillTaskTemplates : (taskTemplates : Array<ITaskTemplate>) => any; // | Actions
   onFillPipelines : (pipelines : Array<IPipeline>) => any;             // |
-  onFillTaskGroups : (taskGroups : Array<ITaskGroup>) => any;          // |
+  onFillTaskGroups : (groups : Array<IGroup>) => any;          // |
   onFillTasks : (tasks : Array<ITask>) => any;                         // |
   onDelTaskTemplate : (taskTemplate : ITaskTemplate) => any;           // |
   onDelPipeline : (pipeline : IPipeline) => any;                       // |
@@ -84,7 +84,7 @@ class App extends React.Component<IPropsApp, IStateApp>{
     
     let pipelines = []
     for (let v of this.props.pipelines.values()){     
-      pipelines.push(<Tab key={v.id} eventKey={v.id.toString()} title={v.name} ></Tab>);
+      pipelines.push(<Tab key={v.id} eventKey={v.id.toString()} title={v.name}></Tab>);
     }
     let taskTemlates = []
     for (let v of this.props.taskTemplates.values()){
@@ -146,7 +146,8 @@ class App extends React.Component<IPropsApp, IStateApp>{
                                   let isShowAckPipelineDelete = true;
                                   return {isShowAckPipelineDelete};
                                 }); }} />
-              <Tabs defaultActiveKey="profile" id="uncontrolled-tab-example" style={{height: "48px"}}>
+              <Tabs defaultActiveKey="profile" id="uncontrolled-tab-example" style={{height: "48px"}}
+                    onSelect={(key) => this.m_selPipeline = this.props.pipelines.get(parseInt(key))}>
                 {pipelines}
               </Tabs>                                       
             </Col>

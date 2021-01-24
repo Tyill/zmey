@@ -2,12 +2,12 @@
 
 import ComboReducer from "./reducers";
 import { createStore } from 'redux'
-import {IStoreType, IPipeline, ITaskGroup, ITaskTemplate, ITask } from "../types"
+import {IStoreType, IPipeline, IGroup, ITaskTemplate, ITask } from "../types"
 
 const initialState : IStoreType = {
   user : { name : '', description : ''},
   pipelines : new Map<number, IPipeline>(),
-  taskGroups : new Map<number, ITaskGroup>(),
+  groups : new Map<number, IGroup>(),
   taskTemplates : new Map<number, ITaskTemplate>(),
   tasks : new Map<number, ITask>(),
 };

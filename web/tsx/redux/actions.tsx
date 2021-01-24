@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { IPipeline, ITaskGroup, ITaskTemplate, ITask } from "../types"
+import { IPipeline, IGroup, ITaskTemplate, ITask } from "../types"
 
 export
 enum EnumActions{
@@ -53,26 +53,26 @@ function fillPipelines(dispatch){
 
 export
 function addTaskGroup(dispatch){
-  return function(taskGroup : ITaskGroup){
+  return function(taskGroup : IGroup){
     dispatch({ type : EnumActions.ADD_TASKGROUP, taskGroup });
   }
 }
 export
 function changeTaskGroup(dispatch){
-  return function(taskGroup : ITaskGroup){
+  return function(taskGroup : IGroup){
     dispatch({ type : EnumActions.CHANGE_TASKGROUP, taskGroup });
   }
 }
 export
 function delTaskGroup(dispatch){
-  return function(taskGroup : ITaskGroup){
+  return function(taskGroup : IGroup){
     dispatch({ type : EnumActions.DEL_TASKGROUP, taskGroup });
   }
 }
 export
 function fillTaskGroups(dispatch){
-  return function(taskGroups : Array<ITaskGroup>){
-    dispatch({ type : EnumActions.FILL_TASKGROUPS, allTaskGroups : taskGroups });
+  return function(groups : Array<IGroup>){
+    dispatch({ type : EnumActions.FILL_TASKGROUPS, allTaskGroups : groups });
   }
 }
 

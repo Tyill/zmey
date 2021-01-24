@@ -7,6 +7,7 @@ import { Col, Button, Modal, Form} from "react-bootstrap";
 import * as Action from "./redux/actions"; 
 import { IUser, IPipeline, IGroup, ITaskTemplate, ITask } from "./types";
 
+import "../css/app.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 interface IProps {
@@ -96,6 +97,7 @@ class PipelineDialog extends React.Component<IProps, IState>{
         }, 1000)})
       .catch(() => {
         this.setState({statusMess : "api/addPipeline error"});
+        console.log("api/addPipeline error");
         clearTimeout(this.m_tout);
         this.m_tout = setTimeout(() => this.setState({statusMess : ""}), 3000);  
       }); 
@@ -115,6 +117,7 @@ class PipelineDialog extends React.Component<IProps, IState>{
         this.m_tout = setTimeout(() => this.setState({statusMess : ""}), 3000);})
       .catch(() => {
         this.setState({statusMess : "api/changePipeline error"});
+        console.log("api/changePipeline error");
         clearTimeout(this.m_tout);
         this.m_tout = setTimeout(() => this.setState({statusMess : ""}), 3000);  
       }); 
