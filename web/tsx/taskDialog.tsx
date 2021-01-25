@@ -17,7 +17,7 @@ interface IProps {
   
   user : IUser;                                     // | Store
   pipelines : Map<number, IPipeline>;               // | 
-  groups : Map<number, IGroup>;             // |
+  groups : Map<number, IGroup>;                     // |
   taskTemplates : Map<number, ITaskTemplate>;       // |
   tasks : Map<number, ITask>;                       // |
   

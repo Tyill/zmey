@@ -12,6 +12,7 @@ import Store from "./redux/store";
 import { IUser, IPipeline, IGroup, ITaskTemplate, ITask } from "./types";
 
 import "../css/app.css";
+import "../css/fontello.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 interface IPropsApp {
@@ -249,11 +250,11 @@ class TaskHeader extends React.Component<IPropsTaskHeader, IStateTaskHeader>{
                            onMouseLeave={(e)=>this.setState((oldState, props)=>{ let isShowBtn = false; return {isShowBtn}})}>
         Task Templates
         {this.state.isShowBtn ? 
-          <Image className="btnNew"           
-                title="New Task Template"
-                style={{float: "right", marginTop: "2px"}} 
-                onClick={this.props.hNew}>
-          </Image>
+          <a className="icon-new"           
+             title="New Task Template"
+             style={{float: "right"}} 
+             onClick={this.props.hNew}>
+          </a>
         : ""}
       </Card.Header>
     )
@@ -285,16 +286,16 @@ class TaskItem extends React.Component<IPropsTaskItem, IStateTaskItem>{
         {this.props.title}
         {this.state.isShowBtn ?
           <span>
-            <Image className="btnDelete" 
+            <a className = "icon-delete"
                   title="Delete Task Template"
-                  style={{float: "right", marginLeft: "20px", marginTop: "5px" }} 
+                  style={{float: "right", marginLeft: "20px" }} 
                   onClick={this.props.hDelete}>
-            </Image>
-            <Image className="btnEdit" 
+            </a>
+            <a className="icon-edit" 
                   title= "Edit Task Template"
-                  style={{float: "right", marginTop: "5px"}} 
+                  style={{float: "right"}} 
                   onClick={this.props.hEdit}>
-            </Image>            
+            </a>            
           </span>
         : ""}
       </ListGroup.Item>
@@ -325,21 +326,21 @@ class PipelineHeader extends React.Component<IPropsPipelineHeader, IStatePipelin
         Task Pipelines
         {this.state.isShowBtn ?
          <span>
-          <Image className="btnNew" 
+          <a className="icon-new" 
             title="New Task Pipeline"
             style={{marginLeft: "20px"}} 
             onClick={this.props.hNew}>
-          </Image> 
-          <Image className="btnEdit" 
+          </a> 
+          <a className="icon-edit" 
             title= "Edit Task Pipeline"
             style={{marginLeft: "20px"}} 
             onClick={this.props.hEdit}>
-          </Image>
-          <Image className="btnDelete" 
+          </a>
+          <a className="icon-delete" 
             title="Delete Task Pipeline"
             style={{marginLeft: "20px" }} 
             onClick={this.props.hDelete}>
-          </Image>
+          </a>
           </span>
         : ""}
       </Card.Header>

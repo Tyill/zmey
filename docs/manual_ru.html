@@ -1,8 +1,8 @@
 <!doctype html>
 <html>
 <head>
-<title>Zmey 1.0.0 Reference Manual</title>
-<META HTTP-EQUIV="content-type" CONTENT="text/html; charset=iso-8859-1">
+<title>Zmey 1.0.0 Руководство пользователя </title>
+<META HTTP-EQUIV="content-type" CONTENT="text/html; charset=1251">
 
 <!--=========================================================================-->
 <style TYPE="text/css">
@@ -27,7 +27,7 @@ h1 {
   padding-bottom: 0.4em ;
   padding-left: 24px ;
   margin-left: -24px ;
-  background-color: #ffe668 ;
+  background-color: #e3fdff ;
   border-radius: 8px ;
 }
 
@@ -36,13 +36,13 @@ h2 {
   padding-bottom: 0.4em ;
   padding-left: 1em ;
   padding-right: 1em ;
-  background-color: #ffe668 ;
+  background-color: #e3fdff ;
   border-radius: 8px ;
 }
 
 h3 {
   padding-left: 0.5em ;
-  border-left: solid #ffe668 1em ;
+  border-left: solid #e3fdff 1em ;
 }
 
 a:link {
@@ -59,7 +59,7 @@ a:visited {
 
 a:link:hover, a:visited:hover {
   color: #8d5c00 ;
-  background-color: #ffe668 ;
+  background-color: #e3fdff ;
 }
 
 a:link:active, a:visited:active {
@@ -134,34 +134,32 @@ pre.split + pre.split {
 
 <header>
 <hr>
-<h1>Zmey 1.0.0 Reference Manual</h1>
+<h1>Zmey 1.0.0 Руководство пользователя </h1>
 <hr>
 </header>
 
 <small>
-Official repository is located at
+Репозиторий
 <a href="https://github.com/Tyill/zmey">https://github.com/Tyill/zmey</a>.
 <br>
-Copyright &copy; 2020 almedved. Freely available under the terms of the
+Copyright &copy; 2020 by Contributors of repository. Freely available under the terms of the
 <a href="http://www.opensource.org/licenses/mit-license.html">MIT License</a>.
 </small>
 
 <nav>
-<h2>Contents</h2>
-<UL id="toc" style="padding: 0">
-<li><A href="#s1">1 - Introduction</A>
+<h2>Содержание</h2>
+<ul id="toc" style="padding: 0">
+<li><A href="#s1">1 - Введение</A>
 <ul>
-  <li><A href="#s1.1">1.1 - Design</A>
-  <li><A href="#s1.2">1.2 - Repository</A>
-  <li><A href="#s1.3">1.3 - License and Credits</A>
+  <li><A href="#s1.1">1.1 - Назначение</A>
+  <li><A href="#s1.1">1.2 - Возможности</A>
+  <li><A href="#s1.2">1.3 - Системные требования</A>
 </ul>
-<p>
-<li><A href="#s2">2 -  </A>
+<li><A href="#s2">2 - Общее описание системы </A>
 <ul>
-  <li><A href="#s2.1">2.1 - Namespaces</A> 
+  <li><A href="#s2.1">2.1 - </A> 
 </ul>
-<p>
-<li><a href="#appendix">Appendix - API Reference</a>
+
 </ul>
 </nav>
 
@@ -169,99 +167,65 @@ Copyright &copy; 2020 almedved. Freely available under the terms of the
 
 <section>
 
-<h1>1 - <span id="s1">Introduction</span></h1>
+<h1>1 - <span id="s1">Введение</span></h1>
+
+<!--========================================================================-->
+
+<section>
+
+<h2>1.1 - <span id="s1.1">Назначение</span></h2>
 
 <p>
+  <a href="https://github.com/Tyill/zmey">Zmey</a> это комплекс программного обеспечения (далее "система") 
+  предназначенный для централизованного запуска пользовательских задач в распределенной группе исполнителей. <br/>
+  Задачи - это скрипты, могут быть написаны на любом языке.<br/>
+  Исполнители задач - рабочие машины, удаленные либо локальные.<br/>
+  Исполнители получают задачи от распределителя задач (далее "шедулер").<br/>
+  Шедулеров как и исполнителей может быть несколько в системе.<br/>
+  Взаимодействие пользователя с системой происходит через веб интерфейс.<br/>
+  В качестве внутреннего связующего звена используется БД <a href="https://www.postgresql.org/">postgresql</a>.
+</p>  
+ 
+</section>
 
-</p>
+<!--========================================================================-->
+
+<section>
+
+  <h2>1.2 - <span id="s1.2">Возможности</span></h2>
+      
+  <ul class="bullets" title="Features">
+    <li>Параллельный запуск множества задач на множестве машин</li>
+    <li>Связывание задач в цепочки и графы для последовательного выполнения</li>
+    <li>Передача результата выполнения задачи для следующих задач</li>
+    <li>Автоматический запуск задач по времени (циклически либо в конкретное время)</li>
+    <li>Минимальные расходы времени на инфраструктуру - быстрый запуск задач</li>
+    <li>Быстрое разворачивание системы: <br/> 
+      установка шедулеров и исполнителей на рабочие машины из стандартных пакетов (deb, rpm), либо докер образ; <br/>
+      установка веб сервера с помощью pip (пакетного менеджера python) </li>
+    <li>Неограниченное (логически) число рабочих машин и пользователей системы</li>
+    <li>Простой и понятный интерфейс для пользователя</li>
+    <li><a href="http://www.opensource.org/licenses/mit-license.html">MIT Licensed</a>, используйте и распространяйте свободно</li>
+  </ul>
+  
+</section>
+
+<!--========================================================================-->
+
+<section>
+
+<h2>1.3 - <span id="s1.3">Системные требования</span></h2>
 
 <p>
-
+  Всю систему (БД, веб сервер, шедулер и исполнитель) можно запустить на одной машине, поэтому приводятся общие требования: 
 </p>
 
 <ul class="bullets" title="Features">
-
+  <li>Процессор: Intel или AMD</li>
+  <li>Оперативная память: от 2Гб</li>
+  <li>Операционная система: Windows или Linux</li>
 </ul>
 
-<p>
-
-</p>
-
-<p>
-
-</p>
-
-<p>
-
-</p>
-
-<!--========================================================================-->
-
-<section>
-
-<h2>1.1 - <span id="s1.1">Design</span></h2>
-
-<p>
-
-</p>
-
-<p>
-
-</p>
-
-<p>
-
-</p>
-
-
-</section>
-
-<!--========================================================================-->
-
-
-<!--========================================================================-->
-
-<section>
-
-<h2>1.3 - <span id="s1.3">License and Credits</span></h2>
-
-<p>
-
-</p>
-
-<pre>
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-</pre>
-
-
-<p>
-For questions, comments, or bug reports feel free to open a Github issue.
-</p>
-
-<ul>
-
-</ul>
-
-<p>
-
-</p>
-
 </section>
 
 <!--========================================================================-->
@@ -270,7 +234,7 @@ For questions, comments, or bug reports feel free to open a Github issue.
 
 <section>
 
-<h1>2 - <span id="s2"></span></h1>
+<h1>2 - <span id="s2">Общее описание системы</span></h1>
 
 </section>
 
