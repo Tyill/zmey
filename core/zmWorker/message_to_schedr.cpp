@@ -33,7 +33,7 @@
 
 using namespace std;
 
-void sendMessToSchedr(const ZM_Base::Worker& worker, const std::string& schedrConnPnt, ZM_Aux::Queue<MessForSchedr>& listMessForSchedr){
+void messageToSchedr(const ZM_Base::Worker& worker, const std::string& schedrConnPnt, ZM_Aux::Queue<MessForSchedr>& listMessForSchedr){
   
   MessForSchedr mess; 
   bool isSendOk = true;

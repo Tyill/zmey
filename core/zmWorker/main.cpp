@@ -44,7 +44,7 @@ using namespace std;
 
 void receiveHandler(const string& cp, const string& data);
 void sendHandler(const string& cp, const string& data, const std::error_code& ec);
-void sendMessToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt, ZM_Aux::Queue<MessForSchedr>& listMessForSchedr);
+void messageToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt, ZM_Aux::Queue<MessForSchedr>& listMessForSchedr);
 void progressToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt, list<Process>&);
 void pingToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt);
 void errorToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt, ZM_Aux::Queue<string>& );
@@ -172,7 +172,7 @@ int main(int argc, char* argv[]){
 
     if (!_listMessForSchedr.empty()){ 
       _worker.activeTask = _newTasks.size() + _procs.size();
-      sendMessToSchedr(_worker, cng.schedrConnPnt, _listMessForSchedr);
+      messageToSchedr(_worker, cng.schedrConnPnt, _listMessForSchedr);
     }
 
     if(timer.onDelayOncSec(true, cng.progressTasksTOutSec, 0)){
