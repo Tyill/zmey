@@ -45,17 +45,21 @@ class Queue{
       
   std::unique_ptr<node> tryPopHead(T& value){
     std::lock_guard<std::mutex> lock(_headMtx);
-    if(_head.get() == getTail()){
+    if(_head.get() == getTailAndModifySize()){
       return std::unique_ptr<node>();
     }
     value = std::move(*_head->data);
     std::unique_ptr<node> oldHead = std::move(_head);
     _head = std::move(oldHead->next);   
-    --_sz; 
     return oldHead;
   }      
   node* getTail(){
     std::lock_guard<std::mutex> lock(_tailMtx);
+    return _tail;
+  }
+  node* getTailAndModifySize(){
+    std::lock_guard<std::mutex> lock(_tailMtx);
+    _sz = std::max(0, --_sz);
     return _tail;
   }
 public:
@@ -77,11 +81,7 @@ public:
   }
   bool tryPop(T& value){
     std::unique_ptr<node> const oldHead = tryPopHead(value);    
-    bool isExist = oldHead.get() != nullptr;
-    if (!isExist){
-      _sz = 0;
-    }
-    return isExist;
+    return oldHead.get() != nullptr;
   }
   bool front(T& value){
     std::lock_guard<std::mutex> lock(_headMtx);
@@ -91,8 +91,9 @@ public:
     }
     return isExist;
   }
-  int size() const{
-    return std::max(0, _sz); // not steady
+  int size(){
+    std::lock_guard<std::mutex> lock(_tailMtx);
+    return _sz;
   }
   bool empty(){
     std::lock_guard<std::mutex> lock(_headMtx);
