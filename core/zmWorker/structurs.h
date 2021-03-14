@@ -28,7 +28,7 @@
 
 void statusMess(const std::string& mess);
 
-void mainCycleNotify();
+void mainCycleNotify(int sig = 0);
 
 struct MessForSchedr{
   uint64_t taskId;

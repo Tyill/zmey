@@ -34,7 +34,7 @@
 using namespace std;
 
 #define ERROR_MESS(mess, wId)                                                    \
-  _messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::INTERN_ERROR, wId, mess}); \
+  g_messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::INTERN_ERROR, wId, mess}); \
   statusMess(mess);
 
 #ifdef DEBUG
@@ -57,9 +57,9 @@ using namespace std;
   #define checkField(field)
 #endif
 
-extern ZM_Aux::Queue<ZM_DB::MessSchedr> _messToDB;
-extern map<std::string, SWorker> _workers;
-extern ZM_Base::Scheduler _schedr;
+extern ZM_Aux::Queue<ZM_DB::MessSchedr> g_messToDB;
+extern map<std::string, SWorker> g_workers;
+extern ZM_Base::Scheduler g_schedr;
 
 void receiveHandler(const string& remcp, const string& data){
 
@@ -78,8 +78,8 @@ void receiveHandler(const string& remcp, const string& data){
   ZM_Base::MessType mtype = ZM_Base::MessType(stoi(mess["command"]));
   
   // from worker
-  if(_workers.find(cp) != _workers.end()){
-    auto& worker = _workers[cp];
+  if(g_workers.find(cp) != g_workers.end()){
+    auto& worker = g_workers[cp];
     wId = worker.base.id;
     switch (mtype){
       case ZM_Base::MessType::TASK_ERROR:
@@ -94,23 +94,23 @@ void receiveHandler(const string& remcp, const string& data){
         checkField(taskResult);
         worker.base.activeTask = stoi(mess["activeTask"]);
         worker.base.load = stoi(mess["load"]);
-        _messToDB.push(ZM_DB::MessSchedr{mtype, 
+        g_messToDB.push(ZM_DB::MessSchedr{mtype, 
                                          wId,
                                          stoull(mess["taskId"]),
                                          0,
                                          0,
                                          worker.base.load,
-                                         _schedr.activeTask,
+                                         g_schedr.activeTask,
                                          worker.base.activeTask,
                                          mess["taskResult"]});
         break;
       case ZM_Base::MessType::JUST_START_WORKER:
-        _messToDB.push(ZM_DB::MessSchedr{mtype, wId});
+        g_messToDB.push(ZM_DB::MessSchedr{mtype, wId});
         break;
       case ZM_Base::MessType::PROGRESS:{
         int tCnt = 0;
         while(mess.find("taskId" + to_string(tCnt)) != mess.end()){
-          _messToDB.push(ZM_DB::MessSchedr{mtype, 
+          g_messToDB.push(ZM_DB::MessSchedr{mtype, 
                                            wId,
                                            stoull(mess["taskId" + to_string(tCnt)]),
                                            stoi(mess["progress" + to_string(tCnt)])});
@@ -136,7 +136,7 @@ void receiveHandler(const string& remcp, const string& data){
     worker.isActive = true;
     if (worker.base.state == ZM_Base::StateType::READY){
       worker.base.state = worker.stateMem = ZM_Base::StateType::RUNNING;
-      _messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::START_WORKER,
+      g_messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::START_WORKER,
                                        worker.base.id});
     }
     else if (worker.base.state == ZM_Base::StateType::NOT_RESPONDING){
@@ -145,13 +145,13 @@ void receiveHandler(const string& remcp, const string& data){
       }else{
         worker.base.state = worker.stateMem = ZM_Base::StateType::RUNNING;
       }
-      _messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::START_WORKER,
+      g_messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::START_WORKER,
                                        worker.base.id});
     }
     if (worker.base.rating < ZM_Base::Worker::RATING_MAX){
       ++worker.base.rating;
       if (worker.base.rating == ZM_Base::Worker::RATING_MAX)
-        _messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::WORKER_RATING,
+        g_messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::WORKER_RATING,
                                         wId,
                                         0,
                                         0,
@@ -164,32 +164,32 @@ void receiveHandler(const string& remcp, const string& data){
       case ZM_Base::MessType::PING_SCHEDR:     // only check
         break;
       case ZM_Base::MessType::PAUSE_SCHEDR:
-        if (_schedr.state != ZM_Base::StateType::PAUSE){
-          _messToDB.push(ZM_DB::MessSchedr{mtype});
+        if (g_schedr.state != ZM_Base::StateType::PAUSE){
+          g_messToDB.push(ZM_DB::MessSchedr{mtype});
         }
-        _schedr.state = ZM_Base::StateType::PAUSE;
+        g_schedr.state = ZM_Base::StateType::PAUSE;
         break;
       case ZM_Base::MessType::START_AFTER_PAUSE_SCHEDR:
-        if (_schedr.state != ZM_Base::StateType::RUNNING){
-          _messToDB.push(ZM_DB::MessSchedr{mtype});
+        if (g_schedr.state != ZM_Base::StateType::RUNNING){
+          g_messToDB.push(ZM_DB::MessSchedr{mtype});
         }
-        _schedr.state = ZM_Base::StateType::RUNNING;
+        g_schedr.state = ZM_Base::StateType::RUNNING;
         break;
       case ZM_Base::MessType::PAUSE_WORKER:{
         checkField(workerConnPnt);
-        auto& worker = _workers[mess["workerConnPnt"]];
+        auto& worker = g_workers[mess["workerConnPnt"]];
         if (worker.base.state != ZM_Base::StateType::NOT_RESPONDING){
           if (worker.base.state != ZM_Base::StateType::PAUSE){
-            _messToDB.push(ZM_DB::MessSchedr{mtype, worker.base.id});
+            g_messToDB.push(ZM_DB::MessSchedr{mtype, worker.base.id});
           }
           worker.base.state = worker.stateMem = ZM_Base::StateType::PAUSE;
         }} break;
       case ZM_Base::MessType::START_AFTER_PAUSE_WORKER:{
         checkField(workerConnPnt);
-        auto& worker = _workers[mess["workerConnPnt"]]; 
+        auto& worker = g_workers[mess["workerConnPnt"]]; 
         if (worker.base.state != ZM_Base::StateType::NOT_RESPONDING){
           if (worker.base.state != ZM_Base::StateType::RUNNING){
-            _messToDB.push(ZM_DB::MessSchedr{mtype, worker.base.id});
+            g_messToDB.push(ZM_DB::MessSchedr{mtype, worker.base.id});
           }
           worker.base.state = worker.stateMem = ZM_Base::StateType::RUNNING;
         }} break;

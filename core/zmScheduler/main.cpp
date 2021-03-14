@@ -45,30 +45,29 @@ using namespace std;
 void receiveHandler(const string& cp, const string& data);
 void sendHandler(const string& cp, const string& data, const std::error_code& ec);
 void getNewTaskFromDB(ZM_DB::DbProvider& db);
-bool sendTaskToWorker(const ZM_Base::Scheduler&, map<std::string, SWorker>&, ZM_Aux::Queue<STask>&, ZM_Aux::Queue<ZM_DB::MessSchedr>& messToDB);
+bool sendTaskToWorker(const ZM_Base::Scheduler&, map<string, SWorker>&, ZM_Aux::Queue<STask>&, ZM_Aux::Queue<ZM_DB::MessSchedr>& messToDB);
 void sendAllMessToDB(ZM_DB::DbProvider& db);
-void checkStatusWorkers(const ZM_Base::Scheduler&, map<std::string, SWorker>&, ZM_Aux::Queue<ZM_DB::MessSchedr>&);
+void checkStatusWorkers(const ZM_Base::Scheduler&, map<string, SWorker>&, ZM_Aux::Queue<ZM_DB::MessSchedr>&);
 void getPrevTaskFromDB(ZM_DB::DbProvider& db, const ZM_Base::Scheduler&,  ZM_Aux::Queue<STask>&);
-void getPrevWorkersFromDB(ZM_DB::DbProvider& db, const ZM_Base::Scheduler&, map<std::string, SWorker>&);
+void getPrevWorkersFromDB(ZM_DB::DbProvider& db, const ZM_Base::Scheduler&, map<string, SWorker>&);
 
-map<std::string, SWorker> _workers;   // key - connectPnt
-ZM_Aux::Queue<STask> _tasks;
-ZM_Aux::Queue<ZM_DB::MessSchedr> _messToDB;
-ZM_Base::Scheduler _schedr;
-mutex _mtxSts;
-std::condition_variable _cvStandUp;
-volatile bool _fClose = false,
-              _isMainCycleRun = false;
+map<string, SWorker> g_workers;   // key - connectPnt
+ZM_Aux::Queue<STask> g_tasks;
+ZM_Aux::Queue<ZM_DB::MessSchedr> g_messToDB;
+ZM_Base::Scheduler g_schedr;
+static mutex m_mtxSts, m_mtxNotify;
+static condition_variable m_cvStandUp;
+static bool m_fClose = false;
 
 struct Config{
   int checkWorkerTOutSec = 120;
-  std::string localConnPnt;
-  std::string remoteConnPnt;
+  string localConnPnt;
+  string remoteConnPnt;
   ZM_DB::ConnectCng dbConnCng;
 };
 
 void statusMess(const string& mess){
-  lock_guard<std::mutex> lock(_mtxSts);
+  lock_guard<mutex> lock(m_mtxSts);
   cout << ZM_Aux::currDateTimeMs() << " " << mess << std::endl;
 }
 
@@ -108,27 +107,21 @@ void parseArgs(int argc, char* argv[], Config& outCng){
 }
 
 void mainCycleNotify(){
-  if (!_isMainCycleRun){ // костыль, но кажется, что без него задергают зря
-    _isMainCycleRun = true;
-    _cvStandUp.notify_one();
-  }
+  lock_guard<mutex> lock(m_mtxNotify);
+  m_cvStandUp.notify_one();  
 }
 
 void mainCycleSleep(int delayMS){
-  _isMainCycleRun = false;        
-  std::mutex mtx;
-  {std::unique_lock<std::mutex> lck(mtx);
-    _cvStandUp.wait_for(lck, std::chrono::milliseconds(delayMS)); 
-  }
-  _isMainCycleRun = true;
+  unique_lock<mutex> lck(m_mtxNotify);
+  m_cvStandUp.wait_for(lck, chrono::milliseconds(delayMS)); 
 }
 
 void closeHandler(int sig){
-  _fClose = true;
+  m_fClose = true;
 }
 
 unique_ptr<ZM_DB::DbProvider> 
-createDbProvider(const Config& cng, std::string& err){
+createDbProvider(const Config& cng, string& err){
   unique_ptr<ZM_DB::DbProvider> db(new ZM_DB::DbProvider(cng.dbConnCng));
   err = db->getLastError();
   if (err.empty()){
@@ -172,17 +165,17 @@ int main(int argc, char* argv[]){
   CHECK(!dbNewTask || !dbSendMess, "Schedr DB connect error " + err + ": " + cng.dbConnCng.connectStr); 
     
   // schedr from DB
-  dbNewTask->getSchedr(cng.remoteConnPnt, _schedr);
-  CHECK(_schedr.id == 0, "Schedr not found in DB for connectPnt " + cng.remoteConnPnt);
+  dbNewTask->getSchedr(cng.remoteConnPnt, g_schedr);
+  CHECK(g_schedr.id == 0, "Schedr not found in DB for connectPnt " + cng.remoteConnPnt);
       
   // prev tasks and workers
-  getPrevTaskFromDB(*dbNewTask, _schedr, _tasks);
-  getPrevWorkersFromDB(*dbNewTask, _schedr, _workers);
+  getPrevTaskFromDB(*dbNewTask, g_schedr, g_tasks);
+  getPrevWorkersFromDB(*dbNewTask, g_schedr, g_workers);
  
   // TCP server
   ZM_Tcp::setReceiveCBack(receiveHandler);
   ZM_Tcp::setSendStatusCBack(sendHandler);
-  for (auto& w : _workers){
+  for (auto& w : g_workers){
     ZM_Tcp::addPreConnectPnt(w.first);
   }  
   CHECK(!ZM_Tcp::startServer(cng.localConnPnt, err), "Schedr error: " + cng.localConnPnt + " " + err);
@@ -196,34 +189,34 @@ int main(int argc, char* argv[]){
   const int minCycleTimeMS = 10;
 
   // on start
-  _messToDB.push(ZM_DB::MessSchedr{ ZM_Base::MessType::START_SCHEDR });
+  g_messToDB.push(ZM_DB::MessSchedr{ ZM_Base::MessType::START_SCHEDR });
   
-  while (!_fClose){
+  while (!m_fClose){
     timer.updateCycTime();   
 
-    if((_tasks.size() < _schedr.capacityTask) && (_schedr.state != ZM_Base::StateType::PAUSE)){
+    if((g_tasks.size() < g_schedr.capacityTask) && (g_schedr.state != ZM_Base::StateType::PAUSE)){
       if(!frGetNewTask.valid() || (frGetNewTask.wait_for(chrono::seconds(0)) == future_status::ready))
         frGetNewTask = async(launch::async, [&dbNewTask]{ getNewTaskFromDB(*dbNewTask); });                                        
     }        
 
-    bool isAvailableWorkers = sendTaskToWorker(_schedr, _workers, _tasks, _messToDB);    
+    bool isAvailableWorkers = sendTaskToWorker(g_schedr, g_workers, g_tasks, g_messToDB);    
 
-    if(!_messToDB.empty()){   
+    if(!g_messToDB.empty()){   
       if(!frSendAllMessToDB.valid() || (frSendAllMessToDB.wait_for(chrono::seconds(0)) == future_status::ready))
         frSendAllMessToDB = async(launch::async, [&dbSendMess]{ sendAllMessToDB(*dbSendMess); });      
     }
 
     if(timer.onDelayOncSec(true, cng.checkWorkerTOutSec, 0)){
-      checkStatusWorkers(_schedr, _workers, _messToDB);
+      checkStatusWorkers(g_schedr, g_workers, g_messToDB);
     }
     
-    if (_messToDB.empty() && (_tasks.empty() || !isAvailableWorkers)){ 
+    if (g_messToDB.empty() && (g_tasks.empty() || !isAvailableWorkers)){ 
       mainCycleSleep(minCycleTimeMS);
     }
   }
 
   ZM_Tcp::stopServer();
-  _messToDB.push(ZM_DB::MessSchedr{ ZM_Base::MessType::STOP_SCHEDR });
+  g_messToDB.push(ZM_DB::MessSchedr{ ZM_Base::MessType::STOP_SCHEDR });
   sendAllMessToDB(*dbSendMess);
   return 0;
 }
@@ -243,7 +236,7 @@ void getPrevTaskFromDB(ZM_DB::DbProvider& db,
 
 void getPrevWorkersFromDB(ZM_DB::DbProvider& db, 
                           const ZM_Base::Scheduler& schedr,
-                          map<std::string, SWorker>& outWorkers){  
+                          map<string, SWorker>& outWorkers){  
   vector<ZM_Base::Worker> workers; 
   if (db.getWorkersOfSchedr(schedr.id, workers)){
     for(auto& w : workers){

@@ -55,11 +55,9 @@ public:
 
     ZM_DB::ConnectCng cng;
     cng.connectStr = connStr;
-    auto pDb = new ZM_DB::DbProvider(cng);
-    if (pDb){
-      EXPECT_TRUE(pDb->delAllTables())   << pDb->getLastError();
-      delete pDb;
-    }
+    ZM_DB::DbProvider dbp(cng);
+    EXPECT_TRUE(dbp.delAllTables()) << dbp.getLastError();
+    
     EXPECT_TRUE(zmey::zmCreateTables(_zc));
   }
   ~APITest() {
@@ -140,7 +138,6 @@ TEST_F(APITest, getUser){
              (strcmp(usr.name, "alm2") == 0) &&
              (strcmp(usr.passw, "") == 0) &&
              (strcmp(usr.description, "abc") == 0));
-  delete usr.description;
 }
 TEST_F(APITest, changeUser){   
   zmUser usr;
@@ -163,7 +160,6 @@ TEST_F(APITest, changeUser){
              (strcmp(usr.name, "mla") == 0) &&
              (strcmp(usr.passw, "") == 0) &&
              (strcmp(usr.description, "cba") == 0));    
-  delete usr.description;                        
 }
 TEST_F(APITest, delUser){  
   zmUser usr;
@@ -180,8 +176,6 @@ TEST_F(APITest, delUser){
 
   uId = 0;
   EXPECT_TRUE(!zmGetUserId(_zc, usr, &uId) && (uId == 0));
-
-  delete usr.description;                               
 }
 TEST_F(APITest, getAllUsers){  
   uint64_t* pUId = nullptr;
@@ -205,8 +199,6 @@ TEST_F(APITest, getAllUsers){
 
   uCnt = zmGetAllUsers(_zc, &pUId);
   EXPECT_TRUE((uCnt == 2) && (pUId[0] == uId1) && (pUId[1] == uId2));
-
-  delete usr.description;                    
 }
 
 TEST_F(APITest, addSchedr){  
@@ -480,9 +472,7 @@ TEST_F(APITest, addPipeline){
   strcpy(ppline.name, "newPP1");
   ppline.userId = uId + 1;
   pId = 0;  
-  EXPECT_TRUE(!zmAddPipeline(_zc, ppline, &pId) && (pId == 0));
-
-  delete ppline.description;              
+  EXPECT_TRUE(!zmAddPipeline(_zc, ppline, &pId) && (pId == 0));           
 }
 TEST_F(APITest, getPipeline){ 
   zmUser usr;
@@ -512,9 +502,7 @@ TEST_F(APITest, getPipeline){
   EXPECT_TRUE(!zmGetPipeline(_zc, pId + 1, &ppline) &&
              (ppline.userId == 0) &&
              (strcmp(ppline.name, "") == 0) &&
-             (strcmp(ppline.description, "dd") == 0)); 
-
-  delete ppline.description;                                                            
+             (strcmp(ppline.description, "dd") == 0));                                                            
 }
 TEST_F(APITest, changePipeline){  
   zmUser usr;
@@ -545,9 +533,7 @@ TEST_F(APITest, changePipeline){
                            (ppline.userId == uId));  
                                                 
   ppline.userId = uId + 1;
-  EXPECT_TRUE(!zmChangePipeline(_zc, pId, ppline));  
-
-  delete ppline.description;                                                                                             
+  EXPECT_TRUE(!zmChangePipeline(_zc, pId, ppline));                                                                                               
 }
 TEST_F(APITest, delPipeline){  
   zmUser usr;
@@ -566,9 +552,7 @@ TEST_F(APITest, delPipeline){
     
   EXPECT_TRUE(zmDelPipeline(_zc, pId));
   
-  EXPECT_TRUE(!zmGetPipeline(_zc, pId, &ppline)); 
-
-  delete ppline.description;     
+  EXPECT_TRUE(!zmGetPipeline(_zc, pId, &ppline));    
 }
 TEST_F(APITest, getAllPipelines){  
   zmUser usr;
@@ -596,9 +580,7 @@ TEST_F(APITest, getAllPipelines){
   EXPECT_TRUE((ppCnt == 2) && (pPP[0] == pId1) && (pPP[1] == pId2)); 
 
   ppCnt = zmGetAllPipelines(_zc, uId + 1, &pPP);
-  EXPECT_TRUE(ppCnt == 0); 
-
-  delete ppline.description;          
+  EXPECT_TRUE(ppCnt == 0);        
 }
 
 TEST_F(APITest, addGroup){  
@@ -631,9 +613,7 @@ TEST_F(APITest, addGroup){
   strcpy(group.name, "newGG");
   group.pplId = pId + 1;
   gId = 0;  
-  EXPECT_TRUE(!zmAddGroup(_zc, group, &gId) && (gId == 0));
-
-  delete ppline.description;              
+  EXPECT_TRUE(!zmAddGroup(_zc, group, &gId) && (gId == 0));           
 }
 TEST_F(APITest, getGroup){ 
   zmUser usr;
@@ -671,9 +651,7 @@ TEST_F(APITest, getGroup){
   EXPECT_TRUE(!zmGetGroup(_zc, gId + 1, &group) &&
              (group.pplId == 0) &&
              (strcmp(group.name, "") == 0) &&
-             (strcmp(group.description, "dd") == 0)); 
-
-  delete group.description;                                                            
+             (strcmp(group.description, "dd") == 0));                                                           
 }
 TEST_F(APITest, changeGroup){  
   zmUser usr;
@@ -712,9 +690,7 @@ TEST_F(APITest, changeGroup){
                            (group.pplId == pId));  
                                                 
   group.pplId = pId + 1;
-  EXPECT_TRUE(!zmChangeGroup(_zc, gId, group));  
-
-  delete ppline.description;                                                                                             
+  EXPECT_TRUE(!zmChangeGroup(_zc, gId, group));                                                                                          
 }
 TEST_F(APITest, delGroup){  
   zmUser usr;
@@ -741,9 +717,7 @@ TEST_F(APITest, delGroup){
 
   EXPECT_TRUE(zmDelGroup(_zc, gId));
   
-  EXPECT_TRUE(!zmGetGroup(_zc, gId, &group)); 
-
-  delete ppline.description;     
+  EXPECT_TRUE(!zmGetGroup(_zc, gId, &group));  
 }
 TEST_F(APITest, getAllGroups){  
   zmUser usr;
@@ -780,9 +754,7 @@ TEST_F(APITest, getAllGroups){
   EXPECT_TRUE((grCnt == 2) && (pGR[0] == gId1) && (pGR[1] == gId2)); 
 
   grCnt = zmGetAllGroups(_zc, pId1 + 1, &pGR);
-  EXPECT_TRUE(grCnt == 0);
-
-  delete ppline.description;          
+  EXPECT_TRUE(grCnt == 0);  
 }
 
 TEST_F(APITest, addTaskTemplate){  
@@ -806,10 +778,7 @@ TEST_F(APITest, addTaskTemplate){
 
   templ.userId = uId + 1;  
   tId = 0;  
-  EXPECT_TRUE(!zmAddTaskTemplate(_zc, templ, &tId) && (tId == 0));
-
-  delete templ.script;   
-  delete templ.description;            
+  EXPECT_TRUE(!zmAddTaskTemplate(_zc, templ, &tId) && (tId == 0));      
 }
 TEST_F(APITest, getTaskTemplate){  
   zmUser usr;
@@ -848,10 +817,7 @@ TEST_F(APITest, getTaskTemplate){
   templ.maxDurationSec = 10;
   EXPECT_TRUE(!zmGetTaskTemplate(_zc, tId + 1, &templ) &&
              (templ.averDurationSec == 1) &&
-             (templ.maxDurationSec == 10));  
-
-  delete templ.script;   
-  delete templ.description;                        
+             (templ.maxDurationSec == 10));                         
 }
 TEST_F(APITest, delTaskTemplate){
   zmUser usr;
@@ -878,10 +844,7 @@ TEST_F(APITest, delTaskTemplate){
   templ.maxDurationSec = 10;
   EXPECT_TRUE(!zmGetTaskTemplate(_zc, tId, &templ) && 
               (templ.averDurationSec == 1) &&
-              (templ.maxDurationSec == 10)); 
-
-  delete templ.script;   
-  delete templ.description;             
+              (templ.maxDurationSec == 10));    
 }
 TEST_F(APITest, changeTaskTemplate){
   zmUser usr;
@@ -923,9 +886,6 @@ TEST_F(APITest, changeTaskTemplate){
              (templ.userId == uId) &&
              (strcmp(templ.description, "de") == 0) &&
              (strcmp(templ.name, "new") == 0));   
-
-  delete templ.script;   
-  delete templ.description;          
 }
 TEST_F(APITest, getAllTaskTemplate){
   zmUser usr;
@@ -968,10 +928,7 @@ TEST_F(APITest, getAllTaskTemplate){
   EXPECT_TRUE((tCnt == 1) && (pTT[0] == tId2));   
 
   tCnt = zmGetAllTaskTemplates(_zc, uId2 + 1, &pTT);
-  EXPECT_TRUE(tCnt == 0);         
-
-  delete templ.script;   
-  delete templ.description;    
+  EXPECT_TRUE(tCnt == 0);
 }
 
 TEST_F(APITest, addTask){

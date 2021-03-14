@@ -44,43 +44,47 @@ using namespace std;
 
 void receiveHandler(const string& cp, const string& data);
 void sendHandler(const string& cp, const string& data, const std::error_code& ec);
-void messageToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt, ZM_Aux::Queue<MessForSchedr>& listMessForSchedr);
-void progressToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt, list<Process>&);
-void pingToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt);
-void errorToSchedr(const ZM_Base::Worker&, const std::string& schedrConnPnt, ZM_Aux::Queue<string>& );
+void messageToSchedr(const ZM_Base::Worker&, const string& schedrConnPnt, ZM_Aux::Queue<MessForSchedr>& listMessForSchedr);
+void progressToSchedr(const ZM_Base::Worker&, const string& schedrConnPnt, list<Process>&);
+void pingToSchedr(const ZM_Base::Worker&, const string& schedrConnPnt);
+void errorToSchedr(const ZM_Base::Worker&, const string& schedrConnPnt, ZM_Aux::Queue<string>& );
 void updateListTasks(ZM_Aux::Queue<WTask>& newTasks, list<Process>& procs, ZM_Aux::Queue<MessForSchedr>& listMessForSchedr);
 void waitProcess(ZM_Base::Worker&, list<Process>& procs, ZM_Aux::Queue<MessForSchedr>& listMessForSchedr);
 
-ZM_Aux::Queue<MessForSchedr> _listMessForSchedr;
-ZM_Aux::Queue<WTask> _newTasks;
-ZM_Aux::Queue<string> _errMess;
-list<Process> _procs;
-ZM_Base::Worker _worker;
-mutex _mtxPrc, _mtxSts;
-std::condition_variable _cvStandUp;
+ZM_Aux::Queue<MessForSchedr> g_listMessForSchedr;
+ZM_Aux::Queue<WTask> g_newTasks;
+ZM_Aux::Queue<string> g_errMess;
+list<Process> g_procs;
+mutex g_mtxProc;
+static mutex m_mtxSts, m_mtxNotify;
+static condition_variable m_cvStandUp;
+static bool m_fClose = false;
 
 struct Config{
   int progressTasksTOutSec = 10;
   int pingSchedrTOutSec = 20; 
   const int checkLoadTOutSec = 1; 
-  std::string localConnPnt;
-  std::string remoteConnPnt;
-  std::string schedrConnPnt;
+  string localConnPnt;
+  string remoteConnPnt;
+  string schedrConnPnt;
 };
 
-void mainCycleNotify(){
-  _cvStandUp.notify_one();
+void mainCycleNotify(int sig){
+  lock_guard<mutex> lck(m_mtxNotify);
+  m_cvStandUp.notify_one();
 }
 
 void mainCycleSleep(int delayMS){
-  std::mutex mtx;
-  {std::unique_lock<std::mutex> lck(mtx);
-    _cvStandUp.wait_for(lck, std::chrono::milliseconds(delayMS)); 
-  }
+  unique_lock<mutex> lck(m_mtxNotify);
+  m_cvStandUp.wait_for(lck, chrono::milliseconds(delayMS)); 
+}
+
+void closeHandler(int sig){
+  m_fClose = true;
 }
 
 void statusMess(const string& mess){
-  lock_guard<std::mutex> lock(_mtxSts);
+  lock_guard<mutex> lock(m_mtxSts);
   cout << ZM_Aux::currDateTimeMs() << " " << mess << std::endl;
 }
 
@@ -141,9 +145,13 @@ int main(int argc, char* argv[]){
   CHECK(cng.schedrConnPnt.empty() || (ZM_Aux::split(cng.schedrConnPnt, ':').size() != 2), "Not set param '--schedrAddr[-sa]' - scheduler connection point: IP or DNS:port");
     
   signal(SIGPIPE, SIG_IGN);
+  signal(SIGCHLD, mainCycleNotify);
+  signal(SIGTERM, closeHandler);
+  signal(SIGHUP, closeHandler);
+  signal(SIGQUIT, closeHandler);
 
   // on start
-  _listMessForSchedr.push(MessForSchedr{0, ZM_Base::MessType::JUST_START_WORKER});
+  g_listMessForSchedr.push(MessForSchedr{0, ZM_Base::MessType::JUST_START_WORKER});
 
   // TCP server
   ZM_Tcp::setReceiveCBack(receiveHandler);
@@ -154,47 +162,48 @@ int main(int argc, char* argv[]){
   statusMess("Worker running: " + cng.localConnPnt);
   
   ///////////////////////////////////////////////////////
-  
-  _worker.connectPnt = cng.remoteConnPnt;
+  ZM_Base::Worker worker;
+  worker.connectPnt = cng.remoteConnPnt;
     
   ZM_Aux::TimerDelay timer;
   const int minCycleTimeMS = 10;
    
   ZM_Aux::CPUData cpu;
 
-  while (1){
+  while (!m_fClose){
     timer.updateCycTime();   
 
     // check child process
-    waitProcess(_worker, _procs, _listMessForSchedr);
+    waitProcess(worker, g_procs, g_listMessForSchedr);
 
-    updateListTasks(_newTasks, _procs, _listMessForSchedr);
+    updateListTasks(g_newTasks, g_procs, g_listMessForSchedr);
 
-    if (!_listMessForSchedr.empty()){ 
-      _worker.activeTask = _newTasks.size() + _procs.size();
-      messageToSchedr(_worker, cng.schedrConnPnt, _listMessForSchedr);
+    if (!g_listMessForSchedr.empty()){ 
+      worker.activeTask = g_newTasks.size() + g_procs.size();
+      messageToSchedr(worker, cng.schedrConnPnt, g_listMessForSchedr);
     }
 
     if(timer.onDelayOncSec(true, cng.progressTasksTOutSec, 0)){
-      progressToSchedr(_worker, cng.schedrConnPnt, _procs);
+      progressToSchedr(worker, cng.schedrConnPnt, g_procs);
     }
     
     if(timer.onDelayOncSec(true, cng.checkLoadTOutSec, 1)){
-      _worker.load = cpu.load();
+      worker.load = cpu.load();
     } 
     
     if(timer.onDelayOncSec(true, cng.pingSchedrTOutSec, 2)){
-      _worker.activeTask = _newTasks.size() + _procs.size();
-      pingToSchedr(_worker, cng.schedrConnPnt);
+      worker.activeTask = g_newTasks.size() + g_procs.size();
+      pingToSchedr(worker, cng.schedrConnPnt);
     } 
          
-    if (!_errMess.empty()){ 
-      errorToSchedr(_worker, cng.schedrConnPnt, _errMess);
+    if (!g_errMess.empty()){ 
+      errorToSchedr(worker, cng.schedrConnPnt, g_errMess);
     }    
     
-    if (_newTasks.empty()){
+    if (g_newTasks.empty()){
       mainCycleSleep(minCycleTimeMS);     
     }
   }
+  ZM_Tcp::stopServer();
   return 0;
 }

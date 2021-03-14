@@ -23,6 +23,7 @@
 // THE SOFTWARE.
 //
 #include <cstring>
+#include <algorithm>
 
 #include "zmClient.h"
 #include "zmCommon/aux_func.h"
@@ -40,8 +41,8 @@ struct AllocResource{
   vector<uint64_t*> id;
   vector<char*> str;
 };
-map<zmConn, AllocResource> m_resources;
-mutex m_mtxResources;
+static map<zmConn, AllocResource> m_resources;
+static mutex m_mtxResources;
 
 
 void zmVersionLib(char* outVersion /*sz 8*/){
@@ -898,14 +899,21 @@ void zmFreeResources(zmConn zo){
   if (!zo) return;
   
   {lock_guard<mutex> lk(m_mtxResources);
-    for (auto pId : m_resources[zo].id){ 
+    auto& idRes = m_resources[zo].id;
+    std::sort(idRes.begin(), idRes.end());
+    idRes.resize(std::distance(idRes.begin(), std::unique(idRes.begin(), idRes.end())));
+    for (auto pId : idRes){ 
       free(pId);
     }
-    m_resources[zo].id.clear();
-    for (auto pStr : m_resources[zo].str){
+    idRes.clear();
+
+    auto& strRes = m_resources[zo].str;
+    std::sort(strRes.begin(), strRes.end());
+    strRes.resize(std::distance(strRes.begin(), std::unique(strRes.begin(), strRes.end())));
+    for (auto pStr : strRes){
       free(pStr);   
     }
-    m_resources[zo].str.clear(); 
+    strRes.clear(); 
   }  
 }
 }

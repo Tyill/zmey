@@ -34,7 +34,7 @@
 using namespace std;
 
 #define ERROR_MESS(mess, wId)                                                    \
-  _messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::INTERN_ERROR, wId, mess}); \
+  g_messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::INTERN_ERROR, wId, mess}); \
   statusMess(mess);
 
 #ifdef DEBUG
@@ -57,10 +57,10 @@ using namespace std;
   #define checkField(field)
 #endif
 
-extern ZM_Aux::Queue<STask> _tasks;
-extern ZM_Aux::Queue<ZM_DB::MessSchedr> _messToDB;
-extern map<std::string, SWorker> _workers;
-extern ZM_Base::Scheduler _schedr;
+extern ZM_Aux::Queue<STask> g_tasks;
+extern ZM_Aux::Queue<ZM_DB::MessSchedr> g_messToDB;
+extern map<std::string, SWorker> g_workers;
+extern ZM_Base::Scheduler g_schedr;
 
 void sendHandler(const string& cp, const string& data, const std::error_code& ec){
 
@@ -69,8 +69,8 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
   uint64_t wId = 0;
   checkFieldNum(command);
   
-  if (ec && (_workers.find(cp) != _workers.end())){
-    auto& worker = _workers[cp];
+  if (ec && (g_workers.find(cp) != g_workers.end())){
+    auto& worker = g_workers[cp];
     wId = worker.base.id;
     ZM_Base::MessType mtype = ZM_Base::MessType(stoi(mess["command"]));
     switch (mtype){
@@ -86,7 +86,7 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
         t.base.script = mess["script"];
         t.base.averDurationSec = stoi(mess["averDurationSec"]);
         t.base.maxDurationSec = stoi(mess["maxDurationSec"]);
-        _tasks.push(move(t));
+        g_tasks.push(move(t));
         worker.base.activeTask = std::max(0, worker.base.activeTask - 1);
         }
         break;
@@ -98,7 +98,7 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
     if (worker.base.rating > 1){
       --worker.base.rating;
       if (worker.base.rating == 1)
-        _messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::WORKER_RATING,
+        g_messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::WORKER_RATING,
                                         worker.base.id,
                                         0,
                                         0,

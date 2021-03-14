@@ -34,9 +34,9 @@
 
 using namespace std;
 
-ZM_Aux::CounterTick ctickTW;
-vector<ZM_Base::Worker> workersCpy;
-vector<ZM_Base::Worker*> refWorkers;
+static ZM_Aux::CounterTick m_ctickTW;
+static vector<ZM_Base::Worker> m_workersCpy;
+static vector<ZM_Base::Worker*> m_refWorkers;
 
 bool sendTaskToWorker(const ZM_Base::Scheduler& schedr,
                       map<std::string, SWorker>& workers,
@@ -46,16 +46,16 @@ bool sendTaskToWorker(const ZM_Base::Scheduler& schedr,
   messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::INTERN_ERROR, wId, mess}); \
   statusMess(mess);
   
-  if (workersCpy.empty()){
+  if (m_workersCpy.empty()){
     for (auto& w : workers){
-      workersCpy.push_back(w.second.base);
+      m_workersCpy.push_back(w.second.base);
     }
-    for (auto& w : workersCpy){
-      refWorkers.push_back(&w);
+    for (auto& w : m_workersCpy){
+      m_refWorkers.push_back(&w);
     }
   } 
   auto iw = workers.cbegin();
-  auto iwcp = workersCpy.begin();
+  auto iwcp = m_workersCpy.begin();
   for (; iw != workers.cend(); ++iw, ++iwcp){
     iwcp->activeTask = iw->second.base.activeTask;
     iwcp->rating = iw->second.base.rating;
@@ -64,16 +64,16 @@ bool sendTaskToWorker(const ZM_Base::Scheduler& schedr,
   }
   
   while (!tasks.empty()){
-    sort(refWorkers.begin(), refWorkers.end(), [](const ZM_Base::Worker* l, const ZM_Base::Worker* r){
+    sort(m_refWorkers.begin(), m_refWorkers.end(), [](const ZM_Base::Worker* l, const ZM_Base::Worker* r){
       return float(l->activeTask + l->load / 10.f) / l->rating < float(r->activeTask + r->load / 10.f) / r->rating;
     });
-    auto iWr = find_if(refWorkers.begin(), refWorkers.end(),
+    auto iWr = find_if(m_refWorkers.begin(), m_refWorkers.end(),
       [](const ZM_Base::Worker* w){
         return (w->state == ZM_Base::StateType::RUNNING) && 
                (w->activeTask <= w->capacityTask) && 
                (w->rating > 1);
       }); 
-    if(iWr != refWorkers.end()){
+    if(iWr != m_refWorkers.end()){
       STask t;
       tasks.tryPop(t);
       map<string, string> data{
@@ -92,10 +92,10 @@ bool sendTaskToWorker(const ZM_Base::Scheduler& schedr,
       }else{
         (*iWr)->rating = std::max(1, (*iWr)->rating - 1);
       }      
-      ctickTW.reset();
+      m_ctickTW.reset();
     }
     else{
-      if (ctickTW(1000)){ // every 1000 cycle
+      if (m_ctickTW(1000)){ // every 1000 cycle
         ERROR_MESS("schedr::sendTaskToWorker not found available worker", 0);
       }
       return false;

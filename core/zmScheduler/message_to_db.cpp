@@ -29,25 +29,25 @@
 
 using namespace std;
 
-ZM_Aux::CounterTick ctickAD;
-extern ZM_Aux::Queue<ZM_DB::MessSchedr> _messToDB;
-extern ZM_Base::Scheduler _schedr;
+static ZM_Aux::CounterTick m_ctickAD;
+extern ZM_Aux::Queue<ZM_DB::MessSchedr> g_messToDB;
+extern ZM_Base::Scheduler g_schedr;
 
 void sendAllMessToDB(ZM_DB::DbProvider& db){
 
   vector<ZM_DB::MessSchedr> mess;
   ZM_DB::MessSchedr m;
-  while(_messToDB.tryPop(m)){
+  while(g_messToDB.tryPop(m)){
     mess.push_back(m);
   }
-  if (!db.sendAllMessFromSchedr(_schedr.id, mess)){
+  if (!db.sendAllMessFromSchedr(g_schedr.id, mess)){
     for (auto& m : mess){
-      _messToDB.push(move(m));
+      g_messToDB.push(move(m));
     }
-    if (ctickAD(100)){ // every 100 cycle
+    if (m_ctickAD(100)){ // every 100 cycle
       statusMess("sendAllMessToDB db error: " + db.getLastError());
     }
   }else{
-    ctickAD.reset();
+    m_ctickAD.reset();
   }
 }

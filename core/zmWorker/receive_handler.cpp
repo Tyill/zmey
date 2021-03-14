@@ -37,7 +37,7 @@ using namespace std;
 
 #define ERROR_MESS(mstr) \
   statusMess(mstr);      \
-  _errMess.push(mstr);   \
+  g_errMess.push(mstr);   \
 
 #ifdef DEBUG
   #define checkFieldNum(field) \
@@ -59,10 +59,10 @@ using namespace std;
   #define checkField(field)
 #endif
 
-extern list<Process> _procs;
-extern ZM_Aux::Queue<WTask> _newTasks;
-extern ZM_Aux::Queue<string> _errMess;
-extern mutex _mtxPrc;
+extern list<Process> g_procs;
+extern ZM_Aux::Queue<WTask> g_newTasks;
+extern ZM_Aux::Queue<string> g_errMess;
+extern mutex g_mtxProc;
 
 void receiveHandler(const string& remcp, const string& data){
 
@@ -89,7 +89,7 @@ void receiveHandler(const string& remcp, const string& data){
     t.averDurationSec = stoi(mess["averDurationSec"]);
     t.maxDurationSec = stoi(mess["maxDurationSec"]);
     t.script = mess["script"];
-    _newTasks.push(WTask{t, 
+    g_newTasks.push(WTask{t, 
                          ZM_Base::StateType::READY,
                          mess["params"]}); 
     mainCycleNotify();
@@ -100,12 +100,12 @@ void receiveHandler(const string& remcp, const string& data){
   else{
     checkFieldNum(taskId);
     uint64_t tId = stoull(mess["taskId"]);
-    { std::lock_guard<std::mutex> lock(_mtxPrc);
+    { std::lock_guard<std::mutex> lock(g_mtxProc);
       
-      auto iPrc = find_if(_procs.begin(), _procs.end(), [tId](const Process& p){
+      auto iPrc = find_if(g_procs.begin(), g_procs.end(), [tId](const Process& p){
         return p.getTask().base.id == tId;
       });
-      if (iPrc != _procs.end()){
+      if (iPrc != g_procs.end()){
         switch (mtype){
           case ZM_Base::MessType::TASK_PAUSE:    iPrc->pause(); break;
           case ZM_Base::MessType::TASK_CONTINUE: iPrc->contin(); break;

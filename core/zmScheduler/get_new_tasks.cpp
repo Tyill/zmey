@@ -29,32 +29,32 @@
 
 using namespace std;
 
-ZM_Aux::CounterTick ctickNT;
-extern ZM_Base::Scheduler _schedr;
-extern ZM_Aux::Queue<STask> _tasks;
-extern map<std::string, SWorker> _workers;
+static ZM_Aux::CounterTick m_ctickNT;
+extern ZM_Base::Scheduler g_schedr;
+extern ZM_Aux::Queue<STask> g_tasks;
+extern map<std::string, SWorker> g_workers;
 
 void getNewTaskFromDB(ZM_DB::DbProvider& db){
   
   int actSz = 0,
-      capSz = _schedr.capacityTask;
-  for (auto& w : _workers){
+      capSz = g_schedr.capacityTask;
+  for (auto& w : g_workers){
     actSz += w.second.base.activeTask;
   }
-  actSz += _tasks.size();
+  actSz += g_tasks.size();
   vector<ZM_DB::SchedrTask> newTasks;
   if ((capSz - actSz) > 0){ 
-    if (db.getNewTasksForSchedr(_schedr.id, capSz - actSz, newTasks)){
+    if (db.getNewTasksForSchedr(g_schedr.id, capSz - actSz, newTasks)){
       for(auto& t : newTasks){
-        _tasks.push(STask{t.qTaskId, t.base, t.params});
+        g_tasks.push(STask{t.qTaskId, t.base, t.params});
       }      
-      ctickNT.reset();
+      m_ctickNT.reset();
     }
-    else if (ctickNT(1000)){ // every 1000 cycle
+    else if (m_ctickNT(1000)){ // every 1000 cycle
       statusMess("getNewTaskFromDB db error: " + db.getLastError());
     }
   }
-  _schedr.activeTask = actSz + (int)newTasks.size();  
+  g_schedr.activeTask = actSz + (int)newTasks.size();  
 
   if (!newTasks.empty()){
     mainCycleNotify();

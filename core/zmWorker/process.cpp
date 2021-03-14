@@ -38,7 +38,7 @@
 
 using namespace std;
 
-extern ZM_Aux::Queue<string> _errMess;
+extern ZM_Aux::Queue<string> g_errMess;
 
 Process::Process(const WTask& tsk):
   _task(tsk){
@@ -48,7 +48,7 @@ Process::Process(const WTask& tsk):
     case -1:{    
       string mstr = "worker::Process child error fork: " + string(strerror(errno));
       statusMess(mstr);
-      _errMess.push(move(mstr));
+      g_errMess.push(move(mstr));
     }
       break;
     // children                        
@@ -124,20 +124,20 @@ void Process::pause(){
   if (kill(_pid, SIGSTOP) == -1){
     string mstr = "worker::Process error pause: " + string(strerror(errno));
     statusMess(mstr);
-    _errMess.push(move(mstr));
+    g_errMess.push(move(mstr));
   }
 }
 void Process::contin(){
   if (kill(_pid, SIGCONT) == -1){
     string mstr = "worker::Process error continue: " + string(strerror(errno));
     statusMess(mstr);
-    _errMess.push(move(mstr));
+    g_errMess.push(move(mstr));
   }
 }
 void Process::stop(){
   if (kill(_pid, SIGTERM) == -1){
     string mstr = "worker::Process error stop: " + string(strerror(errno));
     statusMess(mstr);
-    _errMess.push(move(mstr));
+    g_errMess.push(move(mstr));
   }
 }

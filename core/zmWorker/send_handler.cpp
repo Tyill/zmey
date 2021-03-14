@@ -31,8 +31,8 @@
 
 using namespace std;
 
-ZM_Aux::CounterTick ctickSH;
-extern ZM_Aux::Queue<MessForSchedr> _listMessForSchedr;
+static ZM_Aux::CounterTick m_ctickSH;
+extern ZM_Aux::Queue<MessForSchedr> g_listMessForSchedr;
 
 void sendHandler(const string& cp, const string& data, const std::error_code& ec){
   
@@ -45,8 +45,8 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
     mess.MessType = messType;
     mess.taskId = stoull(smess["taskId"]);
     mess.taskResult = smess["taskResult"];
-    _listMessForSchedr.push(move(mess));
-    if (ctickSH(1000)){
+    g_listMessForSchedr.push(move(mess));
+    if (m_ctickSH(1000)){
       statusMess("worker::sendHandler error send to schedr: " + ec.message());
     }
   }

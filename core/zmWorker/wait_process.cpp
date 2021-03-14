@@ -38,13 +38,13 @@
 
 using namespace std;
 
-extern ZM_Aux::Queue<string> _errMess;
+extern ZM_Aux::Queue<string> g_errMess;
 
 void waitProcess(ZM_Base::Worker& worker, list<Process>& procs, ZM_Aux::Queue<MessForSchedr>& listMessForSchedr){
   
 #define ERROR_MESS(mstr) \
   statusMess(mstr);      \
-  _errMess.push(mstr);   \
+  g_errMess.push(mstr);   \
 
   pid_t pid;
   int sts = 0;
