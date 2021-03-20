@@ -367,14 +367,7 @@ bool DbProvider::createTables(){
         "  IF NOT FOUND THEN"
         "    RETURN 0;"
         "  END IF;"
-
-        "  PERFORM id FROM tblTaskQueue tq "
-        "  JOIN tblTaskState ts ON ts.qtask = tq.id "
-        "  WHERE tq.id = task.qtask AND (ts.state BETWEEN " << (int)ZM_Base::StateType::READY << " AND " << (int)ZM_Base::StateType::PAUSE << ");"
-        "  IF FOUND THEN"
-        "    RETURN -1;"
-        "  END IF;"
-
+        
         "  INSERT INTO tblTaskQueue (task, plTask) VALUES("
         "    task.taskTempl,"
         "    tId) RETURNING id INTO qId;"
