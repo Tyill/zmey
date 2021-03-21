@@ -47,8 +47,8 @@ void checkStatusWorkers(const ZM_Base::Scheduler& schedr,
   if (wkrNotResp.size() < round(workers.size() * 0.75)){ 
     for(auto w : wkrNotResp){
       if (w->base.state != ZM_Base::StateType::NOT_RESPONDING){
-        messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::WORKER_NOT_RESPONDING,
-                                        w->base.id});
+        messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::WORKER_NOT_RESPONDING, w->base.id});
+        messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::INTERN_ERROR, w->base.id, "schedr::checkStatusWorkers worker not responding"});          
         w->stateMem = w->base.state;
         w->base.state = ZM_Base::StateType::NOT_RESPONDING;
       } 

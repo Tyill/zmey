@@ -57,7 +57,7 @@ ZM_Aux::Queue<ZM_DB::MessSchedr> g_messToDB;
 ZM_Base::Scheduler g_schedr;
 static mutex m_mtxSts, m_mtxNotify;
 static condition_variable m_cvStandUp;
-static bool m_fClose = false;
+static volatile bool m_fClose = false;
 
 struct Config{
   int checkWorkerTOutSec = 120;
@@ -107,7 +107,6 @@ void parseArgs(int argc, char* argv[], Config& outCng){
 }
 
 void mainCycleNotify(){
-  lock_guard<mutex> lock(m_mtxNotify);
   m_cvStandUp.notify_one();  
 }
 
