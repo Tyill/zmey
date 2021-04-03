@@ -170,22 +170,24 @@ public:
   std::vector<uint64_t> getAllGroups(uint64_t pplId);
 
   bool addTaskTemplate(const ZM_Base::UTaskTemplate& cng, uint64_t& outTId);
-  bool getTaskTemplate(uint64_t tId, ZM_Base::UTaskTemplate& outTCng);
-  bool changeTaskTemplate(uint64_t tId, const ZM_Base::UTaskTemplate& newTCng);
-  bool delTaskTemplate(uint64_t tId);
+  bool getTaskTemplate(uint64_t ttId, ZM_Base::UTaskTemplate& outTCng);
+  bool changeTaskTemplate(uint64_t ttId, const ZM_Base::UTaskTemplate& newTCng);
+  bool delTaskTemplate(uint64_t ttId);
   std::vector<uint64_t> getAllTaskTemplates(uint64_t parent);
 
-  bool addTask(const ZM_Base::UTask&, uint64_t& outTId);
-  bool getTask(uint64_t tId, ZM_Base::UTask&);
-  bool changeTask(uint64_t tId, const ZM_Base::UTask& newTCng);
-  bool delTask(uint64_t tId);
-  bool startTask(uint64_t tId);
+  bool addTaskPipeline(const ZM_Base::UTaskPipeline&, uint64_t& outTId);
+  bool getTaskPipeline(uint64_t ptId, ZM_Base::UTaskPipeline&);
+  bool changeTaskPipeline(uint64_t ptId, const ZM_Base::UTaskPipeline& newTCng);
+  bool delTaskPipeline(uint64_t ptId);
+  std::vector<uint64_t> getAllTasksPipeline(uint64_t pplId);
+  
+  bool startTask(uint64_t ptId, const std::string& prevTasks, uint64_t& tId);
   bool cancelTask(uint64_t tId);
-  bool taskState(const std::vector<uint64_t>& tId, std::vector<TaskState>&);
+  bool taskState(uint64_t tId, TaskState&);
   bool taskResult(uint64_t tId, std::string&);
-  bool taskTime(uint64_t tId, TaskTime& out);
-  std::vector<uint64_t> getAllTasks(uint64_t pplId, ZM_Base::StateType);
-  bool getWorkerByTask(uint64_t tId, uint64_t& qtId, ZM_Base::Worker& wcng);
+  bool taskTime(uint64_t tId, TaskTime&);
+  
+  bool getWorkerByTask(uint64_t tId, ZM_Base::Worker& wcng);
   bool setChangeTaskStateCBack(uint64_t tId, changeTaskStateCBack cback);
 
   std::vector<MessError> getInternErrors(uint64_t sId, uint64_t wId, uint32_t mCnt);

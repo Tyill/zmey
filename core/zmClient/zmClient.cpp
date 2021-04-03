@@ -652,61 +652,41 @@ uint32_t zmGetAllTaskTemplates(zmConn zo, uint64_t userId, uint64_t** outTId){
 ///////////////////////////////////////////////////////////////////////////////
 /// Task of pipeline
 
-bool zmAddTask(zmConn zo, zmTask cng, uint64_t* outQTId){
+bool zmAddTaskPipeline(zmConn zo, zmTaskPipeline cng, uint64_t* outQTId){
   if (!zo) return false;
 
   if (!outQTId){
     static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmAddTask error: !outQTId");
     return false;
   }
-  ZM_Base::UTask task;
+  ZM_Base::UTaskPipeline task;
   task.pplId = cng.pplId;
+  task.ttId = cng.ttId;
   task.gId = cng.gId;
-  task.base.params = cng.params ? cng.params : "";
-  task.prevTasks = cng.prevTasksId ? cng.prevTasksId : "";
-  task.nextTasks = cng.nextTasksId ? cng.nextTasksId : "";
-  task.base.priority = cng.priority;
-  task.base.tId = cng.ttId;
-  
-  return static_cast<ZM_DB::DbProvider*>(zo)->addTask(task, *outQTId);
+  task.params = cng.params ? cng.params : "";
+  task.priority = cng.priority;
+    
+  return static_cast<ZM_DB::DbProvider*>(zo)->addTaskPipeline(task, *outQTId);
 }
-bool zmGetTask(zmConn zo, uint64_t qtId, zmTask* outCng){
+bool zmGetTaskPipeline(zmConn zo, uint64_t ptId, zmTaskPipeline* outCng){
   if (!zo) return false;
   
   if (!outCng){
     static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmGetTaskCng error: !outCng");
     return false;
   }
-  ZM_Base::UTask task;
-  if (static_cast<ZM_DB::DbProvider*>(zo)->getTask(qtId, task)){
+  ZM_Base::UTaskPipeline task;
+  if (static_cast<ZM_DB::DbProvider*>(zo)->getTaskPipeline(ptId, task)){
     outCng->pplId = task.pplId;
     outCng->gId = task.gId;
-    outCng->ttId = task.base.tId;
-    outCng->priority = task.base.priority;
-    if (!task.prevTasks.empty()){
-      outCng->prevTasksId = (char*)realloc(outCng->prevTasksId, task.prevTasks.size() + 1);
-      {lock_guard<mutex> lk(m_mtxResources);
-        m_resources[zo].str.push_back(outCng->prevTasksId);
-      }
-      strcpy(outCng->prevTasksId, task.prevTasks.c_str());  
-    }else{
-      outCng->prevTasksId = nullptr;
-    }
-    if (!task.nextTasks.empty()){
-      outCng->nextTasksId = (char*)realloc(outCng->nextTasksId, task.nextTasks.size() + 1);
-      {lock_guard<mutex> lk(m_mtxResources);
-        m_resources[zo].str.push_back(outCng->nextTasksId);
-      }
-      strcpy(outCng->nextTasksId, task.nextTasks.c_str());  
-    }else{
-      outCng->nextTasksId = nullptr;
-    }
-    if(!task.base.params.empty()){
-      outCng->params = (char*)realloc(outCng->params, task.base.params.size() + 1);
+    outCng->ttId = task.ttId;
+    outCng->priority = task.priority;    
+    if(!task.params.empty()){
+      outCng->params = (char*)realloc(outCng->params, task.params.size() + 1);
       {lock_guard<mutex> lk(m_mtxResources);
         m_resources[zo].str.push_back(outCng->params);
       }
-      strcpy(outCng->params, task.base.params.c_str());  
+      strcpy(outCng->params, task.params.c_str());  
     }else{
       outCng->params = nullptr;
     }
@@ -714,41 +694,57 @@ bool zmGetTask(zmConn zo, uint64_t qtId, zmTask* outCng){
   }
   return false;
 }
-bool zmChangeTask(zmConn zo, uint64_t qtId, zmTask newCng){
+bool zmChangeTaskPipeline(zmConn zo, uint64_t tId, zmTaskPipeline newCng){
   if (!zo) return false;
   
-  ZM_Base::UTask task;
+  ZM_Base::UTaskPipeline task;
   task.pplId = newCng.pplId;
   task.gId = newCng.gId;
-  task.base.tId = newCng.ttId;
-  task.base.priority = newCng.priority;
-  task.prevTasks = newCng.prevTasksId ? newCng.prevTasksId : "";
-  task.nextTasks = newCng.nextTasksId ? newCng.nextTasksId : "";
-  task.base.params = newCng.params ? newCng.params : "";
+  task.ttId = newCng.ttId;
+  task.priority = newCng.priority;
+  task.params = newCng.params ? newCng.params : "";
 
-  return static_cast<ZM_DB::DbProvider*>(zo)->changeTask(qtId, task);
+  return static_cast<ZM_DB::DbProvider*>(zo)->changeTaskPipeline(tId, task);
 }
-bool zmDelTask(zmConn zo, uint64_t qtId){
+bool zmDelTaskPipeline(zmConn zo, uint64_t tId){
   if (!zo) return false;
 
-  return static_cast<ZM_DB::DbProvider*>(zo)->delTask(qtId);
+  return static_cast<ZM_DB::DbProvider*>(zo)->delTaskPipeline(tId);
 }
-bool zmStartTask(zmConn zo, uint64_t qtId){
-  if (!zo) return false;
+uint32_t zmGetAllTasksPipeline(zmConn zo, uint64_t pplId, uint64_t** outQTId){
+  if (!zo) return 0; 
 
-  return static_cast<ZM_DB::DbProvider*>(zo)->startTask(qtId);
+  auto tasks = static_cast<ZM_DB::DbProvider*>(zo)->getAllTasksPipeline(pplId);
+  size_t tsz = tasks.size();
+  if (tsz > 0){
+    *outQTId = (uint64_t*)realloc(*outQTId, tsz * sizeof(uint64_t));
+    {lock_guard<mutex> lk(m_mtxResources);
+      m_resources[zo].id.push_back(*outQTId);
+    }
+    memcpy(*outQTId, tasks.data(), tsz * sizeof(uint64_t));
+  }else{
+    *outQTId = nullptr;
+  }
+  return (uint32_t)tsz;
+}
+
+bool zmStartTask(zmConn zo, uint64_t ptId, const char* prevTId, uint64_t* tId){
+  if (!zo || !tId) return false;
+
+  string prTask = prevTId ? prevTId : "";
+
+  return static_cast<ZM_DB::DbProvider*>(zo)->startTask(ptId, prTask, *tId);
 }
 bool zmStopTask(zmConn zo, uint64_t tId){
   if (!zo) return false;
     
   ZM_Base::Worker wcng;  
-  uint64_t qtId = 0;
-  if (static_cast<ZM_DB::DbProvider*>(zo)->getWorkerByTask(tId, qtId, wcng)){
+  if (static_cast<ZM_DB::DbProvider*>(zo)->getWorkerByTask(tId, wcng)){
     auto connCng = static_cast<ZM_DB::DbProvider*>(zo)->getConnectCng();  
     map<string, string> data{
             {"command", to_string((int)ZM_Base::MessType::TASK_STOP)},
             {"connectPnt", connCng.connectStr},
-            {"taskId", to_string(qtId)}
+            {"taskId", to_string(tId)}
           };
 
     return ZM_Tcp::syncSendData(wcng.connectPnt, ZM_Aux::serialn(data));
@@ -764,13 +760,12 @@ bool zmPauseTask(zmConn zo, uint64_t tId){
   if (!zo) return false;
     
   ZM_Base::Worker wcng;  
-  uint64_t qtId = 0;
-  if (static_cast<ZM_DB::DbProvider*>(zo)->getWorkerByTask(tId, qtId, wcng)){
+  if (static_cast<ZM_DB::DbProvider*>(zo)->getWorkerByTask(tId, wcng)){
     auto connCng = static_cast<ZM_DB::DbProvider*>(zo)->getConnectCng();  
     map<string, string> data{
             {"command", to_string((int)ZM_Base::MessType::TASK_PAUSE)},
             {"connectPnt", connCng.connectStr},
-            {"taskId", to_string(qtId)}
+            {"taskId", to_string(tId)}
           };
 
     return ZM_Tcp::syncSendData(wcng.connectPnt, ZM_Aux::serialn(data));
@@ -780,40 +775,35 @@ bool zmPauseTask(zmConn zo, uint64_t tId){
 bool zmContinueTask(zmConn zo, uint64_t tId){
   if (!zo) return false;
     
-  ZM_Base::Worker wcng;  
-  uint64_t qtId = 0;
-  if (static_cast<ZM_DB::DbProvider*>(zo)->getWorkerByTask(tId, qtId, wcng)){
+  ZM_Base::Worker wcng;
+  if (static_cast<ZM_DB::DbProvider*>(zo)->getWorkerByTask(tId, wcng)){
     auto connCng = static_cast<ZM_DB::DbProvider*>(zo)->getConnectCng();  
     map<string, string> data{
             {"command", to_string((int)ZM_Base::MessType::TASK_CONTINUE)},
             {"connectPnt", connCng.connectStr},
-            {"taskId", to_string(qtId)}
+            {"taskId", to_string(tId)}
           };
 
     return ZM_Tcp::syncSendData(wcng.connectPnt, ZM_Aux::serialn(data));
   }
   return false;
 }
-bool zmTaskState(zmConn zo, uint64_t* qtId, uint32_t tCnt, zmTskState* outQTState){
+bool zmStateOfTask(zmConn zo, uint64_t tId, zmTaskState* outQTState){
   if (!zo) return false;
   
-  if (!qtId || !outQTState){
-    static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmTaskState error: !qtId || !outQTState");
+  if (!outQTState){
+    static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmTaskState error: !outQTState");
     return false;
   }
-  vector<uint64_t> qtaskId(tCnt);
-  memcpy(qtaskId.data(), qtId, tCnt * sizeof(uint64_t));
-  vector<ZM_DB::TaskState> state;
-  if (static_cast<ZM_DB::DbProvider*>(zo)->taskState(qtaskId, state)){  
-    for (size_t i = 0; i < tCnt; ++i){
-      outQTState[i].progress = state[i].progress;
-      outQTState[i].state = (zmStateType)state[i].state;
-    }    
+  ZM_DB::TaskState tstate;
+  if (static_cast<ZM_DB::DbProvider*>(zo)->taskState(tId, tstate)){
+    outQTState->progress = tstate.progress;
+    outQTState->state = (zmStateType)tstate.state;
     return true;
   }
   return false;
 }
-bool zmTaskResult(zmConn zo, uint64_t qtId, char** outTResult){
+bool zmTaskResult(zmConn zo, uint64_t tId, char** outTResult){
   if (!zo) return false;
   
   if (!outTResult){
@@ -821,7 +811,7 @@ bool zmTaskResult(zmConn zo, uint64_t qtId, char** outTResult){
     return false;
   }
   string result;
-  if (static_cast<ZM_DB::DbProvider*>(zo)->taskResult(qtId, result)){  
+  if (static_cast<ZM_DB::DbProvider*>(zo)->taskResult(tId, result)){  
     if (!result.empty()){ 
       *outTResult = (char*)realloc(*outTResult, result.size() + 1); 
       {lock_guard<mutex> lk(m_mtxResources);
@@ -835,7 +825,7 @@ bool zmTaskResult(zmConn zo, uint64_t qtId, char** outTResult){
   }
   return false;
 }
-bool zmTaskTime(zmConn zo, uint64_t qtId, zmTskTime* outTTime){
+bool zmTimeOfTask(zmConn zo, uint64_t tId, zmTaskTime* outTTime){
   if (!zo) return false;
   
   if (!outTTime){
@@ -843,7 +833,7 @@ bool zmTaskTime(zmConn zo, uint64_t qtId, zmTskTime* outTTime){
     return false;
   }
   ZM_DB::TaskTime tskTime;
-  if (static_cast<ZM_DB::DbProvider*>(zo)->taskTime(qtId, tskTime)){  
+  if (static_cast<ZM_DB::DbProvider*>(zo)->taskTime(tId, tskTime)){  
     strncpy(outTTime->createTime, tskTime.createTime.c_str(), 32);
     strncpy(outTTime->takeInWorkTime, tskTime.takeInWorkTime.c_str(), 32);
     strncpy(outTTime->startTime, tskTime.startTime.c_str(), 32);
@@ -852,26 +842,11 @@ bool zmTaskTime(zmConn zo, uint64_t qtId, zmTskTime* outTTime){
   }
   return false;
 }
-uint32_t zmGetAllTasks(zmConn zo, uint64_t pplId, zmStateType state, uint64_t** outQTId){
-  if (!zo) return 0; 
 
-  auto tasks = static_cast<ZM_DB::DbProvider*>(zo)->getAllTasks(pplId, (ZM_Base::StateType)state);
-  size_t tsz = tasks.size();
-  if (tsz > 0){
-    *outQTId = (uint64_t*)realloc(*outQTId, tsz * sizeof(uint64_t));
-    {lock_guard<mutex> lk(m_mtxResources);
-      m_resources[zo].id.push_back(*outQTId);
-    }
-    memcpy(*outQTId, tasks.data(), tsz * sizeof(uint64_t));
-  }else{
-    *outQTId = nullptr;
-  }
-  return (uint32_t)tsz;
-}
-bool zmSetEndTaskCBack(zmConn zo, uint64_t qtId, zmChangeTaskStateCBack cback){
+bool zmSetEndTaskCBack(zmConn zo, uint64_t tId, zmChangeTaskStateCBack cback){
   if (!zo) return false; 
 
-  return static_cast<ZM_DB::DbProvider*>(zo)->setChangeTaskStateCBack(qtId, (ZM_DB::changeTaskStateCBack)cback);
+  return static_cast<ZM_DB::DbProvider*>(zo)->setChangeTaskStateCBack(tId, (ZM_DB::changeTaskStateCBack)cback);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
