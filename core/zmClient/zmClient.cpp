@@ -728,12 +728,12 @@ uint32_t zmGetAllTasksPipeline(zmConn zo, uint64_t pplId, uint64_t** outQTId){
   return (uint32_t)tsz;
 }
 
-bool zmStartTask(zmConn zo, uint64_t ptId, const char* prevTId, uint64_t* tId){
+bool zmStartTask(zmConn zo, zmTask cng, uint64_t* tId){
   if (!zo || !tId) return false;
 
-  string prTask = prevTId ? prevTId : "";
+  string prTask = cng.prevTId ? cng.prevTId : "";
 
-  return static_cast<ZM_DB::DbProvider*>(zo)->startTask(ptId, prTask, *tId);
+  return static_cast<ZM_DB::DbProvider*>(zo)->startTask(cng.ptId, prTask, *tId);
 }
 bool zmStopTask(zmConn zo, uint64_t tId){
   if (!zo) return false;

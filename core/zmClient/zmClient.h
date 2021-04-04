@@ -479,13 +479,18 @@ ZMEY_API uint32_t zmGetAllTasksPipeline(zmConn, uint64_t pplId, uint64_t** outQT
 ///////////////////////////////////////////////////////////////////////////////
 /// Task object
 
+/// task config
+struct zmTask{
+  uint64_t ptId;           ///< pipeline task id
+  char* prevTId;           ///< prev task to be completed: tId1, tId2... May be NULL 
+};
+
 /// start task
 /// @param[in] zmConn - object connect
-/// @param[in] ptId - pipeline task id
-/// @param[in] prevTId - prev task to be completed: tId1, tId2... May be NULL 
+/// @param[in] tcng - task config
 /// @param[out] outTId - task object id
 /// @return true - ok
-ZMEY_API bool zmStartTask(zmConn, uint64_t ptId, const char* prevTId, uint64_t* outTId);
+ZMEY_API bool zmStartTask(zmConn, zmTask tcng, uint64_t* outTId);
 
 /// stop task
 /// @param[in] zmConn - object connect

@@ -123,35 +123,40 @@ class TaskTemplate:
     self.name = name    
     self.description = description
     self.script = script   
-class Task: 
-  """Task config""" 
+class TaskPipeline: 
+  """TaskPipeline config""" 
   def __init__(self,
                id : int = 0,
                pplId : int = 0,
                ttId : int = 0,
                gId : int = 0,
                priority : int = 1,
-               prevTasksId : [int] = [],
-               nextTasksId : [int] = [],
-               params : [str] = [],
-               state : StateType = StateType.READY, 
-               progress : int = 0,
-               result : str = "",
-               createTime : str = "",
-               takeInWorkTime : str = "",
-               startTime : str = "",
-               stopTime : str = ""):
+               params : [str] = []):
     self.id = id
     self.pplId = pplId                 # Pipeline id    
     self.ttId = ttId                   # TaskTemplate id
     self.gId = gId                     # taskGroup id
     self.priority = priority           # [1..3]
-    self.prevTasksId = prevTasksId     # Pipeline Task id of previous tasks to be COMPLETED: [qtId,..] 
-    self.nextTasksId = nextTasksId     # Pipeline Task id of next tasks : [qtId,..] 
     self.params = params               # CLI params for script: ['param1','param2'..]
+class Task:
+  """Task config""" 
+  def __init__(self,
+               id : int = 0,         
+               ptId : int = 0,         # Pipeline task id    
+               state : StateType = StateType.READY, 
+               progress : int = 0,
+               result : str = "",
+               prevTasksId : [int] = [],
+               createTime : str = "",
+               takeInWorkTime : str = "",
+               startTime : str = "",
+               stopTime : str = ""):
+    self.id = id
+    self.ptId = ptId
     self.state = state
     self.progress = progress
     self.result = result
+    self.prevTasksId = prevTasksId     # Pipeline Task id of previous tasks to be COMPLETED: [qtId,..] 
     self.createTime = createTime
     self.takeInWorkTime = takeInWorkTime
     self.startTime = startTime
@@ -196,14 +201,15 @@ class _TaskTemplCng_C(ctypes.Structure):
               ('name', ctypes.c_char * 256),
               ('description', ctypes.c_char_p),
               ('script', ctypes.c_char_p)]
-class _TaskCng_C(ctypes.Structure):
+class _TaskPipelineCng_C(ctypes.Structure):
   _fields_ = [('pplId', ctypes.c_uint64),
               ('gId', ctypes.c_uint64),
               ('ttId', ctypes.c_uint64),
-              ('priority', ctypes.c_uint32),
-              ('prevTasksId', ctypes.c_char_p),
-              ('nextTasksId', ctypes.c_char_p),
+              ('priority', ctypes.c_uint32)
               ('params', ctypes.c_char_p)]
+class _TaskCng_C(ctypes.Structure):
+  _fields_ = [('pplId', ctypes.c_uint64),
+              ('prevTId', ctypes.c_char_p)]
 class _TaskState_C(ctypes.Structure):
   _fields_ = [('progress', ctypes.c_uint32),
               ('state', ctypes.c_int32)]
@@ -1090,60 +1096,54 @@ class Connection:
   #############################################################################
   ### Task of Pipeline
  
-  def addTask(self, iot : Task) -> bool:
+  def addTaskPipeline(self, iot : TaskPipeline) -> bool:
     """
     Add new Task
     :param iot: new Task config
     :return: True - ok
     """
     if (self._zmConn):
-      tcng = _TaskCng_C()
+      tcng = _TaskPipelineCng_C()
       tcng.pplId = iot.pplId
       tcng.ttId = iot.ttId
       tcng.gId = iot.gId
       tcng.priority = iot.priority
-      tcng.prevTasksId = ','.join(str(i) for i in iot.prevTasksId).encode('utf-8')
-      tcng.nextTasksId = ','.join(str(i) for i in iot.nextTasksId).encode('utf-8')
       tcng.params = ','.join(iot.params).encode('utf-8')
       
       tid = ctypes.c_uint64(0)
       
       pfun = _lib.zmAddTask
-      pfun.argtypes = (ctypes.c_void_p, _TaskCng_C, ctypes.POINTER(ctypes.c_uint64))
+      pfun.argtypes = (ctypes.c_void_p, _TaskPipelineCng_C, ctypes.POINTER(ctypes.c_uint64))
       pfun.restype = ctypes.c_bool
       if (pfun(self._zmConn, tcng, ctypes.byref(tid))):
         iot.id = tid.value
         return True
     return False
-  def getTask(self, iot : Task) -> bool:
+  def getTaskPipeline(self, iot : TaskPipeline) -> bool:
     """
-    Get Task config by ID
+    Get pipeline task config by ID
     :param iot: Task config
     :return: True - ok
     """
     if (self._zmConn):
-      tcng = _TaskCng_C()
+      tcng = _TaskPipelineCng_C()
 
       tid = ctypes.c_uint64(iot.id)
       
       pfun = _lib.zmGetTask
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(_TaskCng_C))
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(_TaskPipelineCng_C))
       pfun.restype = ctypes.c_bool
       if (pfun(self._zmConn, tid, ctypes.byref(tcng))):      
         iot.pplId = tcng.pplId
         iot.ttId = tcng.ttId
         iot.gId = tcng.gId
         iot.priority = tcng.priority
-        if tcng.prevTasksId:
-          iot.prevTasksId = [int(i) for i in tcng.prevTasksId.decode('utf-8').split(',')]          
-        if tcng.nextTasksId:
-          iot.nextTasksId = [int(i) for i in tcng.nextTasksId.decode('utf-8').split(',')]
         if tcng.params:
           iot.params = tcng.params.decode('utf-8').split(',')
         self._freeResources()
         return True
     return False
-  def changeTask(self, iot : Task) -> bool:
+  def changeTaskPipeline(self, iot : TaskPipeline) -> bool:
     """
     Change Task config
     :param iot: new Task config
@@ -1151,23 +1151,21 @@ class Connection:
     """
     if (self._zmConn):
       tid = ctypes.c_uint64(iot.id)
-      tcng = _TaskCng_C()
+      tcng = _TaskPipelineCng_C()
       tcng.pplId = iot.pplId
       tcng.ttId = iot.ttId
       tcng.gId = iot.gId
       tcng.priority = iot.priority
-      tcng.prevTasksId = ','.join(str(i) for i in iot.prevTasksId).encode('utf-8')
-      tcng.nextTasksId = ','.join(str(i) for i in iot.nextTasksId).encode('utf-8')
       tcng.params = ','.join(iot.params).encode('utf-8')
             
       pfun = _lib.zmChangeTask
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, _TaskCng_C)
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, _TaskPipelineCng_C)
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, tid, tcng)
     return False
-  def delTask(self, tId : int) -> bool:
+  def delTaskPipeline(self, ptId : int) -> bool:
     """
-    Delete Task
+    Delete pipeline task
     :param tId: Task id
     :return: True - ok
     """
@@ -1179,19 +1177,57 @@ class Connection:
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, tid)
     return False
-  def startTask(self, tId) -> bool:
+  def getAllTasksPipeline(self, pplId : int) -> [TaskPipeline]:
+    """
+    Get all tasks of pipeline
+    :param pplId: Pipeline id
+    :param state: state type
+    :return: list of Task
+    """
+    if (self._zmConn):
+      cpplId = ctypes.c_uint64(pplId)
+      cstate = ctypes.c_int32(state.value)
+
+      pfun = _lib.zmGetAllTasks
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.c_int32, ctypes.POINTER(ctypes.POINTER(ctypes.c_uint64)))
+      pfun.restype = ctypes.c_uint32
+      dbuffer = ctypes.POINTER(ctypes.c_uint64)()
+      osz = pfun(self._zmConn, cpplId, cstate, ctypes.byref(dbuffer))
+            
+      if dbuffer and (osz > 0):
+        oid = [dbuffer[i] for i in range(osz)]
+        self._freeResources()
+      
+        ott = []
+        for i in range(osz):
+          t = Task(oid[i])
+          self.getTask(t)
+          ott.append(t)
+        return ott
+    return []
+  
+  #############################################################################
+  ### Task object
+
+  def startTask(self, iot : Task) -> bool:
     """
     Start Task
-    :param tId: Task id
+    :param iot: task config
     :return: True - ok
     """
     if (self._zmConn):
       tid = ctypes.c_uint64(tId)
             
+      tcng = _TaskCng_C()
+      tcng.pplId = iot.pplId
+      tcng.prevTId = ','.join(iot.prevTasksId).encode('utf-8')
+
       pfun = _lib.zmStartTask
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
+      pfun.argtypes = (ctypes.c_void_p, _TaskCng_C, ctypes.c_uint64)
       pfun.restype = ctypes.c_bool
-      return pfun(self._zmConn, tid)
+      if (pfun(self._zmConn, tcng, ctypes.byref(tid))):
+        iot.id = tid.value
+        return True
     return False
   def stopTask(self, tId) -> bool:
     """
@@ -1313,34 +1349,6 @@ class Connection:
         iot.stopTime = ttime.stopTime.decode('utf-8')
         return True
     return False
-  def getAllTasks(self, pplId : int, state : StateType=StateType.UNDEFINED) -> [Task]:
-    """
-    Get all tasks
-    :param pplId: Pipeline id
-    :param state: state type
-    :return: list of Task
-    """
-    if (self._zmConn):
-      cpplId = ctypes.c_uint64(pplId)
-      cstate = ctypes.c_int32(state.value)
-
-      pfun = _lib.zmGetAllTasks
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.c_int32, ctypes.POINTER(ctypes.POINTER(ctypes.c_uint64)))
-      pfun.restype = ctypes.c_uint32
-      dbuffer = ctypes.POINTER(ctypes.c_uint64)()
-      osz = pfun(self._zmConn, cpplId, cstate, ctypes.byref(dbuffer))
-            
-      if dbuffer and (osz > 0):
-        oid = [dbuffer[i] for i in range(osz)]
-        self._freeResources()
-      
-        ott = []
-        for i in range(osz):
-          t = Task(oid[i])
-          self.getTask(t)
-          ott.append(t)
-        return ott
-    return []
   def setChangeTaskStateCBack(self, tId : int, ucb):
     """
     Set change Task state callback
