@@ -57,7 +57,7 @@ using namespace std;
   #define checkField(field)
 #endif
 
-extern ZM_Aux::Queue<STask> g_tasks;
+extern ZM_Aux::Queue<ZM_Base::Task> g_tasks;
 extern ZM_Aux::Queue<ZM_DB::MessSchedr> g_messToDB;
 extern map<std::string, SWorker> g_workers;
 extern ZM_Base::Scheduler g_schedr;
@@ -80,12 +80,12 @@ void sendHandler(const string& cp, const string& data, const std::error_code& ec
         checkField(script);
         checkFieldNum(averDurationSec);
         checkFieldNum(maxDurationSec);
-        STask t;
-        t.qTaskId = stoull(mess["taskId"]);
+        ZM_Base::Task t;
+        t.id = stoull(mess["taskId"]);
         t.params = mess["params"];
-        t.base.script = mess["script"];
-        t.base.averDurationSec = stoi(mess["averDurationSec"]);
-        t.base.maxDurationSec = stoi(mess["maxDurationSec"]);
+        t.script = mess["script"];
+        t.averDurationSec = stoi(mess["averDurationSec"]);
+        t.maxDurationSec = stoi(mess["maxDurationSec"]);
         g_tasks.push(move(t));
         worker.base.activeTask = std::max(0, worker.base.activeTask - 1);
         }

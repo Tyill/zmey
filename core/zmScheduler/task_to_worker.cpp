@@ -40,7 +40,7 @@ static vector<ZM_Base::Worker*> m_refWorkers;
 
 bool sendTaskToWorker(const ZM_Base::Scheduler& schedr,
                       map<std::string, SWorker>& workers,
-                      ZM_Aux::Queue<STask>& tasks, 
+                      ZM_Aux::Queue<ZM_Base::Task>& tasks, 
                       ZM_Aux::Queue<ZM_DB::MessSchedr>& messToDB){  
 #define ERROR_MESS(mess, wId)                                                   \
   messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::INTERN_ERROR, wId, mess}); \
@@ -74,21 +74,21 @@ bool sendTaskToWorker(const ZM_Base::Scheduler& schedr,
                (w->rating > 1);
       }); 
     if(iWr != m_refWorkers.end()){
-      STask t;
+      ZM_Base::Task t;
       tasks.tryPop(t);
       map<string, string> data{
         {"command",         to_string((int)ZM_Base::MessType::NEW_TASK)},
         {"connectPnt",      schedr.connectPnt},
-        {"taskId",          to_string(t.qTaskId)},
+        {"taskId",          to_string(t.id)},
         {"params",          t.params}, 
-        {"script",          t.base.script},
-        {"averDurationSec", to_string(t.base.averDurationSec)}, 
-        {"maxDurationSec",  to_string(t.base.maxDurationSec)}        
+        {"script",          t.script},
+        {"averDurationSec", to_string(t.averDurationSec)}, 
+        {"maxDurationSec",  to_string(t.maxDurationSec)}        
       };
       if (ZM_Tcp::asyncSendData((*iWr)->connectPnt, ZM_Aux::serialn(data))){
         ++(*iWr)->activeTask;
         workers[(*iWr)->connectPnt].base.activeTask = (*iWr)->activeTask; 
-        messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::TASK_START, (*iWr)->id, t.qTaskId}); 
+        messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::TASK_START, (*iWr)->id, t.id}); 
       }else{
         (*iWr)->rating = std::max(1, (*iWr)->rating - 1);
       }      

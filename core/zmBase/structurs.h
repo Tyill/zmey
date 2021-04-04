@@ -92,28 +92,20 @@ namespace ZM_Base{
   };
   // tblUTaskTemplate
   struct Task{
-    uint64_t id;              // id tblTaskTemplate
+    uint64_t id;              // id tblTaskQueue
     int averDurationSec;      // estimated lead time
     int maxDurationSec;       // maximum lead time
     std::string script;       // script on bash, python or cmd
-  };  
-  // tblTaskQueue
-  struct QueueTask{
-    uint64_t id;              // id tblTaskQueue
-    uint64_t ttId;            // id tblUTaskTemplate
-    uint64_t pltId;           // id tblUPipelineTask
-    StateType state;
-    int priority;             // [1..3]
-    int progress;             // [0..100] 
-    std::string params;       // CLI params for script: {param1,param2..}
-    std::string result;       // result of script
+    std::string params;       // through ','
   };  
   // tblUTaskTemplate
   struct UTaskTemplate{
     uint64_t uId;             // parent id tblUser
+    int averDurationSec;      // estimated lead time
+    int maxDurationSec;       // maximum lead time
     std::string name;
     std::string description;
-    Task base;
+    std::string script;       // script on bash, python or cmd
   };
   // tblUPipelineTask
   struct UTaskPipeline{

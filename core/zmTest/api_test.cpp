@@ -958,21 +958,19 @@ TEST_F(APITest, addTask){
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
-  zmTask task{0};
+  zmTaskPipeline task{0};
   task.pplId = pId;
   task.gId = 0; 
   task.priority = 1;
   task.ttId = ttId;
   task.params = new char[32];
-  task.prevTasksId = new char[24];
   strcpy(task.params, "param1,param2,param3");
-  strcpy(task.prevTasksId, "");
   uint64_t tId = 0;  
-  EXPECT_TRUE(zmAddTask(_zc, task, &tId) && (tId > 0));  
+  EXPECT_TRUE(zmAddTaskPipeline(_zc, task, &tId) && (tId > 0));  
   
   task.pplId = pId + 1;  
   tId = 0;  
-  EXPECT_TRUE(!zmAddTask(_zc, task, &tId) && (tId == 0));           
+  EXPECT_TRUE(!zmAddTaskPipeline(_zc, task, &tId) && (tId == 0));           
 }
 TEST_F(APITest, getTask){
   zmUser usr;
@@ -1001,30 +999,26 @@ TEST_F(APITest, getTask){
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
-  zmTask task{0};
+  zmTaskPipeline task{0};
   task.pplId = pId; 
   task.gId = 0; 
   task.priority = 1;
   task.ttId = ttId;
   task.params = new char[32];
-  task.prevTasksId = new char[24];
   strcpy(task.params, "par am1,param2,param3");
-  strcpy(task.prevTasksId, "");
   uint64_t tId = 0;  
-  EXPECT_TRUE(zmAddTask(_zc, task, &tId) && (tId > 0));  
+  EXPECT_TRUE(zmAddTaskPipeline(_zc, task, &tId) && (tId > 0));  
 
   task.pplId = pId + 1;
   task.gId = pId + 1; 
   task.priority = 2;
   task.ttId = ttId + 1;
   strcpy(task.params, "['e','paramr2','patyram3']");
-  strcpy(task.prevTasksId, "[c]");
-  EXPECT_TRUE(zmGetTask(_zc, tId, &task) &&
+  EXPECT_TRUE(zmGetTaskPipeline(_zc, tId, &task) &&
              (task.pplId == pId) &&
              (task.gId == 0) &&
              (task.priority == 1) &&
              (strcmp(task.params, "par am1,param2,param3") == 0) &&
-             (task.prevTasksId == nullptr) &&
              (task.ttId == ttId));          
 }
 TEST_F(APITest, changeTask){
@@ -1054,44 +1048,37 @@ TEST_F(APITest, changeTask){
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
-  zmTask task{0};
+  zmTaskPipeline task{0};
   task.pplId = pId; 
   task.gId = 0;
   task.priority = 1;
   task.ttId = ttId;
   task.params = new char[32];
-  task.prevTasksId = new char[24];
   strcpy(task.params, "param1,param2,param3");
-  strcpy(task.prevTasksId, "");
   uint64_t tId1 = 0;  
-  EXPECT_TRUE(zmAddTask(_zc, task, &tId1) && (tId1 > 0)); 
+  EXPECT_TRUE(zmAddTaskPipeline(_zc, task, &tId1) && (tId1 > 0)); 
 
   task.pplId = pId; 
   task.priority = 1;
   task.ttId = ttId;
   task.params = new char[32];
-  task.prevTasksId = new char[24];
   strcpy(task.params, "param1,param2,param3");
-  strcpy(task.prevTasksId, "");
   uint64_t tId2 = 0;  
-  EXPECT_TRUE(zmAddTask(_zc, task, &tId2) && (tId2 > 0)); 
+  EXPECT_TRUE(zmAddTaskPipeline(_zc, task, &tId2) && (tId2 > 0)); 
   
   task.pplId = pId; 
   task.priority = 2;
   strcpy(task.params, "par amm1,paramm2,paramm3");
-  strcpy(task.prevTasksId, (to_string(tId1)).c_str());
-  EXPECT_TRUE(zmChangeTask(_zc, tId2, task));
+  EXPECT_TRUE(zmChangeTaskPipeline(_zc, tId2, task));
 
   task.pplId = pId + 1; 
   task.priority = 11;
   task.ttId = ttId + 1;
   strcpy(task.params, "par1,mm2,pam3");
-  strcpy(task.prevTasksId, "123");
-  EXPECT_TRUE(zmGetTask(_zc, tId2, &task) &&
+  EXPECT_TRUE(zmGetTaskPipeline(_zc, tId2, &task) &&
              (task.pplId == pId) &&
              (task.priority == 2) &&
              (strcmp(task.params, "par amm1,paramm2,paramm3") == 0) &&            
-             (strcmp(task.prevTasksId, (to_string(tId1)).c_str()) == 0) &&
              (task.ttId == ttId));
 }
 TEST_F(APITest, delTask){
@@ -1121,30 +1108,26 @@ TEST_F(APITest, delTask){
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
-  zmTask task{0};
+  zmTaskPipeline task{0};
   task.pplId = pId; 
   task.gId = 0; 
   task.priority = 1;
   task.ttId = ttId;
   task.params = new char[32];
-  task.prevTasksId = new char[24];
   strcpy(task.params, "param1,param2,param3");
-  strcpy(task.prevTasksId, "");
   uint64_t tId1 = 0;  
-  EXPECT_TRUE(zmAddTask(_zc, task, &tId1) && (tId1 > 0)); 
+  EXPECT_TRUE(zmAddTaskPipeline(_zc, task, &tId1) && (tId1 > 0)); 
 
-  EXPECT_TRUE(zmDelTask(_zc, tId1));
+  EXPECT_TRUE(zmDelTaskPipeline(_zc, tId1));
 
   task.pplId = pId + 1; 
   task.priority = 2;
   task.ttId = ttId + 1;
   strcpy(task.params, "['e','paramr2','patyram3']");
-  strcpy(task.prevTasksId, "[c]");
-  EXPECT_TRUE(!zmGetTask(_zc, tId1, &task) &&
+  EXPECT_TRUE(!zmGetTaskPipeline(_zc, tId1, &task) &&
              (task.pplId == pId + 1) &&
              (task.priority == 2) &&
              (strcmp(task.params, "['e','paramr2','patyram3']") == 0) &&
-             (strcmp(task.prevTasksId, "[c]") == 0) &&
              (task.ttId == ttId + 1));             
 }
 TEST_F(APITest, startTask){
@@ -1174,21 +1157,21 @@ TEST_F(APITest, startTask){
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
-  zmTask task{0};
+  zmTaskPipeline task{0};
   task.pplId = pId; 
   task.gId = 0; 
   task.priority = 1;
   task.ttId = ttId;
   task.params = new char[32];
-  task.prevTasksId = new char[24];
   strcpy(task.params, "param1,param2,param3");
-  strcpy(task.prevTasksId, "");
+  uint64_t ptId1 = 0;  
+  EXPECT_TRUE(zmAddTaskPipeline(_zc, task, &ptId1) && (ptId1 > 0));  
+
   uint64_t tId1 = 0;  
-  EXPECT_TRUE(zmAddTask(_zc, task, &tId1) && (tId1 > 0));  
+  EXPECT_TRUE(zmStartTask(_zc, ptId1, "", &tId1)); 
 
-  EXPECT_TRUE(zmStartTask(_zc, tId1)); 
-
-  EXPECT_TRUE(!zmStartTask(_zc, tId1));           
+  uint64_t tId2 = 0;  
+  EXPECT_TRUE(zmStartTask(_zc, ptId1, "", &tId2));           
 }
 TEST_F(APITest, cancelTask){
   zmUser usr;
@@ -1217,19 +1200,18 @@ TEST_F(APITest, cancelTask){
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
-  zmTask task{0};
+  zmTaskPipeline task{0};
   task.pplId = pId;
   task.gId = 0;  
   task.priority = 1;
   task.ttId = ttId;
   task.params = new char[32];
-  task.prevTasksId = new char[24];
   strcpy(task.params, "param1,param2,param3");
-  strcpy(task.prevTasksId, "");
-  uint64_t tId1 = 0;  
-  EXPECT_TRUE(zmAddTask(_zc, task, &tId1) && (tId1 > 0));  
+  uint64_t ptId1 = 0;  
+  EXPECT_TRUE(zmAddTaskPipeline(_zc, task, &ptId1) && (ptId1 > 0));  
 
-  EXPECT_TRUE(zmStartTask(_zc, tId1));        
+  uint64_t tId1 = 0;  
+  EXPECT_TRUE(zmStartTask(_zc, ptId1, "", &tId1));        
 
   EXPECT_TRUE(zmCancelTask(_zc, tId1));           
 }
@@ -1260,39 +1242,38 @@ TEST_F(APITest, taskState){
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
-  zmTask task{0};
+  zmTaskPipeline task{0};
   task.pplId = pId; 
   task.gId = 0; 
   task.priority = 1;
   task.ttId = ttId;
   task.params = new char[32];
-  task.prevTasksId = new char[24];
   strcpy(task.params, "param1,param2,param3");
-  strcpy(task.prevTasksId, "");
-  uint64_t tId1 = 0;  
-  EXPECT_TRUE(zmAddTask(_zc, task, &tId1) && (tId1 > 0));  
+  uint64_t ptId1 = 0;  
+  EXPECT_TRUE(zmAddTaskPipeline(_zc, task, &ptId1) && (ptId1 > 0));  
   
-  EXPECT_TRUE(zmStartTask(_zc, tId1));  
+  uint64_t tId1 = 0;  
+  EXPECT_TRUE(zmStartTask(_zc, ptId1, "", &tId1));  
 
   task.pplId = pId; 
   task.priority = 1;
   task.ttId = ttId;
   task.params = new char[32];
-  task.prevTasksId = new char[24];
   strcpy(task.params, "param1,param2,param3");
-  strcpy(task.prevTasksId, "");
+  uint64_t ptId2 = 0;  
+  EXPECT_TRUE(zmAddTaskPipeline(_zc, task, &ptId2) && (ptId2 > 0));
+
   uint64_t tId2 = 0;  
-  EXPECT_TRUE(zmAddTask(_zc, task, &tId2) && (tId2 > 0));
+  EXPECT_TRUE(zmStartTask(_zc, ptId2, "", &tId2));  
 
-  EXPECT_TRUE(zmStartTask(_zc, tId2));  
+  zmTaskState tState;
+  EXPECT_TRUE(zmStateOfTask(_zc, tId1, &tState) && 
+              (tState.progress == 0) &&
+              (tState.state == zmStateType::zmReady)); 
 
-  uint64_t* tIds = new uint64_t[2] {tId1, tId2};
-  zmTskState* tState = new zmTskState[2];
-  EXPECT_TRUE(zmTaskState(_zc, tIds, 2, tState) && 
-              (tState[0].progress == 0) &&
-              (tState[0].state == zmStateType::zmReady) &&
-              (tState[1].progress == 0) &&
-              (tState[1].state == zmStateType::zmReady));              
+  EXPECT_TRUE(zmStateOfTask(_zc, tId2, &tState) && 
+              (tState.progress == 0) &&
+              (tState.state == zmStateType::zmReady));              
 }
 TEST_F(APITest, taskResult){
   zmUser usr;
@@ -1321,19 +1302,18 @@ TEST_F(APITest, taskResult){
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
-  zmTask task{0};
+  zmTaskPipeline task{0};
   task.pplId = pId; 
   task.gId = 0; 
   task.priority = 1;
   task.ttId = ttId;
   task.params = new char[32];
-  task.prevTasksId = new char[24];
   strcpy(task.params, "param1,param2,param3");
-  strcpy(task.prevTasksId, "");
-  uint64_t tId1 = 0;  
-  EXPECT_TRUE(zmAddTask(_zc, task, &tId1) && (tId1 > 0));  
+  uint64_t ptId1 = 0;  
+  EXPECT_TRUE(zmAddTaskPipeline(_zc, task, &ptId1) && (ptId1 > 0));  
   
-  EXPECT_TRUE(zmStartTask(_zc, tId1));  
+  uint64_t tId1 = 0;  
+  EXPECT_TRUE(zmStartTask(_zc, ptId1, "", &tId1));  
 
   char* result = nullptr;
   EXPECT_TRUE(zmTaskResult(_zc, tId1, &result)); 
@@ -1365,22 +1345,21 @@ TEST_F(APITest, TaskTime){
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
-  zmTask task{0};
+  zmTaskPipeline task{0};
   task.pplId = pId; 
   task.gId = 0; 
   task.priority = 1;
   task.ttId = ttId;
   task.params = new char[32];
-  task.prevTasksId = new char[24];
   strcpy(task.params, "param1,param2,param3");
-  strcpy(task.prevTasksId, "");
-  uint64_t tId1 = 0;  
-  EXPECT_TRUE(zmAddTask(_zc, task, &tId1) && (tId1 > 0));  
+  uint64_t ptId1 = 0;  
+  EXPECT_TRUE(zmAddTaskPipeline(_zc, task, &ptId1) && (ptId1 > 0));  
   
-  EXPECT_TRUE(zmStartTask(_zc, tId1));  
+  uint64_t tId1 = 0;  
+  EXPECT_TRUE(zmStartTask(_zc, ptId1, "",  &tId1));  
 
-  zmTskTime result;
-  EXPECT_TRUE(zmTaskTime(_zc, tId1, &result));
+  zmTaskTime result;
+  EXPECT_TRUE(zmTimeOfTask(_zc, tId1, &result));
 }
 TEST_F(APITest, getAllTask){
   zmUser usr;
@@ -1409,51 +1388,44 @@ TEST_F(APITest, getAllTask){
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
-  zmTask task{0};
+  zmTaskPipeline task{0};
   task.pplId = pId; 
   task.gId = 0; 
   task.priority = 1;
   task.ttId = ttId;
   task.params = new char[32];
-  task.prevTasksId = new char[24];
   strcpy(task.params, "param1,param2,param3");
-  strcpy(task.prevTasksId, "");
-  uint64_t tId1 = 0;  
-  EXPECT_TRUE(zmAddTask(_zc, task, &tId1) && (tId1 > 0));  
+  uint64_t ptId1 = 0;  
+  EXPECT_TRUE(zmAddTaskPipeline(_zc, task, &ptId1) && (ptId1 > 0));  
   
-  EXPECT_TRUE(zmStartTask(_zc, tId1));  
+  uint64_t tId1 = 0;  
+  EXPECT_TRUE(zmStartTask(_zc, ptId1, "", &tId1));  
 
   task.pplId = pId; 
   task.priority = 1;
   task.ttId = ttId;
   task.params = new char[32];
-  task.prevTasksId = new char[24];
   strcpy(task.params, "param1,param2,param3");
-  strcpy(task.prevTasksId, "");
-  uint64_t tId2 = 0;  
-  EXPECT_TRUE(zmAddTask(_zc, task, &tId2) && (tId2 > 0));  
+  uint64_t ptId2 = 0;  
+  EXPECT_TRUE(zmAddTaskPipeline(_zc, task, &ptId2) && (ptId2 > 0));  
   
-  EXPECT_TRUE(zmStartTask(_zc, tId2));    
+  uint64_t tId2 = 0;  
+  EXPECT_TRUE(zmStartTask(_zc, ptId2, "", &tId2));    
 
   uint64_t* pTT = nullptr;
-  auto tCnt = zmGetAllTasks(_zc, pId, zmStateType::zmReady, &pTT);
+  auto tCnt = zmGetAllTasksPipeline(_zc, pId, &pTT);
   EXPECT_TRUE((tCnt == 2) &&
-              (pTT[0] == tId1) && 
-              (pTT[1] == tId2));  
+              (pTT[0] == ptId1) && 
+              (pTT[1] == ptId2));  
+  
+  // tCnt = zmGetAllTasks(_zc, pId, zmStateType::zmStart, &pTT);
+  // EXPECT_TRUE(tCnt == 0); 
 
-  tCnt = zmGetAllTasks(_zc, pId, zmStateType::zmUndefined, &pTT);
-  EXPECT_TRUE((tCnt == 2) &&
-              (pTT[0] == tId1) && 
-              (pTT[1] == tId2));
+  // tCnt = zmGetAllTasks(_zc, pId + 1, zmStateType::zmReady, &pTT);
+  // EXPECT_TRUE(tCnt == 0); 
 
-  tCnt = zmGetAllTasks(_zc, pId, zmStateType::zmStart, &pTT);
-  EXPECT_TRUE(tCnt == 0); 
-
-  tCnt = zmGetAllTasks(_zc, pId + 1, zmStateType::zmReady, &pTT);
-  EXPECT_TRUE(tCnt == 0); 
-
-  tCnt = zmGetAllTasks(_zc, pId + 1, zmStateType::zmUndefined, &pTT);
-  EXPECT_TRUE(tCnt == 0);  
+  // tCnt = zmGetAllTasks(_zc, pId + 1, zmStateType::zmUndefined, &pTT);
+  // EXPECT_TRUE(tCnt == 0);  
 }
 
 #endif //APITEST

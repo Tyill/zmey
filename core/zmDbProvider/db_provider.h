@@ -79,11 +79,6 @@ struct MessError{
   std::string createTime;
   std::string message;
 };
-struct SchedrTask{
-  uint64_t qTaskId;
-  ZM_Base::Task base;
-  std::string params; // through ','
-};
 struct TaskState{
   uint32_t progress;
   ZM_Base::StateType state;
@@ -194,9 +189,9 @@ public:
 
   // for zmSchedr
   bool getSchedr(std::string& connPnt, ZM_Base::Scheduler& outSchedl);
-  bool getTasksOfSchedr(uint64_t sId, std::vector<SchedrTask>& out);
+  bool getTasksOfSchedr(uint64_t sId, std::vector<ZM_Base::Task>& out);
   bool getWorkersOfSchedr(uint64_t sId, std::vector<ZM_Base::Worker>& out);
-  bool getNewTasksForSchedr(uint64_t sId, int maxTaskCnt, std::vector<SchedrTask>& out);
+  bool getNewTasksForSchedr(uint64_t sId, int maxTaskCnt, std::vector<ZM_Base::Task>& out);
   bool sendAllMessFromSchedr(uint64_t sId, std::vector<MessSchedr>& out);
 
   // for test

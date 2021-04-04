@@ -578,9 +578,9 @@ bool zmAddTaskTemplate(zmConn zo, zmTaskTemplate cng, uint64_t* outTId){
   task.name = cng.name;
   task.description = cng.description ? cng.description : "";
   task.uId = cng.userId;
-  task.base.averDurationSec = cng.averDurationSec;
-  task.base.maxDurationSec = cng.maxDurationSec;
-  task.base.script = cng.script;
+  task.averDurationSec = cng.averDurationSec;
+  task.maxDurationSec = cng.maxDurationSec;
+  task.script = cng.script;
 
   return static_cast<ZM_DB::DbProvider*>(zo)->addTaskTemplate(task, *outTId);
 }
@@ -594,14 +594,14 @@ bool zmGetTaskTemplate(zmConn zo, uint64_t tId, zmTaskTemplate* outTCng){
   ZM_Base::UTaskTemplate task;
   if (static_cast<ZM_DB::DbProvider*>(zo)->getTaskTemplate(tId, task)){  
     strcpy(outTCng->name, task.name.c_str());  
-    outTCng->averDurationSec = task.base.averDurationSec;
-    outTCng->maxDurationSec = task.base.maxDurationSec;
+    outTCng->averDurationSec = task.averDurationSec;
+    outTCng->maxDurationSec = task.maxDurationSec;
     outTCng->userId = task.uId;
-    outTCng->script = (char*)realloc(outTCng->script, task.base.script.size() + 1);
+    outTCng->script = (char*)realloc(outTCng->script, task.script.size() + 1);
     {lock_guard<mutex> lk(m_mtxResources);
       m_resources[zo].str.push_back(outTCng->script);
     }
-    strcpy(outTCng->script, task.base.script.c_str());
+    strcpy(outTCng->script, task.script.c_str());
     if (!task.description.empty()){
       outTCng->description = (char*)realloc(outTCng->description, task.description.size() + 1);
       {lock_guard<mutex> lk(m_mtxResources);
@@ -622,9 +622,9 @@ bool zmChangeTaskTemplate(zmConn zo, uint64_t tId, zmTaskTemplate newCng){
   task.name = newCng.name;
   task.description = newCng.description ? newCng.description : "";
   task.uId = newCng.userId;
-  task.base.averDurationSec = newCng.averDurationSec;
-  task.base.maxDurationSec = newCng.maxDurationSec;
-  task.base.script = newCng.script;
+  task.averDurationSec = newCng.averDurationSec;
+  task.maxDurationSec = newCng.maxDurationSec;
+  task.script = newCng.script;
   return static_cast<ZM_DB::DbProvider*>(zo)->changeTaskTemplate(tId, task);
 }
 bool zmDelTaskTemplate(zmConn zo, uint64_t tId){

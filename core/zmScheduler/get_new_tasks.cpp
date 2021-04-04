@@ -31,22 +31,25 @@ using namespace std;
 
 static ZM_Aux::CounterTick m_ctickNT;
 extern ZM_Base::Scheduler g_schedr;
-extern ZM_Aux::Queue<STask> g_tasks;
+extern ZM_Aux::Queue<ZM_Base::Task> g_tasks;
 extern map<std::string, SWorker> g_workers;
 
 void getNewTaskFromDB(ZM_DB::DbProvider& db){
   
   int actSz = 0,
-      capSz = g_schedr.capacityTask;
+      capSz = g_schedr.capacityTask,
+      newSz = 0;
   for (auto& w : g_workers){
     actSz += w.second.base.activeTask;
   }
   actSz += g_tasks.size();
-  vector<ZM_DB::SchedrTask> newTasks;
+  
   if ((capSz - actSz) > 0){ 
+    vector<ZM_Base::Task> newTasks;
     if (db.getNewTasksForSchedr(g_schedr.id, capSz - actSz, newTasks)){
+      newSz = (int)newTasks.size();
       for(auto& t : newTasks){
-        g_tasks.push(STask{t.qTaskId, t.base, t.params});
+        g_tasks.push(move(t));
       }      
       m_ctickNT.reset();
     }
@@ -54,9 +57,9 @@ void getNewTaskFromDB(ZM_DB::DbProvider& db){
       statusMess("getNewTaskFromDB db error: " + db.getLastError());
     }
   }
-  g_schedr.activeTask = actSz + (int)newTasks.size();  
+  g_schedr.activeTask = actSz + newSz;  
 
-  if (!newTasks.empty()){
+  if (newSz > 0){
     mainCycleNotify();
   }
 };

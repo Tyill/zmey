@@ -30,12 +30,6 @@ void statusMess(const std::string& mess);
 
 void mainCycleNotify();
 
-struct STask{
-  uint64_t qTaskId;
-  ZM_Base::Task base;
-  std::string params; // through ','
-};
-
 struct SWorker{
   ZM_Base::Worker base;
   ZM_Base::StateType stateMem;

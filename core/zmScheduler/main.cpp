@@ -45,14 +45,14 @@ using namespace std;
 void receiveHandler(const string& cp, const string& data);
 void sendHandler(const string& cp, const string& data, const std::error_code& ec);
 void getNewTaskFromDB(ZM_DB::DbProvider& db);
-bool sendTaskToWorker(const ZM_Base::Scheduler&, map<string, SWorker>&, ZM_Aux::Queue<STask>&, ZM_Aux::Queue<ZM_DB::MessSchedr>& messToDB);
+bool sendTaskToWorker(const ZM_Base::Scheduler&, map<string, SWorker>&, ZM_Aux::Queue<ZM_Base::Task>&, ZM_Aux::Queue<ZM_DB::MessSchedr>& messToDB);
 void sendAllMessToDB(ZM_DB::DbProvider& db);
 void checkStatusWorkers(const ZM_Base::Scheduler&, map<string, SWorker>&, ZM_Aux::Queue<ZM_DB::MessSchedr>&);
-void getPrevTaskFromDB(ZM_DB::DbProvider& db, const ZM_Base::Scheduler&,  ZM_Aux::Queue<STask>&);
+void getPrevTaskFromDB(ZM_DB::DbProvider& db, const ZM_Base::Scheduler&,  ZM_Aux::Queue<ZM_Base::Task>&);
 void getPrevWorkersFromDB(ZM_DB::DbProvider& db, const ZM_Base::Scheduler&, map<string, SWorker>&);
 
 map<string, SWorker> g_workers;   // key - connectPnt
-ZM_Aux::Queue<STask> g_tasks;
+ZM_Aux::Queue<ZM_Base::Task> g_tasks;
 ZM_Aux::Queue<ZM_DB::MessSchedr> g_messToDB;
 ZM_Base::Scheduler g_schedr;
 static mutex m_mtxSts, m_mtxNotify;
@@ -222,11 +222,11 @@ int main(int argc, char* argv[]){
 
 void getPrevTaskFromDB(ZM_DB::DbProvider& db, 
                        const ZM_Base::Scheduler& schedr,
-                       ZM_Aux::Queue<STask>& outTasks){
-  vector<ZM_DB::SchedrTask> tasks;
+                       ZM_Aux::Queue<ZM_Base::Task>& outTasks){
+  vector<ZM_Base::Task> tasks;
   if (db.getTasksOfSchedr(schedr.id, tasks)){
     for(auto& t : tasks){
-      outTasks.push(STask{t.qTaskId, t.base, t.params});
+      outTasks.push(move(t));
     }
   }else{
     statusMess("getPrevTaskFromDB db error: " + db.getLastError());
