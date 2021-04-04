@@ -178,7 +178,7 @@ public:
   
   bool startTask(uint64_t ptId, const std::string& prevTasks, uint64_t& tId);
   bool cancelTask(uint64_t tId);
-  bool taskState(uint64_t tId, TaskState&);
+  bool taskState(const std::vector<uint64_t>& tId, std::vector<TaskState>&);
   bool taskResult(uint64_t tId, std::string&);
   bool taskTime(uint64_t tId, TaskTime&);
   

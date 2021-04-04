@@ -205,7 +205,7 @@ class _TaskPipelineCng_C(ctypes.Structure):
   _fields_ = [('pplId', ctypes.c_uint64),
               ('gId', ctypes.c_uint64),
               ('ttId', ctypes.c_uint64),
-              ('priority', ctypes.c_uint32)
+              ('priority', ctypes.c_uint32),
               ('params', ctypes.c_char_p)]
 class _TaskCng_C(ctypes.Structure):
   _fields_ = [('pplId', ctypes.c_uint64),
@@ -1112,7 +1112,7 @@ class Connection:
       
       tid = ctypes.c_uint64(0)
       
-      pfun = _lib.zmAddTask
+      pfun = _lib.zmAddTaskPipeline
       pfun.argtypes = (ctypes.c_void_p, _TaskPipelineCng_C, ctypes.POINTER(ctypes.c_uint64))
       pfun.restype = ctypes.c_bool
       if (pfun(self._zmConn, tcng, ctypes.byref(tid))):
@@ -1130,7 +1130,7 @@ class Connection:
 
       tid = ctypes.c_uint64(iot.id)
       
-      pfun = _lib.zmGetTask
+      pfun = _lib.zmGetTaskPipeline
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(_TaskPipelineCng_C))
       pfun.restype = ctypes.c_bool
       if (pfun(self._zmConn, tid, ctypes.byref(tcng))):      
@@ -1158,7 +1158,7 @@ class Connection:
       tcng.priority = iot.priority
       tcng.params = ','.join(iot.params).encode('utf-8')
             
-      pfun = _lib.zmChangeTask
+      pfun = _lib.zmChangeTaskPipeline
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, _TaskPipelineCng_C)
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, tid, tcng)
@@ -1172,7 +1172,7 @@ class Connection:
     if (self._zmConn):
       tid = ctypes.c_uint64(tId)
             
-      pfun = _lib.zmDelTask
+      pfun = _lib.zmDelTaskPipeline
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, tid)
@@ -1188,7 +1188,7 @@ class Connection:
       cpplId = ctypes.c_uint64(pplId)
       cstate = ctypes.c_int32(state.value)
 
-      pfun = _lib.zmGetAllTasks
+      pfun = _lib.zmGetAllTasksPipeline
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.c_int32, ctypes.POINTER(ctypes.POINTER(ctypes.c_uint64)))
       pfun.restype = ctypes.c_uint32
       dbuffer = ctypes.POINTER(ctypes.c_uint64)()
@@ -1216,14 +1216,14 @@ class Connection:
     :return: True - ok
     """
     if (self._zmConn):
-      tid = ctypes.c_uint64(tId)
+      tid = ctypes.c_uint64(0)
             
       tcng = _TaskCng_C()
-      tcng.pplId = iot.pplId
+      tcng.pplId = iot.ptId
       tcng.prevTId = ','.join(iot.prevTasksId).encode('utf-8')
 
       pfun = _lib.zmStartTask
-      pfun.argtypes = (ctypes.c_void_p, _TaskCng_C, ctypes.c_uint64)
+      pfun.argtypes = (ctypes.c_void_p, _TaskCng_C, ctypes.POINTER(ctypes.c_uint64))
       pfun.restype = ctypes.c_bool
       if (pfun(self._zmConn, tcng, ctypes.byref(tid))):
         iot.id = tid.value
@@ -1300,7 +1300,7 @@ class Connection:
       idBuffer = (ctypes.c_uint64 * tsz)(*[iot[i].id for i in range(tsz)])
       stateBuffer = (_TaskState_C * tsz)()
       
-      pfun = _lib.zmTaskState
+      pfun = _lib.zmStateOfTask
       pfun.argtypes = (ctypes.c_void_p, ctypes.POINTER(ctypes.c_uint64), ctypes.c_uint32, ctypes.POINTER(_TaskState_C))
       pfun.restype = ctypes.c_bool
 
@@ -1320,7 +1320,7 @@ class Connection:
       tid = ctypes.c_uint64(iot.id)
       tresult = ctypes.c_char_p()
       
-      pfun = _lib.zmTaskResult
+      pfun = _lib.zmResultOfTask
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(ctypes.c_char_p))
       pfun.restype = ctypes.c_bool
       if (pfun(self._zmConn, tid, ctypes.byref(tresult))):      
@@ -1339,7 +1339,7 @@ class Connection:
       tid = ctypes.c_uint64(iot.id)
       ttime = _TaskTime_C()
       
-      pfun = _lib.zmTaskTime
+      pfun = _lib.zmTimeOfTask
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(_TaskTime_C))
       pfun.restype = ctypes.c_bool
       if (pfun(self._zmConn, tid, ctypes.byref(ttime))):      

@@ -1272,15 +1272,14 @@ TEST_F(APITest, taskState){
   task.ptId = ptId2; 
   uint64_t tId2 = 0;  
   EXPECT_TRUE(zmStartTask(_zc, task, &tId2));  
-
-  zmTaskState tState;
-  EXPECT_TRUE(zmStateOfTask(_zc, tId1, &tState) && 
-              (tState.progress == 0) &&
-              (tState.state == zmStateType::zmReady)); 
-
-  EXPECT_TRUE(zmStateOfTask(_zc, tId2, &tState) && 
-              (tState.progress == 0) &&
-              (tState.state == zmStateType::zmReady));              
+  
+  uint64_t* tIds = new uint64_t[2] {tId1, tId2};
+  zmTaskState* tState = new zmTaskState[2];
+  EXPECT_TRUE(zmStateOfTask(_zc, tIds, 2, tState) && 
+              (tState[0].progress == 0) &&
+              (tState[0].state == zmStateType::zmReady) &&
+              (tState[1].progress == 0) &&
+              (tState[1].state == zmStateType::zmReady)); 
 }
 TEST_F(APITest, taskResult){
   zmUser usr;
@@ -1325,7 +1324,7 @@ TEST_F(APITest, taskResult){
   EXPECT_TRUE(zmStartTask(_zc, task, &tId1));  
 
   char* result = nullptr;
-  EXPECT_TRUE(zmTaskResult(_zc, tId1, &result)); 
+  EXPECT_TRUE(zmResultOfTask(_zc, tId1, &result)); 
 }
 TEST_F(APITest, TaskTime){
   zmUser usr;

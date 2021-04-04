@@ -1168,27 +1168,33 @@ bool DbProvider::cancelTask(uint64_t tId){
   }
   return true;
 }
-bool DbProvider::taskState(uint64_t tId, ZM_DB::TaskState& outState){
+bool DbProvider::taskState(const std::vector<uint64_t>& tId, std::vector<ZM_DB::TaskState>& outState){
   lock_guard<mutex> lk(_mtx);
-  
+  string stId;
+  stId = accumulate(tId.begin(), tId.end(), stId,
+                [](string& s, uint64_t v){
+                  return s.empty() ? to_string(v) : s + "," + to_string(v);
+                }); 
   stringstream ss;
   ss << "SELECT ts.state, ts.progress "
         "FROM tblTaskState ts "
-        "JOIN tblTaskQueue qt ON qt.id = ts.qtask "
-        "WHERE qt.id = " << tId << ";";
+        "WHERE ts.qtask IN (" << stId << ") ORDER BY ts.qtask;";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
     errorMess(string("taskState error: ") + PQerrorMessage(_pg));
     return false;
   }
-  if (PQntuples(pgr.res) != 1){
-    errorMess(string("taskState error: such task does not exist") + PQerrorMessage(_pg));
+  size_t tsz = tId.size();
+  if (PQntuples(pgr.res) != tsz){      
+    errorMess("taskState error: PQntuples(pgr.res) != tsz");
     return false;
   }
-  outState.state = (ZM_Base::StateType)atoi(PQgetvalue(pgr.res, 0, 0));
-  outState.progress = atoi(PQgetvalue(pgr.res, 0, 1));
-  
+  outState.resize(tsz);
+  for (size_t i = 0; i < tsz; ++i){
+    outState[i].state = (ZM_Base::StateType)atoi(PQgetvalue(pgr.res, (int)i, 0));
+    outState[i].progress = atoi(PQgetvalue(pgr.res, (int)i, 1));
+  }
   return true;
 }
 bool DbProvider::taskResult(uint64_t tId, std::string& out){

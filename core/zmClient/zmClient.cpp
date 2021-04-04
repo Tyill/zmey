@@ -788,22 +788,26 @@ bool zmContinueTask(zmConn zo, uint64_t tId){
   }
   return false;
 }
-bool zmStateOfTask(zmConn zo, uint64_t tId, zmTaskState* outQTState){
+bool zmStateOfTask(zmConn zo, uint64_t* qtId, uint32_t tCnt, zmTaskState* outQTState){
   if (!zo) return false;
   
-  if (!outQTState){
-    static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmTaskState error: !outQTState");
+  if (!qtId || !outQTState){
+    static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmTaskState error: !qtId || !outQTState");
     return false;
   }
-  ZM_DB::TaskState tstate;
-  if (static_cast<ZM_DB::DbProvider*>(zo)->taskState(tId, tstate)){
-    outQTState->progress = tstate.progress;
-    outQTState->state = (zmStateType)tstate.state;
+  vector<uint64_t> qtaskId(tCnt);
+  memcpy(qtaskId.data(), qtId, tCnt * sizeof(uint64_t));
+  vector<ZM_DB::TaskState> state;
+  if (static_cast<ZM_DB::DbProvider*>(zo)->taskState(qtaskId, state)){  
+    for (size_t i = 0; i < tCnt; ++i){
+      outQTState[i].progress = state[i].progress;
+      outQTState[i].state = (zmStateType)state[i].state;
+    }    
     return true;
   }
   return false;
 }
-bool zmTaskResult(zmConn zo, uint64_t tId, char** outTResult){
+bool zmResultOfTask(zmConn zo, uint64_t tId, char** outTResult){
   if (!zo) return false;
   
   if (!outTResult){

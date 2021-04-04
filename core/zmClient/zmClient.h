@@ -521,19 +521,21 @@ struct zmTaskState{
   uint32_t progress;      ///< [0..100]
   zmStateType state;
 };
+
 /// get task state
 /// @param[in] zmConn - object connect
-/// @param[in] tId - task object id
+/// @param[in] tId - task id, order by tId
+/// @param[in] tCnt - task id count
 /// @param[out] outTState - task state. The memory is allocated by the user
 /// @return true - ok
-ZMEY_API bool zmStateOfTask(zmConn, uint64_t tId, zmTaskState* outTState);
+ZMEY_API bool zmStateOfTask(zmConn, uint64_t* tId, uint32_t tCnt, zmTaskState* outTState);
 
 /// get task result
 /// @param[in] zmConn - object connect
 /// @param[in] tId - task object id
 /// @param[out] outTResult - task object result
 /// @return true - ok
-ZMEY_API bool zmTaskResult(zmConn, uint64_t tId, char** outTResult);
+ZMEY_API bool zmResultOfTask(zmConn, uint64_t tId, char** outTResult);
 
 /// task time
 struct zmTaskTime{

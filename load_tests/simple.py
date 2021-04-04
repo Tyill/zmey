@@ -86,9 +86,11 @@ taskCnt = 1000
 print('Add and start', taskCnt, 'tasks')  
 tasks = []
 for j in range(taskCnt):
-  t = zm.Task(pplId=ppl.id, ttId=tt.id)
-  zo.addTask(t)
-  zo.startTask(t.id)
+  pt = zm.TaskPipeline(pplId=ppl.id, ttId=tt.id)
+  zo.addTaskPipeline(pt)
+
+  t = zm.Task(ptId=pt.id)
+  zo.startTask(t)
   tasks.append(t)
 
 # start schedrs
