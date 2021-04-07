@@ -144,7 +144,6 @@ bool DbProvider::createTables(){
         "taskTempl    INT NOT NULL REFERENCES tblUTaskTemplate,"
         "taskGroup    INT REFERENCES tblUTaskGroup,"
         "priority     INT NOT NULL DEFAULT 1 CHECK (priority BETWEEN 1 AND 3),"
-        "params       TEXT[] NOT NULL,"  // ['param1','param2'..]        
         "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
     
@@ -270,7 +269,7 @@ bool DbProvider::createTables(){
   /// FUNCTIONS
   ss.str("");
   ss << "CREATE OR REPLACE FUNCTION "
-        "funcStartTask(ptId int, prvTasks int[]) "
+        "funcStartTask(ptId int, tParams TEXT[], prvTasks int[]) "
         "RETURNS int AS $$ "
         "DECLARE "
         "  ptask tblUPipelineTask;"
@@ -293,7 +292,7 @@ bool DbProvider::createTables(){
         "  INSERT INTO tblTaskParam (qtask, priority, params) VALUES("
         "    qId,"
         "    ptask.priority,"
-        "    ptask.params);"
+        "    tParams);"
 
         "  INSERT INTO tblTaskResult (qtask, result) VALUES("
         "    qId,"
@@ -1030,16 +1029,12 @@ std::vector<uint64_t> DbProvider::getAllTaskTemplates(uint64_t usr){
 bool DbProvider::addTaskPipeline(const ZM_Base::UTaskPipeline& cng, uint64_t& outTId){
   lock_guard<mutex> lk(_mtx);
   
-  string params = "['" + cng.params + "']";
-  ZM_Aux::replace(params, ",", "','");
- 
   stringstream ss;
-  ss << "INSERT INTO tblUPipelineTask (pipeline, taskTempl, taskGroup, priority, params) VALUES("
+  ss << "INSERT INTO tblUPipelineTask (pipeline, taskTempl, taskGroup, priority) VALUES("
         "'" << cng.pplId << "',"
         "'" << cng.ttId << "',"
         "NULLIF(" << cng.gId << ", 0),"
-        "'" << cng.priority << "',"
-        "ARRAY" << params << "::TEXT[]) RETURNING id;";
+        "'" << cng.priority << "') RETURNING id;";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
@@ -1052,7 +1047,7 @@ bool DbProvider::addTaskPipeline(const ZM_Base::UTaskPipeline& cng, uint64_t& ou
 bool DbProvider::getTaskPipeline(uint64_t tId, ZM_Base::UTaskPipeline& outTCng){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
-  ss << "SELECT pipeline, COALESCE(taskGroup, 0), taskTempl, priority, params "
+  ss << "SELECT pipeline, COALESCE(taskGroup, 0), taskTempl, priority "
         "FROM tblUPipelineTask "
         "WHERE id = " << tId << " AND isDelete = 0;";
 
@@ -1069,24 +1064,17 @@ bool DbProvider::getTaskPipeline(uint64_t tId, ZM_Base::UTaskPipeline& outTCng){
   outTCng.gId = stoull(PQgetvalue(pgr.res, 0, 1));
   outTCng.ttId = stoull(PQgetvalue(pgr.res, 0, 2));
   outTCng.priority = atoi(PQgetvalue(pgr.res, 0, 3));  
-  outTCng.params = PQgetvalue(pgr.res, 0, 4);
-  ZM_Aux::replace(outTCng.params, "\"", "");
-  outTCng.params = outTCng.params.substr(1, outTCng.params.size() - 2); // remove { and }
   return true;
 }
 bool DbProvider::changeTaskPipeline(uint64_t tId, const ZM_Base::UTaskPipeline& newCng){
   lock_guard<mutex> lk(_mtx);
-
-  string params = "['" + newCng.params + "']";
-  ZM_Aux::replace(params, ",", "','");
-
+ 
   stringstream ss;
   ss << "UPDATE tblUPipelineTask SET "
         "pipeline = '" << newCng.pplId << "',"
         "taskTempl = '" << newCng.ttId << "',"
         "taskGroup = NULLIF(" << newCng.gId << ", 0),"
-        "priority = '" << newCng.priority << "',"
-        "params = ARRAY" << params << "::TEXT[] "
+        "priority = '" << newCng.priority << "' "        
         "WHERE id = " << tId << " AND isDelete = 0;";
           
   PGres pgr(PQexec(_pg, ss.str().c_str()));
@@ -1129,10 +1117,14 @@ std::vector<uint64_t> DbProvider::getAllTasksPipeline(uint64_t pplId){
   return ret;
 }
 
-bool DbProvider::startTask(uint64_t ptId, const std::string& prevTasks, uint64_t& tId){
+bool DbProvider::startTask(uint64_t ptId, const std::string& inparams, const std::string& prevTasks, uint64_t& tId){
   lock_guard<mutex> lk(_mtx);  
+
+  string params = "['" + inparams + "']";
+  ZM_Aux::replace(params, ",", "','");
+
   stringstream ss;
-  ss << "SELECT * FROM funcStartTask(" << ptId << ", ARRAY[" << prevTasks << "]::INT[]);";
+  ss << "SELECT * FROM funcStartTask(" << ptId << ", ARRAY" << params << "::TEXT[], ARRAY[" << prevTasks << "]::INT[]);";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){

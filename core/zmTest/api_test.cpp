@@ -963,8 +963,6 @@ TEST_F(APITest, addTask){
   task.gId = 0; 
   task.priority = 1;
   task.ttId = ttId;
-  task.params = new char[32];
-  strcpy(task.params, "param1,param2,param3");
   uint64_t tId = 0;  
   EXPECT_TRUE(zmAddTaskPipeline(_zc, task, &tId) && (tId > 0));  
   
@@ -1004,8 +1002,6 @@ TEST_F(APITest, getTask){
   task.gId = 0; 
   task.priority = 1;
   task.ttId = ttId;
-  task.params = new char[32];
-  strcpy(task.params, "par am1,param2,param3");
   uint64_t tId = 0;  
   EXPECT_TRUE(zmAddTaskPipeline(_zc, task, &tId) && (tId > 0));  
 
@@ -1013,12 +1009,10 @@ TEST_F(APITest, getTask){
   task.gId = pId + 1; 
   task.priority = 2;
   task.ttId = ttId + 1;
-  strcpy(task.params, "['e','paramr2','patyram3']");
   EXPECT_TRUE(zmGetTaskPipeline(_zc, tId, &task) &&
              (task.pplId == pId) &&
              (task.gId == 0) &&
              (task.priority == 1) &&
-             (strcmp(task.params, "par am1,param2,param3") == 0) &&
              (task.ttId == ttId));          
 }
 TEST_F(APITest, changeTask){
@@ -1053,32 +1047,25 @@ TEST_F(APITest, changeTask){
   task.gId = 0;
   task.priority = 1;
   task.ttId = ttId;
-  task.params = new char[32];
-  strcpy(task.params, "param1,param2,param3");
   uint64_t tId1 = 0;  
   EXPECT_TRUE(zmAddTaskPipeline(_zc, task, &tId1) && (tId1 > 0)); 
 
   task.pplId = pId; 
   task.priority = 1;
   task.ttId = ttId;
-  task.params = new char[32];
-  strcpy(task.params, "param1,param2,param3");
   uint64_t tId2 = 0;  
   EXPECT_TRUE(zmAddTaskPipeline(_zc, task, &tId2) && (tId2 > 0)); 
   
   task.pplId = pId; 
   task.priority = 2;
-  strcpy(task.params, "par amm1,paramm2,paramm3");
   EXPECT_TRUE(zmChangeTaskPipeline(_zc, tId2, task));
 
   task.pplId = pId + 1; 
   task.priority = 11;
   task.ttId = ttId + 1;
-  strcpy(task.params, "par1,mm2,pam3");
   EXPECT_TRUE(zmGetTaskPipeline(_zc, tId2, &task) &&
              (task.pplId == pId) &&
              (task.priority == 2) &&
-             (strcmp(task.params, "par amm1,paramm2,paramm3") == 0) &&            
              (task.ttId == ttId));
 }
 TEST_F(APITest, delTask){
@@ -1113,8 +1100,6 @@ TEST_F(APITest, delTask){
   task.gId = 0; 
   task.priority = 1;
   task.ttId = ttId;
-  task.params = new char[32];
-  strcpy(task.params, "param1,param2,param3");
   uint64_t tId1 = 0;  
   EXPECT_TRUE(zmAddTaskPipeline(_zc, task, &tId1) && (tId1 > 0)); 
 
@@ -1123,11 +1108,9 @@ TEST_F(APITest, delTask){
   task.pplId = pId + 1; 
   task.priority = 2;
   task.ttId = ttId + 1;
-  strcpy(task.params, "['e','paramr2','patyram3']");
   EXPECT_TRUE(!zmGetTaskPipeline(_zc, tId1, &task) &&
              (task.pplId == pId + 1) &&
              (task.priority == 2) &&
-             (strcmp(task.params, "['e','paramr2','patyram3']") == 0) &&
              (task.ttId == ttId + 1));             
 }
 TEST_F(APITest, startTask){
@@ -1162,8 +1145,6 @@ TEST_F(APITest, startTask){
   ptask.gId = 0; 
   ptask.priority = 1;
   ptask.ttId = ttId;
-  ptask.params = new char[32];
-  strcpy(ptask.params, "param1,param2,param3");
   uint64_t ptId1 = 0;  
   EXPECT_TRUE(zmAddTaskPipeline(_zc, ptask, &ptId1) && (ptId1 > 0));  
 
@@ -1207,8 +1188,6 @@ TEST_F(APITest, cancelTask){
   ptask.gId = 0;  
   ptask.priority = 1;
   ptask.ttId = ttId;
-  ptask.params = new char[32];
-  strcpy(ptask.params, "param1,param2,param3");
   uint64_t ptId1 = 0;  
   EXPECT_TRUE(zmAddTaskPipeline(_zc, ptask, &ptId1) && (ptId1 > 0));  
 
@@ -1251,8 +1230,6 @@ TEST_F(APITest, taskState){
   ptask.gId = 0; 
   ptask.priority = 1;
   ptask.ttId = ttId;
-  ptask.params = new char[32];
-  strcpy(ptask.params, "param1,param2,param3");
   uint64_t ptId1 = 0;  
   EXPECT_TRUE(zmAddTaskPipeline(_zc, ptask, &ptId1) && (ptId1 > 0));  
   
@@ -1264,8 +1241,6 @@ TEST_F(APITest, taskState){
   ptask.pplId = pId; 
   ptask.priority = 1;
   ptask.ttId = ttId;
-  ptask.params = new char[32];
-  strcpy(ptask.params, "param1,param2,param3");
   uint64_t ptId2 = 0;  
   EXPECT_TRUE(zmAddTaskPipeline(_zc, ptask, &ptId2) && (ptId2 > 0));
 
@@ -1313,8 +1288,6 @@ TEST_F(APITest, taskResult){
   ptask.gId = 0; 
   ptask.priority = 1;
   ptask.ttId = ttId;
-  ptask.params = new char[32];
-  strcpy(ptask.params, "param1,param2,param3");
   uint64_t ptId1 = 0;  
   EXPECT_TRUE(zmAddTaskPipeline(_zc, ptask, &ptId1) && (ptId1 > 0));  
   
@@ -1358,8 +1331,6 @@ TEST_F(APITest, TaskTime){
   ptask.gId = 0; 
   ptask.priority = 1;
   ptask.ttId = ttId;
-  ptask.params = new char[32];
-  strcpy(ptask.params, "param1,param2,param3");
   uint64_t ptId1 = 0;  
   EXPECT_TRUE(zmAddTaskPipeline(_zc, ptask, &ptId1) && (ptId1 > 0));  
   
@@ -1403,8 +1374,6 @@ TEST_F(APITest, getAllTask){
   ptask.gId = 0; 
   ptask.priority = 1;
   ptask.ttId = ttId;
-  ptask.params = new char[32];
-  strcpy(ptask.params, "param1,param2,param3");
   uint64_t ptId1 = 0;  
   EXPECT_TRUE(zmAddTaskPipeline(_zc, ptask, &ptId1) && (ptId1 > 0));  
   
@@ -1416,8 +1385,6 @@ TEST_F(APITest, getAllTask){
   ptask.pplId = pId; 
   ptask.priority = 1;
   ptask.ttId = ttId;
-  ptask.params = new char[32];
-  strcpy(ptask.params, "param1,param2,param3");
   uint64_t ptId2 = 0;  
   EXPECT_TRUE(zmAddTaskPipeline(_zc, ptask, &ptId2) && (ptId2 > 0));  
   

@@ -113,8 +113,7 @@ namespace ZM_Base{
     uint64_t ttId;            // id tblUTaskTemplate
     uint64_t pplId;           // id tblUPipeline
     uint64_t gId;             // id tblUGroup
-    int priority;             // [1..3]
-    std::string params;       // CLI params for script: {param1,param2..}
+    int priority;             // [1..3]    
   };
   // tblScheduler
   struct Scheduler{

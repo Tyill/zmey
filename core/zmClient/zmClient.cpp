@@ -663,7 +663,6 @@ bool zmAddTaskPipeline(zmConn zo, zmTaskPipeline cng, uint64_t* outQTId){
   task.pplId = cng.pplId;
   task.ttId = cng.ttId;
   task.gId = cng.gId;
-  task.params = cng.params ? cng.params : "";
   task.priority = cng.priority;
     
   return static_cast<ZM_DB::DbProvider*>(zo)->addTaskPipeline(task, *outQTId);
@@ -680,16 +679,7 @@ bool zmGetTaskPipeline(zmConn zo, uint64_t ptId, zmTaskPipeline* outCng){
     outCng->pplId = task.pplId;
     outCng->gId = task.gId;
     outCng->ttId = task.ttId;
-    outCng->priority = task.priority;    
-    if(!task.params.empty()){
-      outCng->params = (char*)realloc(outCng->params, task.params.size() + 1);
-      {lock_guard<mutex> lk(m_mtxResources);
-        m_resources[zo].str.push_back(outCng->params);
-      }
-      strcpy(outCng->params, task.params.c_str());  
-    }else{
-      outCng->params = nullptr;
-    }
+    outCng->priority = task.priority; 
     return true;
   }
   return false;
@@ -702,8 +692,7 @@ bool zmChangeTaskPipeline(zmConn zo, uint64_t tId, zmTaskPipeline newCng){
   task.gId = newCng.gId;
   task.ttId = newCng.ttId;
   task.priority = newCng.priority;
-  task.params = newCng.params ? newCng.params : "";
-
+  
   return static_cast<ZM_DB::DbProvider*>(zo)->changeTaskPipeline(tId, task);
 }
 bool zmDelTaskPipeline(zmConn zo, uint64_t tId){
@@ -732,8 +721,9 @@ bool zmStartTask(zmConn zo, zmTask cng, uint64_t* tId){
   if (!zo || !tId) return false;
 
   string prTask = cng.prevTId ? cng.prevTId : "";
+  string params = cng.params ? cng.params : "";
 
-  return static_cast<ZM_DB::DbProvider*>(zo)->startTask(cng.ptId, prTask, *tId);
+  return static_cast<ZM_DB::DbProvider*>(zo)->startTask(cng.ptId, params, prTask, *tId);
 }
 bool zmStopTask(zmConn zo, uint64_t tId){
   if (!zo) return false;
