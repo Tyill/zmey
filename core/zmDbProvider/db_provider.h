@@ -105,7 +105,7 @@ class DbProvider{
   std::condition_variable _cvNotifyTask;
   std::thread _thrEndTask;
   std::map<uint64_t, std::pair<ZM_Base::StateType, changeTaskStateCBack>> _notifyTaskStateCBack;
-  volatile bool _fClose = false;
+  bool _fClose = false;
 public: 
   DbProvider(const ConnectCng& cng);
   ~DbProvider(); 

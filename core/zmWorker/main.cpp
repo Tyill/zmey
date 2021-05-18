@@ -58,7 +58,7 @@ list<Process> g_procs;
 mutex g_mtxProc;
 static mutex m_mtxSts, m_mtxNotify;
 static condition_variable m_cvStandUp;
-static volatile bool m_fClose = false;
+static bool m_fClose = false;
 
 struct Config{
   int progressTasksTOutSec = 10;

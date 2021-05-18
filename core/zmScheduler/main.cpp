@@ -42,29 +42,9 @@
 
 using namespace std;
 
-void receiveHandler(const string& cp, const string& data);
-void sendHandler(const string& cp, const string& data, const std::error_code& ec);
-void getNewTaskFromDB(ZM_DB::DbProvider& db);
-bool sendTaskToWorker(const ZM_Base::Scheduler&, map<string, SWorker>&, ZM_Aux::Queue<ZM_Base::Task>&, ZM_Aux::Queue<ZM_DB::MessSchedr>& messToDB);
-void sendAllMessToDB(ZM_DB::DbProvider& db);
-void checkStatusWorkers(const ZM_Base::Scheduler&, map<string, SWorker>&, ZM_Aux::Queue<ZM_DB::MessSchedr>&);
-void getPrevTaskFromDB(ZM_DB::DbProvider& db, const ZM_Base::Scheduler&,  ZM_Aux::Queue<ZM_Base::Task>&);
-void getPrevWorkersFromDB(ZM_DB::DbProvider& db, const ZM_Base::Scheduler&, map<string, SWorker>&);
-
-map<string, SWorker> g_workers;   // key - connectPnt
-ZM_Aux::Queue<ZM_Base::Task> g_tasks;
-ZM_Aux::Queue<ZM_DB::MessSchedr> g_messToDB;
-ZM_Base::Scheduler g_schedr;
 static mutex m_mtxSts, m_mtxNotify;
 static condition_variable m_cvStandUp;
-static volatile bool m_fClose = false;
-
-struct Config{
-  int checkWorkerTOutSec = 120;
-  string localConnPnt;
-  string remoteConnPnt;
-  ZM_DB::ConnectCng dbConnCng;
-};
+static bool m_fClose = false;
 
 void statusMess(const string& mess){
   lock_guard<mutex> lock(m_mtxSts);
@@ -130,7 +110,7 @@ createDbProvider(const Config& cng, string& err){
   }
 }
 
-#define CHECK(fun, mess) \
+#define CHECK_RETURN(fun, mess) \
   if (fun){              \
     statusMess(mess);    \
     return -1;           \
@@ -145,9 +125,9 @@ int main(int argc, char* argv[]){
     cng.remoteConnPnt = cng.localConnPnt;
   } 
 
-  CHECK(cng.localConnPnt.empty() || (ZM_Aux::split(cng.localConnPnt, ':').size() != 2), "Not set param '--localAddr[-la]' - scheduler local connection point: IP or DNS:port");
-  CHECK(cng.remoteConnPnt.empty() || (ZM_Aux::split(cng.remoteConnPnt, ':').size() != 2), "Not set param '--remoteAddr[-ra]' - scheduler remote connection point: IP or DNS:port");
-  CHECK(cng.dbConnCng.connectStr.empty(), "Not set param '--dbConnStr[-db]' - database connection string");
+  CHECK_RETURN(cng.localConnPnt.empty() || (ZM_Aux::split(cng.localConnPnt, ':').size() != 2), "Not set param '--localAddr[-la]' - scheduler local connection point: IP or DNS:port");
+  CHECK_RETURN(cng.remoteConnPnt.empty() || (ZM_Aux::split(cng.remoteConnPnt, ':').size() != 2), "Not set param '--remoteAddr[-ra]' - scheduler remote connection point: IP or DNS:port");
+  CHECK_RETURN(cng.dbConnCng.connectStr.empty(), "Not set param '--dbConnStr[-db]' - database connection string");
    
   signal(SIGINT, closeHandler);
   signal(SIGTERM, closeHandler);
@@ -161,11 +141,11 @@ int main(int argc, char* argv[]){
   string err;
   auto dbNewTask = createDbProvider(cng, err);
   auto dbSendMess = dbNewTask ? createDbProvider(cng, err) : nullptr;
-  CHECK(!dbNewTask || !dbSendMess, "Schedr DB connect error " + err + ": " + cng.dbConnCng.connectStr); 
+  CHECK_RETURN(!dbNewTask || !dbSendMess, "Schedr DB connect error " + err + ": " + cng.dbConnCng.connectStr); 
     
   // schedr from DB
   dbNewTask->getSchedr(cng.remoteConnPnt, g_schedr);
-  CHECK(g_schedr.id == 0, "Schedr not found in DB for connectPnt " + cng.remoteConnPnt);
+  CHECK_RETURN(g_schedr.id == 0, "Schedr not found in DB for connectPnt " + cng.remoteConnPnt);
       
   // prev tasks and workers
   getPrevTaskFromDB(*dbNewTask, g_schedr, g_tasks);
@@ -177,7 +157,7 @@ int main(int argc, char* argv[]){
   for (auto& w : g_workers){
     ZM_Tcp::addPreConnectPnt(w.first);
   }  
-  CHECK(!ZM_Tcp::startServer(cng.localConnPnt, err), "Schedr error: " + cng.localConnPnt + " " + err);
+  CHECK_RETURN(!ZM_Tcp::startServer(cng.localConnPnt, err), "Schedr error: " + cng.localConnPnt + " " + err);
   statusMess("Schedr running: " + cng.localConnPnt);
   
   ///////////////////////////////////////////////////////

@@ -18,13 +18,13 @@ import "bootstrap/dist/css/bootstrap.min.css";
 interface IPropsApp {
   user : IUser;                                // | Store
   pipelines : Map<number, IPipeline>;          // | 
-  groups : Map<number, IGroup>;        // |
+  groups : Map<number, IGroup>;                // |
   taskTemplates : Map<number, ITaskTemplate>;  // |
   tasks : Map<number, ITask>;                  // |  
 
   onFillTaskTemplates : (taskTemplates : Array<ITaskTemplate>) => any; // | Actions
   onFillPipelines : (pipelines : Array<IPipeline>) => any;             // |
-  onFillTaskGroups : (groups : Array<IGroup>) => any;          // |
+  onFillTaskGroups : (groups : Array<IGroup>) => any;                  // |
   onFillTasks : (tasks : Array<ITask>) => any;                         // |
   onDelTaskTemplate : (taskTemplate : ITaskTemplate) => any;           // |
   onDelPipeline : (pipeline : IPipeline) => any;                       // |

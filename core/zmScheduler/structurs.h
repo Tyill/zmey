@@ -35,3 +35,30 @@ struct SWorker{
   ZM_Base::StateType stateMem;
   bool isActive;
 };
+
+struct Config{
+  int checkWorkerTOutSec = 120;
+  string localConnPnt;
+  string remoteConnPnt;
+  ZM_DB::ConnectCng dbConnCng;
+};
+
+class BaseScheduler{
+public:
+  BaseScheduler();
+  
+  static void receiveHandler(const string& cp, const string& data);
+  static void sendHandler(const string& cp, const string& data, const std::error_code& ec);
+  static void getNewTaskFromDB(ZM_DB::DbProvider& db);
+  static bool sendTaskToWorker(const ZM_Base::Scheduler&, map<string, SWorker>&, ZM_Aux::Queue<ZM_Base::Task>&, ZM_Aux::Queue<ZM_DB::MessSchedr>& messToDB);
+  static void sendAllMessToDB(ZM_DB::DbProvider& db);
+  static void checkStatusWorkers(const ZM_Base::Scheduler&, map<string, SWorker>&, ZM_Aux::Queue<ZM_DB::MessSchedr>&);
+  static void getPrevTaskFromDB(ZM_DB::DbProvider& db, const ZM_Base::Scheduler&,  ZM_Aux::Queue<ZM_Base::Task>&);
+  static void getPrevWorkersFromDB(ZM_DB::DbProvider& db, const ZM_Base::Scheduler&, map<string, SWorker>&);
+  
+public:
+  static std::map<std::string, SWorker> workers;   // key - connectPnt
+  static ZM_Aux::Queue<ZM_Base::Task> tasks;
+  static ZM_Aux::Queue<ZM_DB::MessSchedr> messToDB;
+  static ZM_Base::Scheduler schedr;  
+};
