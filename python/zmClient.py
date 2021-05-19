@@ -26,7 +26,9 @@
 
 from __future__ import absolute_import
 import ctypes
+from typing import List
 from enum import Enum
+
 
 _lib = None
 
@@ -130,14 +132,12 @@ class TaskPipeline:
                pplId : int = 0,
                ttId : int = 0,
                gId : int = 0,
-               priority : int = 1,
-               params : [str] = []):
+               priority : int = 1):
     self.id = id
     self.pplId = pplId                 # Pipeline id    
     self.ttId = ttId                   # TaskTemplate id
     self.gId = gId                     # taskGroup id
     self.priority = priority           # [1..3]
-    self.params = params               # CLI params for script: ['param1','param2'..]
 class Task:
   """Task config""" 
   def __init__(self,
@@ -146,7 +146,8 @@ class Task:
                state : StateType = StateType.READY, 
                progress : int = 0,
                result : str = "",
-               prevTasksId : [int] = [],
+               prevTasksId : List[int] = [],
+               params : List[str] = [],
                createTime : str = "",
                takeInWorkTime : str = "",
                startTime : str = "",
@@ -157,6 +158,7 @@ class Task:
     self.progress = progress
     self.result = result
     self.prevTasksId = prevTasksId     # Pipeline Task id of previous tasks to be COMPLETED: [qtId,..] 
+    self.params = params               # CLI params for script: ['param1','param2'..]
     self.createTime = createTime
     self.takeInWorkTime = takeInWorkTime
     self.startTime = startTime
@@ -205,10 +207,10 @@ class _TaskPipelineCng_C(ctypes.Structure):
   _fields_ = [('pplId', ctypes.c_uint64),
               ('gId', ctypes.c_uint64),
               ('ttId', ctypes.c_uint64),
-              ('priority', ctypes.c_uint32),
-              ('params', ctypes.c_char_p)]
+              ('priority', ctypes.c_uint32)]
 class _TaskCng_C(ctypes.Structure):
   _fields_ = [('pplId', ctypes.c_uint64),
+              ('params', ctypes.c_char_p),
               ('prevTId', ctypes.c_char_p)]
 class _TaskState_C(ctypes.Structure):
   _fields_ = [('progress', ctypes.c_uint32),
@@ -412,7 +414,7 @@ class Connection:
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, uid)
     return False
-  def getAllUsers(self) -> [User]:
+  def getAllUsers(self) -> List[User]:
     """
     Get all users
     :return: list of users
@@ -570,7 +572,7 @@ class Connection:
         iosch.state = StateType(sstate.value) 
         return True
     return False
-  def getAllSchedulers(self, state : StateType=StateType.UNDEFINED) -> [Schedr]:
+  def getAllSchedulers(self, state : StateType=StateType.UNDEFINED) -> List[Schedr]:
     """
     Get all schedrs
     :param state: choose with current state. If the state is 'UNDEFINED', select all
@@ -715,7 +717,7 @@ class Connection:
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, wid)
     return False
-  def workerState(self, iowkrs : [Worker]) -> bool:
+  def workerState(self, iowkrs : List[Worker]) -> bool:
     """
     Worker state
     :param iowkrs: workers config
@@ -739,7 +741,7 @@ class Connection:
           iowkrs[i].state = StateType(stateBuffer[i])
         return True
     return False
-  def getAllWorkers(self, sId : int, state : StateType=StateType.UNDEFINED) -> [Worker]:
+  def getAllWorkers(self, sId : int, state : StateType=StateType.UNDEFINED) -> List[Worker]:
     """
     Get all workers
     :param sId: Schedr id
@@ -846,7 +848,7 @@ class Connection:
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, pid)
     return False
-  def getAllPipelines(self, uId : int) -> [Pipeline]:
+  def getAllPipelines(self, uId : int) -> List[Pipeline]:
     """
     Get all pipelines
     :param uId: User id
@@ -951,7 +953,7 @@ class Connection:
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, gid)
     return False
-  def getAllGroups(self, pplId : int) -> [Pipeline]:
+  def getAllGroups(self, pplId : int) -> List[Pipeline]:
     """
     Get all groups
     :param pplId: Pipeline id
@@ -1066,7 +1068,7 @@ class Connection:
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, tid)
     return False
-  def getAllTaskTemplates(self, uId : int) -> [TaskTemplate]:
+  def getAllTaskTemplates(self, uId : int) -> List[TaskTemplate]:
     """
     Get all taskTemplates
     :param uId: User id
@@ -1108,7 +1110,6 @@ class Connection:
       tcng.ttId = iot.ttId
       tcng.gId = iot.gId
       tcng.priority = iot.priority
-      tcng.params = ','.join(iot.params).encode('utf-8')
       
       tid = ctypes.c_uint64(0)
       
@@ -1138,8 +1139,6 @@ class Connection:
         iot.ttId = tcng.ttId
         iot.gId = tcng.gId
         iot.priority = tcng.priority
-        if tcng.params:
-          iot.params = tcng.params.decode('utf-8').split(',')
         self._freeResources()
         return True
     return False
@@ -1156,7 +1155,6 @@ class Connection:
       tcng.ttId = iot.ttId
       tcng.gId = iot.gId
       tcng.priority = iot.priority
-      tcng.params = ','.join(iot.params).encode('utf-8')
             
       pfun = _lib.zmChangeTaskPipeline
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, _TaskPipelineCng_C)
@@ -1177,7 +1175,7 @@ class Connection:
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, tid)
     return False
-  def getAllTasksPipeline(self, pplId : int) -> [TaskPipeline]:
+  def getAllTasksPipeline(self, pplId : int) -> List[TaskPipeline]:
     """
     Get all tasks of pipeline
     :param pplId: Pipeline id
@@ -1221,6 +1219,7 @@ class Connection:
       tcng = _TaskCng_C()
       tcng.pplId = iot.ptId
       tcng.prevTId = ','.join(iot.prevTasksId).encode('utf-8')
+      tcng.params = ','.join(iot.params).encode('utf-8')
 
       pfun = _lib.zmStartTask
       pfun.argtypes = (ctypes.c_void_p, _TaskCng_C, ctypes.POINTER(ctypes.c_uint64))
@@ -1285,7 +1284,7 @@ class Connection:
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, tid)
     return False
-  def taskState(self, iot : [Task]) -> bool:
+  def taskState(self, iot : List[Task]) -> bool:
     """
     Task state
     :param iot: tasks config
@@ -1370,7 +1369,7 @@ class Connection:
   #############################################################################
   ### Internal errors
  
-  def getInternErrors(self, sId : int, wId : int, mCnt : int) -> [InternError]:
+  def getInternErrors(self, sId : int, wId : int, mCnt : int) -> List[InternError]:
     """
     Get internal errors
     :param sId: Schedr id

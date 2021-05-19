@@ -22,32 +22,18 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#include "zmDbProvider/db_provider.h"
-#include "zmCommon/queue.h"
-#include "zmCommon/aux_func.h"
-#include "structurs.h"
+#include "zmScheduler/executor.h"
 
 using namespace std;
 
-static ZM_Aux::CounterTick m_ctickAD;
-extern ZM_Aux::Queue<ZM_DB::MessSchedr> g_messToDB;
-extern ZM_Base::Scheduler g_schedr;
-
-void sendAllMessToDB(ZM_DB::DbProvider& db){
-
-  vector<ZM_DB::MessSchedr> mess;
-  ZM_DB::MessSchedr m;
-  while(g_messToDB.tryPop(m)){
-    mess.push_back(m);
-  }
-  if (!db.sendAllMessFromSchedr(g_schedr.id, mess)){
-    for (auto& m : mess){
-      g_messToDB.push(move(m));
-    }
-    if (m_ctickAD(100)){ // every 100 cycle
-      statusMess("sendAllMessToDB db error: " + db.getLastError());
+void Executor::getPrevTaskFromDB(ZM_DB::DbProvider& db)
+{
+  vector<ZM_Base::Task> tasks;
+  if (db.getTasksOfSchedr(m_schedr.id, tasks)){
+    for(auto& t : tasks){
+      m_tasks.push(move(t));
     }
   }else{
-    m_ctickAD.reset();
+    m_app.statusMess("getPrevTaskFromDB db error: " + db.getLastError());
   }
-}
+};

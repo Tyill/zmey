@@ -1356,7 +1356,7 @@ vector<ZM_DB::MessError> DbProvider::getInternErrors(uint64_t sId, uint64_t wId,
 }
 
 // for zmSchedr
-bool DbProvider::getSchedr(std::string& connPnt, ZM_Base::Scheduler& outCng){
+bool DbProvider::getSchedr(const std::string& connPnt, ZM_Base::Scheduler& outCng){
   lock_guard<mutex> lk(_mtx);
   auto cp = ZM_Aux::split(connPnt, ':');
   if (cp.size() != 2){

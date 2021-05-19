@@ -22,104 +22,35 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#include <signal.h>
-#ifdef __linux__
-#include <unistd.h>
-#endif
-#include <future>
-#include <condition_variable>
-#include <algorithm>
-#include <iostream>
-#include <map>
-#include <mutex>
 
 #include "zmCommon/tcp.h"
-#include "zmCommon/timer_delay.h"
-#include "zmCommon/queue.h"
-#include "zmCommon/aux_func.h"
-#include "zmDbProvider/db_provider.h"
-#include "structurs.h"
+#include "application.h"
+#include "executor.h"
+#include "loop.h"
+
+#include <signal.h>
 
 using namespace std;
 
-static mutex m_mtxSts, m_mtxNotify;
-static condition_variable m_cvStandUp;
-static bool m_fClose = false;
-
-void statusMess(const string& mess){
-  lock_guard<mutex> lock(m_mtxSts);
-  cout << ZM_Aux::currDateTimeMs() << " " << mess << std::endl;
-}
-
-void parseArgs(int argc, char* argv[], Config& outCng){ 
-  
-  map<string, string> sprms = ZM_Aux::parseCMDArgs(argc, argv);
-
-  if (sprms.empty() || (sprms.cbegin()->first == "help")){
-    cout << "Usage: --localAddr[-la] schedr local connection point: IP or DNS:port. Required\n"
-         << "       --remoteAddr[-ra] schedr remote connection point (if from NAT): IP or DNS:port. Optional\n"
-         << "       --dbConnStr[-db] database connection string\n"
-         << "       --checkWorkerTOut[-cw] check ping from workers, sec. Default 120 sec\n";
-    exit(0);  
-  }
-  
-#define SET_PARAM(shortName, longName, prm)        \
-  if (sprms.find(#longName) != sprms.end()){       \
-    outCng.prm = sprms[#longName];                 \
-  }                                                \
-  else if (sprms.find(#shortName) != sprms.end()){ \
-    outCng.prm = sprms[#shortName];                \
-  }
-
-  SET_PARAM(la, localAddr, localConnPnt); 
-  SET_PARAM(ra, remoteAddr, remoteConnPnt);
-  SET_PARAM(db, dbConnStr, dbConnCng.connectStr);
- 
-#define SET_PARAM_NUM(shortName, longName, prm)                                           \
-  if (sprms.find(#longName) != sprms.end() && ZM_Aux::isNumber(sprms[#longName])){        \
-    outCng.prm = stoi(sprms[#longName]);                                                  \
-  }                                                                                       \
-  else if (sprms.find(#shortName) != sprms.end() && ZM_Aux::isNumber(sprms[#shortName])){ \
-    outCng.prm = stoi(sprms[#shortName]);                                                 \
-  }
-
-  SET_PARAM_NUM(cw, checkWorkerTOut, checkWorkerTOutSec);
-}
-
-void mainCycleNotify(){
-  m_cvStandUp.notify_one();  
-}
-
-void mainCycleSleep(int delayMS){
-  unique_lock<mutex> lck(m_mtxNotify);
-  m_cvStandUp.wait_for(lck, chrono::milliseconds(delayMS)); 
-}
-
-void closeHandler(int sig){
-  m_fClose = true;
-}
+void closeHandler(int sig);
 
 unique_ptr<ZM_DB::DbProvider> 
-createDbProvider(const Config& cng, string& err){
-  unique_ptr<ZM_DB::DbProvider> db(new ZM_DB::DbProvider(cng.dbConnCng));
-  err = db->getLastError();
-  if (err.empty()){
-    return db;
-  } else{    
-    return nullptr;
-  }
-}
+createDbProvider(const Application::Config& cng, string& err);
 
 #define CHECK_RETURN(fun, mess) \
-  if (fun){              \
-    statusMess(mess);    \
-    return -1;           \
+  if (fun){                     \
+    app.statusMess(mess);       \
+    return -1;                  \
   }
 
-int main(int argc, char* argv[]){
+int main(int argc, char* argv[])
+{
+  Application app;
 
-  Config cng;
-  parseArgs(argc, argv, cng);
+  Application::Config cng;
+  if (!app.parseArgs(argc, argv, cng)){
+    return 0;
+  }
   
   if (cng.remoteConnPnt.empty()){  // when without NAT
     cng.remoteConnPnt = cng.localConnPnt;
@@ -143,85 +74,72 @@ int main(int argc, char* argv[]){
   auto dbSendMess = dbNewTask ? createDbProvider(cng, err) : nullptr;
   CHECK_RETURN(!dbNewTask || !dbSendMess, "Schedr DB connect error " + err + ": " + cng.dbConnCng.connectStr); 
     
+  Executor executor(app);
+  
   // schedr from DB
-  dbNewTask->getSchedr(cng.remoteConnPnt, g_schedr);
-  CHECK_RETURN(g_schedr.id == 0, "Schedr not found in DB for connectPnt " + cng.remoteConnPnt);
+  CHECK_RETURN(!executor.getSchedrFromDB(cng.remoteConnPnt, *dbNewTask), "Schedr not found in DB for connectPnt " + cng.remoteConnPnt);
       
   // prev tasks and workers
-  getPrevTaskFromDB(*dbNewTask, g_schedr, g_tasks);
-  getPrevWorkersFromDB(*dbNewTask, g_schedr, g_workers);
+  executor.getPrevTaskFromDB(*dbNewTask);
+  executor.getPrevWorkersFromDB(*dbNewTask);
  
   // TCP server
-  ZM_Tcp::setReceiveCBack(receiveHandler);
-  ZM_Tcp::setSendStatusCBack(sendHandler);
-  for (auto& w : g_workers){
-    ZM_Tcp::addPreConnectPnt(w.first);
-  }  
+  ZM_Tcp::setReceiveCBack([&executor](const string& cp, const string& data){
+    executor.receiveHandler(cp, data);
+  });
+  ZM_Tcp::setSendStatusCBack([&executor](const string& cp, const string& data, const error_code& ec){
+    executor.sendNotifyHandler(cp, data, ec);
+  });
+  
   CHECK_RETURN(!ZM_Tcp::startServer(cng.localConnPnt, err), "Schedr error: " + cng.localConnPnt + " " + err);
-  statusMess("Schedr running: " + cng.localConnPnt);
+  app.statusMess("Schedr running: " + cng.localConnPnt);
   
-  ///////////////////////////////////////////////////////
-
-  future<void> frGetNewTask,
-               frSendAllMessToDB; 
-  ZM_Aux::TimerDelay timer;
-  const int minCycleTimeMS = 10;
-
   // on start
-  g_messToDB.push(ZM_DB::MessSchedr{ ZM_Base::MessType::START_SCHEDR });
+  executor.addMessToDB(ZM_DB::MessSchedr{ ZM_Base::MessType::START_SCHEDR });
+
+  // loop ///////////////////////////////////////////////////////////////////////
+  Loop loop(cng, executor, *dbNewTask, *dbSendMess);
+
+  Application::SignalConnector.connectSlot(Application::SIGNAL_LOOP_NOTIFY, 
+    std::function<void()>([&loop]() {
+      loop.standUpNotify();
+  }));
+
+  Application::SignalConnector.connectSlot(Application::SIGNAL_LOOP_STOP, 
+    std::function<void()>([&loop]() {
+      loop.stop();
+  }));
+
+  try{
+    loop.run();
+  }
+  catch(exception& e){
+    string mess = "schedr::loop exeption: " + string(e.what());
+    executor.addMessToDB(ZM_DB::MessSchedr{ZM_Base::MessType::INTERN_ERROR, 0, mess});
+    app.statusMess(mess);  
+  }
+
+  /////////////////////////////////////////////////////////////////////////
   
-  while (!m_fClose){
-    timer.updateCycTime();   
-
-    if((g_tasks.size() < g_schedr.capacityTask) && (g_schedr.state != ZM_Base::StateType::PAUSE)){
-      if(!frGetNewTask.valid() || (frGetNewTask.wait_for(chrono::seconds(0)) == future_status::ready))
-        frGetNewTask = async(launch::async, [&dbNewTask]{ getNewTaskFromDB(*dbNewTask); });                                        
-    }        
-
-    bool isAvailableWorkers = sendTaskToWorker(g_schedr, g_workers, g_tasks, g_messToDB);    
-
-    if(!g_messToDB.empty()){   
-      if(!frSendAllMessToDB.valid() || (frSendAllMessToDB.wait_for(chrono::seconds(0)) == future_status::ready))
-        frSendAllMessToDB = async(launch::async, [&dbSendMess]{ sendAllMessToDB(*dbSendMess); });      
-    }
-
-    if(timer.onDelayOncSec(true, cng.checkWorkerTOutSec, 0)){
-      checkStatusWorkers(g_schedr, g_workers, g_messToDB);
-    }
-    
-    if (g_messToDB.empty() && (g_tasks.empty() || !isAvailableWorkers)){ 
-      mainCycleSleep(minCycleTimeMS);
-    }
-  }
-
   ZM_Tcp::stopServer();
-  g_messToDB.push(ZM_DB::MessSchedr{ ZM_Base::MessType::STOP_SCHEDR });
-  sendAllMessToDB(*dbSendMess);
-  return 0;
+  executor.addMessToDB(ZM_DB::MessSchedr{ ZM_Base::MessType::STOP_SCHEDR });
+  executor.sendAllMessToDB(*dbSendMess);
 }
 
-void getPrevTaskFromDB(ZM_DB::DbProvider& db, 
-                       const ZM_Base::Scheduler& schedr,
-                       ZM_Aux::Queue<ZM_Base::Task>& outTasks){
-  vector<ZM_Base::Task> tasks;
-  if (db.getTasksOfSchedr(schedr.id, tasks)){
-    for(auto& t : tasks){
-      outTasks.push(move(t));
-    }
-  }else{
-    statusMess("getPrevTaskFromDB db error: " + db.getLastError());
-  }
-};
+void closeHandler(int sig)
+{
+  Application::loopStop();
+}
 
-void getPrevWorkersFromDB(ZM_DB::DbProvider& db, 
-                          const ZM_Base::Scheduler& schedr,
-                          map<string, SWorker>& outWorkers){  
-  vector<ZM_Base::Worker> workers; 
-  if (db.getWorkersOfSchedr(schedr.id, workers)){
-    for(auto& w : workers){
-      outWorkers[w.connectPnt] = SWorker{w, w.state, w.state != ZM_Base::StateType::NOT_RESPONDING};
-    }
-  }else{
-    statusMess("getPrevWorkersFromDB db error: " + db.getLastError());
+unique_ptr<ZM_DB::DbProvider> 
+createDbProvider(const Application::Config& cng, string& err)
+{
+  unique_ptr<ZM_DB::DbProvider> db(new ZM_DB::DbProvider(cng.dbConnCng));
+  err = db->getLastError();
+  if (err.empty()){
+    return db;
+  } else{    
+    return nullptr;
   }
 }
+
