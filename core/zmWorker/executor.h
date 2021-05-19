@@ -22,28 +22,54 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#include <map>
-#include <list>
-#include <string>
+#pragma once
 
+#include "zmCommon/queue.h"
+#include "zmCommon/aux_func.h"
 #include "zmBase/structurs.h"
-#include "zmCommon/tcp.h"
-#include "zmCommon/serial.h"
-#include "process.h"
+#include "zmWorker/application.h"
+#include "zmWorker/process.h" 
 
-using namespace std;
+#include <list>
 
-void progressToSchedr(const ZM_Base::Worker& worker, const std::string& schedrConnPnt, list<Process>& procs){
+class Executor{
+public:  
+  Executor(Application&);
 
-  map<string, string> data{
-    {"command", to_string((int)ZM_Base::MessType::PROGRESS)},
-    {"connectPnt", worker.connectPnt},
-  };      
-  int i = 0;
-  for (auto& p : procs){
-    data.insert({"taskId" + to_string(i), to_string(p.getTask().base.id)});
-    data.insert({"progress" + to_string(i), to_string(p.getProgress())});
-    ++i;
-  }
-  ZM_Tcp::asyncSendData(schedrConnPnt, ZM_Aux::serialn(data));
-}
+public:
+  struct MessForSchedr{
+    uint64_t taskId;
+    ZM_Base::MessType MessType;
+    std::string taskResult;
+  };
+
+  void addMessForSchedr(MessForSchedr);
+  
+  void receiveHandler(const std::string& cp, const std::string& data);
+  void sendNotifyHandler(const std::string& cp, const std::string& data, const std::error_code& ec);
+  void messageToSchedr(const std::string& schedrConnPnt);
+  void progressToSchedr(const std::string& schedrConnPnt);
+  void pingToSchedr(const std::string& schedrConnPnt);
+  void errorToSchedr(const std::string& schedrConnPnt);
+  void updateListTasks();
+  void waitProcess();
+  
+private:
+    
+  struct WTask{
+    ZM_Base::Task base;
+    ZM_Base::StateType state;
+    std::string params; // through ','
+  };
+
+  Application& m_app;  
+  
+  ZM_Base::Worker m_worker;
+  ZM_Aux::Queue<MessForSchedr> m_listMessForSchedr;
+  ZM_Aux::Queue<WTask> m_newTasks;
+  ZM_Aux::Queue<std::string> m_errMess;
+  std::list<Process> m_procs;
+  std::mutex m_mtxProcess;
+  
+  ZM_Aux::CounterTick m_ctickSendNotify;
+};

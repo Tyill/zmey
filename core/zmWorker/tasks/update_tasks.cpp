@@ -22,23 +22,32 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#include <map>
-#include <string>
-
-#include "zmBase/structurs.h"
-#include "zmCommon/tcp.h"
+#include "zmWorker/executor.h"
 #include "zmCommon/serial.h"
 
 using namespace std;
 
-void pingToSchedr(const ZM_Base::Worker& worker, const std::string& schedrConnPnt){
-  
-  map<string, string> data{
-    {"command", to_string((int)ZM_Base::MessType::PING_WORKER)},
-    {"connectPnt", worker.connectPnt},
-    {"activeTask", to_string(worker.activeTask)},
-    {"load", to_string(worker.load)}
-  };      
-  ZM_Tcp::asyncSendData(schedrConnPnt, ZM_Aux::serialn(data));
-}
+void Executor::updateListTasks()
+{
+  lock_guard<std::mutex> lock(m_mtxProcess);
 
+  WTask tsk;
+  while(m_newTasks.tryPop(tsk)){
+    Process prc(tsk);
+    if (prc.getPid() == -1){
+      m_newTasks.push(move(tsk));
+      break;
+    }
+    m_procs.push_back(move(prc));
+    m_listMessForSchedr.push(MessForSchedr{tsk.base.id, ZM_Base::MessType::TASK_RUNNING, ""});
+  }
+  for (auto ip = m_procs.begin(); ip != m_procs.end();){
+    ZM_Base::StateType TaskState = ip->getTask().state;
+    if ((TaskState == ZM_Base::StateType::COMPLETED) ||
+        (TaskState == ZM_Base::StateType::ERROR)){
+      ip = m_procs.erase(ip);
+    }else{
+      ++ip;
+    }
+  }
+}

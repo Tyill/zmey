@@ -22,22 +22,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#include <string>
-#include <algorithm>
-#include <list>
-#include <mutex>
-
+#include "zmWorker/executor.h"
 #include "zmCommon/serial.h"
-#include "zmCommon/aux_func.h"
-#include "zmCommon/queue.h"
-#include "structurs.h"
-#include "process.h" 
 
 using namespace std;
 
-#define ERROR_MESS(mstr) \
-  statusMess(mstr);      \
-  g_errMess.push(mstr);   \
+#define ERROR_MESS(mstr)  \
+  m_app.statusMess(mstr); \
+  m_errMess.push(mstr);   \
 
 #ifdef DEBUG
   #define checkFieldNum(field) \
@@ -59,13 +51,8 @@ using namespace std;
   #define checkField(field)
 #endif
 
-extern list<Process> g_procs;
-extern ZM_Aux::Queue<WTask> g_newTasks;
-extern ZM_Aux::Queue<string> g_errMess;
-extern mutex g_mtxProc;
-
-void receiveHandler(const string& remcp, const string& data){
-
+void Executor::receiveHandler(const string& remcp, const string& data)
+{
   auto mess = ZM_Aux::deserialn(data);
   if (mess.empty()){
     ERROR_MESS("worker::receiveHandler error deserialn data from: " + remcp);
@@ -89,7 +76,7 @@ void receiveHandler(const string& remcp, const string& data){
     t.averDurationSec = stoi(mess["averDurationSec"]);
     t.maxDurationSec = stoi(mess["maxDurationSec"]);
     t.script = mess["script"];
-    g_newTasks.push(WTask{t, 
+    m_newTasks.push(WTask{t, 
                          ZM_Base::StateType::READY,
                          mess["params"]}); 
     mainCycleNotify();
@@ -100,12 +87,12 @@ void receiveHandler(const string& remcp, const string& data){
   else{
     checkFieldNum(taskId);
     uint64_t tId = stoull(mess["taskId"]);
-    { std::lock_guard<std::mutex> lock(g_mtxProc);
+    { std::lock_guard<std::mutex> lock(m_mtxProcess);
       
-      auto iPrc = find_if(g_procs.begin(), g_procs.end(), [tId](const Process& p){
+      auto iPrc = find_if(m_procs.begin(), m_procs.end(), [tId](const Process& p){
         return p.getTask().base.id == tId;
       });
-      if (iPrc != g_procs.end()){
+      if (iPrc != m_procs.end()){
         switch (mtype){
           case ZM_Base::MessType::TASK_PAUSE:    iPrc->pause(); break;
           case ZM_Base::MessType::TASK_CONTINUE: iPrc->contin(); break;

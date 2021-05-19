@@ -22,37 +22,36 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#include <list>
-#include <mutex>
+#pragma once
 
-#include "zmCommon/queue.h"
-#include "process.h"
-#include "structurs.h"
+#include "zmCommon/signal_connector.h"
 
-using namespace std;
+class Application{
+public:
+   
+  struct Config{
+    int progressTasksTOutSec = 10;
+    int pingSchedrTOutSec = 20; 
+    const int checkLoadTOutSec = 1; 
+    std::string localConnPnt;
+    std::string remoteConnPnt;
+    std::string schedrConnPnt;
+  };  
 
-extern mutex g_mtxProc;
+  enum Signals{
+    SIGNAL_LOOP_NOTIFY = 0,
+    SIGNAL_LOOP_STOP,
+  };
+  static ZM_Aux::SignalConnector SignalConnector;
 
-void updateListTasks(ZM_Aux::Queue<WTask>& newTasks, list<Process>& procs, ZM_Aux::Queue<MessForSchedr>& listMessForSchedr){
-  lock_guard<std::mutex> lock(g_mtxProc);
+  static void loopNotify();
+  static void loopStop();
+ 
+  void statusMess(const std::string& mess);
 
-  WTask tsk;
-  while(newTasks.tryPop(tsk)){
-    Process prc(tsk);
-    if (prc.getPid() == -1){
-      newTasks.push(move(tsk));
-      break;
-    }
-    procs.push_back(move(prc));
-    listMessForSchedr.push(MessForSchedr{tsk.base.id, ZM_Base::MessType::TASK_RUNNING, ""});
-  }
-  for (auto ip = procs.begin(); ip != procs.end();){
-    ZM_Base::StateType TaskState = ip->getTask().state;
-    if ((TaskState == ZM_Base::StateType::COMPLETED) ||
-        (TaskState == ZM_Base::StateType::ERROR)){
-      ip = procs.erase(ip);
-    }else{
-      ++ip;
-    }
-  }
-}
+  bool parseArgs(int argc, char* argv[], Config& outCng); 
+      
+private:
+  std::mutex m_mtxStatusMess; 
+  
+};

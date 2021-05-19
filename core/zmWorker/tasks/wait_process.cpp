@@ -32,29 +32,26 @@
 #include <list>
 #include <algorithm>
 
-#include "zmCommon/aux_func.h"
-#include "zmCommon/queue.h"
-#include "process.h"
+#include "zmWorker/executor.h"
 
 using namespace std;
 
-extern ZM_Aux::Queue<string> g_errMess;
-
-void waitProcess(ZM_Base::Worker& worker, list<Process>& procs, ZM_Aux::Queue<MessForSchedr>& listMessForSchedr){
   
-#define ERROR_MESS(mstr) \
-  statusMess(mstr);      \
-  g_errMess.push(mstr);   \
+#define ERROR_MESS(mstr)  \
+  m_app.statusMess(mstr); \
+  m_errMess.push(mstr);   \
 
+void Executor::waitProcess()
+{
   pid_t pid;
   int sts = 0;
   
   while ((pid = waitpid(-1, &sts, WNOHANG | WUNTRACED | WCONTINUED)) > 0){
 
-    auto itPrc = find_if(procs.begin(), procs.end(),[pid](const Process& p){
+    auto itPrc = find_if(m_procs.begin(), m_procs.end(),[pid](const Process& p){
         return p.getPid() == pid;
       });    
-    if (itPrc == procs.end()){
+    if (itPrc == m_procs.end()){
       ERROR_MESS("worker::waitProcess error not found process " + to_string(pid));
       continue;
     }
@@ -97,7 +94,7 @@ void waitProcess(ZM_Base::Worker& worker, list<Process>& procs, ZM_Aux::Queue<Me
       }
       itPrc->setTaskState(st);
 
-      listMessForSchedr.push(MessForSchedr{itPrc->getTask().base.id,
+      m_listMessForSchedr.push(MessForSchedr{itPrc->getTask().base.id,
                                           mt,
                                           result});
 
@@ -112,21 +109,21 @@ void waitProcess(ZM_Base::Worker& worker, list<Process>& procs, ZM_Aux::Queue<Me
     // stop
     else if (WIFSTOPPED(sts)){
       itPrc->setTaskState(ZM_Base::StateType::PAUSE);
-      listMessForSchedr.push(MessForSchedr{itPrc->getTask().base.id,
+      m_listMessForSchedr.push(MessForSchedr{itPrc->getTask().base.id,
                                           ZM_Base::MessType::TASK_PAUSE,
                                           ""});
     } 
     // continue
     else if (WIFCONTINUED(sts)){
       itPrc->setTaskState(ZM_Base::StateType::RUNNING);
-      listMessForSchedr.push(MessForSchedr{itPrc->getTask().base.id,
+      m_listMessForSchedr.push(MessForSchedr{itPrc->getTask().base.id,
                                           ZM_Base::MessType::TASK_CONTINUE,
                                           ""});    
     } 
   }  
   
   // check max run time
-  for(auto& p : procs){
+  for(auto& p : m_procs){
     if (p.checkMaxRunTime() && (p.getTask().state == ZM_Base::StateType::RUNNING)){
       p.stop();
     }

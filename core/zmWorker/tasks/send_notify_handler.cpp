@@ -22,11 +22,25 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#pragma once
+#include "zmWorker/executor.h"
+#include "zmCommon/serial.h"
 
-#include "zmBase/structurs.h"
+using namespace std;
 
-void statusMess(const std::string& mess);
-
-void mainCycleNotify(int sig = 0);
-
+void Executor::sendNotifyHandler(const string& cp, const string& data, const std::error_code& ec)
+{  
+  auto smess = ZM_Aux::deserialn(data);  
+  ZM_Base::MessType messType = (ZM_Base::MessType)stoi(smess["command"]);
+  if (ec && (messType != ZM_Base::MessType::PROGRESS) &&
+            (messType != ZM_Base::MessType::INTERN_ERROR) &&
+            (messType != ZM_Base::MessType::PING_WORKER)){
+    MessForSchedr mess;
+    mess.MessType = messType;
+    mess.taskId = stoull(smess["taskId"]);
+    mess.taskResult = smess["taskResult"];
+    m_listMessForSchedr.push(move(mess));
+    if (m_ctickSendNotify(1000)){
+      statusMess("worker::sendHandler error send to schedr: " + ec.message());
+    }
+  }
+}

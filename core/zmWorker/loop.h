@@ -24,9 +24,29 @@
 //
 #pragma once
 
-#include "zmBase/structurs.h"
+#include "zmWorker/application.h"
 
-void statusMess(const std::string& mess);
+#include <mutex>
+#include <condition_variable>
 
-void mainCycleNotify(int sig = 0);
+class Executor;
 
+class Loop{
+public:
+  Loop(const Application::Config& cng, Executor&);
+  void run();
+  void stop();
+
+  void standUpNotify();
+
+private:  
+  void mainCycleSleep(int delayMS);
+
+private:
+  Application::Config m_cng;
+  Executor& m_executor;
+
+  std::mutex m_mtxNotify;
+  std::condition_variable m_cvStandUp;
+  bool m_fClose = false;
+};

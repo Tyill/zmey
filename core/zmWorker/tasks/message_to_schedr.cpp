@@ -22,32 +22,26 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#include <string>
-
-#include "zmCommon/queue.h" 
+#include "zmWorker/executor.h"
+#include "zmCommon/tcp.h"
 #include "zmCommon/serial.h"
-#include "zmCommon/aux_func.h"
-#include "structurs.h"
 
 using namespace std;
 
-static ZM_Aux::CounterTick m_ctickSH;
-extern ZM_Aux::Queue<MessForSchedr> g_listMessForSchedr;
-
-void sendHandler(const string& cp, const string& data, const std::error_code& ec){
-  
-  auto smess = ZM_Aux::deserialn(data);  
-  ZM_Base::MessType messType = (ZM_Base::MessType)stoi(smess["command"]);
-  if (ec && (messType != ZM_Base::MessType::PROGRESS) &&
-            (messType != ZM_Base::MessType::INTERN_ERROR) &&
-            (messType != ZM_Base::MessType::PING_WORKER)){
-    MessForSchedr mess;
-    mess.MessType = messType;
-    mess.taskId = stoull(smess["taskId"]);
-    mess.taskResult = smess["taskResult"];
-    g_listMessForSchedr.push(move(mess));
-    if (m_ctickSH(1000)){
-      statusMess("worker::sendHandler error send to schedr: " + ec.message());
-    }
+void Executor::messageToSchedr(const std::string& schedrConnPnt)
+{  
+  MessForSchedr mess; 
+  bool isSendOk = true;
+  while(isSendOk && m_listMessForSchedr.tryPop(mess)){
+    map<string, string> data{
+          {"command",    to_string((int)mess.MessType)},
+          {"connectPnt", m_worker.connectPnt},
+          {"taskId",     to_string(mess.taskId)},
+          {"activeTask", to_string(m_worker.activeTask)},
+          {"load",       to_string(m_worker.load)},
+          {"taskResult", mess.taskResult}
+    };
+    isSendOk = ZM_Tcp::asyncSendData(schedrConnPnt,  ZM_Aux::serialn(data));
   }
 }
+

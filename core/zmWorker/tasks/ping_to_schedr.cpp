@@ -22,26 +22,20 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#include <map>
-#include <string>
-
-#include "zmBase/structurs.h"
+#include "zmWorker/executor.h"
 #include "zmCommon/tcp.h"
 #include "zmCommon/serial.h"
-#include "zmCommon/queue.h" 
 
 using namespace std;
 
-void errorToSchedr(const ZM_Base::Worker& worker, const std::string& schedrConnPnt, ZM_Aux::Queue<string>& err){
-
-  string mess;
-  bool isSendOk = true;
-  while(isSendOk && err.tryPop(mess)){
-    map<string, string> data{
-      {"command", to_string((int)ZM_Base::MessType::INTERN_ERROR)},
-      {"connectPnt", worker.connectPnt},
-      {"message", mess}
-    };      
-    isSendOk = ZM_Tcp::asyncSendData(schedrConnPnt, ZM_Aux::serialn(data));
-  }
+void Executor::pingToSchedr(const std::string& schedrConnPnt){
+  
+  map<string, string> data{
+    {"command", to_string((int)ZM_Base::MessType::PING_WORKER)},
+    {"connectPnt", m_worker.connectPnt},
+    {"activeTask", to_string(m_worker.activeTask)},
+    {"load", to_string(m_worker.load)}
+  };      
+  ZM_Tcp::asyncSendData(schedrConnPnt, ZM_Aux::serialn(data));
 }
+

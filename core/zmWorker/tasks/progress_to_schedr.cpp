@@ -22,11 +22,23 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#pragma once
+#include "zmWorker/executor.h"
+#include "zmCommon/tcp.h"
+#include "zmCommon/serial.h"
 
-#include "zmBase/structurs.h"
+using namespace std;
 
-void statusMess(const std::string& mess);
-
-void mainCycleNotify(int sig = 0);
-
+void Executor::progressToSchedr(const std::string& schedrConnPnt)
+{
+  map<string, string> data{
+    {"command", to_string((int)ZM_Base::MessType::PROGRESS)},
+    {"connectPnt", m_worker.connectPnt},
+  };      
+  int i = 0;
+  for (auto& p : m_procs){
+    data.insert({"taskId" + to_string(i), to_string(p.getTask().base.id)});
+    data.insert({"progress" + to_string(i), to_string(p.getProgress())});
+    ++i;
+  }
+  ZM_Tcp::asyncSendData(schedrConnPnt, ZM_Aux::serialn(data));
+}

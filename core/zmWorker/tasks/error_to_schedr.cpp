@@ -22,11 +22,22 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#pragma once
+#include "zmWorker/executor.h"
+#include "zmCommon/tcp.h"
+#include "zmCommon/serial.h"
 
-#include "zmBase/structurs.h"
+using namespace std;
 
-void statusMess(const std::string& mess);
-
-void mainCycleNotify(int sig = 0);
-
+void Executor::errorToSchedr(const std::string& schedrConnPnt)
+{
+  string mess;
+  bool isSendOk = true;
+  while(isSendOk && m_errMess.tryPop(mess)){
+    map<string, string> data{
+      {"command", to_string((int)ZM_Base::MessType::INTERN_ERROR)},
+      {"connectPnt", m_worker.connectPnt},
+      {"message", mess}
+    };      
+    isSendOk = ZM_Tcp::asyncSendData(schedrConnPnt, ZM_Aux::serialn(data));
+  }
+}
