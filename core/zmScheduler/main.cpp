@@ -115,7 +115,7 @@ int main(int argc, char* argv[])
   }
   catch(exception& e){
     string mess = "schedr::loop exeption: " + string(e.what());
-    executor.addMessToDB(ZM_DB::MessSchedr{ZM_Base::MessType::INTERN_ERROR, 0, mess});
+    executor.addMessToDB(ZM_DB::MessSchedr::errorMess(0, mess));
     app.statusMess(mess);  
   }
 

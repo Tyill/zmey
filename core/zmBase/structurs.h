@@ -52,7 +52,6 @@ namespace ZM_Base{
     PING_WORKER,
     PING_SCHEDR,
     JUST_START_WORKER,
-    WORKER_RATING,
     WORKER_NOT_RESPONDING,
     INTERN_ERROR,      
   };
@@ -97,6 +96,7 @@ namespace ZM_Base{
     int maxDurationSec;       // maximum lead time
     std::string script;       // script on bash, python or cmd
     std::string params;       // through ','
+    StateType state;
   };  
   // tblUTaskTemplate
   struct UTaskTemplate{

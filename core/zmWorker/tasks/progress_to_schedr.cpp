@@ -36,7 +36,7 @@ void Executor::progressToSchedr(const std::string& schedrConnPnt)
   };      
   int i = 0;
   for (auto& p : m_procs){
-    data.insert({"taskId" + to_string(i), to_string(p.getTask().base.id)});
+    data.insert({"taskId" + to_string(i), to_string(p.getTask().id)});
     data.insert({"progress" + to_string(i), to_string(p.getProgress())});
     ++i;
   }

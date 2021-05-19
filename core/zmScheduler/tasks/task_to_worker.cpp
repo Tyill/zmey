@@ -28,8 +28,8 @@
 
 using namespace std;
 
-#define ERROR_MESS(mess, wId)                                                   \
-  m_messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::INTERN_ERROR, wId, mess}); \
+#define ERROR_MESS(mess, wId)                               \
+  m_messToDB.push(ZM_DB::MessSchedr::errorMess(wId, mess)); \
   m_app.statusMess(mess);
 
 bool Executor::sendTaskToWorker()

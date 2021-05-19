@@ -22,6 +22,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+#include "process.h"
+#include "application.h"
+#include "executor.h"
+
 #include <utility>
 #include <unistd.h>
 #include <signal.h>
@@ -32,23 +36,19 @@
 #include <errno.h>
 #include <cstring>
 
-#include "zmCommon/aux_func.h"
-#include "zmCommon/queue.h"
-#include "process.h"
-
 using namespace std;
 
-extern ZM_Aux::Queue<string> g_errMess;
+Process::Process(Application& app, Executor& exr, const ZM_Base::Task& tsk):
+  m_app(app),
+  m_executor(exr),
+  m_task(tsk){
 
-Process::Process(const WTask& tsk):
-  _task(tsk){
-
-  switch (_pid = fork()){
+  switch (m_pid = fork()){
     // error
     case -1:{    
       string mstr = "worker::Process child error fork: " + string(strerror(errno));
-      statusMess(mstr);
-      g_errMess.push(move(mstr));
+      m_app.statusMess(mstr);
+      m_executor.addErrMess(mstr);
     }
       break;
     // children                        
@@ -58,13 +58,13 @@ Process::Process(const WTask& tsk):
                   perror(err); \
                   _exit(127);  \
                 }    
-      string scriptFile = "/tmp/" + to_string(tsk.base.id) + ".script";
+      string scriptFile = "/tmp/" + to_string(tsk.id) + ".script";
       int fdSct = open(scriptFile.c_str(), O_CREAT | O_TRUNC | O_WRONLY, S_IRUSR | S_IWUSR | S_IXUSR);
       CHECK(fdSct, "create");
-      CHECK(write(fdSct, tsk.base.script.data(), tsk.base.script.size()), "write");
+      CHECK(write(fdSct, tsk.script.data(), tsk.script.size()), "write");
       CHECK(close(fdSct), "close");
       
-      string resultFile = "/tmp/" + to_string(tsk.base.id) + ".result";
+      string resultFile = "/tmp/" + to_string(tsk.id) + ".result";
       int fdRes = open(resultFile.c_str(), O_CREAT | O_TRUNC | O_RDWR, S_IRUSR | S_IWUSR);
       CHECK(fdRes, "create");
       CHECK(dup2(fdRes, 1), "dup2(fdRes, 1)");// stdout -> fdRes
@@ -85,59 +85,56 @@ Process::Process(const WTask& tsk):
       break;
     // parent                
     default:
-      _timerProgress.updateCycTime();
-      _timerDuration.updateCycTime();
-      _task.state = ZM_Base::StateType::RUNNING;
+      m_timerProgress.updateCycTime();
+      m_timerDuration.updateCycTime();
+      m_task.state = ZM_Base::StateType::RUNNING;
       break;
- }
-
-}
-Process::~Process(){
+  }
 }
 
-WTask Process::getTask() const{
-  return _task;
+ZM_Base::Task Process::getTask() const{
+  return m_task;
 }
 pid_t Process::getPid() const{
-  return _pid;
+  return m_pid;
 }
 int Process::getProgress(){
-  if (!_isPause){
-    _cdeltaTimeProgress += _timerProgress.getDeltaTimeMS();
+  if (!m_isPause){
+    m_cdeltaTimeProgress += m_timerProgress.getDeltaTimeMS();
   }
-  _timerProgress.updateCycTime();
-  int dt = (int)_cdeltaTimeProgress / 1000;
-  return min(100, dt * 100 / max(1, _task.base.averDurationSec));
+  m_timerProgress.updateCycTime();
+  int dt = (int)m_cdeltaTimeProgress / 1000;
+  return min(100, dt * 100 / max(1, m_task.averDurationSec));
 }
 bool Process::checkMaxRunTime(){
-  if (!_isPause){
-    _cdeltaTimeDuration += _timerDuration.getDeltaTimeMS();
+  if (!m_isPause){
+    m_cdeltaTimeDuration += m_timerDuration.getDeltaTimeMS();
   }
-  _timerDuration.updateCycTime();
-  return int(_cdeltaTimeDuration / 1000) > _task.base.maxDurationSec;
+  m_timerDuration.updateCycTime();
+  return int(m_cdeltaTimeDuration / 1000) > m_task.maxDurationSec;
 }
 void Process::setTaskState(ZM_Base::StateType st){
-  _task.state = st;
-  _isPause = (st == ZM_Base::StateType::PAUSE);
+  m_task.state = st;
+  m_isPause = (st == ZM_Base::StateType::PAUSE);
 }
 void Process::pause(){
-  if (kill(_pid, SIGSTOP) == -1){
+  if (kill(m_pid, SIGSTOP) == -1){
     string mstr = "worker::Process error pause: " + string(strerror(errno));
-    statusMess(mstr);
-    g_errMess.push(move(mstr));
+    m_app.statusMess(mstr);
+    m_executor.addErrMess(mstr);
   }
 }
 void Process::contin(){
-  if (kill(_pid, SIGCONT) == -1){
+  if (kill(m_pid, SIGCONT) == -1){
     string mstr = "worker::Process error continue: " + string(strerror(errno));
-    statusMess(mstr);
-    g_errMess.push(move(mstr));
+    m_app.statusMess(mstr);
+    m_executor.addErrMess(mstr);
   }
 }
 void Process::stop(){
-  if (kill(_pid, SIGTERM) == -1){
+  if (kill(m_pid, SIGTERM) == -1){
     string mstr = "worker::Process error stop: " + string(strerror(errno));
-    statusMess(mstr);
-    g_errMess.push(move(mstr));
+    m_app.statusMess(mstr);
+    m_executor.addErrMess(mstr);
   }
 }

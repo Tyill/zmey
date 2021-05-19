@@ -77,7 +77,7 @@ bool Application::parseArgs(int argc, char* argv[], Config& outCng){
 
 void Application::loopNotify()
 {
-  Application::SignalConnector.emitSignal(Signals::SIGNAL_LOOP_NOTIFY);
+  Application::SignalConnector.emitSignalWithoutBlocking(Signals::SIGNAL_LOOP_NOTIFY);
 }
 
 void Application::loopStop()

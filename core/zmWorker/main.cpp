@@ -34,6 +34,7 @@
 using namespace std;
 
 void closeHandler(int sig);
+void loopNotify(int sig);
 
 #define CHECK_RETURN(fun, mess) \
   if (fun){                     \
@@ -59,12 +60,12 @@ int main(int argc, char* argv[]){
   CHECK_RETURN(cng.schedrConnPnt.empty() || (ZM_Aux::split(cng.schedrConnPnt, ':').size() != 2), "Not set param '--schedrAddr[-sa]' - scheduler connection point: IP or DNS:port");
     
   signal(SIGPIPE, SIG_IGN);
-  signal(SIGCHLD, mainCycleNotify);
+  signal(SIGCHLD, loopNotify);
   signal(SIGTERM, closeHandler);
   signal(SIGHUP, closeHandler);
   signal(SIGQUIT, closeHandler);
 
-  Executor executor(app);
+  Executor executor(app, cng.remoteConnPnt);
  
   // on start
   executor.addMessForSchedr(Executor::MessForSchedr{0, ZM_Base::MessType::JUST_START_WORKER});
@@ -80,7 +81,7 @@ int main(int argc, char* argv[]){
   ZM_Tcp::addPreConnectPnt(cng.schedrConnPnt);
   string err;
   CHECK_RETURN(!ZM_Tcp::startServer(cng.localConnPnt, err, 1), "Worker error: " + cng.localConnPnt + " " + err);
-  statusMess("Worker running: " + cng.localConnPnt);
+  app.statusMess("Worker running: " + cng.localConnPnt);
   
   // loop ///////////////////////////////////////////////////////////////////////
   Loop loop(cng, executor);
@@ -111,4 +112,9 @@ int main(int argc, char* argv[]){
 void closeHandler(int sig)
 {
   Application::loopStop();
+}
+
+void loopNotify(int sig)
+{
+  Application::loopNotify();
 }

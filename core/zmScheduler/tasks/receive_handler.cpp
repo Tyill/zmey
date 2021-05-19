@@ -28,8 +28,8 @@
 
 using namespace std;
 
-#define ERROR_MESS(mess, wId)                                                     \
-  m_messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::INTERN_ERROR, wId, mess}); \
+#define ERROR_MESS(mess, wId)                               \
+  m_messToDB.push(ZM_DB::MessSchedr::errorMess(wId, mess)); \
   m_app.statusMess(mess);
 
 #ifdef DEBUG
@@ -79,32 +79,22 @@ void Executor::receiveHandler(const string& remcp, const string& data)
       case ZM_Base::MessType::TASK_PAUSE:
       case ZM_Base::MessType::TASK_CONTINUE:
       case ZM_Base::MessType::TASK_STOP:
-        checkFieldNum(taskId);
-        checkFieldNum(activeTask);
-        checkFieldNum(load);
-        checkField(taskResult);
-        worker.base.activeTask = stoi(mess["activeTask"]);
-        worker.base.load = stoi(mess["load"]);
-        m_messToDB.push(ZM_DB::MessSchedr{mtype, 
+        checkFieldNum(taskId);        
+        checkField(taskResult);       
+        m_messToDB.push(ZM_DB::MessSchedr(mtype, 
                                          wId,
                                          stoull(mess["taskId"]),
-                                         0,
-                                         0,
-                                         worker.base.load,
-                                         m_schedr.activeTask,
-                                         worker.base.activeTask,
-                                         mess["taskResult"]});
+                                         mess["taskResult"]));
         break;
       case ZM_Base::MessType::JUST_START_WORKER:
-        m_messToDB.push(ZM_DB::MessSchedr{mtype, wId});
+        m_messToDB.push(ZM_DB::MessSchedr(mtype, wId));
         break;
       case ZM_Base::MessType::PROGRESS:{
         int tCnt = 0;
         while(mess.find("taskId" + to_string(tCnt)) != mess.end()){
-          m_messToDB.push(ZM_DB::MessSchedr{mtype, 
-                                           wId,
-                                           stoull(mess["taskId" + to_string(tCnt)]),
-                                           stoi(mess["progress" + to_string(tCnt)])});
+          m_messToDB.push(ZM_DB::MessSchedr::progressMess(wId,
+                                                          stoull(mess["taskId" + to_string(tCnt)]),
+                                                          stoi(mess["progress" + to_string(tCnt)])));
           ++tCnt;
         }
         }
@@ -114,11 +104,12 @@ void Executor::receiveHandler(const string& remcp, const string& data)
         ERROR_MESS(mess["message"], wId);
         }
         break;
-      case ZM_Base::MessType::PING_WORKER:
+      case ZM_Base::MessType::PING_WORKER:{
         checkFieldNum(load);
         checkFieldNum(activeTask);
         worker.base.activeTask = stoi(mess["activeTask"]);
         worker.base.load = stoi(mess["load"]);
+        }
         break;
       default:
         ERROR_MESS("schedr::receiveHandler unknown command from worker: " + mess["command"], wId);
@@ -139,15 +130,8 @@ void Executor::receiveHandler(const string& remcp, const string& data)
       m_messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::START_WORKER,
                                        worker.base.id});
     }
-    if (worker.base.rating < ZM_Base::Worker::RATING_MAX){
+    if (worker.base.rating < ZM_Base::Worker::RATING_MAX)
       ++worker.base.rating;
-      if (worker.base.rating == ZM_Base::Worker::RATING_MAX)
-        m_messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::WORKER_RATING,
-                                        wId,
-                                        0,
-                                        0,
-                                        worker.base.rating});   
-    }    
   }
   // from manager
   else{

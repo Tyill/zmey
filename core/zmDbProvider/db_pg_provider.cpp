@@ -197,7 +197,6 @@ bool DbProvider::createTables(){
         "capacityTask INT NOT NULL DEFAULT 10 CHECK (capacityTask > 0),"
         "activeTask   INT NOT NULL DEFAULT 0 CHECK (activeTask >= 0),"
         "load         INT NOT NULL DEFAULT 0 CHECK (load BETWEEN 0 AND 100),"
-        "rating       INT NOT NULL DEFAULT 10 CHECK (rating BETWEEN 1 AND 10),"
         "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1),"
         "startTime    TIMESTAMP NOT NULL DEFAULT current_timestamp,"
         "stopTime     TIMESTAMP NOT NULL DEFAULT current_timestamp);";
@@ -1410,7 +1409,7 @@ bool DbProvider::getTasksOfSchedr(uint64_t sId, std::vector<ZM_Base::Task>& out)
 bool DbProvider::getWorkersOfSchedr(uint64_t sId, std::vector<ZM_Base::Worker>& out){
   lock_guard<mutex> lk(_mtx);
   stringstream ss;
-  ss << "SELECT w.id, w.state, w.capacityTask, w.activeTask, w.rating, cp.ipAddr, cp.port "
+  ss << "SELECT w.id, w.state, w.capacityTask, w.activeTask, cp.ipAddr, cp.port "
         "FROM tblWorker w "
         "JOIN tblConnectPnt cp ON cp.id = w.connPnt "
         "WHERE w.schedr = " << sId << " AND w.isDelete = 0;";
@@ -1427,9 +1426,9 @@ bool DbProvider::getWorkersOfSchedr(uint64_t sId, std::vector<ZM_Base::Worker>& 
                                    (ZM_Base::StateType)atoi(PQgetvalue(pgr.res, i, 1)),
                                    atoi(PQgetvalue(pgr.res, i, 2)),
                                    atoi(PQgetvalue(pgr.res, i, 3)),
-                                   atoi(PQgetvalue(pgr.res, i, 4)),
+                                   ZM_Base::Worker::RATING_MAX,
                                    0,
-                                   PQgetvalue(pgr.res, i, 5) + string(":") + PQgetvalue(pgr.res, i, 6)});
+                                   PQgetvalue(pgr.res, i, 4) + string(":") + PQgetvalue(pgr.res, i, 5)});
   }
   return true;
 }
@@ -1595,11 +1594,6 @@ bool DbProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::MessSche
       case ZM_Base::MessType::START_AFTER_PAUSE_WORKER:
         ss << "UPDATE tblWorker SET "
               "state = " << (int)ZM_Base::StateType::RUNNING << " "
-              "WHERE id = " << m.workerId << ";";
-        break;
-      case ZM_Base::MessType::WORKER_RATING:
-        ss << "UPDATE tblWorker SET "
-              "rating = " << m.workerRating << " "
               "WHERE id = " << m.workerId << ";";
         break;
       case ZM_Base::MessType::WORKER_NOT_RESPONDING:

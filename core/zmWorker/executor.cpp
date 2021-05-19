@@ -25,12 +25,33 @@
 #include "executor.h"
 #include "application.h"
   
-Executor::Executor(Application& app):
-  m_app(app)
+Executor::Executor(Application& app, const std::string& connPnt):
+  m_app(app)  
 {
+  m_worker.connectPnt = connPnt;
 }
 
 void Executor::addMessForSchedr(Executor::MessForSchedr mess)
 {
   m_listMessForSchedr.push(std::move(mess));
+}
+
+void Executor::addErrMess(std::string mess)
+{
+  m_errMess.push(std::move(mess));
+}
+
+bool Executor::isErrMessEmpty()
+{
+  return m_errMess.empty();
+}
+
+bool Executor::isNewTasksEmpty()
+{
+  return m_newTasks.empty();
+}
+
+bool Executor::isMessForSchedrEmpty()
+{
+  return m_listMessForSchedr.empty();
 }

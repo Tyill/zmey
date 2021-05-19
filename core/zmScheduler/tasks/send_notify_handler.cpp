@@ -28,8 +28,8 @@
 
 using namespace std;
 
-#define ERROR_MESS(mess, wId)                                                    \
-  m_messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::INTERN_ERROR, wId, mess}); \
+#define ERROR_MESS(mess, wId)                               \
+  m_messToDB.push(ZM_DB::MessSchedr::errorMess(wId, mess)); \
   m_app.statusMess(mess);
 
 #ifdef DEBUG
@@ -85,15 +85,8 @@ void Executor::sendNotifyHandler(const string& cp, const string& data, const std
         break;
     }
     ERROR_MESS("schedr::sendHandler worker not response, cp: " + cp, wId);
-    if (worker.base.rating > 1){
+    if (worker.base.rating > 1)
       --worker.base.rating;
-      if (worker.base.rating == 1)
-        m_messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::WORKER_RATING,
-                                        worker.base.id,
-                                        0,
-                                        0,
-                                        worker.base.rating});
-    }    
   }
   else {
     ERROR_MESS("schedr::sendHandler wrong receiver: " + cp, 0);

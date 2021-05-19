@@ -36,9 +36,7 @@ void Executor::messageToSchedr(const std::string& schedrConnPnt)
     map<string, string> data{
           {"command",    to_string((int)mess.MessType)},
           {"connectPnt", m_worker.connectPnt},
-          {"taskId",     to_string(mess.taskId)},
-          {"activeTask", to_string(m_worker.activeTask)},
-          {"load",       to_string(m_worker.load)},
+          {"taskId",     to_string(mess.taskId)},          
           {"taskResult", mess.taskResult}
     };
     isSendOk = ZM_Tcp::asyncSendData(schedrConnPnt,  ZM_Aux::serialn(data));

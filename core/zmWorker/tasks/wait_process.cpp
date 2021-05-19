@@ -58,7 +58,7 @@ void Executor::waitProcess()
     // completed or error
     if (WIFEXITED(sts) || WIFSIGNALED(sts)){
                 
-      auto tId = itPrc->getTask().base.id;
+      auto tId = itPrc->getTask().id;
     
       string resultFile = "/tmp/" + to_string(tId) + ".result",
              result;
@@ -94,7 +94,7 @@ void Executor::waitProcess()
       }
       itPrc->setTaskState(st);
 
-      m_listMessForSchedr.push(MessForSchedr{itPrc->getTask().base.id,
+      m_listMessForSchedr.push(MessForSchedr{itPrc->getTask().id,
                                           mt,
                                           result});
 
@@ -109,14 +109,14 @@ void Executor::waitProcess()
     // stop
     else if (WIFSTOPPED(sts)){
       itPrc->setTaskState(ZM_Base::StateType::PAUSE);
-      m_listMessForSchedr.push(MessForSchedr{itPrc->getTask().base.id,
+      m_listMessForSchedr.push(MessForSchedr{itPrc->getTask().id,
                                           ZM_Base::MessType::TASK_PAUSE,
                                           ""});
     } 
     // continue
     else if (WIFCONTINUED(sts)){
       itPrc->setTaskState(ZM_Base::StateType::RUNNING);
-      m_listMessForSchedr.push(MessForSchedr{itPrc->getTask().base.id,
+      m_listMessForSchedr.push(MessForSchedr{itPrc->getTask().id,
                                           ZM_Base::MessType::TASK_CONTINUE,
                                           ""});    
     } 

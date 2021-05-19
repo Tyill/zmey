@@ -31,15 +31,15 @@ void Executor::updateListTasks()
 {
   lock_guard<std::mutex> lock(m_mtxProcess);
 
-  WTask tsk;
+  ZM_Base::Task tsk;
   while(m_newTasks.tryPop(tsk)){
-    Process prc(tsk);
+    Process prc(m_app, *this, tsk);
     if (prc.getPid() == -1){
       m_newTasks.push(move(tsk));
       break;
     }
     m_procs.push_back(move(prc));
-    m_listMessForSchedr.push(MessForSchedr{tsk.base.id, ZM_Base::MessType::TASK_RUNNING, ""});
+    m_listMessForSchedr.push(MessForSchedr{tsk.id, ZM_Base::MessType::TASK_RUNNING, ""});
   }
   for (auto ip = m_procs.begin(); ip != m_procs.end();){
     ZM_Base::StateType TaskState = ip->getTask().state;

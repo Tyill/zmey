@@ -56,8 +56,7 @@ void Loop::run()
 
     m_executor.updateListTasks();
 
-    if (!m_listMessForSchedr.empty()){ 
-      //worker.activeTask = m_newTasks.size() + m_procs.size();
+    if (!m_executor.isMessForSchedrEmpty()){ 
       m_executor.messageToSchedr(m_cng.schedrConnPnt);
     }
 
@@ -70,15 +69,14 @@ void Loop::run()
     } 
     
     if(timer.onDelayOncSec(true, m_cng.pingSchedrTOutSec, 2)){
-      //worker.activeTask = m_newTasks.size() + m_procs.size();
       m_executor.pingToSchedr(m_cng.schedrConnPnt);
     } 
          
-    if (!m_errMess.empty()){ 
+    if (!m_executor.isErrMessEmpty()){ 
       m_executor.errorToSchedr(m_cng.schedrConnPnt);
     }    
     
-    if (m_newTasks.empty()){
+    if (m_executor.isNewTasksEmpty()){
       mainCycleSleep(minCycleTimeMS);     
     }
   }

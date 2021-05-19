@@ -40,38 +40,39 @@ struct ConnectCng{
   std::string connectStr;
 };
 struct MessSchedr{
-  ZM_Base::MessType type;
-  uint64_t workerId;
-  uint64_t taskId;
-  int progress;
-  int workerRating;
-  int workerLoad;
-  int schedrActiveTask;
-  int workerActiveTask;
-  std::string result; // if type is 'error', then errorMess
-
-  MessSchedr(ZM_Base::MessType _type = ZM_Base::MessType::INTERN_ERROR, uint64_t _workerId = 0, uint64_t _taskId = 0, int _progress = 0,
-    int _workerRating = 0, int _workerLoad = 0, int _schedrActiveTask = 0, int _workerActiveTask = 0, const std::string& _result = "") :
+  ZM_Base::MessType type = ZM_Base::MessType::INTERN_ERROR;
+  uint64_t workerId = 0;
+  uint64_t taskId = 0;
+  int progress = 0;
+  int workerLoad = 0;
+  int schedrActiveTask = 0;
+  int workerActiveTask = 0;
+  std::string result;
+  
+  MessSchedr(ZM_Base::MessType _type = ZM_Base::MessType::INTERN_ERROR, uint64_t _workerId = 0, uint64_t _taskId = 0, const std::string& _result = "") :
     type(_type),
     workerId(_workerId),
     taskId(_taskId),
-    progress(_progress),
-    workerRating(_workerRating),
-    workerLoad(_workerLoad),
-    schedrActiveTask(_schedrActiveTask),
-    workerActiveTask(_workerActiveTask),
     result(_result){}
 
-  MessSchedr(ZM_Base::MessType _type,  uint64_t _workerId, const std::string& _result) :
-    type(_type),
-    workerId(_workerId),
-    taskId(0),
-    progress(0),
-    workerRating(0),
-    workerLoad(0),
-    schedrActiveTask(0),
-    workerActiveTask(0),
-    result(_result){}
+  static MessSchedr progressMess(uint64_t _workerId, uint64_t _taskId, int _progress){
+    MessSchedr mess;{
+      mess.type = ZM_Base::MessType::PROGRESS;
+      mess.workerId = _workerId;
+      mess.taskId = _taskId;
+      mess.progress = _progress;
+    }
+    return mess;
+  };
+
+  static MessSchedr errorMess(uint64_t _workerId, const std::string& _err){
+    MessSchedr mess;{
+      mess.type = ZM_Base::MessType::INTERN_ERROR;
+      mess.workerId = _workerId;
+      mess.result = _err;
+    }
+    return mess;
+  };
 };
 struct MessError{
   uint64_t schedrId;

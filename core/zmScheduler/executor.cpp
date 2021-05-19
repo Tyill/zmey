@@ -40,15 +40,15 @@ bool Executor::appendNewTaskAvailable()
   return (m_tasks.size() < m_schedr.capacityTask) && (m_schedr.state != ZM_Base::StateType::PAUSE);
 }
 
- bool Executor::isTasksEmpty()
- {
-   return m_tasks.empty();
- }
+bool Executor::isTasksEmpty()
+{
+  return m_tasks.empty();
+}
 
- bool Executor::isMessToDBEmpty()
- {
-   return m_messToDB.empty();
- }
+bool Executor::isMessToDBEmpty()
+{
+  return m_messToDB.empty();
+}
 
 bool Executor::getSchedrFromDB(const std::string& connPnt, ZM_DB::DbProvider& db)
 {

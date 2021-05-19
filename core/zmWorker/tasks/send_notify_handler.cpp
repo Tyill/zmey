@@ -40,7 +40,7 @@ void Executor::sendNotifyHandler(const string& cp, const string& data, const std
     mess.taskResult = smess["taskResult"];
     m_listMessForSchedr.push(move(mess));
     if (m_ctickSendNotify(1000)){
-      statusMess("worker::sendHandler error send to schedr: " + ec.message());
+      m_app.statusMess("worker::sendHandler error send to schedr: " + ec.message());
     }
   }
 }

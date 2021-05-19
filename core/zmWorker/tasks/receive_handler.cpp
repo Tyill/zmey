@@ -70,16 +70,15 @@ void Executor::receiveHandler(const string& remcp, const string& data)
     checkField(script);
     checkFieldNum(averDurationSec);
     checkFieldNum(maxDurationSec);
-    checkFieldNum(activeTask);
     ZM_Base::Task t;
     t.id = stoull(mess["taskId"]);
     t.averDurationSec = stoi(mess["averDurationSec"]);
     t.maxDurationSec = stoi(mess["maxDurationSec"]);
     t.script = mess["script"];
-    m_newTasks.push(WTask{t, 
-                         ZM_Base::StateType::READY,
-                         mess["params"]}); 
-    mainCycleNotify();
+    t.state = ZM_Base::StateType::READY;
+    t.params = mess["params"];
+    m_newTasks.push(move(t)); 
+    Application::loopNotify();
   }
   else if (mtype == ZM_Base::MessType::PING_WORKER){  // only check
     return;
@@ -90,7 +89,7 @@ void Executor::receiveHandler(const string& remcp, const string& data)
     { std::lock_guard<std::mutex> lock(m_mtxProcess);
       
       auto iPrc = find_if(m_procs.begin(), m_procs.end(), [tId](const Process& p){
-        return p.getTask().base.id == tId;
+        return p.getTask().id == tId;
       });
       if (iPrc != m_procs.end()){
         switch (mtype){

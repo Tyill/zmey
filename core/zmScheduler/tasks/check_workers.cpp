@@ -42,15 +42,15 @@ void Executor::checkStatusWorkers()
   if (wkrNotResp.size() < round(m_workers.size() * 0.75)){ 
     for(auto w : wkrNotResp){
       if (w->base.state != ZM_Base::StateType::NOT_RESPONDING){
-        m_messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::WORKER_NOT_RESPONDING, w->base.id});
-        m_messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::INTERN_ERROR, w->base.id, "schedr::checkStatusWorkers worker not responding"});          
+        m_messToDB.push(ZM_DB::MessSchedr(ZM_Base::MessType::WORKER_NOT_RESPONDING, w->base.id));
+        m_messToDB.push(ZM_DB::MessSchedr::errorMess(w->base.id, "schedr::checkStatusWorkers worker not responding"));          
         w->stateMem = w->base.state;
         w->base.state = ZM_Base::StateType::NOT_RESPONDING;
       } 
     }
   }else{
     string mess = "schedr::checkStatusWorkers error all workers are not available";
-    m_messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::INTERN_ERROR, 0, mess});                                     
+    m_messToDB.push(ZM_DB::MessSchedr::errorMess(0, mess));                                     
     m_app.statusMess(mess);
   }
 }

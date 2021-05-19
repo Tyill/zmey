@@ -24,27 +24,33 @@
 //
 #pragma once
 
-#include "structurs.h"
 #include "zmCommon/timer_delay.h"
 #include "zmBase/structurs.h"
 
+class Application;
+class Executor;
+
 class Process{
-    pid_t _pid = 1; 
-    WTask _task;
-    ZM_Aux::TimerDelay _timerProgress,
-                       _timerDuration;
-    uint64_t _cdeltaTimeProgress = 0,
-             _cdeltaTimeDuration  = 0;
-    bool _isPause = false;
-  public:
-    Process(const WTask&);
-    ~Process();  
-    WTask getTask() const;
-    pid_t getPid() const;
-    int getProgress();
-    bool checkMaxRunTime();
-    void setTaskState(ZM_Base::StateType);
-    void pause();
-    void contin();
-    void stop();    
+public:
+  Process(Application&, Executor&, const ZM_Base::Task&);
+
+  ZM_Base::Task getTask() const;
+  pid_t getPid() const;
+  int getProgress();
+  bool checkMaxRunTime();
+  void setTaskState(ZM_Base::StateType);
+  void pause();
+  void contin();
+  void stop();    
+
+private:
+  Application& m_app;  
+  Executor& m_executor;
+  pid_t m_pid = 1; 
+  ZM_Base::Task m_task;
+  ZM_Aux::TimerDelay m_timerProgress,
+                     m_timerDuration;
+  uint64_t m_cdeltaTimeProgress = 0,
+           m_cdeltaTimeDuration  = 0;
+  bool m_isPause = false;
 };

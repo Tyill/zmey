@@ -34,7 +34,7 @@
 
 class Executor{
 public:  
-  Executor(Application&);
+  Executor(Application&, const std::string& connPnt);
 
 public:
   struct MessForSchedr{
@@ -44,7 +44,11 @@ public:
   };
 
   void addMessForSchedr(MessForSchedr);
-  
+  void addErrMess(std::string);
+  bool isErrMessEmpty();
+  bool isNewTasksEmpty();
+  bool isMessForSchedrEmpty();
+
   void receiveHandler(const std::string& cp, const std::string& data);
   void sendNotifyHandler(const std::string& cp, const std::string& data, const std::error_code& ec);
   void messageToSchedr(const std::string& schedrConnPnt);
@@ -55,18 +59,12 @@ public:
   void waitProcess();
   
 private:
-    
-  struct WTask{
-    ZM_Base::Task base;
-    ZM_Base::StateType state;
-    std::string params; // through ','
-  };
-
+  
   Application& m_app;  
   
   ZM_Base::Worker m_worker;
   ZM_Aux::Queue<MessForSchedr> m_listMessForSchedr;
-  ZM_Aux::Queue<WTask> m_newTasks;
+  ZM_Aux::Queue<ZM_Base::Task> m_newTasks;
   ZM_Aux::Queue<std::string> m_errMess;
   std::list<Process> m_procs;
   std::mutex m_mtxProcess;
