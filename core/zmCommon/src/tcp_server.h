@@ -22,33 +22,33 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+#include "../tcp.h"
+
+#include <map>
 #include <asio.hpp>
 
-#include "tcp_session.h"
+class TcpSession;
 
 class TcpServer{
 public:
-  TcpServer(asio::io_context& ioc, const std::string& addr, int port)
-    : _acceptor(ioc, *tcp::resolver(ioc).resolve(addr, std::to_string(port)).begin()){
-  #ifdef __linux__
-    ioctl(_acceptor.native_handle(), FIOCLEX); //  FD_CLOEXEC
-    int one = 1;
-    setsockopt(_acceptor.native_handle(), SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one));
-  #endif 
-    accept();
-  }
+  TcpServer(const std::string& addr, int port);
+
+  void start(int innerThreadCnt);
+  void stop();
+  bool asyncSendData(const std::string& connPnt, const std::string& data, bool isCBackIfError);
   
+  ZM_Tcp::ReceiveDataCBack ReceiveDataCB = nullptr;
+  ZM_Tcp::SendStatusCBack SendStatusCB = nullptr;   
+
 private:
-  void accept(){
-    _acceptor.async_accept(
-        [this](std::error_code ec, tcp::socket socket){
-          if (!ec){
-            auto session = std::make_shared<TcpSession>(std::move(socket));
-            if (session->isConnect()) 
-              session->read();
-          }
-          accept();
-        });
-  }
-  tcp::acceptor _acceptor;
+  void accept();
+ 
+private:
+  std::map<std::string, std::shared_ptr<TcpSession>> m_sessions;
+  
+  asio::io_context m_ioc;
+  asio::ip::tcp::acceptor m_acceptor;
+
+  std::vector<bool> m_isThrRun;
+  std::vector<std::thread> m_threads;
 };

@@ -37,8 +37,4 @@ void Executor::getPrevWorkersFromDB(ZM_DB::DbProvider& db)
   }else{
     m_app.statusMess("getPrevWorkersFromDB db error: " + db.getLastError());
   }
-
-  for (auto& w : m_workers){
-    ZM_Tcp::addPreConnectPnt(w.first);
-  }  
 }

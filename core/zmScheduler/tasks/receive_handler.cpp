@@ -80,7 +80,11 @@ void Executor::receiveHandler(const string& remcp, const string& data)
       case ZM_Base::MessType::TASK_CONTINUE:
       case ZM_Base::MessType::TASK_STOP:
         checkFieldNum(taskId);        
-        checkField(taskResult);       
+        checkFieldNum(load);
+        checkFieldNum(activeTask);
+        checkField(taskResult);     
+        worker.base.activeTask = stoi(mess["activeTask"]);
+        worker.base.load = stoi(mess["load"]);
         m_messToDB.push(ZM_DB::MessSchedr(mtype, 
                                          wId,
                                          stoull(mess["taskId"]),

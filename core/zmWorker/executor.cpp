@@ -41,6 +41,11 @@ void Executor::addErrMess(std::string mess)
   m_errMess.push(std::move(mess));
 }
 
+void Executor::setLoadCPU(int load)
+{
+  m_worker.load = load;
+}
+
 bool Executor::isErrMessEmpty()
 {
   return m_errMess.empty();

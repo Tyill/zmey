@@ -30,13 +30,16 @@ using namespace std;
 
 void Executor::messageToSchedr(const std::string& schedrConnPnt)
 {  
+  m_worker.activeTask = m_newTasks.size() + m_procs.size();
   MessForSchedr mess; 
   bool isSendOk = true;
   while(isSendOk && m_listMessForSchedr.tryPop(mess)){
     map<string, string> data{
           {"command",    to_string((int)mess.MessType)},
           {"connectPnt", m_worker.connectPnt},
-          {"taskId",     to_string(mess.taskId)},          
+          {"taskId",     to_string(mess.taskId)},  
+          {"activeTask", to_string(m_worker.activeTask)},
+          {"load",       to_string(m_worker.load)},        
           {"taskResult", mess.taskResult}
     };
     isSendOk = ZM_Tcp::asyncSendData(schedrConnPnt,  ZM_Aux::serialn(data));

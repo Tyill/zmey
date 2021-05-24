@@ -30,12 +30,29 @@
 
 namespace ZM_Tcp{
 
-/// error send data to receiver 
+/// status send data to receiver 
 /// [in] connPnt - connection point: IP or DNS ':' port
-/// [in] err - error
+/// [in] data - data for send
+/// [in] ec - system error code 
+using SendStatusCBack = std::function<void(const std::string& connPnt,                           
+                                           const std::string& data,
+                                           const std::error_code& ec)>;
+
+/// received data from sender
+/// [in] connPnt - connection point: IP or DNS ':' port
+/// [in] data - data from sender
+using ReceiveDataCBack = std::function<void(const std::string& connPnt,
+                                            const std::string& data)>;
+
+/// start server
+/// [in] connPnt - connection point: IP or DNS ':' port
+/// [in] received data callback
+/// [in] status send data callback
 /// [in] innerThreadCnt - the number of internal threads to run, 0 - std::thread::hardware_concurrency()
+/// [inout] err - error
 /// return true - ok 
-bool startServer(const std::string& connPnt, std::string& err, int innerThreadCnt = 0);
+bool startServer(const std::string& connPnt, ReceiveDataCBack, SendStatusCBack,
+ int innerThreadCnt, std::string& err);
 
 void stopServer();
 
@@ -50,24 +67,4 @@ bool asyncSendData(const std::string& connPnt, const std::string& data, bool isS
 /// [in] data - data for send
 /// return true - ok
 bool syncSendData(const std::string& connPnt, const std::string& data);
-
-/// add connect point to pool
-void addPreConnectPnt(const std::string& connPnt);
-
-/// status send data to receiver 
-/// [in] connPnt - connection point: IP or DNS ':' port
-/// [in] data - data for send
-/// [in] ec - system error code 
-typedef std::function<void(const std::string& connPnt,                           
-                           const std::string& data,
-                           const std::error_code& ec)> sendStatusCBack;
-void setSendStatusCBack(sendStatusCBack);
-
-/// received data from sender
-/// [in] connPnt - connection point: IP or DNS ':' port
-/// [in] data - data from sender
-typedef std::function<void(const std::string& connPnt,
-                           const std::string& data)> receiveDataCBack;
-void setReceiveCBack(receiveDataCBack);
-
 }

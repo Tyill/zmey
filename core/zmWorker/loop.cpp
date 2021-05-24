@@ -39,10 +39,7 @@ Loop::Loop(const Application::Config& cng, Executor& exr):
 }
 
 void Loop::run()
-{
-  ZM_Base::Worker worker;
-  worker.connectPnt = m_cng.remoteConnPnt;
-    
+{      
   ZM_Aux::TimerDelay timer;
   const int minCycleTimeMS = 10;
    
@@ -65,7 +62,7 @@ void Loop::run()
     }
     
     if(timer.onDelayOncSec(true, m_cng.checkLoadTOutSec, 1)){
-      worker.load = cpu.load();
+      m_executor.setLoadCPU(cpu.load());
     } 
     
     if(timer.onDelayOncSec(true, m_cng.pingSchedrTOutSec, 2)){

@@ -84,14 +84,14 @@ int main(int argc, char* argv[])
   executor.getPrevWorkersFromDB(*dbNewTask);
  
   // TCP server
-  ZM_Tcp::setReceiveCBack([&executor](const string& cp, const string& data){
+  ZM_Tcp::ReceiveDataCBack receiveDataCB = [&executor](const string& cp, const string& data){
     executor.receiveHandler(cp, data);
-  });
-  ZM_Tcp::setSendStatusCBack([&executor](const string& cp, const string& data, const error_code& ec){
+  };
+  ZM_Tcp::SendStatusCBack sendStatusCB = [&executor](const string& cp, const string& data, const error_code& ec){
     executor.sendNotifyHandler(cp, data, ec);
-  });
-  
-  CHECK_RETURN(!ZM_Tcp::startServer(cng.localConnPnt, err), "Schedr error: " + cng.localConnPnt + " " + err);
+  };  
+  CHECK_RETURN(!ZM_Tcp::startServer(cng.localConnPnt, receiveDataCB, sendStatusCB, 0, err), 
+    "Schedr error: " + cng.localConnPnt + " " + err);
   app.statusMess("Schedr running: " + cng.localConnPnt);
   
   // on start

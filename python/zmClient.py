@@ -1139,7 +1139,6 @@ class Connection:
         iot.ttId = tcng.ttId
         iot.gId = tcng.gId
         iot.priority = tcng.priority
-        self._freeResources()
         return True
     return False
   def changeTaskPipeline(self, iot : TaskPipeline) -> bool:
@@ -1168,14 +1167,14 @@ class Connection:
     :return: True - ok
     """
     if (self._zmConn):
-      tid = ctypes.c_uint64(tId)
+      tid = ctypes.c_uint64(ptId)
             
       pfun = _lib.zmDelTaskPipeline
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, tid)
     return False
-  def getAllTasksPipeline(self, pplId : int) -> List[TaskPipeline]:
+  def getAllTasksPipeline(self, pplId : int, state : StateType) -> List[TaskPipeline]:
     """
     Get all tasks of pipeline
     :param pplId: Pipeline id

@@ -45,6 +45,7 @@ public:
 
   void addMessForSchedr(MessForSchedr);
   void addErrMess(std::string);
+  void setLoadCPU(int);
   bool isErrMessEmpty();
   bool isNewTasksEmpty();
   bool isMessForSchedrEmpty();

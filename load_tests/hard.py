@@ -27,7 +27,10 @@ with psycopg2.connect(dbname='zmeydb', user='alm', password='123', host='localho
               "drop table if exists tblTaskQueue cascade;" + 
               "drop table if exists tblInternError cascade;" + 
               "drop table if exists tblConnectPnt cascade;" + 
-              "drop table if exists tblUTaskGroup cascade;")
+              "drop table if exists tblUTaskGroup cascade;" + 
+              "DROP FUNCTION IF EXISTS funcStartTask;" +
+              "DROP FUNCTION IF EXISTS funcTasksOfSchedr;" +
+              "DROP FUNCTION IF EXISTS funcNewTasksForSchedr;")
   csr.close()
 
 zm.loadLib(os.path.expanduser("~") + '/cpp/zmey/build/Release/libzmClient.so')

@@ -71,16 +71,15 @@ int main(int argc, char* argv[]){
   executor.addMessForSchedr(Executor::MessForSchedr{0, ZM_Base::MessType::JUST_START_WORKER});
 
   // TCP server
-  ZM_Tcp::setReceiveCBack([&executor](const string& cp, const string& data){
+  ZM_Tcp::ReceiveDataCBack receiveDataCB = [&executor](const string& cp, const string& data){
     executor.receiveHandler(cp, data);
-  });
-  ZM_Tcp::setSendStatusCBack([&executor](const string& cp, const string& data, const error_code& ec){
+  };
+  ZM_Tcp::SendStatusCBack sendStatusCB = [&executor](const string& cp, const string& data, const error_code& ec){
     executor.sendNotifyHandler(cp, data, ec);
-  });
-
-  ZM_Tcp::addPreConnectPnt(cng.schedrConnPnt);
+  };
   string err;
-  CHECK_RETURN(!ZM_Tcp::startServer(cng.localConnPnt, err, 1), "Worker error: " + cng.localConnPnt + " " + err);
+  CHECK_RETURN(!ZM_Tcp::startServer(cng.localConnPnt, receiveDataCB, sendStatusCB, 1, err),
+    "Worker error: " + cng.localConnPnt + " " + err);
   app.statusMess("Worker running: " + cng.localConnPnt);
   
   // loop ///////////////////////////////////////////////////////////////////////
