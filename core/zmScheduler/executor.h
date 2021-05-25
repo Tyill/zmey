@@ -49,6 +49,7 @@ public:
   void checkStatusWorkers();
   void getPrevTaskFromDB(ZM_DB::DbProvider& db);
   void getPrevWorkersFromDB(ZM_DB::DbProvider& db);
+  void stopSchedr(ZM_DB::DbProvider& db);
   
 private:
   struct SWorker{

@@ -1464,7 +1464,7 @@ bool DbProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::MessSche
     return true;
   }
   stringstream ss;
-  for (auto& m : mess){
+  for (const auto& m : mess){
     switch (m.type){      
       case ZM_Base::MessType::TASK_ERROR:
         ss << "UPDATE tblTaskTime SET "
@@ -1568,7 +1568,8 @@ bool DbProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::MessSche
       case ZM_Base::MessType::STOP_SCHEDR:
         ss << "UPDATE tblScheduler SET "
               "state = " << (int)ZM_Base::StateType::STOP << ", "
-              "stopTime = current_timestamp "
+              "stopTime = current_timestamp, "
+              "internalData = '" << m.internalData << "' "
               "WHERE id = " << sId << ";";
         break;
       case ZM_Base::MessType::START_AFTER_PAUSE_SCHEDR:

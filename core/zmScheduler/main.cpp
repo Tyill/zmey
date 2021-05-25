@@ -122,8 +122,7 @@ int main(int argc, char* argv[])
   /////////////////////////////////////////////////////////////////////////
   
   ZM_Tcp::stopServer();
-  executor.addMessToDB(ZM_DB::MessSchedr{ ZM_Base::MessType::STOP_SCHEDR });
-  executor.sendAllMessToDB(*dbSendMess);
+  executor.stopSchedr(*dbSendMess);
 }
 
 void closeHandler(int sig)

@@ -46,6 +46,9 @@ void Executor::checkStatusWorkers()
         m_messToDB.push(ZM_DB::MessSchedr::errorMess(w->base.id, "schedr::checkStatusWorkers worker not responding"));          
         w->stateMem = w->base.state;
         w->base.state = ZM_Base::StateType::NOT_RESPONDING;
+
+        for(auto& t : w->taskList)
+          t = 0;
       } 
     }
   }else{

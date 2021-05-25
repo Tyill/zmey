@@ -48,6 +48,7 @@ struct MessSchedr{
   int schedrActiveTask = 0;
   int workerActiveTask = 0;
   std::string result;
+  std::string internalData;
   
   MessSchedr(ZM_Base::MessType _type = ZM_Base::MessType::INTERN_ERROR, uint64_t _workerId = 0, uint64_t _taskId = 0, const std::string& _result = "") :
     type(_type),

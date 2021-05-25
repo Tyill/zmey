@@ -78,20 +78,32 @@ void Executor::receiveHandler(const string& remcp, const string& data)
       case ZM_Base::MessType::TASK_RUNNING:        
       case ZM_Base::MessType::TASK_PAUSE:
       case ZM_Base::MessType::TASK_CONTINUE:
-      case ZM_Base::MessType::TASK_STOP:
+      case ZM_Base::MessType::TASK_STOP:{
         checkFieldNum(taskId);        
         checkFieldNum(load);
         checkFieldNum(activeTask);
         checkField(taskResult);     
         worker.base.activeTask = stoi(mess["activeTask"]);
         worker.base.load = stoi(mess["load"]);
-        m_messToDB.push(ZM_DB::MessSchedr(mtype, 
-                                         wId,
-                                         stoull(mess["taskId"]),
-                                         mess["taskResult"]));
+        uint64_t tid = stoull(mess["taskId"]);        
+        if ((mtype == ZM_Base::MessType::TASK_ERROR) || (mtype == ZM_Base::MessType::TASK_COMPLETED) ||
+            (mtype == ZM_Base::MessType::TASK_STOP)){
+          for(auto& t : worker.taskList){
+            if (t == tid){
+              m_messToDB.push(ZM_DB::MessSchedr(mtype, wId, tid, mess["taskResult"]));
+              t = 0;
+              break;
+            }
+          } 
+        }else{
+          m_messToDB.push(ZM_DB::MessSchedr(mtype, wId, tid, mess["taskResult"]));
+        }
         break;
+      }        
       case ZM_Base::MessType::JUST_START_WORKER:
         m_messToDB.push(ZM_DB::MessSchedr(mtype, wId));
+        for(auto& t : worker.taskList)
+          t = 0;
         break;
       case ZM_Base::MessType::PROGRESS:{
         int tCnt = 0;

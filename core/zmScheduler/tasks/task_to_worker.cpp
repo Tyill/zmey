@@ -56,10 +56,17 @@ bool Executor::sendTaskToWorker()
       return float(l->activeTask + l->load / 10.f) / l->rating < float(r->activeTask + r->load / 10.f) / r->rating;
     });
     auto iWr = find_if(m_refWorkers.begin(), m_refWorkers.end(),
-      [](const ZM_Base::Worker* w){
-        return (w->state == ZM_Base::StateType::RUNNING) && 
-               (w->activeTask <= w->capacityTask) && 
-               (w->rating > 1);
+      [this](const ZM_Base::Worker* w){                
+        bool isSpare = false;
+        if ((w->state == ZM_Base::StateType::RUNNING) && (w->activeTask <= w->capacityTask) && (w->rating > 1)){ 
+          for(auto& wt : m_workers[w->connectPnt].taskList){
+            if (wt == 0){
+              isSpare = true;
+              break;
+            }
+          } 
+        }
+        return isSpare;
       }); 
     if(iWr != m_refWorkers.end()){
       ZM_Base::Task t;
@@ -73,10 +80,18 @@ bool Executor::sendTaskToWorker()
         {"averDurationSec", to_string(t.averDurationSec)}, 
         {"maxDurationSec",  to_string(t.maxDurationSec)}        
       };
-      if (ZM_Tcp::asyncSendData((*iWr)->connectPnt, ZM_Aux::serialn(data))){
+      const string& wConnPnt = (*iWr)->connectPnt;
+      if (ZM_Tcp::asyncSendData(wConnPnt, ZM_Aux::serialn(data))){
         ++(*iWr)->activeTask;
-        m_workers[(*iWr)->connectPnt].base.activeTask = (*iWr)->activeTask; 
+        m_workers[wConnPnt].base.activeTask = (*iWr)->activeTask; 
         m_messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::TASK_START, (*iWr)->id, t.id}); 
+
+        for(auto& wt : m_workers[wConnPnt].taskList){
+          if (wt == 0){
+            wt = t.id;
+            break;
+          }
+        } 
       }else{
         (*iWr)->rating = std::max(1, (*iWr)->rating - 1);
       }      

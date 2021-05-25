@@ -22,25 +22,31 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#include "zmWorker/executor.h"
-#include "zmCommon/serial.h"
+#include "zmScheduler/executor.h"
+#include "zmCommon/tcp.h"
+#include "zmCommon/json.h"
 
 using namespace std;
 
-void Executor::sendNotifyHandler(const string& cp, const string& data, const std::error_code& ec)
+void Executor::stopSchedr(ZM_DB::DbProvider& db)
 {  
-  auto smess = ZM_Aux::deserialn(data);  
-  ZM_Base::MessType messType = (ZM_Base::MessType)stoi(smess["command"]);
-  if (ec && (messType != ZM_Base::MessType::PROGRESS) &&
-            (messType != ZM_Base::MessType::INTERN_ERROR) &&
-            (messType != ZM_Base::MessType::PING_WORKER)){
-    MessForSchedr mess;
-    mess.MessType = messType;
-    mess.taskId = stoull(smess["taskId"]);
-    mess.taskResult = smess["taskResult"];
-    m_listMessForSchedr.push(move(mess));
-    if (m_ctickSendNotify(1000)){
-      m_app.statusMess("worker::sendNotifyHandler error send to schedr: " + ec.message());
+  Json::Value rootJs;
+  rootJs["Workers"];
+  for(const auto& w : m_workers){
+    Json::Value wJs;
+    wJs["ConnPnt"] = w.first;
+    wJs["Tasks"];
+    for (auto t : w.second.taskList){
+      wJs["Tasks"].append(t);
     }
+    rootJs["Workers"].append(wJs);    
   }
+  Json::FastWriter writerJs;
+  
+  ZM_DB::MessSchedr mess;{
+    mess.type = ZM_Base::MessType::STOP_SCHEDR;
+    mess.internalData = writerJs.write(rootJs);
+  }
+  addMessToDB(mess);
+  sendAllMessToDB(db);
 }

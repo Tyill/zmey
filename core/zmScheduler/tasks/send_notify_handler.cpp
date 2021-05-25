@@ -35,16 +35,16 @@ using namespace std;
 #ifdef DEBUG
   #define checkFieldNum(field) \
     if (mess.find(#field) == mess.end()){ \
-      ERROR_MESS(string("schedr::sendHandler Error mess.find ") + #field + " from: " + cp, wId); \
+      ERROR_MESS(string("schedr::sendNotifyHandler Error mess.find ") + #field + " from: " + cp, wId); \
       return;  \
     } \
     if (!ZM_Aux::isNumber(mess[#field])){ \
-      ERROR_MESS("schedr::sendHandler Error !ZM_Aux::isNumber " + mess[#field] + " from: " + cp, wId); \
+      ERROR_MESS("schedr::sendNotifyHandler Error !ZM_Aux::isNumber " + mess[#field] + " from: " + cp, wId); \
       return; \
     }
   #define checkField(field) \
     if (mess.find(#field) == mess.end()){  \
-      ERROR_MESS(string("schedr::sendHandler Error mess.find ") + #field + " from: " + cp, wId);  \
+      ERROR_MESS(string("schedr::sendNotifyHandler Error mess.find ") + #field + " from: " + cp, wId);  \
       return;  \
     }
 #else
@@ -78,6 +78,13 @@ void Executor::sendNotifyHandler(const string& cp, const string& data, const std
         t.maxDurationSec = stoi(mess["maxDurationSec"]);
         m_tasks.push(move(t));
         worker.base.activeTask = std::max(0, worker.base.activeTask - 1);
+
+        for(auto& wt : worker.taskList){
+            if (wt == t.id){
+              wt = 0;
+              break;
+            }
+          } 
         }
         break;
       default:
