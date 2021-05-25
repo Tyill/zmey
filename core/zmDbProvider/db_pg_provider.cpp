@@ -185,7 +185,8 @@ bool DbProvider::createTables(){
         "activeTask   INT NOT NULL DEFAULT 0 CHECK (activeTask >= 0),"
         "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1),"
         "startTime    TIMESTAMP NOT NULL DEFAULT current_timestamp,"
-        "stopTime     TIMESTAMP NOT NULL DEFAULT current_timestamp);";
+        "stopTime     TIMESTAMP NOT NULL DEFAULT current_timestamp,"
+        "internalData TEXT NOT NULL DEFAULT '');";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
@@ -1363,7 +1364,7 @@ bool DbProvider::getSchedr(const std::string& connPnt, ZM_Base::Scheduler& outCn
     return false;
   }
   stringstream ss;
-  ss << "SELECT s.id, s.state, s.capacityTask, s.activeTask FROM tblScheduler s "
+  ss << "SELECT s.id, s.state, s.capacityTask, s.activeTask, s.internalData FROM tblScheduler s "
         "JOIN tblConnectPnt cp ON cp.id = s.connPnt "
         "WHERE cp.ipAddr = '" << cp[0] << "' AND cp.port = '" << cp[1] << "' AND s.isDelete = 0;";
 
@@ -1381,6 +1382,7 @@ bool DbProvider::getSchedr(const std::string& connPnt, ZM_Base::Scheduler& outCn
   outCng.state = (ZM_Base::StateType)atoi(PQgetvalue(pgr.res, 0, 1));
   outCng.capacityTask = atoi(PQgetvalue(pgr.res, 0, 2));
   outCng.activeTask = atoi(PQgetvalue(pgr.res, 0, 3));
+  outCng.internalData = PQgetvalue(pgr.res, 0, 4);
   return true;
 }
 bool DbProvider::getTasksOfSchedr(uint64_t sId, std::vector<ZM_Base::Task>& out){

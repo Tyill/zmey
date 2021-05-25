@@ -122,6 +122,7 @@ namespace ZM_Base{
     int capacityTask;         // the number of tasks that can be performed simultaneously  
     int activeTask;           // number of running tasks (approximate quantity)
     std::string connectPnt;   // connection point: IP or DNS ':' port
+    std::string internalData; // config data in json
   };
   // tblWorker
   struct Worker{

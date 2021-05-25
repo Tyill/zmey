@@ -54,6 +54,7 @@ private:
   struct SWorker{
     ZM_Base::Worker base;
     ZM_Base::StateType stateMem;
+    std::vector<uint64_t> taskList;
     bool isActive;
   };
 

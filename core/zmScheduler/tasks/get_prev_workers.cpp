@@ -29,10 +29,13 @@ using namespace std;
 
 void Executor::getPrevWorkersFromDB(ZM_DB::DbProvider& db)
 {  
+  m_schedr.internalData;
+
   vector<ZM_Base::Worker> workers; 
   if (db.getWorkersOfSchedr(m_schedr.id, workers)){
     for(auto& w : workers){
-      m_workers[w.connectPnt] = SWorker{w, w.state, w.state != ZM_Base::StateType::NOT_RESPONDING};
+      m_workers[w.connectPnt] = SWorker{w, w.state, vector<uint64_t>(int(w.capacityTask * 1.5), 0), 
+                                        w.state != ZM_Base::StateType::NOT_RESPONDING};
     }
   }else{
     m_app.statusMess("getPrevWorkersFromDB db error: " + db.getLastError());
