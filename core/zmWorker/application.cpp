@@ -44,8 +44,8 @@ bool Application::parseArgs(int argc, char* argv[], Config& outCng){
     cout << "Usage: --localAddr[-la] worker local connection point: IP or DNS:port. Required\n"
          << "       --remoteAddr[-ra] worker remote connection point (if from NAT): IP or DNS:port. Optional\n"
          << "       --schedrAddr[-sa] schedr remote connection point: IP or DNS:port. Required\n"
-         << "       --progressTOut[-pt] send progress of tasks to schedr, sec. Default 10 sec\n"
-         << "       --pingSchedrTOut[-st] send ping to schedr, sec. Default 20 sec\n";
+         << "       --progressTasksTOutSec[-pt] send progress of tasks to schedr, sec. Default 10 sec\n"
+         << "       --pingSchedrTOutSec[-st] send ping to schedr, sec. Default 20 sec\n";
     return false;  
   }
 
@@ -69,8 +69,8 @@ bool Application::parseArgs(int argc, char* argv[], Config& outCng){
     outCng.prm = stoi(sprms[#shortName]);                                                 \
   }
 
-  SET_PARAM_NUM(pt, progressTOut, progressTasksTOutSec);
-  SET_PARAM_NUM(st, pingSchedrTOut, pingSchedrTOutSec);
+  SET_PARAM_NUM(pt, progressTasksTOutSec, progressTasksTOutSec);
+  SET_PARAM_NUM(st, pingSchedrTOutSec, pingSchedrTOutSec);
 
   return true;
 }

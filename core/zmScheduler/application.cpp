@@ -44,7 +44,8 @@ bool Application::parseArgs(int argc, char* argv[], Config& outCng){
     cout << "Usage: --localAddr[-la] schedr local connection point: IP or DNS:port. Required\n"
          << "       --remoteAddr[-ra] schedr remote connection point (if from NAT): IP or DNS:port. Optional\n"
          << "       --dbConnStr[-db] database connection string\n"
-         << "       --checkWorkerTOut[-cw] check ping from workers, sec. Default 120 sec\n";
+         << "       --checkWorkerTOutSec[-cw] check ping from workers, sec. Default 120 sec\n"
+         << "       --pingToDBSec[-pb] ping to DB, sec. Default 30 sec\n";
     return false; 
   }
   
@@ -68,7 +69,8 @@ bool Application::parseArgs(int argc, char* argv[], Config& outCng){
     outCng.prm = stoi(sprms[#shortName]);                                                 \
   }
 
-  SET_PARAM_NUM(cw, checkWorkerTOut, checkWorkerTOutSec);
+  SET_PARAM_NUM(cw, checkWorkerTOutSec, checkWorkerTOutSec);
+  SET_PARAM_NUM(pb, pingToDBSec, pingToDBSec);
 
   return true;
 }

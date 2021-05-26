@@ -86,18 +86,13 @@ void Executor::receiveHandler(const string& remcp, const string& data)
         worker.base.activeTask = stoi(mess["activeTask"]);
         worker.base.load = stoi(mess["load"]);
         uint64_t tid = stoull(mess["taskId"]);        
-        if ((mtype == ZM_Base::MessType::TASK_ERROR) || (mtype == ZM_Base::MessType::TASK_COMPLETED) ||
-            (mtype == ZM_Base::MessType::TASK_STOP)){
-          for(auto& t : worker.taskList){
-            if (t == tid){
-              m_messToDB.push(ZM_DB::MessSchedr(mtype, wId, tid, mess["taskResult"]));
-              t = 0;
-              break;
-            }
-          } 
-        }else{
-          m_messToDB.push(ZM_DB::MessSchedr(mtype, wId, tid, mess["taskResult"]));
-        }
+        for(auto& t : worker.taskList){
+          if (t == tid){
+            m_messToDB.push(ZM_DB::MessSchedr(mtype, wId, tid, mess["taskResult"]));
+            t = 0;
+            break;
+          }
+        }      
         break;
       }        
       case ZM_Base::MessType::JUST_START_WORKER:
@@ -105,15 +100,9 @@ void Executor::receiveHandler(const string& remcp, const string& data)
         for(auto& t : worker.taskList)
           t = 0;
         break;
-      case ZM_Base::MessType::PROGRESS:{
-        int tCnt = 0;
-        while(mess.find("taskId" + to_string(tCnt)) != mess.end()){
-          m_messToDB.push(ZM_DB::MessSchedr::progressMess(wId,
-                                                          stoull(mess["taskId" + to_string(tCnt)]),
-                                                          stoi(mess["progress" + to_string(tCnt)])));
-          ++tCnt;
-        }
-        }
+      case ZM_Base::MessType::PROGRESS:
+        checkField(tasks);
+        m_messToDB.push(ZM_DB::MessSchedr(mtype, wId, 0, mess["tasks"]));
         break;
       case ZM_Base::MessType::INTERN_ERROR:{
         checkField(message);

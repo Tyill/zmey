@@ -24,24 +24,34 @@
 //
 
 #include "zmScheduler/executor.h"
+#include "zmCommon/json.h"
 
 using namespace std;
 
-void Executor::sendAllMessToDB(ZM_DB::DbProvider& db)
+void Executor::pingToDB()
 {
-  vector<ZM_DB::MessSchedr> mess;
-  ZM_DB::MessSchedr m;
-  while(m_messToDB.tryPop(m)){
-    mess.push_back(m);
-  }
-  if (!db.sendAllMessFromSchedr(m_schedr.id, mess)){
-    for (auto& m : mess){
-      m_messToDB.push(move(m));
+  Json::Value rootJs;
+  rootJs["workers"];
+  for(const auto& w : m_workers){
+    Json::Value wJs;
+    wJs["id"] = w.second.base.id;
+    wJs["connPnt"] = w.first;
+    wJs["activeTask"] = w.second.base.activeTask;
+    wJs["load"] = w.second.base.load;
+    wJs["tasks"];
+    for (auto t : w.second.taskList){
+      wJs["tasks"].append(t);
     }
-    if (m_ctickMessToDB(1000)){ // every 100 cycle
-      m_app.statusMess("sendAllMessToDB db error: " + db.getLastError());
-    }
-  }else{
-    m_ctickMessToDB.reset();
+    rootJs["workers"].append(wJs);    
   }
+  rootJs["schedr"];
+  rootJs["schedr"]["activeTask"] = m_schedr.activeTask;
+ 
+  Json::FastWriter writerJs;
+  
+  ZM_DB::MessSchedr mess;{
+    mess.type = ZM_Base::MessType::PING_SCHEDR;
+    mess.data = writerJs.write(rootJs);
+  }
+  m_messToDB.push(move(mess));
 }

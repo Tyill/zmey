@@ -43,34 +43,19 @@ struct MessSchedr{
   ZM_Base::MessType type = ZM_Base::MessType::INTERN_ERROR;
   uint64_t workerId = 0;
   uint64_t taskId = 0;
-  int progress = 0;
-  int workerLoad = 0;
-  int schedrActiveTask = 0;
-  int workerActiveTask = 0;
-  std::string result;
-  std::string internalData;
+  std::string data;
   
-  MessSchedr(ZM_Base::MessType _type = ZM_Base::MessType::INTERN_ERROR, uint64_t _workerId = 0, uint64_t _taskId = 0, const std::string& _result = "") :
+  MessSchedr(ZM_Base::MessType _type = ZM_Base::MessType::INTERN_ERROR, uint64_t _workerId = 0, uint64_t _taskId = 0, const std::string& _data = "") :
     type(_type),
     workerId(_workerId),
     taskId(_taskId),
-    result(_result){}
-
-  static MessSchedr progressMess(uint64_t _workerId, uint64_t _taskId, int _progress){
-    MessSchedr mess;{
-      mess.type = ZM_Base::MessType::PROGRESS;
-      mess.workerId = _workerId;
-      mess.taskId = _taskId;
-      mess.progress = _progress;
-    }
-    return mess;
-  };
+    data(_data){}
 
   static MessSchedr errorMess(uint64_t _workerId, const std::string& _err){
     MessSchedr mess;{
       mess.type = ZM_Base::MessType::INTERN_ERROR;
       mess.workerId = _workerId;
-      mess.result = _err;
+      mess.data = _err;
     }
     return mess;
   };
@@ -98,36 +83,36 @@ typedef std::function<void(const char* mess, udata)> errCBack;
 typedef void(*changeTaskStateCBack)(uint64_t qtId, ZM_Base::StateType prevState, ZM_Base::StateType newState);
 
 class DbProvider{  
-  std::string _err;
-  errCBack _errCBack = nullptr;
-  udata _errUData = nullptr;
-  ZM_DB::ConnectCng _connCng;
-  void* _db = nullptr; 
-  std::mutex _mtx, _mtxNotifyTask;
-  std::condition_variable _cvNotifyTask;
-  std::thread _thrEndTask;
-  std::map<uint64_t, std::pair<ZM_Base::StateType, changeTaskStateCBack>> _notifyTaskStateCBack;
-  bool _fClose = false;
+  std::string m_err;
+  errCBack m_errCBack = nullptr;
+  udata m_errUData = nullptr;
+  ZM_DB::ConnectCng m_connCng;
+  void* m_db = nullptr; 
+  std::mutex m_mtx, m_mtxNotifyTask;
+  std::condition_variable m_cvNotifyTask;
+  std::thread m_thrEndTask;
+  std::map<uint64_t, std::pair<ZM_Base::StateType, changeTaskStateCBack>> m_notifyTaskStateCBack;
+  bool m_fClose = false;
 public: 
   DbProvider(const ConnectCng& cng);
   ~DbProvider(); 
   DbProvider(const DbProvider& other) = delete;
   DbProvider& operator=(const DbProvider& other) = delete;
   std::string getLastError() const{
-    return _err;
+    return m_err;
   }  
   void setErrorCBack(errCBack ecb, udata ud){
-    _errCBack = ecb;
-    _errUData = ud;
+    m_errCBack = ecb;
+    m_errUData = ud;
   }
   void errorMess(const std::string& mess){
-    _err = mess;
-    if (_errCBack){
-      _errCBack(mess.c_str(), _errUData);
+    m_err = mess;
+    if (m_errCBack){
+      m_errCBack(mess.c_str(), m_errUData);
     } 
   }
   ConnectCng getConnectCng(){
-    return _connCng;
+    return m_connCng;
   }
   
   bool createTables();

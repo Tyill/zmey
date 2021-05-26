@@ -67,6 +67,10 @@ void Loop::run()
     if(timer.onDelayOncSec(true, m_cng.checkWorkerTOutSec, 0)){
       m_executor.checkStatusWorkers();
     }
+
+    if(timer.onDelayOncSec(true, m_cng.pingToDBSec, 1)){
+      m_executor.pingToDB();
+    }
     
     if (m_executor.isMessToDBEmpty() && (m_executor.isTasksEmpty() || !isAvailableWorkers)){ 
       mainCycleSleep(minCycleTimeMS);

@@ -28,6 +28,7 @@
 #include <libpq-fe.h>
 
 #include "zmCommon/aux_func.h"
+#include "zmCommon/json.h"
 #include "db_provider.h"
 
 using namespace std;
@@ -61,31 +62,31 @@ public:
   }
 };
 
-#define _pg static_cast<PGconn*>(_db)
+#define _pg static_cast<PGconn*>(m_db)
 
 DbProvider::DbProvider(const ZM_DB::ConnectCng& cng)
-  : _connCng(cng){ 
+  : m_connCng(cng){ 
 
-  _db = (PGconn*)PQconnectdb(cng.connectStr.c_str());
+  m_db = (PGconn*)PQconnectdb(cng.connectStr.c_str());
   if (PQstatus(_pg) != CONNECTION_OK){
     errorMess(PQerrorMessage(_pg));
     return;
   }
 }
 DbProvider::~DbProvider(){  
-  if (_thrEndTask.joinable()){
-    _fClose = true;   
-    {lock_guard<mutex> lk(_mtxNotifyTask);  
-      _cvNotifyTask.notify_one();
+  if (m_thrEndTask.joinable()){
+    m_fClose = true;   
+    {lock_guard<mutex> lk(m_mtxNotifyTask);  
+      m_cvNotifyTask.notify_one();
     }  
-    _thrEndTask.join();
+    m_thrEndTask.join();
   }
   if (_pg){
     PQfinish(_pg);
   }
 }
 bool DbProvider::createTables(){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   #define QUERY(req, sts){              \
     PGres pgr(PQexec(_pg, req));        \
     if (PQresultStatus(pgr.res) != sts){  \
@@ -304,7 +305,7 @@ bool DbProvider::createTables(){
        
         "  INSERT INTO tblTaskState (qtask, state) VALUES("
         "    qId,"
-        "    0);"  // ready
+        "" << int(ZM_Base::StateType::READY) << ");"
 
         "  RETURN qId;"
         "END;"
@@ -409,7 +410,7 @@ bool DbProvider::createTables(){
 
 // for manager
 bool DbProvider::addUser(const ZM_Base::User& cng, uint64_t& outUserId){  
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   stringstream ss;
   ss << "INSERT INTO tblUser (name, passwHash, description) VALUES("
         "'" << cng.name << "',"
@@ -425,7 +426,7 @@ bool DbProvider::addUser(const ZM_Base::User& cng, uint64_t& outUserId){
   return true;
 }
 bool DbProvider::getUserId(const std::string& name, const std::string& passw, uint64_t& outUserId){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   stringstream ss;
   ss << "SELECT id FROM tblUser "
         "WHERE name = '" << name << "' AND " << "passwHash = MD5('" << passw << "') AND isDelete = 0;";
@@ -444,7 +445,7 @@ bool DbProvider::getUserId(const std::string& name, const std::string& passw, ui
   return true;
 }
 bool DbProvider::getUserCng(uint64_t userId, ZM_Base::User& cng){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   stringstream ss;
   ss << "SELECT name, description FROM tblUser "
         "WHERE id = " << userId << " AND isDelete = 0;";
@@ -463,7 +464,7 @@ bool DbProvider::getUserCng(uint64_t userId, ZM_Base::User& cng){
   return true;
 }
 bool DbProvider::changeUser(uint64_t userId, const ZM_Base::User& newCng){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   stringstream ss;
   ss << "UPDATE tblUser SET "
         "name = '" << newCng.name << "',"
@@ -479,7 +480,7 @@ bool DbProvider::changeUser(uint64_t userId, const ZM_Base::User& newCng){
   return true;
 }
 bool DbProvider::delUser(uint64_t userId){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   stringstream ss;
   ss << "UPDATE tblUser SET "
         "isDelete = 1 "
@@ -493,7 +494,7 @@ bool DbProvider::delUser(uint64_t userId){
   return true;
 }
 std::vector<uint64_t> DbProvider::getAllUsers(){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   stringstream ss;
   ss << "SELECT id FROM tblUser "
         "WHERE isDelete = 0;";
@@ -512,7 +513,7 @@ std::vector<uint64_t> DbProvider::getAllUsers(){
 }
 
 bool DbProvider::addSchedr(const ZM_Base::Scheduler& schedl, uint64_t& outSchId){    
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   auto connPnt = ZM_Aux::split(schedl.connectPnt, ':');
   if (connPnt.size() != 2){
     errorMess("addSchedr error: connectPnt not correct");
@@ -536,7 +537,7 @@ bool DbProvider::addSchedr(const ZM_Base::Scheduler& schedl, uint64_t& outSchId)
   return true;
 }
 bool DbProvider::getSchedr(uint64_t sId, ZM_Base::Scheduler& cng){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   stringstream ss;
   ss << "SELECT cp.ipAddr, cp.port, s.state, s.capacityTask FROM tblScheduler s "
         "JOIN tblConnectPnt cp ON cp.id = s.connPnt "
@@ -557,7 +558,7 @@ bool DbProvider::getSchedr(uint64_t sId, ZM_Base::Scheduler& cng){
   return true;
 }
 bool DbProvider::changeSchedr(uint64_t sId, const ZM_Base::Scheduler& newCng){  
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   auto connPnt = ZM_Aux::split(newCng.connectPnt, ':');
   if (connPnt.size() != 2){
     errorMess("changeSchedr error: connectPnt not correct");
@@ -581,7 +582,7 @@ bool DbProvider::changeSchedr(uint64_t sId, const ZM_Base::Scheduler& newCng){
   return true;
 }
 bool DbProvider::delSchedr(uint64_t sId){  
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   stringstream ss;
   ss << "UPDATE tblScheduler SET "
         "isDelete = 1 "
@@ -595,7 +596,7 @@ bool DbProvider::delSchedr(uint64_t sId){
   return true;
 }
 bool DbProvider::schedrState(uint64_t sId, ZM_Base::StateType& state){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   stringstream ss;
   ss << "SELECT state FROM tblScheduler "
         "WHERE id = " << sId << " AND isDelete = 0;";
@@ -609,7 +610,7 @@ bool DbProvider::schedrState(uint64_t sId, ZM_Base::StateType& state){
   return true;
 }
 std::vector<uint64_t> DbProvider::getAllSchedrs(ZM_Base::StateType state){  
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   stringstream ss;
   ss << "SELECT id FROM tblScheduler "
         "WHERE (state = " << (int)state << " OR " << (int)state << " = -1) AND isDelete = 0;";
@@ -628,7 +629,7 @@ std::vector<uint64_t> DbProvider::getAllSchedrs(ZM_Base::StateType state){
 }
 
 bool DbProvider::addWorker(const ZM_Base::Worker& worker, uint64_t& outWkrId){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   auto connPnt = ZM_Aux::split(worker.connectPnt, ':');
   if (connPnt.size() != 2){
     errorMess("addWorker error: connectPnt not correct");
@@ -653,7 +654,7 @@ bool DbProvider::addWorker(const ZM_Base::Worker& worker, uint64_t& outWkrId){
   return true;
 }
 bool DbProvider::getWorker(uint64_t wId, ZM_Base::Worker& cng){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   stringstream ss;
   ss << "SELECT cp.ipAddr, cp.port, w.schedr, w.state, w.capacityTask FROM tblWorker w "
         "JOIN tblConnectPnt cp ON cp.id = w.connPnt "
@@ -675,7 +676,7 @@ bool DbProvider::getWorker(uint64_t wId, ZM_Base::Worker& cng){
   return true;
 }
 bool DbProvider::changeWorker(uint64_t wId, const ZM_Base::Worker& newCng){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   auto connPnt = ZM_Aux::split(newCng.connectPnt, ':');
   if (connPnt.size() != 2){
     errorMess("changeWorker error: connectPnt not correct");
@@ -700,7 +701,7 @@ bool DbProvider::changeWorker(uint64_t wId, const ZM_Base::Worker& newCng){
   return true;
 }
 bool DbProvider::delWorker(uint64_t wId){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   stringstream ss;
   ss << "UPDATE tblWorker SET "
         "isDelete = 1 "
@@ -714,7 +715,7 @@ bool DbProvider::delWorker(uint64_t wId){
   return true;
 }
 bool DbProvider::workerState(const std::vector<uint64_t>& wId, std::vector<ZM_Base::StateType>& state){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   string swId;
   swId = accumulate(wId.begin(), wId.end(), swId,
                 [](string& s, uint64_t v){
@@ -741,7 +742,7 @@ bool DbProvider::workerState(const std::vector<uint64_t>& wId, std::vector<ZM_Ba
   return true;
 }
 std::vector<uint64_t> DbProvider::getAllWorkers(uint64_t sId, ZM_Base::StateType state){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   stringstream ss;
   ss << "SELECT id FROM tblWorker "
         "WHERE (state = " << (int)state << " OR " << (int)state << " = -1) "
@@ -762,7 +763,7 @@ std::vector<uint64_t> DbProvider::getAllWorkers(uint64_t sId, ZM_Base::StateType
 }
 
 bool DbProvider::addPipeline(const ZM_Base::UPipeline& ppl, uint64_t& outPPLId){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   stringstream ss;
   ss << "INSERT INTO tblUPipeline (usr, name, description) VALUES("
         "'" << ppl.uId << "',"
@@ -778,7 +779,7 @@ bool DbProvider::addPipeline(const ZM_Base::UPipeline& ppl, uint64_t& outPPLId){
   return true;
 }
 bool DbProvider::getPipeline(uint64_t pplId, ZM_Base::UPipeline& cng){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   stringstream ss;
   ss << "SELECT usr, name, description FROM tblUPipeline "
         "WHERE id = " << pplId << " AND isDelete = 0;";
@@ -798,7 +799,7 @@ bool DbProvider::getPipeline(uint64_t pplId, ZM_Base::UPipeline& cng){
   return true;
 }
 bool DbProvider::changePipeline(uint64_t pplId, const ZM_Base::UPipeline& newCng){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   stringstream ss;
   ss << "UPDATE tblUPipeline SET "
         "usr = '" << newCng.uId << "',"
@@ -814,7 +815,7 @@ bool DbProvider::changePipeline(uint64_t pplId, const ZM_Base::UPipeline& newCng
   return true;
 }
 bool DbProvider::delPipeline(uint64_t pplId){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   stringstream ss;
   ss << "UPDATE tblUPipeline SET "  
         "isDelete = 1 "
@@ -828,7 +829,7 @@ bool DbProvider::delPipeline(uint64_t pplId){
   return true;
 }
 std::vector<uint64_t> DbProvider::getAllPipelines(uint64_t userId){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   stringstream ss;
   ss << "SELECT id FROM tblUPipeline "
         "WHERE usr = " << userId << " AND isDelete = 0;";
@@ -847,7 +848,7 @@ std::vector<uint64_t> DbProvider::getAllPipelines(uint64_t userId){
 }
 
 bool DbProvider::addGroup(const ZM_Base::UGroup& cng, uint64_t& outGId){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   stringstream ss;
   ss << "INSERT INTO tblUTaskGroup (pipeline, name, description) VALUES("
         "'" << cng.pplId << "',"
@@ -863,7 +864,7 @@ bool DbProvider::addGroup(const ZM_Base::UGroup& cng, uint64_t& outGId){
   return true;
 }
 bool DbProvider::getGroup(uint64_t gId, ZM_Base::UGroup& cng){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   stringstream ss;
   ss << "SELECT pipeline, name, description FROM tblUTaskGroup "
         "WHERE id = " << gId << " AND isDelete = 0;";
@@ -883,7 +884,7 @@ bool DbProvider::getGroup(uint64_t gId, ZM_Base::UGroup& cng){
   return true;
 }
 bool DbProvider::changeGroup(uint64_t gId, const ZM_Base::UGroup& newCng){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   stringstream ss;
   ss << "UPDATE tblUTaskGroup SET "
         "pipeline = '" << newCng.pplId << "',"
@@ -899,7 +900,7 @@ bool DbProvider::changeGroup(uint64_t gId, const ZM_Base::UGroup& newCng){
   return true;
 }
 bool DbProvider::delGroup(uint64_t gId){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   stringstream ss;
   ss << "UPDATE tblUTaskGroup SET "  
         "isDelete = 1 "
@@ -913,7 +914,7 @@ bool DbProvider::delGroup(uint64_t gId){
   return true;
 }
 std::vector<uint64_t> DbProvider::getAllGroups(uint64_t pplId){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   stringstream ss;
   ss << "SELECT id FROM tblUTaskGroup "
         "WHERE pipeline = " << pplId << " AND isDelete = 0;";
@@ -932,7 +933,7 @@ std::vector<uint64_t> DbProvider::getAllGroups(uint64_t pplId){
 }
 
 bool DbProvider::addTaskTemplate(const ZM_Base::UTaskTemplate& cng, uint64_t& outTId){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   stringstream ss;
   ss << "INSERT INTO tblUTaskTemplate (usr, name, description, script, averDurationSec, maxDurationSec) VALUES("
         "'" << cng.uId << "',"
@@ -951,7 +952,7 @@ bool DbProvider::addTaskTemplate(const ZM_Base::UTaskTemplate& cng, uint64_t& ou
   return true;
 }
 bool DbProvider::getTaskTemplate(uint64_t tId, ZM_Base::UTaskTemplate& outTCng){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   stringstream ss;
   ss << "SELECT tt.usr, tt.name, tt.description, tt.script, tt.averDurationSec, tt.maxDurationSec "
         "FROM tblUTaskTemplate tt "
@@ -975,7 +976,7 @@ bool DbProvider::getTaskTemplate(uint64_t tId, ZM_Base::UTaskTemplate& outTCng){
   return true;
 };
 bool DbProvider::changeTaskTemplate(uint64_t tId, const ZM_Base::UTaskTemplate& newTCng){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   stringstream ss;
   ss << "UPDATE tblUTaskTemplate SET "
         "usr = '" << newTCng.uId << "',"
@@ -994,7 +995,7 @@ bool DbProvider::changeTaskTemplate(uint64_t tId, const ZM_Base::UTaskTemplate& 
   return true;
 }
 bool DbProvider::delTaskTemplate(uint64_t tId){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   stringstream ss;
   ss << "UPDATE tblUTaskTemplate SET "
         "isDelete = 1 "
@@ -1008,7 +1009,7 @@ bool DbProvider::delTaskTemplate(uint64_t tId){
   return true;
 }
 std::vector<uint64_t> DbProvider::getAllTaskTemplates(uint64_t usr){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   stringstream ss;
   ss << "SELECT id FROM tblUTaskTemplate "
         "WHERE usr = " << usr << " AND isDelete = 0;";
@@ -1027,7 +1028,7 @@ std::vector<uint64_t> DbProvider::getAllTaskTemplates(uint64_t usr){
 }
 
 bool DbProvider::addTaskPipeline(const ZM_Base::UTaskPipeline& cng, uint64_t& outTId){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   
   stringstream ss;
   ss << "INSERT INTO tblUPipelineTask (pipeline, taskTempl, taskGroup, priority) VALUES("
@@ -1045,7 +1046,7 @@ bool DbProvider::addTaskPipeline(const ZM_Base::UTaskPipeline& cng, uint64_t& ou
   return true;
 }
 bool DbProvider::getTaskPipeline(uint64_t tId, ZM_Base::UTaskPipeline& outTCng){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   stringstream ss;
   ss << "SELECT pipeline, COALESCE(taskGroup, 0), taskTempl, priority "
         "FROM tblUPipelineTask "
@@ -1067,7 +1068,7 @@ bool DbProvider::getTaskPipeline(uint64_t tId, ZM_Base::UTaskPipeline& outTCng){
   return true;
 }
 bool DbProvider::changeTaskPipeline(uint64_t tId, const ZM_Base::UTaskPipeline& newCng){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
  
   stringstream ss;
   ss << "UPDATE tblUPipelineTask SET "
@@ -1085,7 +1086,7 @@ bool DbProvider::changeTaskPipeline(uint64_t tId, const ZM_Base::UTaskPipeline& 
   return true;
 }
 bool DbProvider::delTaskPipeline(uint64_t tId){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   stringstream ss;
   ss << "UPDATE tblUPipelineTask SET "
         "isDelete = 1 "
@@ -1099,7 +1100,7 @@ bool DbProvider::delTaskPipeline(uint64_t tId){
   return true;
 }
 std::vector<uint64_t> DbProvider::getAllTasksPipeline(uint64_t pplId){  
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   stringstream ss;
   ss << "SELECT ut.id FROM tblUPipelineTask ut "
         "WHERE ut.isDelete = 0 AND ut.pipeline = " << pplId << ";";
@@ -1118,7 +1119,7 @@ std::vector<uint64_t> DbProvider::getAllTasksPipeline(uint64_t pplId){
 }
 
 bool DbProvider::startTask(uint64_t ptId, const std::string& inparams, const std::string& prevTasks, uint64_t& tId){
-  lock_guard<mutex> lk(_mtx);  
+  lock_guard<mutex> lk(m_mtx);  
 
   string params = "['" + inparams + "']";
   ZM_Aux::replace(params, ",", "','");
@@ -1139,7 +1140,7 @@ bool DbProvider::startTask(uint64_t ptId, const std::string& inparams, const std
   return true;
 }
 bool DbProvider::cancelTask(uint64_t tId){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   stringstream ss;
   ss << "UPDATE tblTaskState ts SET "
         "state = " << int(ZM_Base::StateType::CANCEL) << " "
@@ -1161,7 +1162,7 @@ bool DbProvider::cancelTask(uint64_t tId){
   return true;
 }
 bool DbProvider::taskState(const std::vector<uint64_t>& tId, std::vector<ZM_DB::TaskState>& outState){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   string stId;
   stId = accumulate(tId.begin(), tId.end(), stId,
                 [](string& s, uint64_t v){
@@ -1190,7 +1191,7 @@ bool DbProvider::taskState(const std::vector<uint64_t>& tId, std::vector<ZM_DB::
   return true;
 }
 bool DbProvider::taskResult(uint64_t tId, std::string& out){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   stringstream ss;
   ss << "SELECT result FROM tblTaskResult "
         "WHERE qtask = " << tId << ";";
@@ -1208,7 +1209,7 @@ bool DbProvider::taskResult(uint64_t tId, std::string& out){
   return true;
 }
 bool DbProvider::taskTime(uint64_t tId, ZM_DB::TaskTime& out){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   stringstream ss;
   ss << "SELECT createTime, takeInWorkTime, startTime, stopTime "
         "FROM tblTaskTime "
@@ -1231,7 +1232,7 @@ bool DbProvider::taskTime(uint64_t tId, ZM_DB::TaskTime& out){
 }
 
 bool DbProvider::getWorkerByTask(uint64_t tId, ZM_Base::Worker& wcng){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   stringstream ss;
   ss << "SELECT wkr.id, wkr.connPnt "
         "FROM tblTaskQueue tq "
@@ -1257,22 +1258,22 @@ bool DbProvider::setChangeTaskStateCBack(uint64_t tId, changeTaskStateCBack cbac
     return false;
   }
   {
-    lock_guard<mutex> lk(_mtxNotifyTask);  
-    _notifyTaskStateCBack[tId] = {ZM_Base::StateType::UNDEFINED, cback};
-    if (_notifyTaskStateCBack.size() == 1)
-      _cvNotifyTask.notify_one();
+    lock_guard<mutex> lk(m_mtxNotifyTask);  
+    m_notifyTaskStateCBack[tId] = {ZM_Base::StateType::UNDEFINED, cback};
+    if (m_notifyTaskStateCBack.size() == 1)
+      m_cvNotifyTask.notify_one();
   }  
-  if (!_thrEndTask.joinable()){
-    _thrEndTask = thread([this](){
-      while (!_fClose){
-        if (_notifyTaskStateCBack.empty()){
-          std::unique_lock<std::mutex> lk(_mtxNotifyTask);
-          _cvNotifyTask.wait(lk); 
+  if (!m_thrEndTask.joinable()){
+    m_thrEndTask = thread([this](){
+      while (!m_fClose){
+        if (m_notifyTaskStateCBack.empty()){
+          std::unique_lock<std::mutex> lk(m_mtxNotifyTask);
+          m_cvNotifyTask.wait(lk); 
         }
         std::map<uint64_t, pair<ZM_Base::StateType, changeTaskStateCBack>> notifyTask;
         {
-          lock_guard<mutex> lk(_mtxNotifyTask); 
-          notifyTask = _notifyTaskStateCBack;
+          lock_guard<mutex> lk(m_mtxNotifyTask); 
+          notifyTask = m_notifyTaskStateCBack;
         } 
         string stId;
         stId = accumulate(notifyTask.begin(), notifyTask.end(), stId,
@@ -1287,7 +1288,7 @@ bool DbProvider::setChangeTaskStateCBack(uint64_t tId, changeTaskStateCBack cbac
         
         vector<pair<uint64_t, ZM_Base::StateType>> notifyRes;
         { 
-          lock_guard<mutex> lk(_mtx);
+          lock_guard<mutex> lk(m_mtx);
           PGres pgr(PQexec(_pg, ss.str().c_str()));
           if (PQresultStatus(pgr.res) == PGRES_TUPLES_OK){
             size_t tsz = PQntuples(pgr.res);
@@ -1310,14 +1311,14 @@ bool DbProvider::setChangeTaskStateCBack(uint64_t tId, changeTaskStateCBack cbac
             notifyTask[tId].second(tId, prevState, newState);
           }
           { 
-            lock_guard<mutex> lk(_mtxNotifyTask);  
+            lock_guard<mutex> lk(m_mtxNotifyTask);  
             for (auto& t : notifyRes){
               uint64_t tId = t.first;
               ZM_Base::StateType newState = t.second;
               if ((newState == ZM_Base::StateType::COMPLETED) || (newState == ZM_Base::StateType::ERROR) || (newState == ZM_Base::StateType::CANCEL)){
-                _notifyTaskStateCBack.erase(tId);
+                m_notifyTaskStateCBack.erase(tId);
               }else{
-                _notifyTaskStateCBack[tId].first = newState;
+                m_notifyTaskStateCBack[tId].first = newState;
               }
             }    
           }
@@ -1329,7 +1330,7 @@ bool DbProvider::setChangeTaskStateCBack(uint64_t tId, changeTaskStateCBack cbac
 }
 
 vector<ZM_DB::MessError> DbProvider::getInternErrors(uint64_t sId, uint64_t wId, uint32_t mCnt){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   if (mCnt == 0){
     mCnt = INT32_MAX;
   }
@@ -1357,7 +1358,7 @@ vector<ZM_DB::MessError> DbProvider::getInternErrors(uint64_t sId, uint64_t wId,
 
 // for zmSchedr
 bool DbProvider::getSchedr(const std::string& connPnt, ZM_Base::Scheduler& outCng){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   auto cp = ZM_Aux::split(connPnt, ':');
   if (cp.size() != 2){
     errorMess(string("getSchedr error: connPnt not correct"));
@@ -1386,7 +1387,7 @@ bool DbProvider::getSchedr(const std::string& connPnt, ZM_Base::Scheduler& outCn
   return true;
 }
 bool DbProvider::getTasksOfSchedr(uint64_t sId, std::vector<ZM_Base::Task>& out){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   stringstream ss;
   ss << "SELECT * FROM funcTasksOfSchedr(" << sId << ");";
      
@@ -1409,7 +1410,7 @@ bool DbProvider::getTasksOfSchedr(uint64_t sId, std::vector<ZM_Base::Task>& out)
   return true;
 }
 bool DbProvider::getWorkersOfSchedr(uint64_t sId, std::vector<ZM_Base::Worker>& out){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   stringstream ss;
   ss << "SELECT w.id, w.state, w.capacityTask, w.activeTask, cp.ipAddr, cp.port "
         "FROM tblWorker w "
@@ -1435,7 +1436,7 @@ bool DbProvider::getWorkersOfSchedr(uint64_t sId, std::vector<ZM_Base::Worker>& 
   return true;
 }
 bool DbProvider::getNewTasksForSchedr(uint64_t sId, int maxTaskCnt, std::vector<ZM_Base::Task>& out){
-  lock_guard<mutex> lk(_mtx);  
+  lock_guard<mutex> lk(m_mtx);  
   stringstream ss;
   ss << "SELECT * FROM funcNewTasksForSchedr(" << sId << "," << maxTaskCnt << ");";
 
@@ -1458,7 +1459,7 @@ bool DbProvider::getNewTasksForSchedr(uint64_t sId, int maxTaskCnt, std::vector<
   return true;
 }
 bool DbProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::MessSchedr>& mess){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   
   if(mess.empty()){
     return true;
@@ -1472,7 +1473,7 @@ bool DbProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::MessSche
               "WHERE qtask = " << m.taskId << ";"
               
               "UPDATE tblTaskResult SET "
-              "result = '" << m.result << "' "
+              "result = '" << m.data << "' "
               "WHERE qtask = " << m.taskId << ";"
 
               "UPDATE tblTaskState SET "
@@ -1485,7 +1486,7 @@ bool DbProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::MessSche
               "WHERE qtask = " << m.taskId << ";"
 
               "UPDATE tblTaskResult SET "
-              "result = '" << m.result << "' "
+              "result = '" << m.data << "' "
               "WHERE qtask = " << m.taskId << ";"
               
               "UPDATE tblTaskState SET "
@@ -1549,11 +1550,26 @@ bool DbProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::MessSche
               "startTime = current_timestamp "
               "WHERE id = " << m.workerId << ";";
         break;
-      case ZM_Base::MessType::PROGRESS:
-        ss << "UPDATE tblTaskState SET "
-              "progress = " << m.progress << " "
-              "WHERE qtask = " << m.taskId << ";";
-        break;
+      case ZM_Base::MessType::PROGRESS:{
+        Json::Reader readerJs;
+        Json::Value obj;
+        readerJs.parse(m.data, obj); 
+
+        map<string, vector<uint64_t>> workersCng;
+        if (obj.isObject() && obj.isMember("tasks") && obj["tasks"].isArray()){
+          Json::Value takskJs = obj["tasks"];
+          for (const auto& t : takskJs){
+            if (t.isMember("taskId") && t["taskId"].isUInt64() &&
+                t.isMember("progress") && t["progress"].isInt()){
+              
+              ss << "UPDATE tblTaskState SET "
+                    "progress = " << t["progress"].asInt() << " "
+                    "WHERE qtask = " << t["taskId"].asUInt64() << ";";
+            }
+          }
+        }
+      }
+      break;
       case ZM_Base::MessType::PAUSE_SCHEDR:
         ss << "UPDATE tblScheduler SET "
               "state = " << (int)ZM_Base::StateType::PAUSE << " "
@@ -1569,7 +1585,7 @@ bool DbProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::MessSche
         ss << "UPDATE tblScheduler SET "
               "state = " << (int)ZM_Base::StateType::STOP << ", "
               "stopTime = current_timestamp, "
-              "internalData = '" << m.internalData << "' "
+              "internalData = '" << m.data << "' "
               "WHERE id = " << sId << ";";
         break;
       case ZM_Base::MessType::START_AFTER_PAUSE_SCHEDR:
@@ -1577,6 +1593,37 @@ bool DbProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::MessSche
               "state = " << (int)ZM_Base::StateType::RUNNING << " "
               "WHERE id = " << sId << ";";
         break;
+      case ZM_Base::MessType::PING_SCHEDR:{
+        Json::Reader readerJs;
+        Json::Value obj;
+        readerJs.parse(m.data, obj); 
+
+        map<string, vector<uint64_t>> workersCng;
+        if (obj.isObject() && obj.isMember("workers") && obj["workers"].isArray()){
+          Json::Value workersJs = obj["workers"];
+          for (const auto& w : workersJs){
+            if (w.isMember("id") && w["id"].isUInt64() &&
+                w.isMember("activeTask") && w["activeTask"].isInt() &&
+                w.isMember("load") && w["load"].isInt()){
+             
+              ss << "UPDATE tblWorker SET "
+                    "activeTask = " << w["activeTask"].asInt() << ", "
+                    "load = " << w["load"].asInt() << " "
+                    "WHERE id = " << w["id"].asUInt64() << ";";
+            }
+          }
+        }
+        if (obj.isObject() && obj.isMember("schedr") && obj["schedr"].isObject() && 
+            obj["schedr"].isMember("activeTask") && obj["schedr"]["activeTask"].isInt()){
+       
+          ss << "UPDATE tblScheduler SET "
+                "state = " << (int)ZM_Base::StateType::RUNNING << ", "
+                "activeTask = " << obj["schedr"]["activeTask"].asInt() << ", "
+                "internalData = '" << m.data << "' "
+                "WHERE id = " << sId << ";";
+        }
+      }
+      break;
       case ZM_Base::MessType::PAUSE_WORKER:
         ss << "UPDATE tblWorker SET "
               "state = " << (int)ZM_Base::StateType::PAUSE << " "
@@ -1629,11 +1676,11 @@ bool DbProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::MessSche
           ss << "INSERT INTO tblInternError (schedr, worker, message) VALUES("
                 "'" << sId << "',"
                 "'" << m.workerId << "',"
-                "'" << m.result << "');";
+                "'" << m.data << "');";
         }else{
           ss << "INSERT INTO tblInternError (schedr, message) VALUES("
                 "'" << sId << "',"
-                "'" << m.result << "');";
+                "'" << m.data << "');";
         }
         break;
     }    
@@ -1648,7 +1695,7 @@ bool DbProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::MessSche
 
 // for test
 bool DbProvider::delAllTables(){
-  lock_guard<mutex> lk(_mtx);
+  lock_guard<mutex> lk(m_mtx);
   stringstream ss;
   ss << "DROP TABLE IF EXISTS tblUPipelineTask CASCADE; "
         "DROP TABLE IF EXISTS tblTaskState CASCADE; "

@@ -42,13 +42,14 @@ void Executor::getPrevWorkersFromDB(ZM_DB::DbProvider& db)
     readerJs.parse(m_schedr.internalData, obj); 
 
     map<string, vector<uint64_t>> workersCng;
-    if (obj.isObject() && obj.isMember("Workers") && obj["Workers"].isArray()){
-      Json::Value workersJs = obj["Workers"];
+    if (obj.isObject() && obj.isMember("workers") && obj["workers"].isArray()){
+      Json::Value workersJs = obj["workers"];
       for (const auto& w : workersJs){
-        if (w.isMember("ConnPnt") && w.isMember("Tasks") && w["Tasks"].isArray()){
-          string connPnt = w["ConnPnt"].asString();
+        if (w.isMember("connPnt") && w["connPnt"].isString() && 
+            w.isMember("tasks") && w["tasks"].isArray()){
+          string connPnt = w["connPnt"].asString();
           workersCng[connPnt];
-          for (auto& t : w["Tasks"]){
+          for (const auto& t : w["tasks"]){
             if (t.isUInt64())
               workersCng[connPnt].push_back(t.asUInt64());
           }
