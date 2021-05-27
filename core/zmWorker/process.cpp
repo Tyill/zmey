@@ -70,14 +70,10 @@ Process::Process(Application& app, Executor& exr, const ZM_Base::Task& tsk):
       CHECK(dup2(fdRes, 1), "dup2(fdRes, 1)");// stdout -> fdRes
       CHECK(dup2(1, 2), "dup2(1, 2)");        // stderr -> stdout
       
-      auto prmVec = ZM_Aux::split(tsk.params, ',');
-      size_t psz = prmVec.size();
-      char** argVec = new char*[psz + 2];
+      char** argVec = new char*[3];
       argVec[0] = (char*)scriptFile.c_str();
-      for (size_t i = 0; i < psz; ++i){
-        argVec[i + 1] = (char*)prmVec[i].data();
-      } 
-      argVec[psz + 1] = NULL;
+      argVec[1] = (char*)tsk.params.data();    
+      argVec[2] = NULL;
       execv(scriptFile.c_str(), argVec);
       perror("execv");
       _exit(127);

@@ -36,7 +36,7 @@ void Executor::progressToSchedr(const std::string& schedrConnPnt)
   for(auto& p : m_procs){
     Json::Value tJs;
     tJs["taskId"] = p.getTask().id;
-    tJs["progress"] = p.getProgress();    
+    tJs["progress"] = to_string(p.getProgress());    
     rootJs["tasks"].append(tJs);    
   }
  

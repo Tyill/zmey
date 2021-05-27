@@ -140,13 +140,13 @@ TEST_F(DBSchedrTest, getTaskOfSchedr){
   vector<ZM_Base::Task> tasks;
   EXPECT_TRUE(_pDb->getNewTasksForSchedr(sId, 10, tasks) && 
               (tasks.size() == 1) &&
-              (tasks[0].params == "param11,param12,param13") &&
+              (tasks[0].params == "\"param11,param12,param13\"") &&
               (tasks[0].id == tId1)) << _pDb->getLastError();
 
   tasks.clear();
   EXPECT_TRUE(_pDb->getTasksOfSchedr(sId, tasks) && 
              (tasks.size() == 1) &&
-             (tasks[0].params == "param11,param12,param13") &&
+             (tasks[0].params == "\"param11,param12,param13\"") &&
              (tasks[0].id == tId1)) << _pDb->getLastError(); 
 
   vector<ZM_DB::MessSchedr> mess;
@@ -160,13 +160,13 @@ TEST_F(DBSchedrTest, getTaskOfSchedr){
   tasks.clear();
   EXPECT_TRUE(_pDb->getNewTasksForSchedr(sId, 10, tasks) && 
               (tasks.size() == 1) && 
-              (tasks[0].params == "param21,param22,param23,result1") &&
+              (tasks[0].params == "\"param21,param22,param23\",result1") &&
               (tasks[0].id == tId2)) << _pDb->getLastError(); 
 
   tasks.clear();
   EXPECT_TRUE(_pDb->getTasksOfSchedr(sId, tasks) && 
              (tasks.size() == 1) &&
-             (tasks[0].params == "param21,param22,param23,result1") &&
+             (tasks[0].params == "\"param21,param22,param23\",result1") &&
              (tasks[0].id == tId2)) << _pDb->getLastError();          
 }
 TEST_F(DBSchedrTest, getWorkerOfSchedr){
@@ -252,7 +252,7 @@ TEST_F(DBSchedrTest, getNewTasksForSchedr){
   vector<ZM_Base::Task> tasks;
   EXPECT_TRUE(_pDb->getNewTasksForSchedr(sId, 10, tasks) && 
               (tasks.size() == 1) &&
-              (tasks[0].params == "param11,param12,param13") &&
+              (tasks[0].params == "\"param11,param12,param13\"") &&
               (tasks[0].id == tId1)) << _pDb->getLastError();
 
   vector<ZM_DB::MessSchedr> mess;
@@ -266,7 +266,7 @@ TEST_F(DBSchedrTest, getNewTasksForSchedr){
   tasks.clear();
   EXPECT_TRUE(_pDb->getNewTasksForSchedr(sId, 10, tasks) && 
               (tasks.size() == 1) && 
-              (tasks[0].params == "param21,param22,param23,result1") &&
+              (tasks[0].params == "\"param21,param22,param23\",result1") &&
               (tasks[0].id == tId2)) << _pDb->getLastError();    
 }
 TEST_F(DBSchedrTest, getWorkerByTask){
@@ -331,7 +331,7 @@ TEST_F(DBSchedrTest, getWorkerByTask){
   vector<ZM_Base::Task> tasks;
   EXPECT_TRUE(_pDb->getNewTasksForSchedr(sId, 10, tasks) && 
               (tasks.size() == 2) &&
-              (tasks[0].params == "param11,param12,param13") &&
+              (tasks[0].params == "\"param11,param12,param13\"") &&
               (tasks[0].id == tId1)) << _pDb->getLastError();
 
   vector<ZM_DB::MessSchedr> mess;
@@ -367,7 +367,7 @@ TEST_F(DBSchedrTest, sendAllMessFromSchedr){
   mess.push_back(ZM_DB::MessSchedr{ZM_Base::MessType::TASK_PAUSE, wId, 0, "result"});
   mess.push_back(ZM_DB::MessSchedr{ZM_Base::MessType::TASK_STOP, wId, 0, "result"});
   mess.push_back(ZM_DB::MessSchedr{ZM_Base::MessType::JUST_START_WORKER, wId, 0, "result"});
-  mess.push_back(ZM_DB::MessSchedr{ZM_Base::MessType::PROGRESS, wId, 0, "result"});
+  mess.push_back(ZM_DB::MessSchedr{ZM_Base::MessType::PROGRESS, wId, 0, "0"});
   mess.push_back(ZM_DB::MessSchedr{ZM_Base::MessType::PAUSE_SCHEDR, wId, 0, "result"});
   mess.push_back(ZM_DB::MessSchedr{ZM_Base::MessType::PAUSE_WORKER, wId, 0, "result"});
   mess.push_back(ZM_DB::MessSchedr{ZM_Base::MessType::START_SCHEDR, wId, 0, "result"});

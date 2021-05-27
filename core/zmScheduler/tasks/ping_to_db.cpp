@@ -34,24 +34,19 @@ void Executor::pingToDB()
   rootJs["workers"];
   for(const auto& w : m_workers){
     Json::Value wJs;
-    wJs["id"] = w.second.base.id;
     wJs["connPnt"] = w.first;
-    wJs["activeTask"] = w.second.base.activeTask;
-    wJs["load"] = w.second.base.load;
     wJs["tasks"];
     for (auto t : w.second.taskList){
       wJs["tasks"].append(t);
     }
     rootJs["workers"].append(wJs);    
   }
-  rootJs["schedr"];
-  rootJs["schedr"]["activeTask"] = m_schedr.activeTask;
  
   Json::FastWriter writerJs;
   
   ZM_DB::MessSchedr mess;{
     mess.type = ZM_Base::MessType::PING_SCHEDR;
-    mess.data = writerJs.write(rootJs);
+    mess.data = to_string(m_schedr.activeTask) + '\t' + writerJs.write(rootJs);
   }
   m_messToDB.push(move(mess));
 }

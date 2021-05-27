@@ -95,7 +95,7 @@ namespace ZM_Base{
     int averDurationSec;      // estimated lead time
     int maxDurationSec;       // maximum lead time
     std::string script;       // script on bash, python or cmd
-    std::string params;       // through ','
+    std::string params;
     StateType state;
   };  
   // tblUTaskTemplate

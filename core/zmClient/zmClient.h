@@ -481,7 +481,7 @@ ZMEY_API uint32_t zmGetAllTasksPipeline(zmConn, uint64_t pplId, uint64_t** outQT
 /// task config
 struct zmTask{
   uint64_t ptId;           ///< pipeline task id
-  char* params;            ///< CLI params for script: param1,param2... May be NULL
+  char* params;            ///< CLI params for script. May be NULL
   char* prevTId;           ///< prev task to be completed: tId1, tId2... May be NULL 
 };
 

@@ -25,6 +25,7 @@
 
 #include "zmScheduler/executor.h"
 #include "zmCommon/serial.h"
+#include "zmCommon/json.h"
 
 using namespace std;
 
@@ -89,7 +90,10 @@ void Executor::receiveHandler(const string& remcp, const string& data)
         for(auto& t : worker.taskList){
           if (t == tid){
             m_messToDB.push(ZM_DB::MessSchedr(mtype, wId, tid, mess["taskResult"]));
-            t = 0;
+            if ((mtype == ZM_Base::MessType::TASK_ERROR) || (mtype == ZM_Base::MessType::TASK_COMPLETED) ||
+                (mtype == ZM_Base::MessType::TASK_STOP)){
+              t = 0;
+            }
             break;
           }
         }      
@@ -100,21 +104,33 @@ void Executor::receiveHandler(const string& remcp, const string& data)
         for(auto& t : worker.taskList)
           t = 0;
         break;
-      case ZM_Base::MessType::PROGRESS:
+      case ZM_Base::MessType::PROGRESS:{
         checkField(tasks);
-        m_messToDB.push(ZM_DB::MessSchedr(mtype, wId, 0, mess["tasks"]));
-        break;
-      case ZM_Base::MessType::INTERN_ERROR:{
-        checkField(message);
-        ERROR_MESS(mess["message"], wId);
+        Json::Reader readerJs;
+        Json::Value obj;
+        readerJs.parse(mess["tasks"], obj); 
+
+        if (obj.isObject() && obj.isMember("tasks") && obj["tasks"].isArray()){
+          Json::Value takskJs = obj["tasks"];
+          for (const auto& t : takskJs){
+            if (t.isMember("taskId") && t["taskId"].isUInt64() &&
+                t.isMember("progress") && t["progress"].isString()){
+              m_messToDB.push(ZM_DB::MessSchedr(mtype, wId, t["taskId"].asUInt64(), t["progress"].asString()));
+            }
+          }
         }
         break;
-      case ZM_Base::MessType::PING_WORKER:{
+      }
+      case ZM_Base::MessType::INTERN_ERROR:
+        checkField(message);
+        ERROR_MESS(mess["message"], wId);
+        break;
+      case ZM_Base::MessType::PING_WORKER:
         checkFieldNum(load);
         checkFieldNum(activeTask);
         worker.base.activeTask = stoi(mess["activeTask"]);
         worker.base.load = stoi(mess["load"]);
-        }
+        m_messToDB.push(ZM_DB::MessSchedr(mtype, wId, 0, mess["activeTask"] + '\t' + mess["load"]));
         break;
       default:
         ERROR_MESS("schedr::receiveHandler unknown command from worker: " + mess["command"], wId);

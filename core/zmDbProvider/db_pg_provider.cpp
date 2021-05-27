@@ -28,7 +28,6 @@
 #include <libpq-fe.h>
 
 #include "zmCommon/aux_func.h"
-#include "zmCommon/json.h"
 #include "db_provider.h"
 
 using namespace std;
@@ -1122,8 +1121,7 @@ bool DbProvider::startTask(uint64_t ptId, const std::string& inparams, const std
   lock_guard<mutex> lk(m_mtx);  
 
   string params = "['" + inparams + "']";
-  ZM_Aux::replace(params, ",", "','");
-
+  
   stringstream ss;
   ss << "SELECT * FROM funcStartTask(" << ptId << ", ARRAY" << params << "::TEXT[], ARRAY[" << prevTasks << "]::INT[]);";
 
@@ -1399,7 +1397,6 @@ bool DbProvider::getTasksOfSchedr(uint64_t sId, std::vector<ZM_Base::Task>& out)
   int tsz = PQntuples(pgr.res);
   for (int i = 0; i < tsz; ++i){
     string params = PQgetvalue(pgr.res, i, 4);
-    ZM_Aux::replace(params, "\"", "");
     params = params.substr(1, params.size() - 2); // remove { and }
     out.push_back(ZM_Base::Task{stoull(PQgetvalue(pgr.res, i, 0)),
                                 atoi(PQgetvalue(pgr.res, i, 1)),
@@ -1448,7 +1445,6 @@ bool DbProvider::getNewTasksForSchedr(uint64_t sId, int maxTaskCnt, std::vector<
   int tsz = PQntuples(pgr.res);
   for (int i = 0; i < tsz; ++i){
     string params = PQgetvalue(pgr.res, i, 4);
-    ZM_Aux::replace(params, "\"", "");
     params = params.substr(1, params.size() - 2); // remove { and }
     out.push_back(ZM_Base::Task{stoull(PQgetvalue(pgr.res, i, 0)),
                                 atoi(PQgetvalue(pgr.res, i, 1)),
@@ -1550,26 +1546,11 @@ bool DbProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::MessSche
               "startTime = current_timestamp "
               "WHERE id = " << m.workerId << ";";
         break;
-      case ZM_Base::MessType::PROGRESS:{
-        Json::Reader readerJs;
-        Json::Value obj;
-        readerJs.parse(m.data, obj); 
-
-        map<string, vector<uint64_t>> workersCng;
-        if (obj.isObject() && obj.isMember("tasks") && obj["tasks"].isArray()){
-          Json::Value takskJs = obj["tasks"];
-          for (const auto& t : takskJs){
-            if (t.isMember("taskId") && t["taskId"].isUInt64() &&
-                t.isMember("progress") && t["progress"].isInt()){
-              
-              ss << "UPDATE tblTaskState SET "
-                    "progress = " << t["progress"].asInt() << " "
-                    "WHERE qtask = " << t["taskId"].asUInt64() << ";";
-            }
-          }
-        }
-      }
-      break;
+      case ZM_Base::MessType::PROGRESS:
+        ss << "UPDATE tblTaskState SET "
+              "progress = " << stoi(m.data) << " "
+              "WHERE qtask = " << m.taskId << ";";
+        break;
       case ZM_Base::MessType::PAUSE_SCHEDR:
         ss << "UPDATE tblScheduler SET "
               "state = " << (int)ZM_Base::StateType::PAUSE << " "
@@ -1594,36 +1575,14 @@ bool DbProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::MessSche
               "WHERE id = " << sId << ";";
         break;
       case ZM_Base::MessType::PING_SCHEDR:{
-        Json::Reader readerJs;
-        Json::Value obj;
-        readerJs.parse(m.data, obj); 
-
-        map<string, vector<uint64_t>> workersCng;
-        if (obj.isObject() && obj.isMember("workers") && obj["workers"].isArray()){
-          Json::Value workersJs = obj["workers"];
-          for (const auto& w : workersJs){
-            if (w.isMember("id") && w["id"].isUInt64() &&
-                w.isMember("activeTask") && w["activeTask"].isInt() &&
-                w.isMember("load") && w["load"].isInt()){
-             
-              ss << "UPDATE tblWorker SET "
-                    "activeTask = " << w["activeTask"].asInt() << ", "
-                    "load = " << w["load"].asInt() << " "
-                    "WHERE id = " << w["id"].asUInt64() << ";";
-            }
-          }
-        }
-        if (obj.isObject() && obj.isMember("schedr") && obj["schedr"].isObject() && 
-            obj["schedr"].isMember("activeTask") && obj["schedr"]["activeTask"].isInt()){
-       
-          ss << "UPDATE tblScheduler SET "
-                "state = " << (int)ZM_Base::StateType::RUNNING << ", "
-                "activeTask = " << obj["schedr"]["activeTask"].asInt() << ", "
-                "internalData = '" << m.data << "' "
-                "WHERE id = " << sId << ";";
-        }
+        auto data = ZM_Aux::split(m.data, '\t');
+        ss << "UPDATE tblScheduler SET "
+              "state = " << (int)ZM_Base::StateType::RUNNING << ", "
+              "activeTask = " << stoi(data[0]) << ", "
+              "internalData = '" << data[1] << "' "
+              "WHERE id = " << sId << ";";
+        break;
       }
-      break;
       case ZM_Base::MessType::PAUSE_WORKER:
         ss << "UPDATE tblWorker SET "
               "state = " << (int)ZM_Base::StateType::PAUSE << " "
@@ -1646,6 +1605,14 @@ bool DbProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::MessSche
               "state = " << (int)ZM_Base::StateType::RUNNING << " "
               "WHERE id = " << m.workerId << ";";
         break;
+      case ZM_Base::MessType::PING_WORKER:{
+        auto data = ZM_Aux::split(m.data, '\t');
+        ss << "UPDATE tblWorker SET "
+              "activeTask = " << stoi(data[0]) << ", "
+              "load = " << stoi(data[1]) << " "
+              "WHERE id = " << m.workerId << ";";
+        break;
+      }        
       case ZM_Base::MessType::WORKER_NOT_RESPONDING:
         ss << "UPDATE tblTaskTime SET "
               "takeInWorkTime = NULL, "
