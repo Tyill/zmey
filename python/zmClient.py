@@ -113,6 +113,7 @@ class TaskTemplate:
   def __init__(self,
                id : int = 0,
                uId : int = 0,
+               sId : int = 0,
                averDurationSec : int = 1,
                maxDurationSec : int = 1,
                name : str = "",
@@ -120,6 +121,7 @@ class TaskTemplate:
                script: str = ""):
     self.id = id
     self.uId = uId                   # User id
+    self.sId = sId                   # Scheduler preset id
     self.averDurationSec = averDurationSec
     self.maxDurationSec = maxDurationSec
     self.name = name    
@@ -198,6 +200,7 @@ class _GroupCng_C(ctypes.Structure):
               ('description', ctypes.c_char_p)]
 class _TaskTemplCng_C(ctypes.Structure):
   _fields_ = [('userId', ctypes.c_uint64),
+              ('schedrPresetId', ctypes.c_uint64),
               ('averDurationSec', ctypes.c_uint32),
               ('maxDurationSec', ctypes.c_uint32),
               ('name', ctypes.c_char * 256),
@@ -992,6 +995,7 @@ class Connection:
     if (self._zmConn):
       tcng = _TaskTemplCng_C()
       tcng.userId = iott.uId
+      tcng.schedrPresetId = iott.sId
       tcng.averDurationSec = iott.averDurationSec
       tcng.maxDurationSec = iott.maxDurationSec
       tcng.name = iott.name.encode('utf-8')
@@ -1023,6 +1027,7 @@ class Connection:
       pfun.restype = ctypes.c_bool
       if (pfun(self._zmConn, ttid, ctypes.byref(tcng))):      
         iott.uId = tcng.userId
+        iott.sId = tcng.schedrPresetId
         iott.averDurationSec = tcng.averDurationSec
         iott.maxDurationSec = tcng.maxDurationSec
         iott.name = tcng.name.decode('utf-8')
@@ -1043,6 +1048,7 @@ class Connection:
       ttid = ctypes.c_uint64(iott.id)
       tcng = _TaskTemplCng_C()
       tcng.userId = iott.uId
+      tcng.schedrPresetId = iott.sId
       tcng.averDurationSec = iott.averDurationSec
       tcng.maxDurationSec = iott.maxDurationSec            
       tcng.name = iott.name.encode('utf-8')

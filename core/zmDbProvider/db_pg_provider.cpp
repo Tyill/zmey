@@ -96,60 +96,9 @@ bool DbProvider::createTables(){
   QUERY("SELECT pg_catalog.set_config('search_path', 'public', false)", PGRES_TUPLES_OK);
 
   ///////////////////////////////////////////////////////////////////////////
-  /// USER TABLES
+  /// SYSTEM TABLES
 
   stringstream ss;
-  ss << "CREATE TABLE IF NOT EXISTS tblUser("
-        "id           SERIAL PRIMARY KEY,"
-        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1),"
-        "name         TEXT NOT NULL UNIQUE CHECK (name <> ''),"
-        "passwHash    TEXT NOT NULL,"
-        "description  TEXT NOT NULL);";
-  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
-    
-  ss.str("");
-  ss << "CREATE TABLE IF NOT EXISTS tblUPipeline("
-        "id           SERIAL PRIMARY KEY,"
-        "usr          INT NOT NULL REFERENCES tblUser,"
-        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1),"
-        "name         TEXT NOT NULL CHECK (name <> ''),"
-        "description  TEXT NOT NULL);";
-  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
-
-  ss.str("");
-  ss << "CREATE TABLE IF NOT EXISTS tblUTaskGroup("
-        "id           SERIAL PRIMARY KEY,"
-        "pipeline     INT NOT NULL REFERENCES tblUPipeline,"
-        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1),"
-        "name         TEXT NOT NULL CHECK (name <> ''),"
-        "description  TEXT NOT NULL);";        
-  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
-
-  ss.str("");
-  ss << "CREATE TABLE IF NOT EXISTS tblUTaskTemplate("
-        "id           SERIAL PRIMARY KEY,"
-        "usr          INT NOT NULL REFERENCES tblUser,"
-        "name         TEXT NOT NULL CHECK (name <> ''),"
-        "description  TEXT NOT NULL,"
-        "script       TEXT NOT NULL CHECK (script <> ''),"
-        "averDurationSec INT NOT NULL CHECK (averDurationSec > 0),"
-        "maxDurationSec  INT NOT NULL CHECK (maxDurationSec > 0),"
-        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
-  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
-
-  ss.str("");
-  ss << "CREATE TABLE IF NOT EXISTS tblUPipelineTask("
-        "id           SERIAL PRIMARY KEY,"
-        "pipeline     INT NOT NULL REFERENCES tblUPipeline,"
-        "taskTempl    INT NOT NULL REFERENCES tblUTaskTemplate,"
-        "taskGroup    INT REFERENCES tblUTaskGroup,"
-        "priority     INT NOT NULL DEFAULT 1 CHECK (priority BETWEEN 1 AND 3),"
-        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
-  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
-    
-  /////////////////////////////////////////////////////////////////////////////
-  /// SYSTEM TABLES
-  ss.str("");
   ss << "CREATE TABLE IF NOT EXISTS tblConnectPnt("
         "id           SERIAL PRIMARY KEY,"
         "ipAddr       TEXT NOT NULL CHECK (ipAddr <> ''),"
@@ -211,6 +160,62 @@ bool DbProvider::createTables(){
         "createTime   TIMESTAMP NOT NULL DEFAULT current_timestamp,"
         "message      TEXT NOT NULL);";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+
+  ///////////////////////////////////////////////////////////////////////////
+  /// USER TABLES
+
+  ss.str("");
+  ss << "CREATE TABLE IF NOT EXISTS tblUser("
+        "id           SERIAL PRIMARY KEY,"
+        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1),"
+        "name         TEXT NOT NULL UNIQUE CHECK (name <> ''),"
+        "passwHash    TEXT NOT NULL,"
+        "description  TEXT NOT NULL);";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+    
+  ss.str("");
+  ss << "CREATE TABLE IF NOT EXISTS tblUPipeline("
+        "id           SERIAL PRIMARY KEY,"
+        "usr          INT NOT NULL REFERENCES tblUser,"
+        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1),"
+        "name         TEXT NOT NULL CHECK (name <> ''),"
+        "description  TEXT NOT NULL);";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+
+  ss.str("");
+  ss << "CREATE TABLE IF NOT EXISTS tblUTaskGroup("
+        "id           SERIAL PRIMARY KEY,"
+        "pipeline     INT NOT NULL REFERENCES tblUPipeline,"
+        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1),"
+        "name         TEXT NOT NULL CHECK (name <> ''),"
+        "description  TEXT NOT NULL);";        
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+  
+  ss.str("");
+  ss << "CREATE TABLE IF NOT EXISTS tblUTaskTemplate("
+        "id           SERIAL PRIMARY KEY,"
+        "usr          INT NOT NULL REFERENCES tblUser,"
+        "name         TEXT NOT NULL CHECK (name <> ''),"
+        "description  TEXT NOT NULL,"
+        "script       TEXT NOT NULL CHECK (script <> ''),"
+        "averDurationSec INT NOT NULL CHECK (averDurationSec > 0),"
+        "maxDurationSec  INT NOT NULL CHECK (maxDurationSec > 0),"
+        "schedrPreset INT REFERENCES tblScheduler,"
+        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+
+  ss.str("");
+  ss << "CREATE TABLE IF NOT EXISTS tblUPipelineTask("
+        "id           SERIAL PRIMARY KEY,"
+        "pipeline     INT NOT NULL REFERENCES tblUPipeline,"
+        "taskTempl    INT NOT NULL REFERENCES tblUTaskTemplate,"
+        "taskGroup    INT REFERENCES tblUTaskGroup,"
+        "priority     INT NOT NULL DEFAULT 1 CHECK (priority BETWEEN 1 AND 3),"
+        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+    
+  /////////////////////////////////////////////////////////////////////////////
+  /// SYSTEM TABLES
 
   ss.str("");
   ss << "CREATE TABLE IF NOT EXISTS tblTaskQueue("
@@ -369,6 +374,7 @@ bool DbProvider::createTables(){
         "    JOIN tblPrevTask pt ON pt.qtask = tq.id "
         "    WHERE ts.state = " << int(ZM_Base::StateType::READY) << ""
         "      AND tq.schedr IS NULL AND tm.takeInWorkTime IS NULL "
+        "      AND (tt.schedrPreset IS NULL OR tt.schedrPreset = sId) "
         "    ORDER BY tp.priority LIMIT maxTaskCnt "
         "    FOR UPDATE OF tq SKIP LOCKED"
         "  LOOP"
@@ -934,8 +940,9 @@ std::vector<uint64_t> DbProvider::getAllGroups(uint64_t pplId){
 bool DbProvider::addTaskTemplate(const ZM_Base::UTaskTemplate& cng, uint64_t& outTId){
   lock_guard<mutex> lk(m_mtx);
   stringstream ss;
-  ss << "INSERT INTO tblUTaskTemplate (usr, name, description, script, averDurationSec, maxDurationSec) VALUES("
+  ss << "INSERT INTO tblUTaskTemplate (usr, schedrPreset, name, description, script, averDurationSec, maxDurationSec) VALUES("
         "'" << cng.uId << "',"
+        "NULLIF(" << cng.sId << ", 0),"
         "'" << cng.name << "',"
         "'" << cng.description << "',"
         "'" << cng.script << "',"
@@ -953,9 +960,9 @@ bool DbProvider::addTaskTemplate(const ZM_Base::UTaskTemplate& cng, uint64_t& ou
 bool DbProvider::getTaskTemplate(uint64_t tId, ZM_Base::UTaskTemplate& outTCng){
   lock_guard<mutex> lk(m_mtx);
   stringstream ss;
-  ss << "SELECT tt.usr, tt.name, tt.description, tt.script, tt.averDurationSec, tt.maxDurationSec "
-        "FROM tblUTaskTemplate tt "
-        "WHERE tt.id = " << tId << " AND tt.isDelete = 0;";
+  ss << "SELECT usr, COALESCE(schedrPreset, 0), name, description, script, averDurationSec, maxDurationSec "
+        "FROM tblUTaskTemplate "
+        "WHERE id = " << tId << " AND isDelete = 0;";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
@@ -967,11 +974,12 @@ bool DbProvider::getTaskTemplate(uint64_t tId, ZM_Base::UTaskTemplate& outTCng){
     return false;
   }
   outTCng.uId = stoull(PQgetvalue(pgr.res, 0, 0));
-  outTCng.name = PQgetvalue(pgr.res, 0, 1);
-  outTCng.description = PQgetvalue(pgr.res, 0, 2);
-  outTCng.script = PQgetvalue(pgr.res, 0, 3);  
-  outTCng.averDurationSec = atoi(PQgetvalue(pgr.res, 0, 4));
-  outTCng.maxDurationSec = atoi(PQgetvalue(pgr.res, 0, 5));
+  outTCng.sId = stoull(PQgetvalue(pgr.res, 0, 1));
+  outTCng.name = PQgetvalue(pgr.res, 0, 2);
+  outTCng.description = PQgetvalue(pgr.res, 0, 3);
+  outTCng.script = PQgetvalue(pgr.res, 0, 4);  
+  outTCng.averDurationSec = atoi(PQgetvalue(pgr.res, 0, 5));
+  outTCng.maxDurationSec = atoi(PQgetvalue(pgr.res, 0, 6));
   return true;
 };
 bool DbProvider::changeTaskTemplate(uint64_t tId, const ZM_Base::UTaskTemplate& newTCng){
@@ -979,6 +987,7 @@ bool DbProvider::changeTaskTemplate(uint64_t tId, const ZM_Base::UTaskTemplate& 
   stringstream ss;
   ss << "UPDATE tblUTaskTemplate SET "
         "usr = '" << newTCng.uId << "',"
+        "schedrPreset = NULLIF(" << newTCng.sId << ", 0),"
         "name = '" << newTCng.name << "',"
         "description = '" << newTCng.description << "', "
         "script = '" << newTCng.script << "',"

@@ -578,6 +578,7 @@ bool zmAddTaskTemplate(zmConn zo, zmTaskTemplate cng, uint64_t* outTId){
   task.name = cng.name;
   task.description = cng.description ? cng.description : "";
   task.uId = cng.userId;
+  task.sId = cng.schedrPresetId;
   task.averDurationSec = cng.averDurationSec;
   task.maxDurationSec = cng.maxDurationSec;
   task.script = cng.script;
@@ -597,6 +598,7 @@ bool zmGetTaskTemplate(zmConn zo, uint64_t tId, zmTaskTemplate* outTCng){
     outTCng->averDurationSec = task.averDurationSec;
     outTCng->maxDurationSec = task.maxDurationSec;
     outTCng->userId = task.uId;
+    outTCng->schedrPresetId = task.sId;
     outTCng->script = (char*)realloc(outTCng->script, task.script.size() + 1);
     {lock_guard<mutex> lk(m_mtxResources);
       m_resources[zo].str.push_back(outTCng->script);
@@ -622,6 +624,7 @@ bool zmChangeTaskTemplate(zmConn zo, uint64_t tId, zmTaskTemplate newCng){
   task.name = newCng.name;
   task.description = newCng.description ? newCng.description : "";
   task.uId = newCng.userId;
+  task.sId = newCng.schedrPresetId;
   task.averDurationSec = newCng.averDurationSec;
   task.maxDurationSec = newCng.maxDurationSec;
   task.script = newCng.script;

@@ -89,7 +89,7 @@ namespace ZM_Base{
     std::string name;         // unique name
     std::string description;
   };
-  // tblUTaskTemplate
+  
   struct Task{
     uint64_t id;              // id tblTaskQueue
     int averDurationSec;      // estimated lead time
@@ -101,6 +101,7 @@ namespace ZM_Base{
   // tblUTaskTemplate
   struct UTaskTemplate{
     uint64_t uId;             // parent id tblUser
+    uint64_t sId;             // preset schedr id tblScheduler
     int averDurationSec;      // estimated lead time
     int maxDurationSec;       // maximum lead time
     std::string name;

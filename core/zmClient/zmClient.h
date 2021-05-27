@@ -387,6 +387,7 @@ ZMEY_API uint32_t zmGetAllGroups(zmConn, uint64_t pplId, uint64_t** outGId);
 /// task template config
 struct zmTaskTemplate{
   uint64_t userId;          ///< user id
+  uint64_t schedrPresetId;  ///< schedr preset id. Default 0
   uint32_t averDurationSec; ///< estimated lead time 
   uint32_t maxDurationSec;  ///< maximum lead time
   char name[256];           ///< task template name
