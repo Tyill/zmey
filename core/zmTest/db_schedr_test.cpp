@@ -109,6 +109,7 @@ TEST_F(DBSchedrTest, getTaskOfSchedr){
  
   ZM_Base::UTaskTemplate templ;
   templ.uId = uId; 
+  templ.sId = 0; 
   templ.description = "descr";
   templ.name = "NEW_TASK";
   templ.averDurationSec = 10;
@@ -221,6 +222,7 @@ TEST_F(DBSchedrTest, getNewTasksForSchedr){
       
   ZM_Base::UTaskTemplate templ;
   templ.uId = uId; 
+  templ.sId = 0; 
   templ.description = "descr";
   templ.name = "NEW_TASK";
   templ.averDurationSec = 10;
@@ -300,6 +302,7 @@ TEST_F(DBSchedrTest, getWorkerByTask){
   
   ZM_Base::UTaskTemplate templ;
   templ.uId = uId; 
+  templ.sId = 0; 
   templ.description = "descr";
   templ.name = "NEW_TASK";
   templ.averDurationSec = 10;

@@ -770,6 +770,7 @@ TEST_F(APITest, addTaskTemplate){
   templ.script = new char[256];
   strcpy(templ.script, "100500");
   templ.userId = uId; 
+  templ.schedrPresetId = 0; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
   strcpy(templ.name, "NEW_TASK");
@@ -793,6 +794,7 @@ TEST_F(APITest, getTaskTemplate){
   templ.script = new char[256];
   strcpy(templ.script, "100500");
   templ.userId = uId; 
+  templ.schedrPresetId = 0; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
   strcpy(templ.name, "NEW_TASK");
@@ -832,6 +834,7 @@ TEST_F(APITest, delTaskTemplate){
   templ.script = new char[256];
   strcpy(templ.script, "100500");
   templ.userId = uId; 
+  templ.schedrPresetId = 0; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
   strcpy(templ.name, "NEW_TASK");
@@ -859,6 +862,7 @@ TEST_F(APITest, changeTaskTemplate){
   templ.script = new char[256];
   strcpy(templ.script, "100500");
   templ.userId = uId; 
+  templ.schedrPresetId = 0; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
   strcpy(templ.name, "NEW_TASK");
@@ -905,6 +909,7 @@ TEST_F(APITest, getAllTaskTemplate){
   templ.script = new char[256];
   strcpy(templ.script, "100500");
   templ.userId = uId1; 
+  templ.schedrPresetId = 0; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
   strcpy(templ.name, "NEW_TASK");
@@ -952,6 +957,7 @@ TEST_F(APITest, addTask){
   templ.script = new char[256];
   strcpy(templ.script, "100500");
   templ.userId = uId; 
+  templ.schedrPresetId = 0; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
   strcpy(templ.name, "NEW_TASK");
@@ -991,6 +997,7 @@ TEST_F(APITest, getTask){
   templ.script = new char[256];
   strcpy(templ.script, "100500");
   templ.userId = uId; 
+  templ.schedrPresetId = 0; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
   strcpy(templ.name, "NEW_TASK");
@@ -1036,6 +1043,7 @@ TEST_F(APITest, changeTask){
   templ.script = new char[256];
   strcpy(templ.script, "100500");
   templ.userId = uId; 
+  templ.schedrPresetId = 0; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
   strcpy(templ.name, "NEW_TASK");
@@ -1089,6 +1097,7 @@ TEST_F(APITest, delTask){
   templ.script = new char[256];
   strcpy(templ.script, "100500");
   templ.userId = uId; 
+  templ.schedrPresetId = 0; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
   strcpy(templ.name, "NEW_TASK");
@@ -1134,6 +1143,7 @@ TEST_F(APITest, startTask){
   templ.script = new char[256];
   strcpy(templ.script, "100500");
   templ.userId = uId; 
+  templ.schedrPresetId = 0; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
   strcpy(templ.name, "NEW_TASK");
@@ -1177,6 +1187,7 @@ TEST_F(APITest, cancelTask){
   templ.script = new char[256];
   strcpy(templ.script, "100500");
   templ.userId = uId; 
+  templ.schedrPresetId = 0; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
   strcpy(templ.name, "NEW_TASK");
@@ -1219,6 +1230,7 @@ TEST_F(APITest, taskState){
   templ.script = new char[256];
   strcpy(templ.script, "100500");
   templ.userId = uId; 
+  templ.schedrPresetId = 0; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
   strcpy(templ.name, "NEW_TASK");
@@ -1277,6 +1289,7 @@ TEST_F(APITest, taskResult){
   templ.script = new char[256];
   strcpy(templ.script, "100500");
   templ.userId = uId; 
+  templ.schedrPresetId = 0; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
   strcpy(templ.name, "NEW_TASK");
@@ -1320,6 +1333,7 @@ TEST_F(APITest, TaskTime){
   templ.script = new char[256];
   strcpy(templ.script, "100500");
   templ.userId = uId; 
+  templ.schedrPresetId = 0; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
   strcpy(templ.name, "NEW_TASK");
@@ -1363,6 +1377,7 @@ TEST_F(APITest, getAllTask){
   templ.script = new char[256];
   strcpy(templ.script, "100500");
   templ.userId = uId; 
+  templ.schedrPresetId = 0; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
   strcpy(templ.name, "NEW_TASK");
