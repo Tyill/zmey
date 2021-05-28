@@ -33,7 +33,7 @@ void Executor::checkStatusWorkers()
 {
   vector<SWorker*> wkrNotResp;
   for(auto& w : m_workers){
-    if (!w.second.isActive){            
+    if (!w.second.isActive && (w.second.base.state != ZM_Base::StateType::STOP)){            
       wkrNotResp.push_back(&w.second);
     }else{
       w.second.isActive = false;

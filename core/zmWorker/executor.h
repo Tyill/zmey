@@ -55,6 +55,7 @@ public:
   void messageToSchedr(const std::string& schedrConnPnt);
   void progressToSchedr(const std::string& schedrConnPnt);
   void pingToSchedr(const std::string& schedrConnPnt);
+  void stopToSchedr(const std::string& schedrConnPnt);
   void errorToSchedr(const std::string& schedrConnPnt);
   void updateListTasks();
   void waitProcess();

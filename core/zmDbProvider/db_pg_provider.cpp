@@ -129,7 +129,7 @@ bool DbProvider::createTables(){
   ss << "CREATE TABLE IF NOT EXISTS tblScheduler("
         "id           SERIAL PRIMARY KEY,"
         "connPnt      INT NOT NULL REFERENCES tblConnectPnt,"
-        "state        INT NOT NULL REFERENCES tblState,"
+        "state        INT NOT NULL REFERENCES tblState DEFAULT " << (int)ZM_Base::StateType::STOP << ","
         "capacityTask INT NOT NULL DEFAULT 10000 CHECK (capacityTask > 0),"
         "activeTask   INT NOT NULL DEFAULT 0 CHECK (activeTask >= 0),"
         "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1),"
@@ -143,7 +143,7 @@ bool DbProvider::createTables(){
         "id           SERIAL PRIMARY KEY,"
         "connPnt      INT NOT NULL REFERENCES tblConnectPnt,"
         "schedr       INT NOT NULL REFERENCES tblScheduler,"
-        "state        INT NOT NULL REFERENCES tblState,"
+        "state        INT NOT NULL REFERENCES tblState DEFAULT " << (int)ZM_Base::StateType::STOP << ","
         "capacityTask INT NOT NULL DEFAULT 10 CHECK (capacityTask > 0),"
         "activeTask   INT NOT NULL DEFAULT 0 CHECK (activeTask >= 0),"
         "load         INT NOT NULL DEFAULT 0 CHECK (load BETWEEN 0 AND 100),"
@@ -1531,31 +1531,7 @@ bool DbProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::MessSche
               "state = " << (int)ZM_Base::StateType::STOP << " "
               "WHERE qtask = " << m.taskId << ";"; 
         break;
-      case ZM_Base::MessType::JUST_START_WORKER:
-        ss << "UPDATE tblTaskTime SET "
-              "takeInWorkTime = NULL, "
-              "startTime = NULL, "
-              "stopTime = NULL "
-              "FROM tblTaskState ts, tblTaskQueue tq "
-              "WHERE tq.id = ts.qtask AND tq.worker = " << m.workerId << " AND (ts.state BETWEEN " << (int)ZM_Base::StateType::RUNNING << " AND " << (int)ZM_Base::StateType::PAUSE << ");" 
-              
-              "WITH taskUpd AS ("
-              "UPDATE tblTaskQueue tq SET "
-              "schedr = NULL,"
-              "worker = NULL " 
-              "FROM tblTaskState ts "
-              "WHERE tq.id = ts.qtask AND tq.worker = " << m.workerId << " AND (ts.state BETWEEN " << (int)ZM_Base::StateType::RUNNING << " AND " << (int)ZM_Base::StateType::PAUSE << ") " 
-              "RETURNING tq.id) "
-                         
-              "UPDATE tblTaskState SET "
-              "state = " << (int)ZM_Base::StateType::READY << " "
-              "WHERE qtask IN (SELECT id FROM taskUpd);"
-        
-              "UPDATE tblWorker SET "
-              "startTime = current_timestamp "
-              "WHERE id = " << m.workerId << ";";
-        break;
-      case ZM_Base::MessType::PROGRESS:
+      case ZM_Base::MessType::TASK_PROGRESS:
         ss << "UPDATE tblTaskState SET "
               "progress = " << stoi(m.data) << " "
               "WHERE qtask = " << m.taskId << ";";
@@ -1603,12 +1579,6 @@ bool DbProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::MessSche
               "startTime = current_timestamp "
               "WHERE id = " << m.workerId << ";";
         break;
-      case ZM_Base::MessType::STOP_WORKER:
-        ss << "UPDATE tblWorker SET "
-              "state = " << (int)ZM_Base::StateType::STOP << ", "
-              "stopTime = current_timestamp "
-              "WHERE id = " << m.workerId << ";";
-        break;
       case ZM_Base::MessType::START_AFTER_PAUSE_WORKER:
         ss << "UPDATE tblWorker SET "
               "state = " << (int)ZM_Base::StateType::RUNNING << " "
@@ -1623,6 +1593,8 @@ bool DbProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::MessSche
         break;
       }        
       case ZM_Base::MessType::WORKER_NOT_RESPONDING:
+      case ZM_Base::MessType::JUST_START_WORKER:
+      case ZM_Base::MessType::STOP_WORKER:
         ss << "UPDATE tblTaskTime SET "
               "takeInWorkTime = NULL, "
               "startTime = NULL, "
@@ -1640,12 +1612,25 @@ bool DbProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::MessSche
                          
               "UPDATE tblTaskState SET "
               "state = " << (int)ZM_Base::StateType::READY << " "
-              "WHERE qtask IN (SELECT id FROM taskUpd);"
+              "WHERE qtask IN (SELECT id FROM taskUpd);";
 
-              "UPDATE tblWorker SET "
-              "state = " << (int)ZM_Base::StateType::NOT_RESPONDING << ", "
-              "stopTime = current_timestamp "
-              "WHERE id = " << m.workerId << ";";
+        if (m.type == ZM_Base::MessType::WORKER_NOT_RESPONDING){
+          ss << "UPDATE tblWorker SET "
+                "state = " << (int)ZM_Base::StateType::NOT_RESPONDING << ", "
+                "stopTime = current_timestamp "
+                "WHERE id = " << m.workerId << ";";
+        }
+        else if (m.type == ZM_Base::MessType::JUST_START_WORKER){
+          ss << "UPDATE tblWorker SET "
+                "startTime = current_timestamp "
+                "WHERE id = " << m.workerId << ";";
+        }
+        else{
+          ss << "UPDATE tblWorker SET "
+                "state = " << (int)ZM_Base::StateType::STOP << ", "
+                "stopTime = current_timestamp "
+                "WHERE id = " << m.workerId << ";";
+        }
         break;
       case ZM_Base::MessType::INTERN_ERROR:
         if (m.workerId){

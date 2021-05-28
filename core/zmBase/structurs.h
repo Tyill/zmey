@@ -40,7 +40,7 @@ namespace ZM_Base{
     TASK_STOP,
     TASK_CONTINUE,
     TASK_CANCEL, // when not yet taken to work
-    PROGRESS,    
+    TASK_PROGRESS,    
     START_WORKER,
     START_SCHEDR, 
     STOP_WORKER,

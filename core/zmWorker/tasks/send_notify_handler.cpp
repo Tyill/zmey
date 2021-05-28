@@ -31,7 +31,7 @@ void Executor::sendNotifyHandler(const string& cp, const string& data, const std
 {  
   auto smess = ZM_Aux::deserialn(data);  
   ZM_Base::MessType messType = (ZM_Base::MessType)stoi(smess["command"]);
-  if (ec && (messType != ZM_Base::MessType::PROGRESS) &&
+  if (ec && (messType != ZM_Base::MessType::TASK_PROGRESS) &&
             (messType != ZM_Base::MessType::INTERN_ERROR) &&
             (messType != ZM_Base::MessType::PING_WORKER)){
     MessForSchedr mess;

@@ -25,28 +25,17 @@
 #include "zmWorker/executor.h"
 #include "zmCommon/tcp.h"
 #include "zmCommon/serial.h"
-#include "zmCommon/json.h"
 
 using namespace std;
 
-void Executor::progressToSchedr(const std::string& schedrConnPnt)
-{   
-  Json::Value rootJs;
-  rootJs["tasks"];
-  for(auto& p : m_procs){
-    Json::Value tJs;
-    tJs["taskId"] = p.getTask().id;
-    tJs["progress"] = to_string(p.getProgress());    
-    rootJs["tasks"].append(tJs);    
-  }
- 
-  Json::FastWriter writerJs;
-   
+void Executor::stopToSchedr(const std::string& schedrConnPnt){
+  m_worker.activeTask = m_newTasks.size() + m_procs.size();
   map<string, string> data{
-    {"command", to_string((int)ZM_Base::MessType::TASK_PROGRESS)},
+    {"command", to_string((int)ZM_Base::MessType::STOP_WORKER)},
     {"connectPnt", m_worker.connectPnt},
-    {"tasks", writerJs.write(rootJs)},
-  };  
-  
+    {"activeTask", to_string(m_worker.activeTask)},
+    {"load", to_string(m_worker.load)}
+  };      
   ZM_Tcp::asyncSendData(schedrConnPnt, ZM_Aux::serialn(data));
 }
+

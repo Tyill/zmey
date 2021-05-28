@@ -105,6 +105,8 @@ int main(int argc, char* argv[]){
 
   /////////////////////////////////////////////////////////////////////////
   
+  executor.stopToSchedr(cng.schedrConnPnt);
+
   ZM_Tcp::stopServer();
 }
 

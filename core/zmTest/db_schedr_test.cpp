@@ -370,7 +370,7 @@ TEST_F(DBSchedrTest, sendAllMessFromSchedr){
   mess.push_back(ZM_DB::MessSchedr{ZM_Base::MessType::TASK_PAUSE, wId, 0, "result"});
   mess.push_back(ZM_DB::MessSchedr{ZM_Base::MessType::TASK_STOP, wId, 0, "result"});
   mess.push_back(ZM_DB::MessSchedr{ZM_Base::MessType::JUST_START_WORKER, wId, 0, "result"});
-  mess.push_back(ZM_DB::MessSchedr{ZM_Base::MessType::PROGRESS, wId, 0, "0"});
+  mess.push_back(ZM_DB::MessSchedr{ZM_Base::MessType::TASK_PROGRESS, wId, 0, "0"});
   mess.push_back(ZM_DB::MessSchedr{ZM_Base::MessType::PAUSE_SCHEDR, wId, 0, "result"});
   mess.push_back(ZM_DB::MessSchedr{ZM_Base::MessType::PAUSE_WORKER, wId, 0, "result"});
   mess.push_back(ZM_DB::MessSchedr{ZM_Base::MessType::START_SCHEDR, wId, 0, "result"});
