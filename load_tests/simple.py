@@ -77,33 +77,25 @@ for i in range(sCnt):
     wkrPrc.append(subprocess.Popen([os.path.expanduser("~") + '/cpp/zmey/build/Release/zmWorker',
                                     '-sa=localhost:' + str(4440 + i),
                                     '-la=localhost:' + str(4450 + i * wCnt + j)]))
-# pause schedrs
-allSch = zo.getAllSchedulers()
-for i in range(len(allSch)):
-  zo.pauseScheduler(allSch[i].id)
 
-time.sleep(3)
-
-# add and start tasks
+# add tasks
 taskCnt = 1000
-print('Add and start', taskCnt, 'tasks')  
-tasks = []
+print('Add and start', taskCnt, 'tasks') 
 for j in range(taskCnt):
   pt = zm.TaskPipeline(pplId=ppl.id, ttId=tt.id)
   zo.addTaskPipeline(pt)
 
+# start tasks
+tstart = time.time()
+tasks = []
+for j in range(taskCnt):
   t = zm.Task(ptId=pt.id)
   zo.startTask(t)
   tasks.append(t)
 
-# start schedrs
-for i in range(len(allSch)):
-  zo.startScheduler(allSch[i].id)
-
 # wait until the task is completed
 print('Wait until the task is completed')  
 complCnt = 0
-tstart = time.time()
 while complCnt != taskCnt:  
   zo.taskState(tasks)
   complCnt = 0
