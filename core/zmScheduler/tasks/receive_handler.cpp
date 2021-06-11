@@ -86,10 +86,11 @@ void Executor::receiveHandler(const string& remcp, const string& data)
         checkField(taskResult);     
         worker.base.activeTask = stoi(mess["activeTask"]);
         worker.base.load = stoi(mess["load"]);
-        uint64_t tid = stoull(mess["taskId"]);        
+        uint64_t tid = stoull(mess["taskId"]); 
+        bool taskExist = false;       
         for(auto& t : worker.taskList){
           if (t == tid){
-            m_messToDB.push(ZM_DB::MessSchedr(mtype, wId, tid, mess["taskResult"]));
+            taskExist = true;
             if ((mtype == ZM_Base::MessType::TASK_ERROR) || (mtype == ZM_Base::MessType::TASK_COMPLETED) ||
                 (mtype == ZM_Base::MessType::TASK_STOP)){
               t = 0;
@@ -97,6 +98,7 @@ void Executor::receiveHandler(const string& remcp, const string& data)
             break;
           }
         }      
+        m_messToDB.push(ZM_DB::MessSchedr(mtype, !taskExist ? wId : 0, tid, mess["taskResult"]));   // wId = 0 для ускорения вставки в БД          
         break;
       }        
       case ZM_Base::MessType::TASK_PROGRESS:{

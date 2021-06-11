@@ -266,9 +266,9 @@ TEST_F(APITest, schedrState){
   uint64_t sId = 0;  
   EXPECT_TRUE(zmAddScheduler(_zc, schedr, &sId) && (sId > 0));
 
-  zmStateType state = zmStateType::zmError;
+  zmStateType state = zmStateType::zmStop;
   EXPECT_TRUE(zmSchedulerState(_zc, sId, &state) && 
-             (state == zmStateType::zmReady));                                                      
+             (state == zmStateType::zmStop));                                                      
 }
 TEST_F(APITest, getAllSchedrs){  
   uint64_t* pSId = nullptr;
@@ -286,7 +286,7 @@ TEST_F(APITest, getAllSchedrs){
   uint64_t sId2 = 0;  
   EXPECT_TRUE(zmAddScheduler(_zc, schedr, &sId2) && (sId2 > 0)); 
 
-  sCnt = zmGetAllSchedulers(_zc, zmStateType::zmReady, &pSId);
+  sCnt = zmGetAllSchedulers(_zc, zmStateType::zmStop, &pSId);
   EXPECT_TRUE((sCnt == 2) && (pSId[0] == sId1) && (pSId[1] == sId2)); 
 
   sCnt = zmGetAllSchedulers(_zc, zmStateType::zmUndefined, &pSId);
@@ -410,8 +410,8 @@ TEST_F(APITest, workerState){
   zmStateType* wstate = new zmStateType[2];
   uint64_t* pWId = new uint64_t[2]{ wId1, wId2};
   EXPECT_TRUE(zmWorkerState(_zc, pWId, 2, wstate) &&
-              (wstate[0] == zmStateType::zmReady) && 
-              (wstate[1] == zmStateType::zmReady));                                                      
+              (wstate[0] == zmStateType::zmStop) && 
+              (wstate[1] == zmStateType::zmStop));                                                      
 }
 TEST_F(APITest, getAllWorkers){  
   uint64_t* pWId = nullptr;
@@ -437,7 +437,7 @@ TEST_F(APITest, getAllWorkers){
   uint64_t wId2 = 0;  
   EXPECT_TRUE(zmAddWorker(_zc, worker, &wId2) && (wId2 > 0));
     
-  wCnt = zmGetAllWorkers(_zc, sId, zmStateType::zmReady, &pWId);
+  wCnt = zmGetAllWorkers(_zc, sId, zmStateType::zmStop, &pWId);
   EXPECT_TRUE((wCnt == 2) && (pWId[0] == wId1) && (pWId[1] == wId2)); 
 
   wCnt = zmGetAllWorkers(_zc, sId, zmStateType::zmUndefined, &pWId);
