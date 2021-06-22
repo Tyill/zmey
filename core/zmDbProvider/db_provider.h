@@ -80,19 +80,9 @@ struct TaskTime{
 typedef void* udata;
 typedef std::function<void(const char* mess, udata)> errCBack;
 
-typedef void(*changeTaskStateCBack)(uint64_t qtId, ZM_Base::StateType prevState, ZM_Base::StateType newState);
+typedef void(*changeTaskStateCBack)(uint64_t qtId, ZM_Base::StateType prevState, ZM_Base::StateType newState, udata);
 
 class DbProvider{  
-  std::string m_err;
-  errCBack m_errCBack = nullptr;
-  udata m_errUData = nullptr;
-  ZM_DB::ConnectCng m_connCng;
-  void* m_db = nullptr; 
-  std::mutex m_mtx, m_mtxNotifyTask;
-  std::condition_variable m_cvNotifyTask;
-  std::thread m_thrEndTask;
-  std::map<uint64_t, std::pair<ZM_Base::StateType, changeTaskStateCBack>> m_notifyTaskStateCBack;
-  bool m_fClose = false;
 public: 
   DbProvider(const ConnectCng& cng);
   ~DbProvider(); 
@@ -170,7 +160,7 @@ public:
   bool taskTime(uint64_t tId, TaskTime&);
   
   bool getWorkerByTask(uint64_t tId, ZM_Base::Worker& wcng);
-  bool setChangeTaskStateCBack(uint64_t tId, changeTaskStateCBack cback);
+  bool setChangeTaskStateCBack(uint64_t tId, changeTaskStateCBack cback, udata);
 
   std::vector<MessError> getInternErrors(uint64_t sId, uint64_t wId, uint32_t mCnt);
 
@@ -183,5 +173,14 @@ public:
 
   // for test
   bool delAllTables();  
+
+private:
+  std::string m_err;
+  errCBack m_errCBack = nullptr;
+  udata m_errUData = nullptr;
+  ZM_DB::ConnectCng m_connCng;
+  
+  class Impl;
+  Impl* m_impl = nullptr;
 };
 }

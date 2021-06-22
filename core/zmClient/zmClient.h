@@ -548,18 +548,20 @@ struct zmTaskTime{
 /// get task time
 /// @param[in] zmConn - object connect
 /// @param[in] tId - task object id
-/// @param[out] outTTime - task time
+/// @param[out] outTTime - task time. The memory is allocated by the user
 /// @return true - ok
 ZMEY_API bool zmTimeOfTask(zmConn, uint64_t tId, zmTaskTime* outTTime);
 
-typedef void(*zmChangeTaskStateCBack)(uint64_t tId, zmStateType prevState, zmStateType newState);
+/// task state callback
+typedef void(*zmChangeTaskStateCBack)(uint64_t tId, zmStateType prevState, zmStateType newState, void* userData);
 
 /// set change task state callback
 /// @param[in] zmConn - object connect
 /// @param[in] tId - task object id
 /// @param[in] cback
+/// @param[in] userData
 /// @return true - ok
-ZMEY_API bool zmSetChangeTaskStateCBack(zmConn, uint64_t tId, zmChangeTaskStateCBack cback);
+ZMEY_API bool zmSetChangeTaskStateCBack(zmConn, uint64_t tId, zmChangeTaskStateCBack cback, void* userData);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Internal errors
