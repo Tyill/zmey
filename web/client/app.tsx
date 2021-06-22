@@ -7,8 +7,8 @@ import * as Action from "./redux/actions";
 import Store from "./redux/store"; 
 import { IUser, IPipeline, IGroup, ITaskTemplate, ITask } from "./types";
 
-import "../css/app.css";
-import "../css/fontello.css";
+import "./css/app.css";
+import "./css/fontello.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 interface IPropsApp {

@@ -15,6 +15,7 @@ enum StateType{
 
 export
 interface IUser {
+  id : number; 
   name: string;  
   description: string;
 }
@@ -49,7 +50,7 @@ interface ITask{
   id : number;
   pplId : number;              ///< pipeline id
   gId : number;                ///< group id
-  ttId : number;               ///< task template id  
+  ttId : number;               ///< task template id    
   prevTasksId : Array<number>; ///< pipeline task id of previous tasks
   nextTasksId : Array<number>; ///< pipeline task id of next tasks    
 };

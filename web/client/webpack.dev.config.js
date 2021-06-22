@@ -4,7 +4,7 @@ const webpack = require('webpack');
 module.exports = {
   entry: [
     'webpack-dev-server/client/?http://localhost:8080',
-    './client/tsx/app.tsx',
+    './client/app.tsx',
   ],  
   output: {
     publicPath: 'js/',

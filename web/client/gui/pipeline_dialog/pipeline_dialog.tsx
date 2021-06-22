@@ -16,7 +16,7 @@ interface IProps {
   
   user : IUser;                                     // | Store
   pipelines : Map<number, IPipeline>;               // | 
-  groups : Map<number, IGroup>;             // |
+  groups : Map<number, IGroup>;                     // |
   taskTemplates : Map<number, ITaskTemplate>;       // |
   tasks : Map<number, ITask>;                       // |
   
@@ -79,7 +79,7 @@ class PipelineDialog extends React.Component<IProps, IState>{
       description
     }
     if (this.m_isNewPipeline){
-      fetch('api/addPipeline', {
+      fetch('api/v1/pipelines', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json;charset=utf-8'
@@ -101,7 +101,7 @@ class PipelineDialog extends React.Component<IProps, IState>{
       }); 
     }
     else{
-      fetch('api/changePipeline', {
+      fetch('api/v1/pipelines' + , {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json;charset=utf-8'
