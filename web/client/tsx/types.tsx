@@ -1,6 +1,6 @@
 
 export
-enum EnumState{
+enum StateType{
   UNDEFINED = -1,
   READY,
   START,
@@ -57,7 +57,7 @@ interface ITask{
 export
 interface ITaskState{
   id : number;
-  state : EnumState;
+  state : StateType;
   priority : number;           ///< [1..3] 
   progress : number;
   params : Array<string>;      ///< CLI params for script

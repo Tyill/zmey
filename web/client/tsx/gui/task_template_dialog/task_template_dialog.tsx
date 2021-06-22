@@ -4,8 +4,8 @@ import React from "react";
 import { connect } from "react-redux";
 import { Col, Button, Modal, Form} from "react-bootstrap";
  
-import * as Action from "./redux/actions"; 
-import { IUser, IPipeline, IGroup, ITaskTemplate, ITask } from "./types";
+import * as Action from "../../redux/actions"; 
+import { IUser, IPipeline, IGroup, ITaskTemplate, ITask } from "../../types";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 

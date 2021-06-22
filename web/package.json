@@ -4,8 +4,8 @@
   "description": "workflows manager",
   "main": "bundle.js",
   "scripts": {
-    "build": "./node_modules/.bin/webpack --config webpack.prod.config.js",
-    "wds": "./node_modules/.bin/webpack-dev-server --config webpack.dev.config.js",
+    "build": "./node_modules/.bin/webpack --config ./client/webpack.prod.config.js",
+    "wds": "./node_modules/.bin/webpack-dev-server --config ./client/webpack.dev.config.js",
     "server": "export FLASK_APP=.&& export FLASK_ENV=development&& flask run",
     "serverWin": "set FLASK_APP=.&& set FLASK_ENV=development&& flask run"
   },
@@ -43,6 +43,7 @@
     "babel-loader": "^8.0.6",
     "bootstrap": "^4.5.0",
     "file-loader": "^6.2.0",
+    "flask": "^0.2.10",
     "css-loader": "^3.2.0",
     "eslint": "^6.6.0",
     "eslint-plugin-react": "^7.16.0",
@@ -59,7 +60,7 @@
     "webpack-cli": "^3.3.7",
     "webpack-dev-server": "^3.11.0"
   },
-  "dependencies": {
+  "dependencies": { 
     "flask": "^0.2.10"
   }
 }

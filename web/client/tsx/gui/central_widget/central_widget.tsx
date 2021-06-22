@@ -1,33 +1,29 @@
-/* eslint-disable no-unused-vars */
-
 import React from "react";
-import ReactDOM from "react-dom";
-import { connect, Provider } from "react-redux";
+import { connect } from "react-redux";
 import {Container, Row, Col, Tabs, Tab, Image, Card, Modal, Button, OverlayTrigger, ListGroup } from "react-bootstrap";
-import TaskTemplateDialogModal from "./taskTemplateDialog";
-import PipelineDialogModal from "./pipelineDialog";
+import TaskTemplateDialogModal from "../task_template_dialog/task_template_dialog";
+import PipelineDialogModal from "../pipeline_dialog/pipeline_dialog";
+import TaskItem from "./task_item";
+import TaskHeader from "./task_header";
+import PipelineHeader from "./pipeline_header";
+import AckDeleteModal from "../common/ack_delete_modal";
 
-import * as Action from "./redux/actions";
-import Store from "./redux/store"; 
-import { IUser, IPipeline, IGroup, ITaskTemplate, ITask } from "./types";
+import * as Action from "../../redux/actions";
+import { IUser, IPipeline, IGroup, ITaskTemplate, ITask } from "../../types";
 
-import "../css/app.css";
-import "../css/fontello.css";
+import "../../../css/app.css";
+import "../../../css/fontello.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 interface IPropsApp {
-  user : IUser;                                // | Store
-  pipelines : Map<number, IPipeline>;          // | 
-  groups : Map<number, IGroup>;                // |
-  taskTemplates : Map<number, ITaskTemplate>;  // |
-  tasks : Map<number, ITask>;                  // |  
+  user : IUser;                                               // | Store
+  pipelines : Map<number, IPipeline>;                         // | 
+  groups : Map<number, IGroup>;                               // |
+  taskTemplates : Map<number, ITaskTemplate>;                 // |
+  tasks : Map<number, ITask>;                                 // |  
 
-  onFillTaskTemplates : (taskTemplates : Array<ITaskTemplate>) => any; // | Actions
-  onFillPipelines : (pipelines : Array<IPipeline>) => any;             // |
-  onFillTaskGroups : (groups : Array<IGroup>) => any;                  // |
-  onFillTasks : (tasks : Array<ITask>) => any;                         // |
-  onDelTaskTemplate : (taskTemplate : ITaskTemplate) => any;           // |
-  onDelPipeline : (pipeline : IPipeline) => any;                       // |
+  onDelTaskTemplate : (taskTemplate : ITaskTemplate) => any;  // | Actions
+  onDelPipeline : (pipeline : IPipeline) => any;              // |
 };
 
 interface IStateApp {
@@ -37,7 +33,7 @@ interface IStateApp {
   isShowAckPipelineDelete : boolean;
 };
 
-class App extends React.Component<IPropsApp, IStateApp>{
+class CentralWidgetClass extends React.Component<IPropsApp, IStateApp>{
    
   private m_selTaskTemplate : ITaskTemplate = {} as ITaskTemplate;
   private m_selPipeline : IPipeline = {} as IPipeline;
@@ -49,37 +45,7 @@ class App extends React.Component<IPropsApp, IStateApp>{
                     isShowPipelineConfig : false,
                     isShowAckTaskTemplateDelete : false,
                     isShowAckPipelineDelete : false };   
-  }
-    
-  componentDidMount() {    
-    fetch('api/allTaskTemplates')
-    .then(response => response.json())    
-    .then(taskTemplates =>{   
-      this.props.onFillTaskTemplates(taskTemplates);           
-    })
-    .catch(() => console.log('api/allTaskTemplates error')); 
-    
-    fetch('api/allPipelines')
-    .then(response => response.json())    
-    .then(pipelines =>{   
-      this.props.onFillPipelines(pipelines);           
-    })
-    .catch(() => console.log('api/allPipelines error'));   
-    
-    fetch('api/allTaskGroups')
-    .then(response => response.json())    
-    .then(groups =>{   
-      this.props.onFillTaskGroups(groups);           
-    })
-    .catch(() => console.log('api/allTaskGroups error'));  
-    
-    fetch('api/allTasks')
-    .then(response => response.json())    
-    .then(tasks =>{   
-      this.props.onFillTasks(tasks);           
-    })
-    .catch(() => console.log('api/allTasks error'));  
-  }
+  }    
  
   render(){
     
@@ -112,7 +78,7 @@ class App extends React.Component<IPropsApp, IStateApp>{
         <Container fluid style={{ margin: 0, padding: 0}}>
           <Row noGutters={true} style={{borderBottom: "1px solid #dbdbdb"}}>
             <Col className="col menuHeader">               
-              <Image src="/images/label.png" style={{ margin: 5}} title="Application for schedule and monitor workflows"></Image>
+              <Image src="client/images/label.png" style={{ margin: 5}} title="Application for schedule and monitor workflows"></Image>
             </Col>
           </Row>
           <Row noGutters={true} >
@@ -229,185 +195,17 @@ class App extends React.Component<IPropsApp, IStateApp>{
   } 
 }
 
-
-////////////////////////////////////////////////////
-
-interface IPropsTaskHeader {
-  hNew : () => any;
-};
-interface IStateTaskHeader { 
-  isShowBtn : boolean; 
-};
-class TaskHeader extends React.Component<IPropsTaskHeader, IStateTaskHeader>{  
-  constructor(props : IPropsTaskHeader){
-    super(props);    
-    this.state  = { isShowBtn : false };   
-  }   
-  render(){           
-    return (
-      <Card.Header as="h6" style={{height: "46px"}}
-                           onMouseEnter={(e)=>this.setState((oldState, props)=>{ let isShowBtn = true; return {isShowBtn}})}
-                           onMouseLeave={(e)=>this.setState((oldState, props)=>{ let isShowBtn = false; return {isShowBtn}})}>
-        Task Templates
-        {this.state.isShowBtn ? 
-          <a className="icon-new"           
-             title="New Task Template"
-             style={{float: "right"}} 
-             onClick={this.props.hNew}>
-          </a>
-        : ""}
-      </Card.Header>
-    )
-  }
-}
-
-////////////////////////////////////////////////////
-
-interface IPropsTaskItem { 
-  title : string;
-  tooltip : string;
-  key : number;   
-  hEdit : () => any;
-  hDelete : () => any;
-};
-interface IStateTaskItem { 
-  isShowBtn : boolean; 
-};
-class TaskItem extends React.Component<IPropsTaskItem, IStateTaskItem>{  
-  constructor(props : IPropsTaskItem){
-    super(props);    
-    this.state  = { isShowBtn : false };   
-  }   
-  render(){  
-    return (
-      <ListGroup.Item action title={this.props.tooltip}
-                      onMouseEnter={(e)=>this.setState((oldState, props)=>{ let isShowBtn = true; return {isShowBtn}})}
-                      onMouseLeave={(e)=>this.setState((oldState, props)=>{ let isShowBtn = false; return {isShowBtn}})}>
-        {this.props.title}
-        {this.state.isShowBtn ?
-          <span>
-            <a className = "icon-delete"
-                  title="Delete Task Template"
-                  style={{float: "right", marginLeft: "20px" }} 
-                  onClick={this.props.hDelete}>
-            </a>
-            <a className="icon-edit" 
-                  title= "Edit Task Template"
-                  style={{float: "right"}} 
-                  onClick={this.props.hEdit}>
-            </a>            
-          </span>
-        : ""}
-      </ListGroup.Item>
-    )
-  }
-}
-
-////////////////////////////////////////////////////
-
-interface IPropsPipelineHeader {
-  hNew : () => any;
-  hEdit : () => any;
-  hDelete : () => any;
-};
-interface IStatePipelineHeader { 
-  isShowBtn : boolean; 
-};
-class PipelineHeader extends React.Component<IPropsPipelineHeader, IStatePipelineHeader>{  
-  constructor(props : IPropsPipelineHeader){
-    super(props);    
-    this.state  = { isShowBtn : false };   
-  }   
-  render(){           
-    return (
-      <Card.Header as="h6" style={{height: "46px"}}
-                           onMouseEnter={(e)=>this.setState((oldState, props)=>{ let isShowBtn = true; return {isShowBtn}})}
-                           onMouseLeave={(e)=>this.setState((oldState, props)=>{ let isShowBtn = false; return {isShowBtn}})}>
-        Task Pipelines
-        {this.state.isShowBtn ?
-         <span>
-          <a className="icon-new" 
-            title="New Task Pipeline"
-            style={{marginLeft: "20px"}} 
-            onClick={this.props.hNew}>
-          </a> 
-          <a className="icon-edit" 
-            title= "Edit Task Pipeline"
-            style={{marginLeft: "20px"}} 
-            onClick={this.props.hEdit}>
-          </a>
-          <a className="icon-delete" 
-            title="Delete Task Pipeline"
-            style={{marginLeft: "20px" }} 
-            onClick={this.props.hDelete}>
-          </a>
-          </span>
-        : ""}
-      </Card.Header>
-    )
-  }
-}
-
-////////////////////////////////////////////////////
-
-interface IPropsAckDeleteModal { 
-  show : boolean;
-  name : string;
-  title : string;
-  onYes : () => any;  
-  onHide : () => any;  
-};
-interface IStateAckDeleteModal { 
-};
-class AckDeleteModal extends React.Component<IPropsAckDeleteModal, IStateAckDeleteModal>{  
-  constructor(props : IPropsAckDeleteModal){
-    super(props);    
-    this.state  = { isShowBtn : false };   
-  }   
-  render(){  
-    return (
-      <Modal show={this.props.show} onHide={this.props.onHide}>
-        <Modal.Header closeButton>
-          <Modal.Title>{this.props.title}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p>{this.props.name}</p>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" style={{minWidth:"100px"}} onClick={this.props.onYes}>Yes</Button>
-          <Button variant="primary" style={{minWidth:"100px"}} onClick={this.props.onHide} >No</Button>
-        </Modal.Footer>
-      </Modal>
-    )
-  }
-}
-
-////////////////////////////////////////////////////
-
 const mapStoreToProps = (store) => {
   return store;
 }
 
 const mapDispatchToProps = (dispatch) => {
-  return { 
-    onFillTaskTemplates : Action.fillTaskTemplates(dispatch), 
-    onFillPipelines : Action.fillPipelines(dispatch),   
-    onFillTasks : Action.fillTasks(dispatch), 
-    onFillTaskGroups : Action.fillTaskGroups(dispatch),
+  return {
     onDelTaskTemplate : Action.delTaskTemplate(dispatch),
     onDelPipeline : Action.delPipeline(dispatch), 
   }
 }
 
-let AppRedux = connect(mapStoreToProps, mapDispatchToProps)(App);
+let CentralWidget = connect(mapStoreToProps, mapDispatchToProps)(CentralWidgetClass);
 
-const root = document.getElementById('root')
-
-if (root){
-  ReactDOM.render(
-    <Provider store={Store}>
-       <AppRedux/>
-    </Provider>,
-    root
-  );
-}
+export default CentralWidget;
