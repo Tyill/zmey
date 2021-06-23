@@ -3,7 +3,7 @@ import { connect } from "react-redux";
 import { Col, Button, Modal, Form} from "react-bootstrap";
  
 import * as Action from "../redux/actions"; 
-import { IUser, IPipeline, IGroup, ITaskTemplate, ITask } from "../types";
+import { ITaskTemplate } from "../types";
 import {ServerAPI} from "../server_api"
 
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -13,11 +13,7 @@ interface IProps {
   onHide : (selTaskTemplate : ITaskTemplate) => any;
   selTaskTemplate : ITaskTemplate;
   
-  user : IUser;                                                 // | Store
-  pipelines : Map<number, IPipeline>;                           // | 
-  groups : Map<number, IGroup>;                                 // |
-  taskTemplates : Map<number, ITaskTemplate>;                   // |
-  tasks : Map<number, ITask>;                                   // |
+  taskTemplates : Map<number, ITaskTemplate>;                   // | Store
   
   onAddTaskTemplate : (taskTemplate : ITaskTemplate) => any;    // | Actions 
   onChangeTaskTemplate : (taskTemplate : ITaskTemplate) => any; // |

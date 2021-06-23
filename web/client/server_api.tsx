@@ -1,38 +1,29 @@
-import { IPipeline, IGroup, ITaskTemplate, ITask } from "./types";
+import { IPipeline, ITaskTemplate, ITaskPipeline } from "./types";
 
-export
-namespace ServerAPI {
-
-export
-function getAllTaskTemplates(onFillTaskTemplates : (taskTemplates : Array<ITaskTemplate>) => any){
-  fetch('api/v1/taskTemplates')
-  .then(response => response.json())    
-  .then(onFillTaskTemplates)
-  .catch(() => console.log('api/v1/taskTemplates error')); 
-}
+export namespace ServerAPI {
 
 export
 function getAllPipelines(onFillPipelines : (pipelines : Array<IPipeline>) => any){
   fetch('api/v1/pipelines')
   .then(response => response.json())    
   .then(onFillPipelines)
-  .catch(() => console.log('api/v1/pipelines error'));   
+  .catch(() => console.log('api/v1/pipelines fill error'));
 }
 
 export
-function getAllTaskGroups(onFillTaskGroups : (groups : Array<IGroup>) => any){
-  fetch('api/v1/taskGroups')
+function getAllTaskTemplates(onFillTaskTemplates : (taskTemplates : Array<ITaskTemplate>) => any){
+  fetch('api/v1/taskTemplates')
   .then(response => response.json())    
-  .then(onFillTaskGroups)
-  .catch(() => console.log('api/v1/taskGroups error'));  
+  .then(onFillTaskTemplates)
+  .catch(() => console.log('api/v1/taskTemplates fill error')); 
 }
- 
+
 export
-function getAllTasks(onFillTasks : (tasks : Array<ITask>) => any){
-  fetch('api/v1/tasks')
+function getAllTaskPipeline(onFillTasks : (tasks : Array<ITaskPipeline>) => any){
+  fetch('api/v1/taskPipeline')
   .then(response => response.json())    
   .then(onFillTasks)
-  .catch(() => console.log('api/v1/tasks error'));  
+  .catch(() => console.log('api/v1/taskPipeline fill error'));  
 }
 
 export
@@ -62,6 +53,13 @@ function changeTaskTemplate(taskTemplate : ITaskTemplate, onSucces : (respTaskTe
 }
 
 export
+function delTaskTemplate(taskTemlate : ITaskTemplate, onSucces : () => any){
+  fetch('api/taskTemplates/' + taskTemlate.id, { method: 'DELETE'})
+  .then(onSucces)
+  .catch(() => console.log('api/v1/taskTemplates/' + taskTemlate.id + ' delete error'));
+}
+
+export
 function addPipeline(newPipeline : IPipeline, onSucces : (respPipeline : IPipeline) => any, onError : () => any ){
   fetch('api/v1/pipelines', {
     method: 'POST',
@@ -87,5 +85,10 @@ function changePipeline(newPipeline : IPipeline, onSucces : (respPipeline : IPip
   .catch(onError);    
 } 
 
-
+export
+function deletePipeline(pipeline : IPipeline, onSucces : () => any){
+  fetch('api/v1/pipelines/' + pipeline.id, { method: 'DELETE'})
+  .then(onSucces) 
+  .catch(() => console.log('api/v1/pipelines/' + pipeline.id + ' delete error'));
+}
 }

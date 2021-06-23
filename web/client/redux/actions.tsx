@@ -1,5 +1,4 @@
-/* eslint-disable no-unused-vars */
-import { IPipeline, IGroup, ITaskTemplate, ITask } from "../types"
+import { IPipeline, ITaskTemplate, ITask, ITaskPipeline } from "../types"
 
 export
 enum ActionType{
@@ -7,23 +6,19 @@ enum ActionType{
   CHANGE_PIPELINE,
   DEL_PIPELINE,
   FILL_PIPELINES,
-
-  ADD_TASKGROUP,
-  CHANGE_TASKGROUP,
-  DEL_TASKGROUP,
-  FILL_TASKGROUPS,
-
+  
   ADD_TASKTEMPLATE,
   CHANGE_TASKTEMPLATE,
   DEL_TASKTEMPLATE,
   FILL_TASKTEMPLATES,
 
-  ADD_TASK,
-  CHANGE_TASK,
+  ADD_TASKPIPELINE,
+  CHANGE_TASKPIPELINE,
+  DEL_TASKPIPELINE,
+  FILL_TASKPIPELINE,
+
   START_TASK,
   STOP_TASK,
-  DEL_TASK,
-  FILL_TASKS,
 }
 
 export
@@ -48,31 +43,6 @@ export
 function fillPipelines(dispatch){
   return function(pipelines : Array<IPipeline>){
     dispatch({ type : ActionType.FILL_PIPELINES, allPipelines : pipelines });
-  }
-}
-
-export
-function addTaskGroup(dispatch){
-  return function(taskGroup : IGroup){
-    dispatch({ type : ActionType.ADD_TASKGROUP, taskGroup });
-  }
-}
-export
-function changeTaskGroup(dispatch){
-  return function(taskGroup : IGroup){
-    dispatch({ type : ActionType.CHANGE_TASKGROUP, taskGroup });
-  }
-}
-export
-function delTaskGroup(dispatch){
-  return function(taskGroup : IGroup){
-    dispatch({ type : ActionType.DEL_TASKGROUP, taskGroup });
-  }
-}
-export
-function fillTaskGroups(dispatch){
-  return function(groups : Array<IGroup>){
-    dispatch({ type : ActionType.FILL_TASKGROUPS, allTaskGroups : groups });
   }
 }
 
@@ -102,23 +72,30 @@ function fillTaskTemplates(dispatch){
 }
 
 export
-function addTask(dispatch){
-  return function(task : ITask){
-    dispatch({ type : ActionType.ADD_TASK, task });
+function addTaskPipeline(dispatch){
+  return function(task : ITaskPipeline){
+    dispatch({ type : ActionType.ADD_TASKPIPELINE, task });
   }
 }
 export
-function changeTask(dispatch){
-  return function(task : ITask){
-    dispatch({ type : ActionType.CHANGE_TASK, task });
+function changeTaskPipeline(dispatch){
+  return function(task : ITaskPipeline){
+    dispatch({ type : ActionType.CHANGE_TASKPIPELINE, task });
   }
 }
 export
-function delTask(dispatch){
-  return function(task : ITask){
-    dispatch({ type : ActionType.DEL_TASK, task });
+function delTaskPipeline(dispatch){
+  return function(task : ITaskPipeline){
+    dispatch({ type : ActionType.DEL_TASKPIPELINE, task });
   }
 }
+export
+function fillTaskPipeline(dispatch){
+  return function(tasks : Array<ITaskPipeline>){
+    dispatch({ type : ActionType.FILL_TASKPIPELINE, allTasks : tasks });
+  }
+}
+
 export
 function startTask(dispatch){
   return function(task : ITask){
@@ -129,11 +106,5 @@ export
 function stopTask(dispatch){
   return function(task : ITask){
     dispatch({ type : ActionType.STOP_TASK, task });
-  }
-}
-export
-function fillTasks(dispatch){
-  return function(tasks : Array<ITask>){
-    dispatch({ type : ActionType.FILL_TASKS, allTasks : tasks });
   }
 }

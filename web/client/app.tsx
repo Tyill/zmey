@@ -6,23 +6,16 @@ import {ServerAPI} from "./server_api"
 
 import * as Action from "./redux/actions";
 import Store from "./redux/store"; 
-import { IUser, IPipeline, IGroup, ITaskTemplate, ITask } from "./types";
+import { IPipeline, ITaskTemplate, ITaskPipeline } from "./types";
 
 import "./css/app.css";
 import "./css/fontello.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 interface IPropsApp {
-  user : IUser;                                // | Store
-  pipelines : Map<number, IPipeline>;          // | 
-  groups : Map<number, IGroup>;                // |
-  taskTemplates : Map<number, ITaskTemplate>;  // |
-  tasks : Map<number, ITask>;                  // |  
-
   onFillTaskTemplates : (taskTemplates : Array<ITaskTemplate>) => any; // | Actions
   onFillPipelines : (pipelines : Array<IPipeline>) => any;             // |
-  onFillTaskGroups : (groups : Array<IGroup>) => any;                  // |
-  onFillTasks : (tasks : Array<ITask>) => any;                         // |
+  onFillTaskPipeline : (tasks : Array<ITaskPipeline>) => any;          // |
 };
 
 interface IStateApp {
@@ -38,9 +31,8 @@ class App extends React.Component<IPropsApp, IStateApp>{
     
   componentDidMount() {    
     ServerAPI.getAllPipelines(this.props.onFillPipelines);
-    ServerAPI.getAllTaskGroups(this.props.onFillTaskGroups);
     ServerAPI.getAllTaskTemplates(this.props.onFillTaskTemplates);
-    ServerAPI.getAllTasks(this.props.onFillTasks);
+    ServerAPI.getAllTaskPipeline(this.props.onFillTaskPipeline);
   }
  
   render(){           
@@ -58,8 +50,7 @@ const mapDispatchToProps = (dispatch) => {
   return { 
     onFillTaskTemplates : Action.fillTaskTemplates(dispatch), 
     onFillPipelines : Action.fillPipelines(dispatch),   
-    onFillTasks : Action.fillTasks(dispatch), 
-    onFillTaskGroups : Action.fillTaskGroups(dispatch),
+    onFillTaskPipeline : Action.fillTaskPipeline(dispatch),
   }
 }
 

@@ -9,19 +9,17 @@ import PipelineHeader from "./pipeline_header";
 import AckDeleteModal from "../common/ack_delete_modal";
 
 import * as Action from "../redux/actions";
-import { IUser, IPipeline, IGroup, ITaskTemplate, ITask } from "../types";
+import { IPipeline, ITaskTemplate } from "../types";
 
 import "../css/app.css";
 import "../css/fontello.css";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { ServerAPI } from "../server_api";
 
 interface IPropsApp {
-  user : IUser;                                               // | Store
-  pipelines : Map<number, IPipeline>;                         // | 
-  groups : Map<number, IGroup>;                               // |
+  pipelines : Map<number, IPipeline>;                         // | Store
   taskTemplates : Map<number, ITaskTemplate>;                 // |
-  tasks : Map<number, ITask>;                                 // |  
-
+  
   onDelTaskTemplate : (taskTemplate : ITaskTemplate) => any;  // | Actions
   onDelPipeline : (pipeline : IPipeline) => any;              // |
 };
@@ -152,17 +150,15 @@ class CentralWidgetClass extends React.Component<IPropsApp, IStateApp>{
         <AckDeleteModal name={this.m_selTaskTemplate.name}
                         title="Delete the Task Template?"
                         show={this.state.isShowAckTaskTemplateDelete}
-                        onYes={()=>{
-                                fetch('api/delTaskTemplate?id=' + this.m_selTaskTemplate.id)
-                                .then(() => {
-                                  let taskTemplate = this.m_selTaskTemplate;
-                                  this.props.onDelTaskTemplate(taskTemplate); 
-                                  this.setState((oldState, props)=>{
-                                    let isShowAckTaskTemplateDelete = false;
-                                    return {isShowAckTaskTemplateDelete};
-                                  }); 
-                                }) 
-                                .catch(() => console.log('api/delTaskTemplate error')); }}
+                        onYes={() => ServerAPI.delTaskTemplate(this.m_selTaskTemplate,
+                          ()=>{                          
+                            let taskTemplate = this.m_selTaskTemplate;
+                            this.props.onDelTaskTemplate(taskTemplate); 
+                            this.setState((oldState, props)=>{
+                              let isShowAckTaskTemplateDelete = false;
+                              return {isShowAckTaskTemplateDelete};
+                            });
+                          })} 
                         onHide={()=>{
                           this.setState((oldState, props)=>{
                             let isShowAckTaskTemplateDelete = false;
@@ -173,17 +169,15 @@ class CentralWidgetClass extends React.Component<IPropsApp, IStateApp>{
         <AckDeleteModal name={this.m_selPipeline.name}
                         title="Delete the Task Pipeline?"
                         show={this.state.isShowAckPipelineDelete}
-                        onYes={()=>{
-                                fetch('api/delPipeline?id=' + this.m_selPipeline.id)
-                                .then(() => {
-                                  let pipeline = this.m_selPipeline;
-                                  this.props.onDelPipeline(pipeline); 
-                                  this.setState((oldState, props)=>{
-                                    let isShowAckPipelineDelete = false;
-                                    return {isShowAckPipelineDelete};
-                                  }); 
-                                }) 
-                                .catch(() => console.log('api/delPipeline error')); }}
+                        onYes={() => ServerAPI.deletePipeline(this.m_selPipeline,
+                          ()=>{                          
+                            let pipeline = this.m_selPipeline;
+                            this.props.onDelPipeline(pipeline); 
+                            this.setState((oldState, props)=>{
+                              let isShowAckPipelineDelete = false;
+                              return {isShowAckPipelineDelete};
+                            });
+                          })} 
                         onHide={()=>{
                           this.setState((oldState, props)=>{
                             let isShowAckPipelineDelete = false;

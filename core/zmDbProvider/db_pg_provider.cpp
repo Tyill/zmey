@@ -269,7 +269,7 @@ bool DbProvider::createTables(){
   ss.str("");
   ss << "CREATE TABLE IF NOT EXISTS tblTaskParam("
         "qtask        INT PRIMARY KEY REFERENCES tblTaskQueue,"        
-        "priority     INT NOT NULL DEFAULT 1 CHECK (priority BETWEEN 1 AND 3),"
+        "priority     INT NOT NULL DEFAULT 1,"
         "params       TEXT[] NOT NULL);"; // ['param1', 'param2'..]
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 

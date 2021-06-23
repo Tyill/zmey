@@ -1,14 +1,12 @@
-/* eslint-disable no-unused-vars */
-
 import { ActionType } from "./actions";
 import { combineReducers } from 'redux'
-import {IUser, IPipeline, IGroup, ITaskTemplate, ITask } from "../types"
+import {IUser, IPipeline, ITaskTemplate, ITaskPipeline } from "../types"
 
 
 function user(curUser : IUser, action : {type : ActionType, user : IUser}) :
   IUser{
 
-  return {name : 'alm', description : ''};
+  return {id : 0, name : 'alm', description : ''};
 }
 
 function pipelines(curPipelines : Map<number, IPipeline>, action : {type : ActionType, pipeline : IPipeline, allPipelines : Array<IPipeline>}) : 
@@ -38,33 +36,6 @@ function pipelines(curPipelines : Map<number, IPipeline>, action : {type : Actio
     return pipelinesCpy; 
 }
 
-function groups(curTaskGroups : Map<number, IGroup>, action : {type : ActionType, taskGroup : IGroup, allTaskGroups : Array<IGroup>}) : 
-  Map<number, IGroup>{
-
-    if (!curTaskGroups) return new Map<number, IGroup>();
-
-    let taskGroupsCpy = new Map<number, IGroup>();   
-    if (curTaskGroups instanceof Map){ 
-      for (let t of curTaskGroups)
-        taskGroupsCpy.set(t[0], t[1]);  
-    }   
-    
-    switch (action.type) {
-      case ActionType.ADD_TASKGROUP:
-      case ActionType.CHANGE_TASKGROUP:
-        taskGroupsCpy.set(action.taskGroup.id, action.taskGroup);
-        break;
-      case ActionType.DEL_TASKGROUP:
-        taskGroupsCpy.delete(action.taskGroup.id);
-        break;  
-      case ActionType.FILL_TASKGROUPS:
-        for (let t of action.allTaskGroups)
-          taskGroupsCpy.set(t.id, t);
-        break;
-    }
-    return taskGroupsCpy; 
-}
-
 function taskTemplates(curTaskTemplates : Map<number, ITaskTemplate>, action : {type : ActionType, taskTemplate : ITaskTemplate, allTaskTemplates : Array<ITaskTemplate>}) :
   Map<number, ITaskTemplate>{
   
@@ -92,25 +63,26 @@ function taskTemplates(curTaskTemplates : Map<number, ITaskTemplate>, action : {
   return taskTemplatesCpy; 
 }
 
-function tasks(curTasks : Map<number, ITask>, action : {type : ActionType, task : ITask, allTasks : Array<ITask>}) : 
-  Map<number, ITask>{
+function taskPipeline(curTasks : Map<number, ITaskPipeline>, action : {type : ActionType, task : ITaskPipeline, allTasks : Array<ITaskPipeline>}) : 
+  Map<number, ITaskPipeline>{
 
-    if (!curTasks) return new Map<number, ITask>();
+    if (!curTasks) return new Map<number, ITaskPipeline>();
 
-    let tasksCpy = new Map<number, ITask>();   
+    let tasksCpy = new Map<number, ITaskPipeline>();   
     if (curTasks instanceof Map){ 
       for (let t of curTasks)
         tasksCpy.set(t[0], t[1]);  
     }
 
     switch (action.type) {
-      case ActionType.ADD_TASK:
-      case ActionType.CHANGE_TASK:
+      case ActionType.ADD_TASKPIPELINE:
+      case ActionType.CHANGE_TASKPIPELINE:
         tasksCpy.set(action.task.id, action.task);
         break;
-      case ActionType.DEL_TASK:
+      case ActionType.DEL_TASKPIPELINE:
+        tasksCpy.delete(action.task.id);
         break;  
-      case ActionType.FILL_TASKS:
+      case ActionType.FILL_TASKPIPELINE:
         for (let t of action.allTasks)
           tasksCpy.set(t.id, t);
         break;  
@@ -118,6 +90,6 @@ function tasks(curTasks : Map<number, ITask>, action : {type : ActionType, task 
     return tasksCpy; 
 }
 
-const ComboReducer = combineReducers({user, pipelines, groups, taskTemplates, tasks });
+const ComboReducer = combineReducers({user, pipelines, taskTemplates, taskPipeline });
 
 export default ComboReducer;

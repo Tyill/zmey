@@ -1,11 +1,9 @@
-/* eslint-disable no-unused-vars */
-
 import React from "react";
 import { connect } from "react-redux";
 import { Col, Button, Modal, Form} from "react-bootstrap";
  
 import * as Action from "../redux/actions"; 
-import { IUser, IPipeline, IGroup, ITaskTemplate, ITask } from "../types";
+import { IPipeline } from "../types";
 import {ServerAPI} from "../server_api"
 
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -15,11 +13,7 @@ interface IProps {
   onHide : (selPipeline : IPipeline) => any;
   selPipeline : IPipeline;
   
-  user : IUser;                                     // | Store
-  pipelines : Map<number, IPipeline>;               // | 
-  groups : Map<number, IGroup>;                     // |
-  taskTemplates : Map<number, ITaskTemplate>;       // |
-  tasks : Map<number, ITask>;                       // |
+  pipelines : Map<number, IPipeline>;               // | Store
   
   onAddPipeline : (pipeline : IPipeline) => any;    // | Actions 
   onChangePipeline : (pipeline : IPipeline) => any; // |
