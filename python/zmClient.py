@@ -1219,7 +1219,7 @@ class Connection:
       tcng = _TaskCng_C()
       tcng.pplId = iot.ptId      
       tcng.priority = iot.priority
-      tcng.prevTId = ''
+      tcng.prevTId = None
       tcng.params = ','.join(iot.params).encode('utf-8')
 
       pfun = _lib.zmStartTask

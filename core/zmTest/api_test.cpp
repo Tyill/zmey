@@ -967,7 +967,6 @@ TEST_F(APITest, addTask){
   zmTaskPipeline task{0};
   task.pplId = pId;
   task.gId = 0; 
-  task.priority = 1;
   task.ttId = ttId;
   uint64_t tId = 0;  
   EXPECT_TRUE(zmAddTaskPipeline(_zc, task, &tId) && (tId > 0));  
@@ -1007,19 +1006,16 @@ TEST_F(APITest, getTask){
   zmTaskPipeline task{0};
   task.pplId = pId; 
   task.gId = 0; 
-  task.priority = 1;
   task.ttId = ttId;
   uint64_t tId = 0;  
   EXPECT_TRUE(zmAddTaskPipeline(_zc, task, &tId) && (tId > 0));  
 
   task.pplId = pId + 1;
   task.gId = pId + 1; 
-  task.priority = 2;
   task.ttId = ttId + 1;
   EXPECT_TRUE(zmGetTaskPipeline(_zc, tId, &task) &&
              (task.pplId == pId) &&
              (task.gId == 0) &&
-             (task.priority == 1) &&
              (task.ttId == ttId));          
 }
 TEST_F(APITest, changeTask){
@@ -1053,27 +1049,22 @@ TEST_F(APITest, changeTask){
   zmTaskPipeline task{0};
   task.pplId = pId; 
   task.gId = 0;
-  task.priority = 1;
   task.ttId = ttId;
   uint64_t tId1 = 0;  
   EXPECT_TRUE(zmAddTaskPipeline(_zc, task, &tId1) && (tId1 > 0)); 
 
   task.pplId = pId; 
-  task.priority = 1;
   task.ttId = ttId;
   uint64_t tId2 = 0;  
   EXPECT_TRUE(zmAddTaskPipeline(_zc, task, &tId2) && (tId2 > 0)); 
   
   task.pplId = pId; 
-  task.priority = 2;
   EXPECT_TRUE(zmChangeTaskPipeline(_zc, tId2, task));
 
   task.pplId = pId + 1; 
-  task.priority = 11;
   task.ttId = ttId + 1;
   EXPECT_TRUE(zmGetTaskPipeline(_zc, tId2, &task) &&
              (task.pplId == pId) &&
-             (task.priority == 2) &&
              (task.ttId == ttId));
 }
 TEST_F(APITest, delTask){
@@ -1107,7 +1098,6 @@ TEST_F(APITest, delTask){
   zmTaskPipeline task{0};
   task.pplId = pId; 
   task.gId = 0; 
-  task.priority = 1;
   task.ttId = ttId;
   uint64_t tId1 = 0;  
   EXPECT_TRUE(zmAddTaskPipeline(_zc, task, &tId1) && (tId1 > 0)); 
@@ -1115,11 +1105,9 @@ TEST_F(APITest, delTask){
   EXPECT_TRUE(zmDelTaskPipeline(_zc, tId1));
 
   task.pplId = pId + 1; 
-  task.priority = 2;
   task.ttId = ttId + 1;
   EXPECT_TRUE(!zmGetTaskPipeline(_zc, tId1, &task) &&
              (task.pplId == pId + 1) &&
-             (task.priority == 2) &&
              (task.ttId == ttId + 1));             
 }
 TEST_F(APITest, startTask){
@@ -1153,13 +1141,13 @@ TEST_F(APITest, startTask){
   zmTaskPipeline ptask{0};
   ptask.pplId = pId; 
   ptask.gId = 0; 
-  ptask.priority = 1;
   ptask.ttId = ttId;
   uint64_t ptId1 = 0;  
   EXPECT_TRUE(zmAddTaskPipeline(_zc, ptask, &ptId1) && (ptId1 > 0));  
 
   zmTask task{0};
   task.ptId = ptId1; 
+  task.priority = 1;
   uint64_t tId1 = 0;  
   EXPECT_TRUE(zmStartTask(_zc, task, &tId1)); 
 
@@ -1197,12 +1185,12 @@ TEST_F(APITest, cancelTask){
   zmTaskPipeline ptask{0};
   ptask.pplId = pId;
   ptask.gId = 0;  
-  ptask.priority = 1;
   ptask.ttId = ttId;
   uint64_t ptId1 = 0;  
   EXPECT_TRUE(zmAddTaskPipeline(_zc, ptask, &ptId1) && (ptId1 > 0));  
 
   zmTask task{0};
+  task.priority = 1;
   task.ptId = ptId1; 
   uint64_t tId1 = 0;  
   EXPECT_TRUE(zmStartTask(_zc, task, &tId1));        
@@ -1240,18 +1228,17 @@ TEST_F(APITest, taskState){
   zmTaskPipeline ptask{0};
   ptask.pplId = pId; 
   ptask.gId = 0; 
-  ptask.priority = 1;
   ptask.ttId = ttId;
   uint64_t ptId1 = 0;  
   EXPECT_TRUE(zmAddTaskPipeline(_zc, ptask, &ptId1) && (ptId1 > 0));  
   
   zmTask task{0};
   task.ptId = ptId1; 
+  task.priority = 1;
   uint64_t tId1 = 0;  
   EXPECT_TRUE(zmStartTask(_zc, task, &tId1));  
 
   ptask.pplId = pId; 
-  ptask.priority = 1;
   ptask.ttId = ttId;
   uint64_t ptId2 = 0;  
   EXPECT_TRUE(zmAddTaskPipeline(_zc, ptask, &ptId2) && (ptId2 > 0));
@@ -1299,12 +1286,12 @@ TEST_F(APITest, taskResult){
   zmTaskPipeline ptask{0};
   ptask.pplId = pId; 
   ptask.gId = 0; 
-  ptask.priority = 1;
   ptask.ttId = ttId;
   uint64_t ptId1 = 0;  
   EXPECT_TRUE(zmAddTaskPipeline(_zc, ptask, &ptId1) && (ptId1 > 0));  
   
   zmTask task{0};
+  task.priority = 1;
   task.ptId = ptId1; 
   uint64_t tId1 = 0;  
   EXPECT_TRUE(zmStartTask(_zc, task, &tId1));  
@@ -1343,12 +1330,12 @@ TEST_F(APITest, TaskTime){
   zmTaskPipeline ptask{0};
   ptask.pplId = pId; 
   ptask.gId = 0; 
-  ptask.priority = 1;
   ptask.ttId = ttId;
   uint64_t ptId1 = 0;  
   EXPECT_TRUE(zmAddTaskPipeline(_zc, ptask, &ptId1) && (ptId1 > 0));  
   
   zmTask task{0};
+  task.priority = 1;
   task.ptId = ptId1; 
   uint64_t tId1 = 0;  
   EXPECT_TRUE(zmStartTask(_zc, task,  &tId1));  
@@ -1387,18 +1374,17 @@ TEST_F(APITest, getAllTask){
   zmTaskPipeline ptask{0};
   ptask.pplId = pId; 
   ptask.gId = 0; 
-  ptask.priority = 1;
   ptask.ttId = ttId;
   uint64_t ptId1 = 0;  
   EXPECT_TRUE(zmAddTaskPipeline(_zc, ptask, &ptId1) && (ptId1 > 0));  
   
   zmTask task{0};
+  task.priority = 1;
   task.ptId = ptId1; 
   uint64_t tId1 = 0;  
   EXPECT_TRUE(zmStartTask(_zc, task, &tId1));  
 
   ptask.pplId = pId; 
-  ptask.priority = 1;
   ptask.ttId = ttId;
   uint64_t ptId2 = 0;  
   EXPECT_TRUE(zmAddTaskPipeline(_zc, ptask, &ptId2) && (ptId2 > 0));  
