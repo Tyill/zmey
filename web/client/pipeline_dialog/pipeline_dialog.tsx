@@ -4,10 +4,10 @@ import React from "react";
 import { connect } from "react-redux";
 import { Col, Button, Modal, Form} from "react-bootstrap";
  
-import * as Action from "./redux/actions"; 
-import { IUser, IPipeline, IGroup, ITaskTemplate, ITask } from "./types";
+import * as Action from "../redux/actions"; 
+import { IUser, IPipeline, IGroup, ITaskTemplate, ITask } from "../types";
+import {ServerAPI} from "../server_api"
 
-import "../css/app.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 interface IProps {
@@ -80,47 +80,35 @@ class PipelineDialog extends React.Component<IProps, IState>{
       description
     }
     if (this.m_isNewPipeline){
-      fetch('api/addPipeline', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json;charset=utf-8'
+      ServerAPI.addPipeline(newPipeline, 
+        (respPipeline)=>{
+          this.props.onAddPipeline(respPipeline);      
+          this.setState({statusMess : "Success create of Task Pipeline"});    
+          clearTimeout(this.m_tout);
+          this.m_tout = setTimeout(() => { 
+            this.setState({statusMess : ""});
+            this.props.onHide(respPipeline);
+          }, 1000)
         },
-        body: JSON.stringify(newPipeline)})
-      .then(response => response.json())    
-      .then(pipeline =>{
-        this.props.onAddPipeline(pipeline);      
-        this.setState({statusMess : "Success create of Task Pipeline"});    
-        clearTimeout(this.m_tout);
-        this.m_tout = setTimeout(() => { 
-          this.setState({statusMess : ""});
-          this.props.onHide(newPipeline);
-        }, 1000)})
-      .catch(() => {
-        this.setState({statusMess : "api/addPipeline error"});
-        console.log("api/addPipeline error");
-        clearTimeout(this.m_tout);
-        this.m_tout = setTimeout(() => this.setState({statusMess : ""}), 3000);  
-      }); 
+        ()=>{
+          this.setState({statusMess : "ServerAPI.addPipeline error"});
+          clearTimeout(this.m_tout);
+          this.m_tout = setTimeout(() => this.setState({statusMess : ""}), 3000);  
+        }); 
     }
     else{
-      fetch('api/changePipeline', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json;charset=utf-8'
+      ServerAPI.changePipeline(newPipeline, 
+        (respPipeline)=>{
+          this.props.onChangePipeline(respPipeline); 
+          this.setState({statusMess : "Success change of Task Pipeline"}); 
+          clearTimeout(this.m_tout);
+          this.m_tout = setTimeout(() => this.setState({statusMess : ""}), 3000);
         },
-        body: JSON.stringify(newPipeline)})
-      .then(response => response.json())    
-      .then(respPipeline =>{ 
-        this.props.onChangePipeline(respPipeline); 
-        this.setState({statusMess : "Success change of Task Pipeline"}); 
-        clearTimeout(this.m_tout);
-        this.m_tout = setTimeout(() => this.setState({statusMess : ""}), 3000);})
-      .catch(() => {
-        this.setState({statusMess : "api/changePipeline error"});
-        console.log("api/changePipeline error");
-        clearTimeout(this.m_tout);
-        this.m_tout = setTimeout(() => this.setState({statusMess : ""}), 3000);  
-      }); 
+        () => {
+          this.setState({statusMess : "ServerAPI.changePipeline error"});
+          clearTimeout(this.m_tout);
+          this.m_tout = setTimeout(() => this.setState({statusMess : ""}), 3000);  
+        }); 
     }      
   }
 

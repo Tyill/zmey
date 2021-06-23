@@ -2,7 +2,7 @@
 import { IPipeline, IGroup, ITaskTemplate, ITask } from "../types"
 
 export
-enum EnumActions{
+enum ActionType{
   ADD_PIPELINE,
   CHANGE_PIPELINE,
   DEL_PIPELINE,
@@ -29,111 +29,111 @@ enum EnumActions{
 export
 function addPipeline(dispatch){
   return function(pipeline : IPipeline){
-    dispatch({ type : EnumActions.ADD_PIPELINE, pipeline });
+    dispatch({ type : ActionType.ADD_PIPELINE, pipeline });
   }
 }
 export
 function changePipeline(dispatch){
   return function(pipeline : IPipeline){
-    dispatch({ type : EnumActions.CHANGE_PIPELINE, pipeline });
+    dispatch({ type : ActionType.CHANGE_PIPELINE, pipeline });
   }
 }
 export
 function delPipeline(dispatch){
   return function(pipeline : IPipeline){
-    dispatch({ type : EnumActions.DEL_PIPELINE, pipeline });
+    dispatch({ type : ActionType.DEL_PIPELINE, pipeline });
   }
 }
 export
 function fillPipelines(dispatch){
   return function(pipelines : Array<IPipeline>){
-    dispatch({ type : EnumActions.FILL_PIPELINES, allPipelines : pipelines });
+    dispatch({ type : ActionType.FILL_PIPELINES, allPipelines : pipelines });
   }
 }
 
 export
 function addTaskGroup(dispatch){
   return function(taskGroup : IGroup){
-    dispatch({ type : EnumActions.ADD_TASKGROUP, taskGroup });
+    dispatch({ type : ActionType.ADD_TASKGROUP, taskGroup });
   }
 }
 export
 function changeTaskGroup(dispatch){
   return function(taskGroup : IGroup){
-    dispatch({ type : EnumActions.CHANGE_TASKGROUP, taskGroup });
+    dispatch({ type : ActionType.CHANGE_TASKGROUP, taskGroup });
   }
 }
 export
 function delTaskGroup(dispatch){
   return function(taskGroup : IGroup){
-    dispatch({ type : EnumActions.DEL_TASKGROUP, taskGroup });
+    dispatch({ type : ActionType.DEL_TASKGROUP, taskGroup });
   }
 }
 export
 function fillTaskGroups(dispatch){
   return function(groups : Array<IGroup>){
-    dispatch({ type : EnumActions.FILL_TASKGROUPS, allTaskGroups : groups });
+    dispatch({ type : ActionType.FILL_TASKGROUPS, allTaskGroups : groups });
   }
 }
 
 export
 function addTaskTemplate(dispatch){
   return function(taskTemplate : ITaskTemplate){
-    dispatch({ type : EnumActions.ADD_TASKTEMPLATE, taskTemplate });
+    dispatch({ type : ActionType.ADD_TASKTEMPLATE, taskTemplate });
   }
 }
 export
 function changeTaskTemplate(dispatch){
   return function(taskTemplate : ITaskTemplate){
-    dispatch({ type : EnumActions.CHANGE_TASKTEMPLATE, taskTemplate });
+    dispatch({ type : ActionType.CHANGE_TASKTEMPLATE, taskTemplate });
   }
 }
 export
 function delTaskTemplate(dispatch){
   return function(taskTemplate : ITaskTemplate){
-    dispatch({ type : EnumActions.DEL_TASKTEMPLATE, taskTemplate });
+    dispatch({ type : ActionType.DEL_TASKTEMPLATE, taskTemplate });
   }
 }
 export
 function fillTaskTemplates(dispatch){
   return function(taskTemplates : Array<ITaskTemplate>){
-    dispatch({ type : EnumActions.FILL_TASKTEMPLATES, allTaskTemplates : taskTemplates });
+    dispatch({ type : ActionType.FILL_TASKTEMPLATES, allTaskTemplates : taskTemplates });
   }
 }
 
 export
 function addTask(dispatch){
   return function(task : ITask){
-    dispatch({ type : EnumActions.ADD_TASK, task });
+    dispatch({ type : ActionType.ADD_TASK, task });
   }
 }
 export
 function changeTask(dispatch){
   return function(task : ITask){
-    dispatch({ type : EnumActions.CHANGE_TASK, task });
+    dispatch({ type : ActionType.CHANGE_TASK, task });
   }
 }
 export
 function delTask(dispatch){
   return function(task : ITask){
-    dispatch({ type : EnumActions.DEL_TASK, task });
+    dispatch({ type : ActionType.DEL_TASK, task });
   }
 }
 export
 function startTask(dispatch){
   return function(task : ITask){
-    dispatch({ type : EnumActions.START_TASK, task });
+    dispatch({ type : ActionType.START_TASK, task });
   }
 }
 export
 function stopTask(dispatch){
   return function(task : ITask){
-    dispatch({ type : EnumActions.STOP_TASK, task });
+    dispatch({ type : ActionType.STOP_TASK, task });
   }
 }
 export
 function fillTasks(dispatch){
   return function(tasks : Array<ITask>){
-    dispatch({ type : EnumActions.FILL_TASKS, allTasks : tasks });
+    dispatch({ type : ActionType.FILL_TASKS, allTasks : tasks });
   }
 }

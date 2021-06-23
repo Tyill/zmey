@@ -89,7 +89,7 @@ namespace ZM_Base{
     std::string name;         // unique name
     std::string description;
   };
-  
+  // task object
   struct Task{
     uint64_t id;              // id tblTaskQueue
     int averDurationSec;      // estimated lead time

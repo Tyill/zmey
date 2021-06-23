@@ -1,17 +1,17 @@
 /* eslint-disable no-unused-vars */
 
-import { EnumActions } from "./actions";
+import { ActionType } from "./actions";
 import { combineReducers } from 'redux'
 import {IUser, IPipeline, IGroup, ITaskTemplate, ITask } from "../types"
 
 
-function user(curUser : IUser, action : {type : EnumActions, user : IUser}) :
+function user(curUser : IUser, action : {type : ActionType, user : IUser}) :
   IUser{
 
   return {name : 'alm', description : ''};
 }
 
-function pipelines(curPipelines : Map<number, IPipeline>, action : {type : EnumActions, pipeline : IPipeline, allPipelines : Array<IPipeline>}) : 
+function pipelines(curPipelines : Map<number, IPipeline>, action : {type : ActionType, pipeline : IPipeline, allPipelines : Array<IPipeline>}) : 
   Map<number, IPipeline>{
 
     if (!curPipelines) return new Map<number, IPipeline>();
@@ -23,14 +23,14 @@ function pipelines(curPipelines : Map<number, IPipeline>, action : {type : EnumA
     }
 
     switch (action.type) {
-      case EnumActions.ADD_PIPELINE:
-      case EnumActions.CHANGE_PIPELINE:
+      case ActionType.ADD_PIPELINE:
+      case ActionType.CHANGE_PIPELINE:
         pipelinesCpy.set(action.pipeline.id, action.pipeline);
         break;
-      case EnumActions.DEL_PIPELINE:
+      case ActionType.DEL_PIPELINE:
         pipelinesCpy.delete(action.pipeline.id);
         break;  
-      case EnumActions.FILL_PIPELINES:
+      case ActionType.FILL_PIPELINES:
         for (let p of action.allPipelines)
           pipelinesCpy.set(p.id, p);
         break;  
@@ -38,7 +38,7 @@ function pipelines(curPipelines : Map<number, IPipeline>, action : {type : EnumA
     return pipelinesCpy; 
 }
 
-function groups(curTaskGroups : Map<number, IGroup>, action : {type : EnumActions, taskGroup : IGroup, allTaskGroups : Array<IGroup>}) : 
+function groups(curTaskGroups : Map<number, IGroup>, action : {type : ActionType, taskGroup : IGroup, allTaskGroups : Array<IGroup>}) : 
   Map<number, IGroup>{
 
     if (!curTaskGroups) return new Map<number, IGroup>();
@@ -50,14 +50,14 @@ function groups(curTaskGroups : Map<number, IGroup>, action : {type : EnumAction
     }   
     
     switch (action.type) {
-      case EnumActions.ADD_TASKGROUP:
-      case EnumActions.CHANGE_TASKGROUP:
+      case ActionType.ADD_TASKGROUP:
+      case ActionType.CHANGE_TASKGROUP:
         taskGroupsCpy.set(action.taskGroup.id, action.taskGroup);
         break;
-      case EnumActions.DEL_TASKGROUP:
+      case ActionType.DEL_TASKGROUP:
         taskGroupsCpy.delete(action.taskGroup.id);
         break;  
-      case EnumActions.FILL_TASKGROUPS:
+      case ActionType.FILL_TASKGROUPS:
         for (let t of action.allTaskGroups)
           taskGroupsCpy.set(t.id, t);
         break;
@@ -65,7 +65,7 @@ function groups(curTaskGroups : Map<number, IGroup>, action : {type : EnumAction
     return taskGroupsCpy; 
 }
 
-function taskTemplates(curTaskTemplates : Map<number, ITaskTemplate>, action : {type : EnumActions, taskTemplate : ITaskTemplate, allTaskTemplates : Array<ITaskTemplate>}) :
+function taskTemplates(curTaskTemplates : Map<number, ITaskTemplate>, action : {type : ActionType, taskTemplate : ITaskTemplate, allTaskTemplates : Array<ITaskTemplate>}) :
   Map<number, ITaskTemplate>{
   
   if (!curTaskTemplates) return new Map<number, ITaskTemplate>();
@@ -77,14 +77,14 @@ function taskTemplates(curTaskTemplates : Map<number, ITaskTemplate>, action : {
   }
   
   switch (action.type) {
-    case EnumActions.ADD_TASKTEMPLATE:
-    case EnumActions.CHANGE_TASKTEMPLATE:
+    case ActionType.ADD_TASKTEMPLATE:
+    case ActionType.CHANGE_TASKTEMPLATE:
       taskTemplatesCpy.set(action.taskTemplate.id, action.taskTemplate);
       break;
-    case EnumActions.DEL_TASKTEMPLATE:
+    case ActionType.DEL_TASKTEMPLATE:
       taskTemplatesCpy.delete(action.taskTemplate.id);
       break;  
-    case EnumActions.FILL_TASKTEMPLATES:      
+    case ActionType.FILL_TASKTEMPLATES:      
       for (let t of action.allTaskTemplates)
         taskTemplatesCpy.set(t.id, t); 
       break;
@@ -92,7 +92,7 @@ function taskTemplates(curTaskTemplates : Map<number, ITaskTemplate>, action : {
   return taskTemplatesCpy; 
 }
 
-function tasks(curTasks : Map<number, ITask>, action : {type : EnumActions, task : ITask, allTasks : Array<ITask>}) : 
+function tasks(curTasks : Map<number, ITask>, action : {type : ActionType, task : ITask, allTasks : Array<ITask>}) : 
   Map<number, ITask>{
 
     if (!curTasks) return new Map<number, ITask>();
@@ -104,13 +104,13 @@ function tasks(curTasks : Map<number, ITask>, action : {type : EnumActions, task
     }
 
     switch (action.type) {
-      case EnumActions.ADD_TASK:
-      case EnumActions.CHANGE_TASK:
+      case ActionType.ADD_TASK:
+      case ActionType.CHANGE_TASK:
         tasksCpy.set(action.task.id, action.task);
         break;
-      case EnumActions.DEL_TASK:
+      case ActionType.DEL_TASK:
         break;  
-      case EnumActions.FILL_TASKS:
+      case ActionType.FILL_TASKS:
         for (let t of action.allTasks)
           tasksCpy.set(t.id, t);
         break;  

@@ -1,7 +1,8 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import { connect, Provider } from "react-redux";
-import CentralWidget from "./gui/central_widget/central_widget";
+import CentralWidget from "./central_widget/central_widget";
+import {ServerAPI} from "./server_api"
 
 import * as Action from "./redux/actions";
 import Store from "./redux/store"; 
@@ -36,33 +37,10 @@ class App extends React.Component<IPropsApp, IStateApp>{
   }
     
   componentDidMount() {    
-    fetch('api/v1/taskTemplates')
-    .then(response => response.json())    
-    .then(taskTemplates =>{   
-      this.props.onFillTaskTemplates(taskTemplates);           
-    })
-    .catch(() => console.log('api/v1/taskTemplates error')); 
-    
-    fetch('api/v1/pipelines')
-    .then(response => response.json())    
-    .then(pipelines =>{   
-      this.props.onFillPipelines(pipelines);           
-    })
-    .catch(() => console.log('api/v1/pipelines error'));   
-    
-    fetch('api/v1/taskGroups')
-    .then(response => response.json())    
-    .then(groups =>{   
-      this.props.onFillTaskGroups(groups);           
-    })
-    .catch(() => console.log('api/v1/taskGroups error'));  
-    
-    fetch('api/v1/tasks')
-    .then(response => response.json())    
-    .then(tasks =>{   
-      this.props.onFillTasks(tasks);           
-    })
-    .catch(() => console.log('api/v1/tasks error'));  
+    ServerAPI.getAllPipelines(this.props.onFillPipelines);
+    ServerAPI.getAllTaskGroups(this.props.onFillTaskGroups);
+    ServerAPI.getAllTaskTemplates(this.props.onFillTaskTemplates);
+    ServerAPI.getAllTasks(this.props.onFillTasks);
   }
  
   render(){           

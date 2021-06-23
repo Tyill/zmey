@@ -133,13 +133,11 @@ class TaskPipeline:
                id : int = 0,
                pplId : int = 0,
                ttId : int = 0,
-               gId : int = 0,
-               priority : int = 1):
+               gId : int = 0):
     self.id = id
     self.pplId = pplId                 # Pipeline id    
     self.ttId = ttId                   # TaskTemplate id
     self.gId = gId                     # taskGroup id
-    self.priority = priority           # [1..3]
 class Task:
   """Task config""" 
   def __init__(self,
@@ -148,7 +146,7 @@ class Task:
                state : StateType = StateType.READY, 
                progress : int = 0,
                result : str = "",
-               prevTasksId : List[int] = [],
+               priority : int = 1,
                params : List[str] = [],
                createTime : str = "",
                takeInWorkTime : str = "",
@@ -159,7 +157,7 @@ class Task:
     self.state = state
     self.progress = progress
     self.result = result
-    self.prevTasksId = prevTasksId     # Pipeline Task id of previous tasks to be COMPLETED: [qtId,..] 
+    self.priority = priority           # [1..3]
     self.params = params               # CLI params for script: ['param1','param2'..]
     self.createTime = createTime
     self.takeInWorkTime = takeInWorkTime
@@ -209,10 +207,10 @@ class _TaskTemplCng_C(ctypes.Structure):
 class _TaskPipelineCng_C(ctypes.Structure):
   _fields_ = [('pplId', ctypes.c_uint64),
               ('gId', ctypes.c_uint64),
-              ('ttId', ctypes.c_uint64),
-              ('priority', ctypes.c_uint32)]
+              ('ttId', ctypes.c_uint64)]
 class _TaskCng_C(ctypes.Structure):
   _fields_ = [('pplId', ctypes.c_uint64),
+              ('priority', ctypes.c_uint32),
               ('params', ctypes.c_char_p),
               ('prevTId', ctypes.c_char_p)]
 class _TaskState_C(ctypes.Structure):
@@ -1115,7 +1113,6 @@ class Connection:
       tcng.pplId = iot.pplId
       tcng.ttId = iot.ttId
       tcng.gId = iot.gId
-      tcng.priority = iot.priority
       
       tid = ctypes.c_uint64(0)
       
@@ -1144,7 +1141,6 @@ class Connection:
         iot.pplId = tcng.pplId
         iot.ttId = tcng.ttId
         iot.gId = tcng.gId
-        iot.priority = tcng.priority
         return True
     return False
   def changeTaskPipeline(self, iot : TaskPipeline) -> bool:
@@ -1159,7 +1155,6 @@ class Connection:
       tcng.pplId = iot.pplId
       tcng.ttId = iot.ttId
       tcng.gId = iot.gId
-      tcng.priority = iot.priority
             
       pfun = _lib.zmChangeTaskPipeline
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, _TaskPipelineCng_C)
@@ -1222,8 +1217,9 @@ class Connection:
       tid = ctypes.c_uint64(0)
             
       tcng = _TaskCng_C()
-      tcng.pplId = iot.ptId
-      tcng.prevTId = ','.join(iot.prevTasksId).encode('utf-8')
+      tcng.pplId = iot.ptId      
+      tcng.priority = iot.priority
+      tcng.prevTId = ''
       tcng.params = ','.join(iot.params).encode('utf-8')
 
       pfun = _lib.zmStartTask

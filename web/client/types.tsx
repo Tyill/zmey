@@ -28,7 +28,7 @@ interface IPipeline{
 };
 
 export
-interface IGroup{
+interface IGroup{              ///< group of tasks 
   id : number;
   pplId : number;              ///< pipeline id
   name : string; 
@@ -46,7 +46,7 @@ interface ITaskTemplate{
 };   
 
 export
-interface ITask{
+interface ITaskPipeline{       ///< task of pipeline
   id : number;
   pplId : number;              ///< pipeline id
   gId : number;                ///< group id
@@ -56,25 +56,24 @@ interface ITask{
 };
 
 export
-interface ITaskState{
+interface ITask{               ///< task object
   id : number;
-  state : StateType;
+  tpplId : number;             ///< task pipeline id
   priority : number;           ///< [1..3] 
-  progress : number;
   params : Array<string>;      ///< CLI params for script
+};
+
+export
+interface ITaskState{
+  id : number;                 ///< task id
+  state : StateType;  
+  progress : number;  
   result : string;
 };
 
 export
-interface ITaskLocation{
-  id : number;
-  x : number;
-  y : number;
-};
-
-export
 interface ITaskTime{
-  id : number;
+  id : number;                 ///< task id
   createTime : string;
   takeInWorkTime : string;
   startTime : string;
@@ -87,5 +86,6 @@ interface IStoreType{
   pipelines : Map<number, IPipeline>;         ///< key - pipeline id
   groups : Map<number, IGroup>;               ///< key - group id
   taskTemplates : Map<number, ITaskTemplate>; ///< key - taskTemplate id
+  taskPipeline : Map<number, ITaskPipeline>;  ///< key - taskPipeline id
   tasks : Map<number, ITask>;                 ///< key - task id
 };
