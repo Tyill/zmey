@@ -49,8 +49,8 @@ public:
 
   struct NotifyTaskStateCBack{
     ZM_Base::StateType state;
-    changeTaskStateCBack cback;
-    udata ud;
+    ChangeTaskStateCBack cback;
+    UData ud;
   };
 
   std::map<uint64_t, NotifyTaskStateCBack> m_notifyTaskStateCBack;
@@ -1281,7 +1281,7 @@ bool DbProvider::getWorkerByTask(uint64_t tId, ZM_Base::Worker& wcng){
 
   return true;
 }
-bool DbProvider::setChangeTaskStateCBack(uint64_t tId, changeTaskStateCBack cback, udata ud){
+bool DbProvider::setChangeTaskStateCBack(uint64_t tId, ChangeTaskStateCBack cback, UData ud){
   if (!cback)
     return false;
   {

@@ -9,8 +9,6 @@ import Store from "./redux/store";
 import { IPipeline, ITaskTemplate, ITaskPipeline } from "./types";
 
 import "./css/app.css";
-import "./css/fontello.css";
-import "bootstrap/dist/css/bootstrap.min.css";
 
 interface IPropsApp {
   onFillTaskTemplates : (taskTemplates : Array<ITaskTemplate>) => any; // | Actions

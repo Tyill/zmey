@@ -1,25 +1,3 @@
 .menuHeader{
   background-color: rgb(238, 255, 255);
 }
-
-.btnEdit {
-  content: url(/images/edit.png);
-} 
-.btnEdit:active {
-  content: url(/images/editPress.png);
-} 
-
-.btnDelete {
-  content: url(/images/delete.png);
-}
-.btnDelete:active {
-  content: url(/images/deletePress.png);
-} 
-
-.btnNew {
-  content: url(/images/new.png);
-} 
-.btnNew:active {
-  content: url(/images/newPress.png);
-} 
-

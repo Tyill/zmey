@@ -1,6 +1,6 @@
 import React from "react";
 import { connect } from "react-redux";
-import {Container, Row, Col, Tabs, Tab, Image, Card, Modal, Button, OverlayTrigger, ListGroup } from "react-bootstrap";
+import {Container, Row, Col, Tabs, Tab, Image, Card, ListGroup } from "react-bootstrap";
 import TaskTemplateDialogModal from "../task_template_dialog/task_template_dialog";
 import PipelineDialogModal from "../pipeline_dialog/pipeline_dialog";
 import TaskItem from "./task_item";
@@ -76,7 +76,7 @@ class CentralWidgetClass extends React.Component<IPropsApp, IStateApp>{
         <Container fluid style={{ margin: 0, padding: 0}}>
           <Row noGutters={true} style={{borderBottom: "1px solid #dbdbdb"}}>
             <Col className="col menuHeader">               
-              <Image src="client/images/label.png" style={{ margin: 5}} title="Application for schedule and monitor workflows"></Image>
+              <Image src="client/images/label.svg" style={{ margin: 5}} title="Application for schedule and monitor workflows"></Image>
             </Col>
           </Row>
           <Row noGutters={true} >
