@@ -110,6 +110,7 @@ TEST_F(DBSchedrTest, getTaskOfSchedr){
   ZM_Base::UTaskTemplate templ;
   templ.uId = uId; 
   templ.sId = 0; 
+  templ.wId = 0; 
   templ.description = "descr";
   templ.name = "NEW_TASK";
   templ.averDurationSec = 10;
@@ -119,6 +120,7 @@ TEST_F(DBSchedrTest, getTaskOfSchedr){
   EXPECT_TRUE(_pDb->addTaskTemplate(templ, ttId) && (ttId > 0)) << _pDb->getLastError(); 
 
   ZM_Base::UTaskPipeline task{0};
+  task.name = "t";
   task.pplId = pId; 
   task.gId = 0; 
   task.priority = 1;
@@ -142,12 +144,14 @@ TEST_F(DBSchedrTest, getTaskOfSchedr){
   EXPECT_TRUE(_pDb->getNewTasksForSchedr(sId, 10, tasks) && 
               (tasks.size() == 1) &&
               (tasks[0].params == "\"param11,param12,param13\"") &&
-              (tasks[0].id == tId1)) << _pDb->getLastError();
+              (tasks[0].id == tId1) && 
+              (tasks[0].wId == 0)) << _pDb->getLastError();
 
   tasks.clear();
   EXPECT_TRUE(_pDb->getTasksOfSchedr(sId, tasks) && 
              (tasks.size() == 1) &&
              (tasks[0].params == "\"param11,param12,param13\"") &&
+             (tasks[0].wId == 0) &&
              (tasks[0].id == tId1)) << _pDb->getLastError(); 
 
   vector<ZM_DB::MessSchedr> mess;
@@ -232,7 +236,8 @@ TEST_F(DBSchedrTest, getNewTasksForSchedr){
   EXPECT_TRUE(_pDb->addTaskTemplate(templ, ttId) && (ttId > 0)) << _pDb->getLastError(); 
 
   ZM_Base::UTaskPipeline task{0};
-  task.pplId = pId; 
+  task.pplId = pId;
+  task.name = "t"; 
   task.gId = 0; 
   task.priority = 1;
   task.ttId = ttId;
@@ -312,6 +317,7 @@ TEST_F(DBSchedrTest, getWorkerByTask){
   EXPECT_TRUE(_pDb->addTaskTemplate(templ, ttId) && (ttId > 0)) << _pDb->getLastError(); 
 
   ZM_Base::UTaskPipeline task{0};
+  task.name = "t";
   task.pplId = pId; 
   task.gId = 0; 
   task.priority = 1;

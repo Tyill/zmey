@@ -202,7 +202,7 @@ TEST_F(APITest, getAllUsers){
 }
 
 TEST_F(APITest, addSchedr){  
-  zmSchedr schedr;
+  zmSchedr schedr{0};
   schedr.capacityTask = 10000;
   strcpy(schedr.connectPnt, "localhost:4444");  
   uint64_t sId = 0;  
@@ -213,7 +213,7 @@ TEST_F(APITest, addSchedr){
   EXPECT_TRUE(!zmAddScheduler(_zc, schedr, &sId) && (sId == 0));               
 }
 TEST_F(APITest, getSchedr){  
-  zmSchedr schedr;
+  zmSchedr schedr{0};
   schedr.capacityTask = 10000;
   strcpy(schedr.connectPnt, "localhost:4444");  
   uint64_t sId = 0;  
@@ -232,7 +232,7 @@ TEST_F(APITest, getSchedr){
              (schedr.capacityTask == 1));                                                      
 }
 TEST_F(APITest, changeSchedr){  
-  zmSchedr schedr;
+  zmSchedr schedr{0};
   schedr.capacityTask = 10000;
   strcpy(schedr.connectPnt, "localhost:4444");  
   uint64_t sId = 0;  
@@ -249,7 +249,7 @@ TEST_F(APITest, changeSchedr){
              (schedr.capacityTask == 10));                                                      
 }
 TEST_F(APITest, delSchedr){
-  zmSchedr schedr;
+  zmSchedr schedr{0};
   schedr.capacityTask = 10000;
   strcpy(schedr.connectPnt, "localhost:4444");  
   uint64_t sId = 0;  
@@ -260,22 +260,22 @@ TEST_F(APITest, delSchedr){
   EXPECT_TRUE(!zmGetScheduler(_zc, sId, &schedr));  
 }
 TEST_F(APITest, schedrState){  
-  zmSchedr schedr;
+  zmSchedr schedr{0};
   schedr.capacityTask = 10000;
   strcpy(schedr.connectPnt, "localhost:4444");  
   uint64_t sId = 0;  
   EXPECT_TRUE(zmAddScheduler(_zc, schedr, &sId) && (sId > 0));
 
-  zmStateType state = zmStateType::zmStop;
+  zmStateType state = zmStateType::zmSTATE_STOP;
   EXPECT_TRUE(zmSchedulerState(_zc, sId, &state) && 
-             (state == zmStateType::zmStop));                                                      
+             (state == zmStateType::zmSTATE_STOP));                                                      
 }
 TEST_F(APITest, getAllSchedrs){  
   uint64_t* pSId = nullptr;
-  auto sCnt = zmGetAllSchedulers(_zc, zmStateType::zmUndefined, &pSId);
+  auto sCnt = zmGetAllSchedulers(_zc, zmStateType::zmSTATE_UNDEFINED, &pSId);
   EXPECT_TRUE((sCnt == 0) && !pSId);   
 
-  zmSchedr schedr;
+  zmSchedr schedr{0};
   schedr.capacityTask = 10000;
   strcpy(schedr.connectPnt, "localhost:4444");  
   uint64_t sId1 = 0;  
@@ -286,24 +286,24 @@ TEST_F(APITest, getAllSchedrs){
   uint64_t sId2 = 0;  
   EXPECT_TRUE(zmAddScheduler(_zc, schedr, &sId2) && (sId2 > 0)); 
 
-  sCnt = zmGetAllSchedulers(_zc, zmStateType::zmStop, &pSId);
+  sCnt = zmGetAllSchedulers(_zc, zmStateType::zmSTATE_STOP, &pSId);
   EXPECT_TRUE((sCnt == 2) && (pSId[0] == sId1) && (pSId[1] == sId2)); 
 
-  sCnt = zmGetAllSchedulers(_zc, zmStateType::zmUndefined, &pSId);
+  sCnt = zmGetAllSchedulers(_zc, zmStateType::zmSTATE_UNDEFINED, &pSId);
   EXPECT_TRUE((sCnt == 2) && (pSId[0] == sId1) && (pSId[1] == sId2));   
 
-  sCnt = zmGetAllSchedulers(_zc, zmStateType::zmStart, &pSId);
+  sCnt = zmGetAllSchedulers(_zc, zmStateType::zmSTATE_START, &pSId);
   EXPECT_TRUE(sCnt == 0);                     
 }
 
 TEST_F(APITest, addWorker){    
-  zmSchedr schedr;
+  zmSchedr schedr{0};
   schedr.capacityTask = 10000;
   strcpy(schedr.connectPnt, "localhost:4444");  
   uint64_t sId = 0;  
   EXPECT_TRUE(zmAddScheduler(_zc, schedr, &sId) && (sId > 0));  
   
-  zmWorker worker;
+  zmWorker worker{0};
   worker.sId = sId;
   worker.capacityTask = 10;
   strcpy(worker.connectPnt, "localhost:4445");  
@@ -317,13 +317,13 @@ TEST_F(APITest, addWorker){
   EXPECT_TRUE(!zmAddWorker(_zc, worker, &wId) && (wId == 0));           
 }
 TEST_F(APITest, getWorker){ 
-  zmSchedr schedr;
+  zmSchedr schedr{0};
   schedr.capacityTask = 10000;
   strcpy(schedr.connectPnt, "localhost:4444");  
   uint64_t sId = 0;  
   EXPECT_TRUE(zmAddScheduler(_zc, schedr, &sId) && (sId > 0));  
   
-  zmWorker worker;
+  zmWorker worker{0};
   worker.sId = sId;
   worker.capacityTask = 10;
   strcpy(worker.connectPnt, "localhost:4445");  
@@ -343,13 +343,13 @@ TEST_F(APITest, getWorker){
              (worker.capacityTask == 1));                                                       
 }
 TEST_F(APITest, changeWorker){ 
-  zmSchedr schedr;
+  zmSchedr schedr{0};
   schedr.capacityTask = 10000;
   strcpy(schedr.connectPnt, "localhost:4444");  
   uint64_t sId = 0;  
   EXPECT_TRUE(zmAddScheduler(_zc, schedr, &sId) && (sId > 0));  
   
-  zmWorker worker;
+  zmWorker worker{0};
   worker.sId = sId;
   worker.capacityTask = 10;
   strcpy(worker.connectPnt, "localhost:4445");  
@@ -370,13 +370,13 @@ TEST_F(APITest, changeWorker){
   EXPECT_TRUE(!zmChangeWorker(_zc, wId, worker)); 
 }
 TEST_F(APITest, delWorker){    
-  zmSchedr schedr;
+  zmSchedr schedr{0};
   schedr.capacityTask = 10000;
   strcpy(schedr.connectPnt, "localhost:4444");  
   uint64_t sId = 0;  
   EXPECT_TRUE(zmAddScheduler(_zc, schedr, &sId) && (sId > 0));  
   
-  zmWorker worker;
+  zmWorker worker{0};
   worker.sId = sId;
   worker.capacityTask = 10;
   strcpy(worker.connectPnt, "localhost:4445");  
@@ -388,13 +388,13 @@ TEST_F(APITest, delWorker){
   EXPECT_TRUE(!zmGetWorker(_zc, wId, &worker));  
 }
 TEST_F(APITest, workerState){    
-  zmSchedr schedr;
+  zmSchedr schedr{0};
   schedr.capacityTask = 10000;
   strcpy(schedr.connectPnt, "localhost:4444");  
   uint64_t sId = 0;  
   EXPECT_TRUE(zmAddScheduler(_zc, schedr, &sId) && (sId > 0));  
   
-  zmWorker worker;
+  zmWorker worker{0};
   worker.sId = sId;
   worker.capacityTask = 10;
   strcpy(worker.connectPnt, "localhost:4445");  
@@ -410,21 +410,21 @@ TEST_F(APITest, workerState){
   zmStateType* wstate = new zmStateType[2];
   uint64_t* pWId = new uint64_t[2]{ wId1, wId2};
   EXPECT_TRUE(zmWorkerState(_zc, pWId, 2, wstate) &&
-              (wstate[0] == zmStateType::zmStop) && 
-              (wstate[1] == zmStateType::zmStop));                                                      
+              (wstate[0] == zmStateType::zmSTATE_STOP) && 
+              (wstate[1] == zmStateType::zmSTATE_STOP));                                                      
 }
 TEST_F(APITest, getAllWorkers){  
   uint64_t* pWId = nullptr;
-  auto wCnt = zmGetAllWorkers(_zc, 1, zmStateType::zmUndefined, &pWId);
+  auto wCnt = zmGetAllWorkers(_zc, 1, zmStateType::zmSTATE_UNDEFINED, &pWId);
   EXPECT_TRUE((wCnt == 0) && !pWId);   
 
-  zmSchedr schedr;
+  zmSchedr schedr{0};
   schedr.capacityTask = 10000;
   strcpy(schedr.connectPnt, "localhost:4444");  
   uint64_t sId = 0;  
   EXPECT_TRUE(zmAddScheduler(_zc, schedr, &sId) && (sId > 0));  
   
-  zmWorker worker;
+  zmWorker worker{0};
   worker.sId = sId;
   worker.capacityTask = 10;
   strcpy(worker.connectPnt, "localhost:4445");  
@@ -437,16 +437,16 @@ TEST_F(APITest, getAllWorkers){
   uint64_t wId2 = 0;  
   EXPECT_TRUE(zmAddWorker(_zc, worker, &wId2) && (wId2 > 0));
     
-  wCnt = zmGetAllWorkers(_zc, sId, zmStateType::zmStop, &pWId);
+  wCnt = zmGetAllWorkers(_zc, sId, zmStateType::zmSTATE_STOP, &pWId);
   EXPECT_TRUE((wCnt == 2) && (pWId[0] == wId1) && (pWId[1] == wId2)); 
 
-  wCnt = zmGetAllWorkers(_zc, sId, zmStateType::zmUndefined, &pWId);
+  wCnt = zmGetAllWorkers(_zc, sId, zmStateType::zmSTATE_UNDEFINED, &pWId);
   EXPECT_TRUE((wCnt == 2) && (pWId[0] == wId1) && (pWId[1] == wId2));   
 
-  wCnt = zmGetAllWorkers(_zc, sId, zmStateType::zmStart, &pWId);
+  wCnt = zmGetAllWorkers(_zc, sId, zmStateType::zmSTATE_START, &pWId);
   EXPECT_TRUE(wCnt == 0);        
 
-  wCnt = zmGetAllWorkers(_zc, sId + 1, zmStateType::zmUndefined, &pWId);
+  wCnt = zmGetAllWorkers(_zc, sId + 1, zmStateType::zmSTATE_UNDEFINED, &pWId);
   EXPECT_TRUE(wCnt == 0);                  
 }
 
@@ -770,7 +770,8 @@ TEST_F(APITest, addTaskTemplate){
   templ.script = new char[256];
   strcpy(templ.script, "100500");
   templ.userId = uId; 
-  templ.schedrPresetId = 0; 
+  templ.schedrPresetId = 0;
+  templ.workerPresetId = 0;
   templ.description = new char[256];
   strcpy(templ.description, "descr");
   strcpy(templ.name, "NEW_TASK");
@@ -795,6 +796,7 @@ TEST_F(APITest, getTaskTemplate){
   strcpy(templ.script, "100500");
   templ.userId = uId; 
   templ.schedrPresetId = 0; 
+  templ.workerPresetId = 0;
   templ.description = new char[256];
   strcpy(templ.description, "descr");
   strcpy(templ.name, "NEW_TASK");
@@ -803,6 +805,8 @@ TEST_F(APITest, getTaskTemplate){
   
   templ.averDurationSec = 11;
   templ.maxDurationSec = 110;
+  templ.schedrPresetId= 10;
+  templ.workerPresetId= 10;
   strcpy(templ.script, "1000");
   templ.userId = uId; 
   strcpy(templ.description, "dfsd");
@@ -810,6 +814,8 @@ TEST_F(APITest, getTaskTemplate){
   EXPECT_TRUE(zmGetTaskTemplate(_zc, tId, &templ) &&
              (templ.averDurationSec == 10) &&
              (templ.maxDurationSec == 100) &&
+             (templ.schedrPresetId == 0) &&
+             (templ.workerPresetId == 0) &&
              (strcmp(templ.script, "100500") == 0) &&
              (templ.userId == uId) &&
              (strcmp(templ.description, "descr") == 0) &&
@@ -834,7 +840,8 @@ TEST_F(APITest, delTaskTemplate){
   templ.script = new char[256];
   strcpy(templ.script, "100500");
   templ.userId = uId; 
-  templ.schedrPresetId = 0; 
+  templ.schedrPresetId = 0;
+  templ.workerPresetId = 0; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
   strcpy(templ.name, "NEW_TASK");
@@ -862,7 +869,8 @@ TEST_F(APITest, changeTaskTemplate){
   templ.script = new char[256];
   strcpy(templ.script, "100500");
   templ.userId = uId; 
-  templ.schedrPresetId = 0; 
+  templ.schedrPresetId = 0;
+  templ.workerPresetId = 0; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
   strcpy(templ.name, "NEW_TASK");
@@ -910,6 +918,7 @@ TEST_F(APITest, getAllTaskTemplate){
   strcpy(templ.script, "100500");
   templ.userId = uId1; 
   templ.schedrPresetId = 0; 
+  templ.workerPresetId = 0; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
   strcpy(templ.name, "NEW_TASK");
@@ -958,6 +967,7 @@ TEST_F(APITest, addTask){
   strcpy(templ.script, "100500");
   templ.userId = uId; 
   templ.schedrPresetId = 0; 
+  templ.workerPresetId = 0; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
   strcpy(templ.name, "NEW_TASK");
@@ -965,6 +975,7 @@ TEST_F(APITest, addTask){
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
   zmTaskPipeline task{0};
+  strcpy(task.name, "t");
   task.pplId = pId;
   task.gId = 0; 
   task.ttId = ttId;
@@ -997,6 +1008,7 @@ TEST_F(APITest, getTask){
   strcpy(templ.script, "100500");
   templ.userId = uId; 
   templ.schedrPresetId = 0; 
+  templ.workerPresetId = 0; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
   strcpy(templ.name, "NEW_TASK");
@@ -1004,6 +1016,7 @@ TEST_F(APITest, getTask){
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
   zmTaskPipeline task{0};
+  strcpy(task.name, "t");
   task.pplId = pId; 
   task.gId = 0; 
   task.ttId = ttId;
@@ -1040,6 +1053,7 @@ TEST_F(APITest, changeTask){
   strcpy(templ.script, "100500");
   templ.userId = uId; 
   templ.schedrPresetId = 0; 
+  templ.workerPresetId = 0; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
   strcpy(templ.name, "NEW_TASK");
@@ -1047,6 +1061,7 @@ TEST_F(APITest, changeTask){
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
   zmTaskPipeline task{0};
+  strcpy(task.name, "t");
   task.pplId = pId; 
   task.gId = 0;
   task.ttId = ttId;
@@ -1088,7 +1103,8 @@ TEST_F(APITest, delTask){
   templ.script = new char[256];
   strcpy(templ.script, "100500");
   templ.userId = uId; 
-  templ.schedrPresetId = 0; 
+  templ.schedrPresetId = 0;
+  templ.workerPresetId = 0; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
   strcpy(templ.name, "NEW_TASK");
@@ -1096,6 +1112,7 @@ TEST_F(APITest, delTask){
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
   zmTaskPipeline task{0};
+  strcpy(task.name, "t");
   task.pplId = pId; 
   task.gId = 0; 
   task.ttId = ttId;
@@ -1132,6 +1149,7 @@ TEST_F(APITest, startTask){
   strcpy(templ.script, "100500");
   templ.userId = uId; 
   templ.schedrPresetId = 0; 
+  templ.workerPresetId = 0; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
   strcpy(templ.name, "NEW_TASK");
@@ -1139,6 +1157,7 @@ TEST_F(APITest, startTask){
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
   zmTaskPipeline ptask{0};
+  strcpy(ptask.name, "t");
   ptask.pplId = pId; 
   ptask.gId = 0; 
   ptask.ttId = ttId;
@@ -1176,6 +1195,7 @@ TEST_F(APITest, cancelTask){
   strcpy(templ.script, "100500");
   templ.userId = uId; 
   templ.schedrPresetId = 0; 
+  templ.workerPresetId = 0; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
   strcpy(templ.name, "NEW_TASK");
@@ -1183,6 +1203,7 @@ TEST_F(APITest, cancelTask){
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
   zmTaskPipeline ptask{0};
+  strcpy(ptask.name, "t");
   ptask.pplId = pId;
   ptask.gId = 0;  
   ptask.ttId = ttId;
@@ -1219,6 +1240,7 @@ TEST_F(APITest, taskState){
   strcpy(templ.script, "100500");
   templ.userId = uId; 
   templ.schedrPresetId = 0; 
+  templ.workerPresetId = 0; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
   strcpy(templ.name, "NEW_TASK");
@@ -1226,6 +1248,7 @@ TEST_F(APITest, taskState){
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
   zmTaskPipeline ptask{0};
+  strcpy(ptask.name, "t");
   ptask.pplId = pId; 
   ptask.gId = 0; 
   ptask.ttId = ttId;
@@ -1251,9 +1274,9 @@ TEST_F(APITest, taskState){
   zmTaskState* tState = new zmTaskState[2];
   EXPECT_TRUE(zmStateOfTask(_zc, tIds, 2, tState) && 
               (tState[0].progress == 0) &&
-              (tState[0].state == zmStateType::zmReady) &&
+              (tState[0].state == zmStateType::zmSTATE_READY) &&
               (tState[1].progress == 0) &&
-              (tState[1].state == zmStateType::zmReady)); 
+              (tState[1].state == zmStateType::zmSTATE_READY)); 
 }
 TEST_F(APITest, taskResult){
   zmUser usr;
@@ -1277,6 +1300,7 @@ TEST_F(APITest, taskResult){
   strcpy(templ.script, "100500");
   templ.userId = uId; 
   templ.schedrPresetId = 0; 
+  templ.workerPresetId = 0; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
   strcpy(templ.name, "NEW_TASK");
@@ -1284,6 +1308,7 @@ TEST_F(APITest, taskResult){
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
   zmTaskPipeline ptask{0};
+  strcpy(ptask.name, "t");
   ptask.pplId = pId; 
   ptask.gId = 0; 
   ptask.ttId = ttId;
@@ -1321,6 +1346,7 @@ TEST_F(APITest, TaskTime){
   strcpy(templ.script, "100500");
   templ.userId = uId; 
   templ.schedrPresetId = 0; 
+  templ.workerPresetId = 0; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
   strcpy(templ.name, "NEW_TASK");
@@ -1328,6 +1354,7 @@ TEST_F(APITest, TaskTime){
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
   zmTaskPipeline ptask{0};
+  strcpy(ptask.name, "t");
   ptask.pplId = pId; 
   ptask.gId = 0; 
   ptask.ttId = ttId;
@@ -1365,6 +1392,7 @@ TEST_F(APITest, getAllTask){
   strcpy(templ.script, "100500");
   templ.userId = uId; 
   templ.schedrPresetId = 0; 
+  templ.workerPresetId = 0; 
   templ.description = new char[256];
   strcpy(templ.description, "descr");
   strcpy(templ.name, "NEW_TASK");
@@ -1372,6 +1400,7 @@ TEST_F(APITest, getAllTask){
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
   zmTaskPipeline ptask{0};
+  strcpy(ptask.name, "t");
   ptask.pplId = pId; 
   ptask.gId = 0; 
   ptask.ttId = ttId;

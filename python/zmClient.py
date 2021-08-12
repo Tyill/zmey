@@ -68,11 +68,15 @@ class Schedr:
                id : int = 0, 
                state : StateType = StateType.READY,
                connectPnt : str = "",
-               capacityTask : int = 10000):
+               capacityTask : int = 10000,
+               name = "",
+               description = ""):
     self.id = id
     self.state = state
     self.connectPnt = connectPnt     # remote connection point: IP or DNS:port
     self.capacityTask = capacityTask # permissible simultaneous number of tasks 
+    self.name = name
+    self.description = description
 class Worker: 
   """Worker config""" 
   def __init__(self,
@@ -80,12 +84,16 @@ class Worker:
                sId : int = 0, 
                state : StateType = StateType.READY,
                connectPnt : str = "",
-               capacityTask : int = 10000):
+               capacityTask : int = 10,
+               name = "",
+               description = ""):
     self.id = id
     self.sId = sId                   # Schedr id
     self.state = state
     self.connectPnt = connectPnt     # remote connection point: IP or DNS:port
     self.capacityTask = capacityTask # permissible simultaneous number of tasks 
+    self.name = name
+    self.description = description
 class Pipeline: 
   """Pipeline config""" 
   def __init__(self,
@@ -114,6 +122,7 @@ class TaskTemplate:
                id : int = 0,
                uId : int = 0,
                sId : int = 0,
+               wId : int = 0,
                averDurationSec : int = 1,
                maxDurationSec : int = 1,
                name : str = "",
@@ -122,6 +131,7 @@ class TaskTemplate:
     self.id = id
     self.uId = uId                   # User id
     self.sId = sId                   # Scheduler preset id
+    self.wId = wId                   # Worker preset id
     self.averDurationSec = averDurationSec
     self.maxDurationSec = maxDurationSec
     self.name = name    
@@ -133,11 +143,15 @@ class TaskPipeline:
                id : int = 0,
                pplId : int = 0,
                ttId : int = 0,
-               gId : int = 0):
+               gId : int = 0,
+               name = "",
+               description = ""):
     self.id = id
     self.pplId = pplId                 # Pipeline id    
     self.ttId = ttId                   # TaskTemplate id
     self.gId = gId                     # taskGroup id
+    self.name = name    
+    self.description = description
 class Task:
   """Task config""" 
   def __init__(self,

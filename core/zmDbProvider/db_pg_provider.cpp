@@ -362,7 +362,7 @@ bool DbProvider::createTables(){
         "  t int;"
         "BEGIN"
         "  FOR qid, averDurSec, maxDurSec, workerPreset, script, params, prevTasks IN"
-        "    SELECT tq.id, tt.averDurationSec, tt.maxDurationSec, tt.workerPreset,"
+        "    SELECT tq.id, tt.averDurationSec, tt.maxDurationSec, COALESCE(tt.workerPreset, 0),"
         "           tt.script, tp.params, pt.prevTasks"
         "    FROM tblUTaskTemplate tt "
         "    JOIN tblTaskQueue tq ON tq.taskTempl = tt.id "
@@ -397,7 +397,7 @@ bool DbProvider::createTables(){
         "BEGIN"
         "  <<mBegin>> "
         "  FOR qid, averDurSec, maxDurSec, workerPreset, script, params, prevTasks IN"
-        "    SELECT tq.id, tt.averDurationSec, tt.maxDurationSec, tt.workerPreset,"
+        "    SELECT tq.id, tt.averDurationSec, tt.maxDurationSec, COALESCE(tt.workerPreset, 0),"
         "           tt.script, tp.params, pt.prevTasks"
         "    FROM tblUTaskTemplate tt "
         "    JOIN tblTaskQueue tq ON tq.taskTempl = tt.id "
@@ -1459,12 +1459,14 @@ bool DbProvider::getTasksOfSchedr(uint64_t sId, std::vector<ZM_Base::Task>& out)
   for (int i = 0; i < tsz; ++i){
     string params = PQgetvalue(pgr.res, i, 5);
     params = params.substr(1, params.size() - 2); // remove { and }
-    out.push_back(ZM_Base::Task{stoull(PQgetvalue(pgr.res, i, 0)),
-                                stoull(PQgetvalue(pgr.res, i, 1)),
-                                atoi(PQgetvalue(pgr.res, i, 2)),
-                                atoi(PQgetvalue(pgr.res, i, 3)),
-                                PQgetvalue(pgr.res, i, 4),
-                                params});
+    out.push_back(ZM_Base::Task {
+      stoull(PQgetvalue(pgr.res, i, 0)),
+      stoull(PQgetvalue(pgr.res, i, 3)),
+      atoi(PQgetvalue(pgr.res, i, 1)),
+      atoi(PQgetvalue(pgr.res, i, 2)),
+      PQgetvalue(pgr.res, i, 4),
+      params
+    });
   }
   return true;
 }
@@ -1510,12 +1512,14 @@ bool DbProvider::getNewTasksForSchedr(uint64_t sId, int maxTaskCnt, std::vector<
   for (int i = 0; i < tsz; ++i){
     string params = PQgetvalue(pgr.res, i, 5);
     params = params.substr(1, params.size() - 2); // remove { and }
-    out.push_back(ZM_Base::Task{stoull(PQgetvalue(pgr.res, i, 0)),
-                                stoull(PQgetvalue(pgr.res, i, 1)),
-                                atoi(PQgetvalue(pgr.res, i, 2)),
-                                atoi(PQgetvalue(pgr.res, i, 3)),
-                                PQgetvalue(pgr.res, i, 4),
-                                params});
+    out.push_back(ZM_Base::Task {
+      stoull(PQgetvalue(pgr.res, i, 0)),
+      stoull(PQgetvalue(pgr.res, i, 3)),
+      atoi(PQgetvalue(pgr.res, i, 1)),
+      atoi(PQgetvalue(pgr.res, i, 2)),
+      PQgetvalue(pgr.res, i, 4),
+      params
+    });
   }
   return true;
 }
