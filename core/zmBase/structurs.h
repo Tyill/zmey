@@ -111,7 +111,7 @@ namespace ZM_Base{
     std::string script;       // script on bash, python or cmd
   };
   // tblUPipelineTask
-  struct UTaskPipeline{
+  struct UPipelineTask{
     uint64_t id;              // id tblUPipelineTask 
     uint64_t ttId;            // id tblUTaskTemplate
     uint64_t pplId;           // id tblUPipeline

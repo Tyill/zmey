@@ -68,7 +68,7 @@ protected:
 };
 
 TEST_F(APITest, addUser){  
-  zmUser usr;
+  zmUser usr{0};
   usr.name[0] = '\0';
   usr.passw[0] = '\0'; 
   uint64_t uId = 0;  
@@ -89,7 +89,7 @@ TEST_F(APITest, addUser){
   EXPECT_TRUE(uId2 > uId);
 }
 TEST_F(APITest, getUser){  
-  zmUser usr;
+  zmUser usr{0};
   strcpy(usr.name, "alm");
   strcpy(usr.passw, "123");
   uint64_t uId = 0;  
@@ -140,7 +140,7 @@ TEST_F(APITest, getUser){
              (strcmp(usr.description, "abc") == 0));
 }
 TEST_F(APITest, changeUser){   
-  zmUser usr;
+  zmUser usr{0};
   strcpy(usr.name, "alm");
   strcpy(usr.passw, "123");
   usr.description = new char[16];
@@ -162,7 +162,7 @@ TEST_F(APITest, changeUser){
              (strcmp(usr.description, "cba") == 0));    
 }
 TEST_F(APITest, delUser){  
-  zmUser usr;
+  zmUser usr{0};
   strcpy(usr.name, "alm");
   strcpy(usr.passw, "123");
   usr.description = new char[16];
@@ -182,7 +182,7 @@ TEST_F(APITest, getAllUsers){
   auto uCnt = zmGetAllUsers(_zc, &pUId);
   EXPECT_TRUE((uCnt == 0) && !pUId);   
 
-  zmUser usr;
+  zmUser usr{0};
   strcpy(usr.name, "alm1");
   strcpy(usr.passw, "123");
   usr.description = new char[16];
@@ -451,13 +451,13 @@ TEST_F(APITest, getAllWorkers){
 }
 
 TEST_F(APITest, addPipeline){  
-  zmUser usr;
+  zmUser usr{0};
   strcpy(usr.name, "alm");
   strcpy(usr.passw, "123"); 
   uint64_t uId = 0;  
   EXPECT_TRUE(zmAddUser(_zc, usr, &uId) && (uId > 0));
 
-  zmPipeline ppline;
+  zmPipeline ppline{0};
   strcpy(ppline.name, "newPP");
   ppline.description = new char[24];
   strcpy(ppline.description, "dfsdf");
@@ -475,13 +475,13 @@ TEST_F(APITest, addPipeline){
   EXPECT_TRUE(!zmAddPipeline(_zc, ppline, &pId) && (pId == 0));           
 }
 TEST_F(APITest, getPipeline){ 
-  zmUser usr;
+  zmUser usr{0};
   strcpy(usr.name, "alm");
   strcpy(usr.passw, "123"); 
   uint64_t uId = 0;  
   EXPECT_TRUE(zmAddUser(_zc, usr, &uId) && (uId > 0));
 
-  zmPipeline ppline;
+  zmPipeline ppline{0};
   strcpy(ppline.name, "newPP");
   ppline.description = new char[24];
   strcpy(ppline.description, "dfsdf");
@@ -505,13 +505,13 @@ TEST_F(APITest, getPipeline){
              (strcmp(ppline.description, "dd") == 0));                                                            
 }
 TEST_F(APITest, changePipeline){  
-  zmUser usr;
+  zmUser usr{0};
   strcpy(usr.name, "alm");
   strcpy(usr.passw, "123"); 
   uint64_t uId = 0;  
   EXPECT_TRUE(zmAddUser(_zc, usr, &uId) && (uId > 0));
 
-  zmPipeline ppline;
+  zmPipeline ppline{0};
   strcpy(ppline.name, "newPP");
   ppline.description = new char[24];
   strcpy(ppline.description, "dfsdf");
@@ -536,13 +536,13 @@ TEST_F(APITest, changePipeline){
   EXPECT_TRUE(!zmChangePipeline(_zc, pId, ppline));                                                                                               
 }
 TEST_F(APITest, delPipeline){  
-  zmUser usr;
+  zmUser usr{0};
   strcpy(usr.name, "alm");
   strcpy(usr.passw, "123"); 
   uint64_t uId = 0;  
   EXPECT_TRUE(zmAddUser(_zc, usr, &uId) && (uId > 0));
 
-  zmPipeline ppline;
+  zmPipeline ppline{0};
   strcpy(ppline.name, "newPP");
   ppline.description = new char[24];
   strcpy(ppline.description, "dfsdf");
@@ -555,13 +555,13 @@ TEST_F(APITest, delPipeline){
   EXPECT_TRUE(!zmGetPipeline(_zc, pId, &ppline));    
 }
 TEST_F(APITest, getAllPipelines){  
-  zmUser usr;
+  zmUser usr{0};
   strcpy(usr.name, "alm");
   strcpy(usr.passw, "123"); 
   uint64_t uId = 0;  
   EXPECT_TRUE(zmAddUser(_zc, usr, &uId) && (uId > 0));
 
-  zmPipeline ppline;
+  zmPipeline ppline{0};
   strcpy(ppline.name, "newPP");
   ppline.description = new char[24];
   strcpy(ppline.description, "dfsdf");
@@ -584,13 +584,13 @@ TEST_F(APITest, getAllPipelines){
 }
 
 TEST_F(APITest, addGroup){  
-  zmUser usr;
+  zmUser usr{0};
   strcpy(usr.name, "alm");
   strcpy(usr.passw, "123"); 
   uint64_t uId = 0;  
   EXPECT_TRUE(zmAddUser(_zc, usr, &uId) && (uId > 0));
 
-  zmPipeline ppline;
+  zmPipeline ppline{0};
   strcpy(ppline.name, "newPP");
   ppline.description = new char[24];
   strcpy(ppline.description, "dfsdf");
@@ -598,7 +598,7 @@ TEST_F(APITest, addGroup){
   uint64_t pId = 0;  
   EXPECT_TRUE(zmAddPipeline(_zc, ppline, &pId) && (pId > 0)); 
 
-  zmGroup group;
+  zmGroup group{0};
   strcpy(group.name, "newGrp");
   group.description = new char[24];
   strcpy(group.description, "hjghjghj");
@@ -616,13 +616,13 @@ TEST_F(APITest, addGroup){
   EXPECT_TRUE(!zmAddGroup(_zc, group, &gId) && (gId == 0));           
 }
 TEST_F(APITest, getGroup){ 
-  zmUser usr;
+  zmUser usr{0};
   strcpy(usr.name, "alm");
   strcpy(usr.passw, "123"); 
   uint64_t uId = 0;  
   EXPECT_TRUE(zmAddUser(_zc, usr, &uId) && (uId > 0));
 
-  zmPipeline ppline;
+  zmPipeline ppline{0};
   strcpy(ppline.name, "newPP");
   ppline.description = new char[24];
   strcpy(ppline.description, "dfsdf");
@@ -630,7 +630,7 @@ TEST_F(APITest, getGroup){
   uint64_t pId = 0;  
   EXPECT_TRUE(zmAddPipeline(_zc, ppline, &pId) && (pId > 0)); 
 
-  zmGroup group;
+  zmGroup group{0};
   strcpy(group.name, "newGrp");
   group.description = new char[24];
   strcpy(group.description, "hjghjghj");
@@ -654,13 +654,13 @@ TEST_F(APITest, getGroup){
              (strcmp(group.description, "dd") == 0));                                                           
 }
 TEST_F(APITest, changeGroup){  
-  zmUser usr;
+  zmUser usr{0};
   strcpy(usr.name, "alm");
   strcpy(usr.passw, "123"); 
   uint64_t uId = 0;  
   EXPECT_TRUE(zmAddUser(_zc, usr, &uId) && (uId > 0));
 
-  zmPipeline ppline;
+  zmPipeline ppline{0};
   strcpy(ppline.name, "newPP");
   ppline.description = new char[24];
   strcpy(ppline.description, "dfsdf");
@@ -668,7 +668,7 @@ TEST_F(APITest, changeGroup){
   uint64_t pId = 0;  
   EXPECT_TRUE(zmAddPipeline(_zc, ppline, &pId) && (pId > 0));  
 
-  zmGroup group;
+  zmGroup group{0};
   strcpy(group.name, "newGrp");
   group.description = new char[24];
   strcpy(group.description, "hjghjghj");
@@ -693,13 +693,13 @@ TEST_F(APITest, changeGroup){
   EXPECT_TRUE(!zmChangeGroup(_zc, gId, group));                                                                                          
 }
 TEST_F(APITest, delGroup){  
-  zmUser usr;
+  zmUser usr{0};
   strcpy(usr.name, "alm");
   strcpy(usr.passw, "123"); 
   uint64_t uId = 0;  
   EXPECT_TRUE(zmAddUser(_zc, usr, &uId) && (uId > 0));
 
-  zmPipeline ppline;
+  zmPipeline ppline{0};
   strcpy(ppline.name, "newPP");
   ppline.description = new char[24];
   strcpy(ppline.description, "dfsdf");
@@ -707,7 +707,7 @@ TEST_F(APITest, delGroup){
   uint64_t pId = 0;  
   EXPECT_TRUE(zmAddPipeline(_zc, ppline, &pId) && (pId > 0));  
     
-  zmGroup group;
+  zmGroup group{0};
   strcpy(group.name, "newGrp");
   group.description = new char[24];
   strcpy(group.description, "hjghjghj");
@@ -720,13 +720,13 @@ TEST_F(APITest, delGroup){
   EXPECT_TRUE(!zmGetGroup(_zc, gId, &group));  
 }
 TEST_F(APITest, getAllGroups){  
-  zmUser usr;
+  zmUser usr{0};
   strcpy(usr.name, "alm");
   strcpy(usr.passw, "123"); 
   uint64_t uId = 0;  
   EXPECT_TRUE(zmAddUser(_zc, usr, &uId) && (uId > 0));
 
-  zmPipeline ppline;
+  zmPipeline ppline{0};
   strcpy(ppline.name, "newPP");
   ppline.description = new char[24];
   strcpy(ppline.description, "dfsdf");
@@ -734,7 +734,7 @@ TEST_F(APITest, getAllGroups){
   uint64_t pId1 = 0;  
   EXPECT_TRUE(zmAddPipeline(_zc, ppline, &pId1) && (pId1 > 0));  
 
-  zmGroup group;
+  zmGroup group{0};
   strcpy(group.name, "newGrp1");
   group.description = new char[24];
   strcpy(group.description, "hjghjghj");
@@ -758,13 +758,13 @@ TEST_F(APITest, getAllGroups){
 }
 
 TEST_F(APITest, addTaskTemplate){  
-  zmUser usr;
+  zmUser usr{0};
   strcpy(usr.name, "alm");
   strcpy(usr.passw, "123"); 
   uint64_t uId = 0;  
   EXPECT_TRUE(zmAddUser(_zc, usr, &uId) && (uId > 0));
   
-  zmTaskTemplate templ;
+  zmTaskTemplate templ{0};
   templ.averDurationSec = 10;
   templ.maxDurationSec = 100;
   templ.script = new char[256];
@@ -783,13 +783,13 @@ TEST_F(APITest, addTaskTemplate){
   EXPECT_TRUE(!zmAddTaskTemplate(_zc, templ, &tId) && (tId == 0));      
 }
 TEST_F(APITest, getTaskTemplate){  
-  zmUser usr;
+  zmUser usr{0};
   strcpy(usr.name, "alm");
   strcpy(usr.passw, "123"); 
   uint64_t uId = 0;  
   EXPECT_TRUE(zmAddUser(_zc, usr, &uId) && (uId > 0));
   
-  zmTaskTemplate templ;
+  zmTaskTemplate templ{0};
   templ.averDurationSec = 10;
   templ.maxDurationSec = 100;
   templ.script = new char[256];
@@ -828,13 +828,13 @@ TEST_F(APITest, getTaskTemplate){
              (templ.maxDurationSec == 10));                         
 }
 TEST_F(APITest, delTaskTemplate){
-  zmUser usr;
+  zmUser usr{0};
   strcpy(usr.name, "alm");
   strcpy(usr.passw, "123"); 
   uint64_t uId = 0;  
   EXPECT_TRUE(zmAddUser(_zc, usr, &uId) && (uId > 0));
   
-  zmTaskTemplate templ;
+  zmTaskTemplate templ{0};
   templ.averDurationSec = 10;
   templ.maxDurationSec = 100;
   templ.script = new char[256];
@@ -857,13 +857,13 @@ TEST_F(APITest, delTaskTemplate){
               (templ.maxDurationSec == 10));    
 }
 TEST_F(APITest, changeTaskTemplate){
-  zmUser usr;
+  zmUser usr{0};
   strcpy(usr.name, "alm");
   strcpy(usr.passw, "123"); 
   uint64_t uId = 0;  
   EXPECT_TRUE(zmAddUser(_zc, usr, &uId) && (uId > 0));
   
-  zmTaskTemplate templ;
+  zmTaskTemplate templ{0};
   templ.averDurationSec = 10;
   templ.maxDurationSec = 100;
   templ.script = new char[256];
@@ -900,7 +900,7 @@ TEST_F(APITest, changeTaskTemplate){
              (strcmp(templ.name, "new") == 0));   
 }
 TEST_F(APITest, getAllTaskTemplate){
-  zmUser usr;
+  zmUser usr{0};
   strcpy(usr.name, "alm1");
   strcpy(usr.passw, "123"); 
   uint64_t uId1 = 0;  
@@ -911,7 +911,7 @@ TEST_F(APITest, getAllTaskTemplate){
   uint64_t uId2 = 0;  
   EXPECT_TRUE(zmAddUser(_zc, usr, &uId2) && (uId2 > 0));
   
-  zmTaskTemplate templ;
+  zmTaskTemplate templ{0};
   templ.averDurationSec = 10;
   templ.maxDurationSec = 100;
   templ.script = new char[256];
@@ -946,13 +946,13 @@ TEST_F(APITest, getAllTaskTemplate){
 }
 
 TEST_F(APITest, addTask){
-  zmUser usr;
+  zmUser usr{0};
   strcpy(usr.name, "alm");
   strcpy(usr.passw, "123");
   uint64_t uId = 0;  
   EXPECT_TRUE(zmAddUser(_zc, usr, &uId) && (uId > 0));
 
-  zmPipeline ppline;
+  zmPipeline ppline{0};
   strcpy(ppline.name, "newPP");
   ppline.description = new char[24];
   strcpy(ppline.description, "dfsdf");
@@ -960,7 +960,7 @@ TEST_F(APITest, addTask){
   uint64_t pId = 0;  
   EXPECT_TRUE(zmAddPipeline(_zc, ppline, &pId) && (pId > 0)); 
     
-  zmTaskTemplate templ;
+  zmTaskTemplate templ{0};
   templ.averDurationSec = 10;
   templ.maxDurationSec = 100;
   templ.script = new char[256];
@@ -974,26 +974,26 @@ TEST_F(APITest, addTask){
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
-  zmTaskPipeline task{0};
+  zmPipelineTask task{0};
   strcpy(task.name, "t");
   task.pplId = pId;
   task.gId = 0; 
   task.ttId = ttId;
   uint64_t tId = 0;  
-  EXPECT_TRUE(zmAddTaskPipeline(_zc, task, &tId) && (tId > 0));  
+  EXPECT_TRUE(zmAddPipelineTask(_zc, task, &tId) && (tId > 0));  
   
   task.pplId = pId + 1;  
   tId = 0;  
-  EXPECT_TRUE(!zmAddTaskPipeline(_zc, task, &tId) && (tId == 0));           
+  EXPECT_TRUE(!zmAddPipelineTask(_zc, task, &tId) && (tId == 0));           
 }
 TEST_F(APITest, getTask){
-  zmUser usr;
+  zmUser usr{0};
   strcpy(usr.name, "alm");
   strcpy(usr.passw, "123");
   uint64_t uId = 0;  
   EXPECT_TRUE(zmAddUser(_zc, usr, &uId) && (uId > 0));
 
-  zmPipeline ppline;
+  zmPipeline ppline{0};
   strcpy(ppline.name, "newPP");
   ppline.description = new char[24];
   strcpy(ppline.description, "dfsdf");
@@ -1001,7 +1001,7 @@ TEST_F(APITest, getTask){
   uint64_t pId = 0;  
   EXPECT_TRUE(zmAddPipeline(_zc, ppline, &pId) && (pId > 0)); 
     
-  zmTaskTemplate templ;
+  zmTaskTemplate templ{0};
   templ.averDurationSec = 10;
   templ.maxDurationSec = 100;
   templ.script = new char[256];
@@ -1015,30 +1015,30 @@ TEST_F(APITest, getTask){
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
-  zmTaskPipeline task{0};
+  zmPipelineTask task{0};
   strcpy(task.name, "t");
   task.pplId = pId; 
   task.gId = 0; 
   task.ttId = ttId;
   uint64_t tId = 0;  
-  EXPECT_TRUE(zmAddTaskPipeline(_zc, task, &tId) && (tId > 0));  
+  EXPECT_TRUE(zmAddPipelineTask(_zc, task, &tId) && (tId > 0));  
 
   task.pplId = pId + 1;
   task.gId = pId + 1; 
   task.ttId = ttId + 1;
-  EXPECT_TRUE(zmGetTaskPipeline(_zc, tId, &task) &&
+  EXPECT_TRUE(zmGetPipelineTask(_zc, tId, &task) &&
              (task.pplId == pId) &&
              (task.gId == 0) &&
              (task.ttId == ttId));          
 }
 TEST_F(APITest, changeTask){
-  zmUser usr;
+  zmUser usr{0};
   strcpy(usr.name, "alm");
   strcpy(usr.passw, "123");
   uint64_t uId = 0;  
   EXPECT_TRUE(zmAddUser(_zc, usr, &uId) && (uId > 0));
 
-  zmPipeline ppline;
+  zmPipeline ppline{0};
   strcpy(ppline.name, "newPP");
   ppline.description = new char[24];
   strcpy(ppline.description, "dfsdf");
@@ -1046,7 +1046,7 @@ TEST_F(APITest, changeTask){
   uint64_t pId = 0;  
   EXPECT_TRUE(zmAddPipeline(_zc, ppline, &pId) && (pId > 0)); 
     
-  zmTaskTemplate templ;
+  zmTaskTemplate templ{0};
   templ.averDurationSec = 10;
   templ.maxDurationSec = 100;
   templ.script = new char[256];
@@ -1060,36 +1060,36 @@ TEST_F(APITest, changeTask){
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
-  zmTaskPipeline task{0};
+  zmPipelineTask task{0};
   strcpy(task.name, "t");
   task.pplId = pId; 
   task.gId = 0;
   task.ttId = ttId;
   uint64_t tId1 = 0;  
-  EXPECT_TRUE(zmAddTaskPipeline(_zc, task, &tId1) && (tId1 > 0)); 
+  EXPECT_TRUE(zmAddPipelineTask(_zc, task, &tId1) && (tId1 > 0)); 
 
   task.pplId = pId; 
   task.ttId = ttId;
   uint64_t tId2 = 0;  
-  EXPECT_TRUE(zmAddTaskPipeline(_zc, task, &tId2) && (tId2 > 0)); 
+  EXPECT_TRUE(zmAddPipelineTask(_zc, task, &tId2) && (tId2 > 0)); 
   
   task.pplId = pId; 
-  EXPECT_TRUE(zmChangeTaskPipeline(_zc, tId2, task));
+  EXPECT_TRUE(zmChangePipelineTask(_zc, tId2, task));
 
   task.pplId = pId + 1; 
   task.ttId = ttId + 1;
-  EXPECT_TRUE(zmGetTaskPipeline(_zc, tId2, &task) &&
+  EXPECT_TRUE(zmGetPipelineTask(_zc, tId2, &task) &&
              (task.pplId == pId) &&
              (task.ttId == ttId));
 }
 TEST_F(APITest, delTask){
-  zmUser usr;
+  zmUser usr{0};
   strcpy(usr.name, "alm");
   strcpy(usr.passw, "123");
   uint64_t uId = 0;  
   EXPECT_TRUE(zmAddUser(_zc, usr, &uId) && (uId > 0));
 
-  zmPipeline ppline;
+  zmPipeline ppline{0};
   strcpy(ppline.name, "newPP");
   ppline.description = new char[24];
   strcpy(ppline.description, "dfsdf");
@@ -1097,7 +1097,7 @@ TEST_F(APITest, delTask){
   uint64_t pId = 0;  
   EXPECT_TRUE(zmAddPipeline(_zc, ppline, &pId) && (pId > 0)); 
     
-  zmTaskTemplate templ;
+  zmTaskTemplate templ{0};
   templ.averDurationSec = 10;
   templ.maxDurationSec = 100;
   templ.script = new char[256];
@@ -1111,30 +1111,30 @@ TEST_F(APITest, delTask){
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
-  zmTaskPipeline task{0};
+  zmPipelineTask task{0};
   strcpy(task.name, "t");
   task.pplId = pId; 
   task.gId = 0; 
   task.ttId = ttId;
   uint64_t tId1 = 0;  
-  EXPECT_TRUE(zmAddTaskPipeline(_zc, task, &tId1) && (tId1 > 0)); 
+  EXPECT_TRUE(zmAddPipelineTask(_zc, task, &tId1) && (tId1 > 0)); 
 
-  EXPECT_TRUE(zmDelTaskPipeline(_zc, tId1));
+  EXPECT_TRUE(zmDelPipelineTask(_zc, tId1));
 
   task.pplId = pId + 1; 
   task.ttId = ttId + 1;
-  EXPECT_TRUE(!zmGetTaskPipeline(_zc, tId1, &task) &&
+  EXPECT_TRUE(!zmGetPipelineTask(_zc, tId1, &task) &&
              (task.pplId == pId + 1) &&
              (task.ttId == ttId + 1));             
 }
 TEST_F(APITest, startTask){
-  zmUser usr;
+  zmUser usr{0};
   strcpy(usr.name, "alm");
   strcpy(usr.passw, "123");
   uint64_t uId = 0;  
   EXPECT_TRUE(zmAddUser(_zc, usr, &uId) && (uId > 0));
 
-  zmPipeline ppline;
+  zmPipeline ppline{0};
   strcpy(ppline.name, "newPP");
   ppline.description = new char[24];
   strcpy(ppline.description, "dfsdf");
@@ -1142,7 +1142,7 @@ TEST_F(APITest, startTask){
   uint64_t pId = 0;  
   EXPECT_TRUE(zmAddPipeline(_zc, ppline, &pId) && (pId > 0)); 
     
-  zmTaskTemplate templ;
+  zmTaskTemplate templ{0};
   templ.averDurationSec = 10;
   templ.maxDurationSec = 100;
   templ.script = new char[256];
@@ -1156,13 +1156,13 @@ TEST_F(APITest, startTask){
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
-  zmTaskPipeline ptask{0};
+  zmPipelineTask ptask{0};
   strcpy(ptask.name, "t");
   ptask.pplId = pId; 
   ptask.gId = 0; 
   ptask.ttId = ttId;
   uint64_t ptId1 = 0;  
-  EXPECT_TRUE(zmAddTaskPipeline(_zc, ptask, &ptId1) && (ptId1 > 0));  
+  EXPECT_TRUE(zmAddPipelineTask(_zc, ptask, &ptId1) && (ptId1 > 0));  
 
   zmTask task{0};
   task.ptId = ptId1; 
@@ -1174,13 +1174,13 @@ TEST_F(APITest, startTask){
   EXPECT_TRUE(zmStartTask(_zc, task, &tId2));           
 }
 TEST_F(APITest, cancelTask){
-  zmUser usr;
+  zmUser usr{0};
   strcpy(usr.name, "alm");
   strcpy(usr.passw, "123");
   uint64_t uId = 0;  
   EXPECT_TRUE(zmAddUser(_zc, usr, &uId) && (uId > 0));
 
-  zmPipeline ppline;
+  zmPipeline ppline{0};
   strcpy(ppline.name, "newPP");
   ppline.description = new char[24];
   strcpy(ppline.description, "dfsdf");
@@ -1188,7 +1188,7 @@ TEST_F(APITest, cancelTask){
   uint64_t pId = 0;  
   EXPECT_TRUE(zmAddPipeline(_zc, ppline, &pId) && (pId > 0)); 
     
-  zmTaskTemplate templ;
+  zmTaskTemplate templ{0};
   templ.averDurationSec = 10;
   templ.maxDurationSec = 100;
   templ.script = new char[256];
@@ -1202,13 +1202,13 @@ TEST_F(APITest, cancelTask){
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
-  zmTaskPipeline ptask{0};
+  zmPipelineTask ptask{0};
   strcpy(ptask.name, "t");
   ptask.pplId = pId;
   ptask.gId = 0;  
   ptask.ttId = ttId;
   uint64_t ptId1 = 0;  
-  EXPECT_TRUE(zmAddTaskPipeline(_zc, ptask, &ptId1) && (ptId1 > 0));  
+  EXPECT_TRUE(zmAddPipelineTask(_zc, ptask, &ptId1) && (ptId1 > 0));  
 
   zmTask task{0};
   task.priority = 1;
@@ -1219,13 +1219,13 @@ TEST_F(APITest, cancelTask){
   EXPECT_TRUE(zmCancelTask(_zc, tId1));           
 }
 TEST_F(APITest, taskState){
-  zmUser usr;
+  zmUser usr{0};
   strcpy(usr.name, "alm");
   strcpy(usr.passw, "123");
   uint64_t uId = 0;  
   EXPECT_TRUE(zmAddUser(_zc, usr, &uId) && (uId > 0));
 
-  zmPipeline ppline;
+  zmPipeline ppline{0};
   strcpy(ppline.name, "newPP");
   ppline.description = new char[24];
   strcpy(ppline.description, "dfsdf");
@@ -1233,7 +1233,7 @@ TEST_F(APITest, taskState){
   uint64_t pId = 0;  
   EXPECT_TRUE(zmAddPipeline(_zc, ppline, &pId) && (pId > 0)); 
     
-  zmTaskTemplate templ;
+  zmTaskTemplate templ{0};
   templ.averDurationSec = 10;
   templ.maxDurationSec = 100;
   templ.script = new char[256];
@@ -1247,13 +1247,13 @@ TEST_F(APITest, taskState){
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
-  zmTaskPipeline ptask{0};
+  zmPipelineTask ptask{0};
   strcpy(ptask.name, "t");
   ptask.pplId = pId; 
   ptask.gId = 0; 
   ptask.ttId = ttId;
   uint64_t ptId1 = 0;  
-  EXPECT_TRUE(zmAddTaskPipeline(_zc, ptask, &ptId1) && (ptId1 > 0));  
+  EXPECT_TRUE(zmAddPipelineTask(_zc, ptask, &ptId1) && (ptId1 > 0));  
   
   zmTask task{0};
   task.ptId = ptId1; 
@@ -1264,7 +1264,7 @@ TEST_F(APITest, taskState){
   ptask.pplId = pId; 
   ptask.ttId = ttId;
   uint64_t ptId2 = 0;  
-  EXPECT_TRUE(zmAddTaskPipeline(_zc, ptask, &ptId2) && (ptId2 > 0));
+  EXPECT_TRUE(zmAddPipelineTask(_zc, ptask, &ptId2) && (ptId2 > 0));
 
   task.ptId = ptId2; 
   uint64_t tId2 = 0;  
@@ -1279,13 +1279,13 @@ TEST_F(APITest, taskState){
               (tState[1].state == zmStateType::zmSTATE_READY)); 
 }
 TEST_F(APITest, taskResult){
-  zmUser usr;
+  zmUser usr{0};
   strcpy(usr.name, "alm");
   strcpy(usr.passw, "123");
   uint64_t uId = 0;  
   EXPECT_TRUE(zmAddUser(_zc, usr, &uId) && (uId > 0));
 
-  zmPipeline ppline;
+  zmPipeline ppline{0};
   strcpy(ppline.name, "newPP");
   ppline.description = new char[24];
   strcpy(ppline.description, "dfsdf");
@@ -1293,7 +1293,7 @@ TEST_F(APITest, taskResult){
   uint64_t pId = 0;  
   EXPECT_TRUE(zmAddPipeline(_zc, ppline, &pId) && (pId > 0)); 
     
-  zmTaskTemplate templ;
+  zmTaskTemplate templ{0};
   templ.averDurationSec = 10;
   templ.maxDurationSec = 100;
   templ.script = new char[256];
@@ -1307,13 +1307,13 @@ TEST_F(APITest, taskResult){
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
-  zmTaskPipeline ptask{0};
+  zmPipelineTask ptask{0};
   strcpy(ptask.name, "t");
   ptask.pplId = pId; 
   ptask.gId = 0; 
   ptask.ttId = ttId;
   uint64_t ptId1 = 0;  
-  EXPECT_TRUE(zmAddTaskPipeline(_zc, ptask, &ptId1) && (ptId1 > 0));  
+  EXPECT_TRUE(zmAddPipelineTask(_zc, ptask, &ptId1) && (ptId1 > 0));  
   
   zmTask task{0};
   task.priority = 1;
@@ -1325,13 +1325,13 @@ TEST_F(APITest, taskResult){
   EXPECT_TRUE(zmResultOfTask(_zc, tId1, &result)); 
 }
 TEST_F(APITest, TaskTime){
-  zmUser usr;
+  zmUser usr{0};
   strcpy(usr.name, "alm");
   strcpy(usr.passw, "123");
   uint64_t uId = 0;  
   EXPECT_TRUE(zmAddUser(_zc, usr, &uId) && (uId > 0));
 
-  zmPipeline ppline;
+  zmPipeline ppline{0};
   strcpy(ppline.name, "newPP");
   ppline.description = new char[24];
   strcpy(ppline.description, "dfsdf");
@@ -1339,7 +1339,7 @@ TEST_F(APITest, TaskTime){
   uint64_t pId = 0;  
   EXPECT_TRUE(zmAddPipeline(_zc, ppline, &pId) && (pId > 0)); 
     
-  zmTaskTemplate templ;
+  zmTaskTemplate templ{0};
   templ.averDurationSec = 10;
   templ.maxDurationSec = 100;
   templ.script = new char[256];
@@ -1353,13 +1353,13 @@ TEST_F(APITest, TaskTime){
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
-  zmTaskPipeline ptask{0};
+  zmPipelineTask ptask{0};
   strcpy(ptask.name, "t");
   ptask.pplId = pId; 
   ptask.gId = 0; 
   ptask.ttId = ttId;
   uint64_t ptId1 = 0;  
-  EXPECT_TRUE(zmAddTaskPipeline(_zc, ptask, &ptId1) && (ptId1 > 0));  
+  EXPECT_TRUE(zmAddPipelineTask(_zc, ptask, &ptId1) && (ptId1 > 0));  
   
   zmTask task{0};
   task.priority = 1;
@@ -1371,13 +1371,13 @@ TEST_F(APITest, TaskTime){
   EXPECT_TRUE(zmTimeOfTask(_zc, tId1, &result));
 }
 TEST_F(APITest, getAllTask){
-  zmUser usr;
+  zmUser usr{0};
   strcpy(usr.name, "alm");
   strcpy(usr.passw, "123");
   uint64_t uId = 0;  
   EXPECT_TRUE(zmAddUser(_zc, usr, &uId) && (uId > 0));
 
-  zmPipeline ppline;
+  zmPipeline ppline{0};
   strcpy(ppline.name, "newPP");
   ppline.description = new char[24];
   strcpy(ppline.description, "dfsdf");
@@ -1385,7 +1385,7 @@ TEST_F(APITest, getAllTask){
   uint64_t pId = 0;  
   EXPECT_TRUE(zmAddPipeline(_zc, ppline, &pId) && (pId > 0)); 
     
-  zmTaskTemplate templ;
+  zmTaskTemplate templ{0};
   templ.averDurationSec = 10;
   templ.maxDurationSec = 100;
   templ.script = new char[256];
@@ -1399,13 +1399,13 @@ TEST_F(APITest, getAllTask){
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
-  zmTaskPipeline ptask{0};
+  zmPipelineTask ptask{0};
   strcpy(ptask.name, "t");
   ptask.pplId = pId; 
   ptask.gId = 0; 
   ptask.ttId = ttId;
   uint64_t ptId1 = 0;  
-  EXPECT_TRUE(zmAddTaskPipeline(_zc, ptask, &ptId1) && (ptId1 > 0));  
+  EXPECT_TRUE(zmAddPipelineTask(_zc, ptask, &ptId1) && (ptId1 > 0));  
   
   zmTask task{0};
   task.priority = 1;
@@ -1416,14 +1416,14 @@ TEST_F(APITest, getAllTask){
   ptask.pplId = pId; 
   ptask.ttId = ttId;
   uint64_t ptId2 = 0;  
-  EXPECT_TRUE(zmAddTaskPipeline(_zc, ptask, &ptId2) && (ptId2 > 0));  
+  EXPECT_TRUE(zmAddPipelineTask(_zc, ptask, &ptId2) && (ptId2 > 0));  
   
   task.ptId = ptId2; 
   uint64_t tId2 = 0;  
   EXPECT_TRUE(zmStartTask(_zc, task, &tId2));    
 
   uint64_t* pTT = nullptr;
-  auto tCnt = zmGetAllTasksPipeline(_zc, pId, &pTT);
+  auto tCnt = zmGetAllPipelineTasks(_zc, pId, &pTT);
   EXPECT_TRUE((tCnt == 2) &&
               (pTT[0] == ptId1) && 
               (pTT[1] == ptId2));  

@@ -687,31 +687,31 @@ uint32_t zmGetAllTaskTemplates(zmConn zo, uint64_t userId, uint64_t** outTId){
 ///////////////////////////////////////////////////////////////////////////////
 /// Task of pipeline
 
-bool zmAddTaskPipeline(zmConn zo, zmTaskPipeline cng, uint64_t* outQTId){
+bool zmAddPipelineTask(zmConn zo, zmPipelineTask cng, uint64_t* outQTId){
   if (!zo) return false;
 
   if (!outQTId){
     static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmAddTask error: !outQTId");
     return false;
   }
-  ZM_Base::UTaskPipeline task;
+  ZM_Base::UPipelineTask task;
   task.pplId = cng.pplId;
   task.ttId = cng.ttId;
   task.gId = cng.gId;
   task.name = cng.name;
   task.description = cng.description ? cng.description : "";
 
-  return static_cast<ZM_DB::DbProvider*>(zo)->addTaskPipeline(task, *outQTId);
+  return static_cast<ZM_DB::DbProvider*>(zo)->addPipelineTask(task, *outQTId);
 }
-bool zmGetTaskPipeline(zmConn zo, uint64_t ptId, zmTaskPipeline* outCng){
+bool zmGetPipelineTask(zmConn zo, uint64_t ptId, zmPipelineTask* outCng){
   if (!zo) return false;
   
   if (!outCng){
-    static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmGetTaskCng error: !outCng");
+    static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmGetPipelineTask error: !outCng");
     return false;
   }
-  ZM_Base::UTaskPipeline task;
-  if (static_cast<ZM_DB::DbProvider*>(zo)->getTaskPipeline(ptId, task)){
+  ZM_Base::UPipelineTask task;
+  if (static_cast<ZM_DB::DbProvider*>(zo)->getPipelineTask(ptId, task)){
     outCng->pplId = task.pplId;
     outCng->gId = task.gId;
     outCng->ttId = task.ttId;
@@ -729,27 +729,27 @@ bool zmGetTaskPipeline(zmConn zo, uint64_t ptId, zmTaskPipeline* outCng){
   }
   return false;
 }
-bool zmChangeTaskPipeline(zmConn zo, uint64_t tId, zmTaskPipeline newCng){
+bool zmChangePipelineTask(zmConn zo, uint64_t tId, zmPipelineTask newCng){
   if (!zo) return false;
   
-  ZM_Base::UTaskPipeline task;
+  ZM_Base::UPipelineTask task;
   task.pplId = newCng.pplId;
   task.gId = newCng.gId;
   task.ttId = newCng.ttId;
   task.name = newCng.name;
   task.description = newCng.description ? newCng.description : "";
   
-  return static_cast<ZM_DB::DbProvider*>(zo)->changeTaskPipeline(tId, task);
+  return static_cast<ZM_DB::DbProvider*>(zo)->changePipelineTask(tId, task);
 }
-bool zmDelTaskPipeline(zmConn zo, uint64_t tId){
+bool zmDelPipelineTask(zmConn zo, uint64_t tId){
   if (!zo) return false;
 
-  return static_cast<ZM_DB::DbProvider*>(zo)->delTaskPipeline(tId);
+  return static_cast<ZM_DB::DbProvider*>(zo)->delPipelineTask(tId);
 }
-uint32_t zmGetAllTasksPipeline(zmConn zo, uint64_t pplId, uint64_t** outQTId){
+uint32_t zmGetAllPipelineTasks(zmConn zo, uint64_t pplId, uint64_t** outQTId){
   if (!zo) return 0; 
 
-  auto tasks = static_cast<ZM_DB::DbProvider*>(zo)->getAllTasksPipeline(pplId);
+  auto tasks = static_cast<ZM_DB::DbProvider*>(zo)->getAllPipelineTasks(pplId);
   size_t tsz = tasks.size();
   if (tsz > 0){
     *outQTId = (uint64_t*)realloc(*outQTId, tsz * sizeof(uint64_t));
