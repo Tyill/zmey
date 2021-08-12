@@ -36,7 +36,7 @@
 #define ZMEY_API
 #endif
 
-#include <cstdint>
+#include <stdint.h>
 
 #if defined(__cplusplus)
 extern "C" {
@@ -51,15 +51,16 @@ typedef void* zmConn;
 
 /// state
 enum zmStateType{
-  zmUndefined = -1,
-  zmReady,
-  zmStart,
-  zmRunning,
-  zmPause,
-  zmStop,    
-  zmCompleted,
-  zmError,
-  zmNotResponding,
+  zmSTATE_UNDEFINED = -1,
+  zmSTATE_READY,
+  zmSTATE_START,
+  zmSTATE_RUNNING,
+  zmSTATE_PAUSE,
+  zmSTATE_STOP,    
+  zmSTATE_COMPLETED,
+  zmSTATE_ERROR,
+  zmSTATE_CANCEL,
+  zmSTATE_NOT_RESPONDING,
 };
 
 /// version lib
@@ -132,7 +133,7 @@ ZMEY_API bool zmGetUserId(zmConn, zmUser cng, uint64_t* outUserId);
 /// get user config
 /// @param[in] zmConn - object connect
 /// @param[in] userId - user id
-/// @param[out] outCng - user config
+/// @param[out] outCng - user config. The memory is allocated by the user
 /// @return true - ok
 ZMEY_API bool zmGetUserCng(zmConn, uint64_t userId, zmUser* outCng);
 
@@ -151,7 +152,7 @@ ZMEY_API bool zmDelUser(zmConn, uint64_t userId);
 
 /// get all users
 /// @param[in] zmConn - object connect
-/// @param[out] outUserId - users id
+/// @param[out] outUserId - users id. Pass NULL, no need to free memory
 /// @return count of users
 ZMEY_API uint32_t zmGetAllUsers(zmConn, uint64_t** outUserId);
 
@@ -162,6 +163,8 @@ ZMEY_API uint32_t zmGetAllUsers(zmConn, uint64_t** outUserId);
 struct zmSchedr{
   uint32_t capacityTask = 10000; ///< permissible simultaneous number of tasks 
   char connectPnt[256];          ///< remote connection point: IP or DNS:port  
+  char name[256];                ///< scheduler name. Optional.
+  char* description;             ///< description of schedr. The memory is allocated by the user. May be NULL 
 };
 /// add new scheduler
 /// @param[in] zmConn - object connect
@@ -173,7 +176,7 @@ ZMEY_API bool zmAddScheduler(zmConn, zmSchedr cng, uint64_t* outSchId);
 /// scheduler cng
 /// @param[in] zmConn - object connect
 /// @param[in] sId - scheduler id 
-/// @param[out] outCng - scheduler config
+/// @param[out] outCng - scheduler config. The memory is allocated by the user
 /// @return true - ok
 ZMEY_API bool zmGetScheduler(zmConn, uint64_t sId, zmSchedr* outCng);
 
@@ -218,7 +221,7 @@ ZMEY_API bool zmSchedulerState(zmConn, uint64_t sId, zmStateType* outState);
 /// get all schedulers
 /// @param[in] zmConn - object connect
 /// @param[in] state - choose with current state. If the state is 'UNDEFINED', select all
-/// @param[out] outSchId - schedulers id
+/// @param[out] outSchId - schedulers id. Pass NULL, no need to free memory
 /// @return count of schedulers
 ZMEY_API uint32_t zmGetAllSchedulers(zmConn, zmStateType state, uint64_t** outSchId);
 
@@ -227,9 +230,11 @@ ZMEY_API uint32_t zmGetAllSchedulers(zmConn, zmStateType state, uint64_t** outSc
 
 /// worker config
 struct zmWorker{
-  uint64_t sId;               ///< scheduler id 
+  uint64_t sId;               ///< worker id 
   uint32_t capacityTask = 10; ///< permissible simultaneous number of tasks
-  char connectPnt[256];       ///< remote connection point: IP or DNS:port   
+  char connectPnt[256];       ///< remote connection point: IP or DNS:port  
+  char name[256];             ///< worker name. Optional.
+  char* description;          ///< description of worker. The memory is allocated by the user. May be NULL 
 };
   
 /// add new worker
@@ -242,7 +247,7 @@ ZMEY_API bool zmAddWorker(zmConn, zmWorker cng, uint64_t* outWId);
 /// worker cng
 /// @param[in] zmConn - object connect
 /// @param[in] wId - worker id
-/// @param[out] outCng - worker config
+/// @param[out] outCng - worker config. The memory is allocated by the user
 /// @return true - ok
 ZMEY_API bool zmGetWorker(zmConn, uint64_t wId, zmWorker* outCng);
 
@@ -289,7 +294,7 @@ ZMEY_API bool zmWorkerState(zmConn, uint64_t* wId, uint32_t wCnt, zmStateType* o
 /// @param[in] zmConn - object connect
 /// @param[in] sId - scheduler id 
 /// @param[in] state - choose with current state. If the state is 'UNDEFINED', select all
-/// @param[out] outWId - worker id 
+/// @param[out] outWId - worker id. Pass NULL, no need to free memory
 /// @return count of schedulers
 ZMEY_API uint32_t zmGetAllWorkers(zmConn, uint64_t sId, zmStateType state, uint64_t** outWId);
 
@@ -313,7 +318,7 @@ ZMEY_API bool zmAddPipeline(zmConn, zmPipeline cng, uint64_t* outPPLId);
 /// get pipeline config
 /// @param[in] zmConn - object connect
 /// @param[in] pplId - pipeline id
-/// @param[out] outCng - pipeline config
+/// @param[out] outCng - pipeline config. The memory is allocated by the user
 /// @return true - ok
 ZMEY_API bool zmGetPipeline(zmConn, uint64_t pplId, zmPipeline* outCng);
 
@@ -333,7 +338,7 @@ ZMEY_API bool zmDelPipeline(zmConn, uint64_t pplId);
 /// get all pipelines
 /// @param[in] zmConn - object connect
 /// @param[in] userId - user id
-/// @param[out] outPPLId - pipeline id 
+/// @param[out] outPPLId - pipeline id. Pass NULL, no need to free memory
 /// @return count of pipelines
 ZMEY_API uint32_t zmGetAllPipelines(zmConn, uint64_t userId, uint64_t** outPPLId);
 
@@ -357,7 +362,7 @@ ZMEY_API bool zmAddGroup(zmConn, zmGroup cng, uint64_t* outGId);
 /// get group config
 /// @param[in] zmConn - object connect
 /// @param[in] gId - group id
-/// @param[out] outCng - group config
+/// @param[out] outCng - group config. The memory is allocated by the user
 /// @return true - ok
 ZMEY_API bool zmGetGroup(zmConn, uint64_t gId, zmGroup* outCng);
 
@@ -377,7 +382,7 @@ ZMEY_API bool zmDelGroup(zmConn, uint64_t gId);
 /// get all groups
 /// @param[in] zmConn - object connect
 /// @param[in] pplId - pipeline id
-/// @param[out] outGId - group id 
+/// @param[out] outGId - group id. Pass NULL, no need to free memory 
 /// @return count of groups
 ZMEY_API uint32_t zmGetAllGroups(zmConn, uint64_t pplId, uint64_t** outGId);
 
@@ -388,8 +393,9 @@ ZMEY_API uint32_t zmGetAllGroups(zmConn, uint64_t pplId, uint64_t** outGId);
 struct zmTaskTemplate{
   uint64_t userId;          ///< user id
   uint64_t schedrPresetId;  ///< schedr preset id. Default 0
-  uint32_t averDurationSec; ///< estimated lead time 
-  uint32_t maxDurationSec;  ///< maximum lead time
+  uint64_t workerPresetId;  ///< worker preset id. Default 0
+  uint32_t averDurationSec; ///< estimated lead time, sec 
+  uint32_t maxDurationSec;  ///< maximum lead time, sec
   char name[256];           ///< task template name
   char* description;        ///< description of task. The memory is allocated by the user. May be NULL
   char* script;             ///< script on bash, python or cmd. The memory is allocated by the user
@@ -427,7 +433,7 @@ ZMEY_API bool zmDelTaskTemplate(zmConn, uint64_t ttId);
 /// get all tasks templates
 /// @param[in] zmConn - object connect
 /// @param[in] userId - user id
-/// @param[out] outTId - task template id
+/// @param[out] outTId - task template id. Pass NULL, no need to free memory
 /// @return count of tasks
 ZMEY_API uint32_t zmGetAllTaskTemplates(zmConn, uint64_t userId, uint64_t** outTId);
 
@@ -439,7 +445,8 @@ struct zmTaskPipeline{
   uint64_t pplId;          ///< pipeline id
   uint64_t gId;            ///< group id. 0 if group no exist.
   uint64_t ttId;           ///< task template id
-  uint32_t priority;       ///< [1..3]  
+  char name[256];          ///< task name
+  char* description;       ///< description of task. The memory is allocated by the user. May be NULL
 };
 
 /// add pipeline task
@@ -452,7 +459,7 @@ ZMEY_API bool zmAddTaskPipeline(zmConn, zmTaskPipeline cng, uint64_t* outPtId);
 /// get pipeline task config
 /// @param[in] zmConn - object connect
 /// @param[in] ptId - pipeline task id
-/// @param[out] outTCng - pipeline task config
+/// @param[out] outTCng - pipeline task config. The memory is allocated by the user
 /// @return true - ok
 ZMEY_API bool zmGetTaskPipeline(zmConn, uint64_t ptId, zmTaskPipeline* outTCng);
 
@@ -472,7 +479,7 @@ ZMEY_API bool zmDelTaskPipeline(zmConn, uint64_t ptId);
 /// get all pipeline tasks
 /// @param[in] zmConn - object connect
 /// @param[in] pplId - pipeline id
-/// @param[out] outQTId - pipeline task id 
+/// @param[out] outQTId - pipeline task id. Pass NULL, no need to free memory
 /// @return count of pipeline tasks
 ZMEY_API uint32_t zmGetAllTasksPipeline(zmConn, uint64_t pplId, uint64_t** outQTId);
 
@@ -482,8 +489,9 @@ ZMEY_API uint32_t zmGetAllTasksPipeline(zmConn, uint64_t pplId, uint64_t** outQT
 /// task config
 struct zmTask{
   uint64_t ptId;           ///< pipeline task id
+  uint32_t priority;       ///< [1..3]
   char* params;            ///< CLI params for script. May be NULL
-  char* prevTId;           ///< prev task to be completed: tId1, tId2... May be NULL 
+  char* prevTId;           ///< prev task to be completed: "tId1, tId2..." May be NULL 
 };
 
 /// start task
@@ -534,7 +542,7 @@ ZMEY_API bool zmStateOfTask(zmConn, uint64_t* tId, uint32_t tCnt, zmTaskState* o
 /// get task result
 /// @param[in] zmConn - object connect
 /// @param[in] tId - task object id
-/// @param[out] outTResult - task object result
+/// @param[out] outTResult - task object result. Pass NULL, no need to free memory
 /// @return true - ok
 ZMEY_API bool zmResultOfTask(zmConn, uint64_t tId, char** outTResult);
 
@@ -548,18 +556,20 @@ struct zmTaskTime{
 /// get task time
 /// @param[in] zmConn - object connect
 /// @param[in] tId - task object id
-/// @param[out] outTTime - task time
+/// @param[out] outTTime - task time. The memory is allocated by the user
 /// @return true - ok
 ZMEY_API bool zmTimeOfTask(zmConn, uint64_t tId, zmTaskTime* outTTime);
 
-typedef void(*zmChangeTaskStateCBack)(uint64_t tId, zmStateType prevState, zmStateType newState);
+/// task state callback
+typedef void(*zmChangeTaskStateCBack)(uint64_t tId, zmStateType prevState, zmStateType newState, zmUData);
 
 /// set change task state callback
 /// @param[in] zmConn - object connect
 /// @param[in] tId - task object id
 /// @param[in] cback
+/// @param[in] userData
 /// @return true - ok
-ZMEY_API bool zmSetChangeTaskStateCBack(zmConn, uint64_t tId, zmChangeTaskStateCBack cback);
+ZMEY_API bool zmSetChangeTaskStateCBack(zmConn, uint64_t tId, zmChangeTaskStateCBack cback, zmUData);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Internal errors

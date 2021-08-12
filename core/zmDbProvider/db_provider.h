@@ -27,9 +27,6 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <mutex>
-#include <thread>
-#include <condition_variable>
 #include <functional>
 
 #include "zmBase/structurs.h"
@@ -77,22 +74,11 @@ struct TaskTime{
   std::string stopTime;
 };
 
-typedef void* udata;
-typedef std::function<void(const char* mess, udata)> errCBack;
-
-typedef void(*changeTaskStateCBack)(uint64_t qtId, ZM_Base::StateType prevState, ZM_Base::StateType newState);
+typedef void* UData;
+typedef std::function<void(const char* mess, UData)> ErrCBack;
+typedef void(*ChangeTaskStateCBack)(uint64_t qtId, ZM_Base::StateType prevState, ZM_Base::StateType newState, UData);
 
 class DbProvider{  
-  std::string m_err;
-  errCBack m_errCBack = nullptr;
-  udata m_errUData = nullptr;
-  ZM_DB::ConnectCng m_connCng;
-  void* m_db = nullptr; 
-  std::mutex m_mtx, m_mtxNotifyTask;
-  std::condition_variable m_cvNotifyTask;
-  std::thread m_thrEndTask;
-  std::map<uint64_t, std::pair<ZM_Base::StateType, changeTaskStateCBack>> m_notifyTaskStateCBack;
-  bool m_fClose = false;
 public: 
   DbProvider(const ConnectCng& cng);
   ~DbProvider(); 
@@ -101,7 +87,7 @@ public:
   std::string getLastError() const{
     return m_err;
   }  
-  void setErrorCBack(errCBack ecb, udata ud){
+  void setErrorCBack(ErrCBack ecb, UData ud){
     m_errCBack = ecb;
     m_errUData = ud;
   }
@@ -163,14 +149,14 @@ public:
   bool delTaskPipeline(uint64_t ptId);
   std::vector<uint64_t> getAllTasksPipeline(uint64_t pplId);
   
-  bool startTask(uint64_t ptId, const std::string& params, const std::string& prevTasks, uint64_t& tId);
+  bool startTask(uint64_t ptId, uint32_t priority, const std::string& params, const std::string& prevTasks, uint64_t& tId);
   bool cancelTask(uint64_t tId);
   bool taskState(const std::vector<uint64_t>& tId, std::vector<TaskState>&);
   bool taskResult(uint64_t tId, std::string&);
   bool taskTime(uint64_t tId, TaskTime&);
   
   bool getWorkerByTask(uint64_t tId, ZM_Base::Worker& wcng);
-  bool setChangeTaskStateCBack(uint64_t tId, changeTaskStateCBack cback);
+  bool setChangeTaskStateCBack(uint64_t tId, ChangeTaskStateCBack, UData);
 
   std::vector<MessError> getInternErrors(uint64_t sId, uint64_t wId, uint32_t mCnt);
 
@@ -183,5 +169,14 @@ public:
 
   // for test
   bool delAllTables();  
+
+private:
+  std::string m_err;
+  ErrCBack m_errCBack = nullptr;
+  UData m_errUData = nullptr;
+  ZM_DB::ConnectCng m_connCng;
+  
+  class Impl;
+  Impl* m_impl = nullptr;
 };
 }

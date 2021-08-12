@@ -82,7 +82,7 @@ for i in range(sCnt):
 taskCnt = 1000
 print('Add and start', taskCnt, 'tasks') 
 for j in range(taskCnt):
-  pt = zm.TaskPipeline(pplId=ppl.id, ttId=tt.id)
+  pt = zm.TaskPipeline(name="pt", pplId=ppl.id, ttId=tt.id)
   zo.addTaskPipeline(pt)
 
 # start tasks

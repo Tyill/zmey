@@ -22,14 +22,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#include <cstring>
-#include <algorithm>
-
 #include "zmClient.h"
 #include "zmCommon/aux_func.h"
 #include "zmCommon/tcp.h"
 #include "zmCommon/serial.h"
 #include "zmDbProvider/db_provider.h"
+
+#include <cstring>
+#include <algorithm>
+#include <mutex>
 
 #define ZM_VERSION "1.0.0"
 
@@ -194,6 +195,8 @@ bool zmAddScheduler(zmConn zo, zmSchedr cng, uint64_t* outSchId){
   scng.capacityTask = cng.capacityTask;
   scng.connectPnt = cng.connectPnt;
   scng.state = ZM_Base::StateType::STOP;
+  scng.name = cng.name;
+  scng.description = cng.description ? cng.description : "";
 
   return static_cast<ZM_DB::DbProvider*>(zo)->addSchedr(scng, *outSchId);
 }
@@ -208,6 +211,16 @@ bool zmGetScheduler(zmConn zo, uint64_t sId, zmSchedr* outCng){
   if (static_cast<ZM_DB::DbProvider*>(zo)->getSchedr(sId, scng)){    
     outCng->capacityTask = scng.capacityTask;
     strcpy(outCng->connectPnt, scng.connectPnt.c_str());
+    strncpy(outCng->name, scng.name.c_str(), 256);
+    if (!scng.description.empty()){
+      outCng->description = (char*)realloc(outCng->description, scng.description.size() + 1);
+      {lock_guard<mutex> lk(m_mtxResources);
+        m_resources[zo].str.push_back(outCng->description);
+      }
+      strcpy(outCng->description, scng.description.c_str());
+    }else{
+      outCng->description = nullptr;
+    }
     return true;
   }
   return false;
@@ -218,6 +231,8 @@ bool zmChangeScheduler(zmConn zo, uint64_t sId, zmSchedr newCng){
   ZM_Base::Scheduler scng;
   scng.capacityTask = newCng.capacityTask;
   scng.connectPnt = newCng.connectPnt;
+  scng.name = newCng.name;
+  scng.description = newCng.description ? newCng.description : "";
 
   return static_cast<ZM_DB::DbProvider*>(zo)->changeSchedr(sId, scng);
 }
@@ -305,6 +320,8 @@ bool zmAddWorker(zmConn zo, zmWorker cng, uint64_t* outWId){
   wcng.connectPnt = cng.connectPnt;
   wcng.state = ZM_Base::StateType::STOP;
   wcng.sId = cng.sId;
+  wcng.name = cng.name;
+  wcng.description = cng.description ? cng.description : "";
 
   return static_cast<ZM_DB::DbProvider*>(zo)->addWorker(wcng, *outWId);
 }
@@ -319,7 +336,17 @@ bool zmGetWorker(zmConn zo, uint64_t wId, zmWorker* outWCng){
   if (static_cast<ZM_DB::DbProvider*>(zo)->getWorker(wId, wcng)){    
     outWCng->sId = wcng.sId;
     outWCng->capacityTask = wcng.capacityTask;
-    strcpy(outWCng->connectPnt, wcng.connectPnt.c_str());
+    strncpy(outWCng->connectPnt, wcng.connectPnt.c_str(), 256);
+    strncpy(outWCng->name, wcng.name.c_str(), 256);
+    if (!wcng.description.empty()){
+      outWCng->description = (char*)realloc(outWCng->description, wcng.description.size() + 1);
+      {lock_guard<mutex> lk(m_mtxResources);
+        m_resources[zo].str.push_back(outWCng->description);
+      }
+      strcpy(outWCng->description, wcng.description.c_str());
+    }else{
+      outWCng->description = nullptr;
+    }
     return true;
   }
   return false;
@@ -331,6 +358,8 @@ bool zmChangeWorker(zmConn zo, uint64_t wId, zmWorker newCng){
   wcng.sId = newCng.sId;
   wcng.capacityTask = newCng.capacityTask;
   wcng.connectPnt = newCng.connectPnt;
+  wcng.name = newCng.name;
+  wcng.description = newCng.description ? newCng.description : "";
   
   return static_cast<ZM_DB::DbProvider*>(zo)->changeWorker(wId, wcng);
 }
@@ -579,6 +608,7 @@ bool zmAddTaskTemplate(zmConn zo, zmTaskTemplate cng, uint64_t* outTId){
   task.description = cng.description ? cng.description : "";
   task.uId = cng.userId;
   task.sId = cng.schedrPresetId;
+  task.wId = cng.workerPresetId;
   task.averDurationSec = cng.averDurationSec;
   task.maxDurationSec = cng.maxDurationSec;
   task.script = cng.script;
@@ -599,6 +629,7 @@ bool zmGetTaskTemplate(zmConn zo, uint64_t tId, zmTaskTemplate* outTCng){
     outTCng->maxDurationSec = task.maxDurationSec;
     outTCng->userId = task.uId;
     outTCng->schedrPresetId = task.sId;
+    outTCng->workerPresetId = task.wId;
     outTCng->script = (char*)realloc(outTCng->script, task.script.size() + 1);
     {lock_guard<mutex> lk(m_mtxResources);
       m_resources[zo].str.push_back(outTCng->script);
@@ -625,6 +656,7 @@ bool zmChangeTaskTemplate(zmConn zo, uint64_t tId, zmTaskTemplate newCng){
   task.description = newCng.description ? newCng.description : "";
   task.uId = newCng.userId;
   task.sId = newCng.schedrPresetId;
+  task.wId = newCng.workerPresetId;
   task.averDurationSec = newCng.averDurationSec;
   task.maxDurationSec = newCng.maxDurationSec;
   task.script = newCng.script;
@@ -666,8 +698,9 @@ bool zmAddTaskPipeline(zmConn zo, zmTaskPipeline cng, uint64_t* outQTId){
   task.pplId = cng.pplId;
   task.ttId = cng.ttId;
   task.gId = cng.gId;
-  task.priority = cng.priority;
-    
+  task.name = cng.name;
+  task.description = cng.description ? cng.description : "";
+
   return static_cast<ZM_DB::DbProvider*>(zo)->addTaskPipeline(task, *outQTId);
 }
 bool zmGetTaskPipeline(zmConn zo, uint64_t ptId, zmTaskPipeline* outCng){
@@ -682,7 +715,16 @@ bool zmGetTaskPipeline(zmConn zo, uint64_t ptId, zmTaskPipeline* outCng){
     outCng->pplId = task.pplId;
     outCng->gId = task.gId;
     outCng->ttId = task.ttId;
-    outCng->priority = task.priority; 
+    strncpy(outCng->name, task.name.c_str(), 256);
+    if (!task.description.empty()){
+      outCng->description = (char*)realloc(outCng->description, task.description.size() + 1);
+      {lock_guard<mutex> lk(m_mtxResources);
+        m_resources[zo].str.push_back(outCng->description);
+      }
+      strcpy(outCng->description, task.description.c_str());
+    }else{
+      outCng->description = nullptr;
+    }
     return true;
   }
   return false;
@@ -694,7 +736,8 @@ bool zmChangeTaskPipeline(zmConn zo, uint64_t tId, zmTaskPipeline newCng){
   task.pplId = newCng.pplId;
   task.gId = newCng.gId;
   task.ttId = newCng.ttId;
-  task.priority = newCng.priority;
+  task.name = newCng.name;
+  task.description = newCng.description ? newCng.description : "";
   
   return static_cast<ZM_DB::DbProvider*>(zo)->changeTaskPipeline(tId, task);
 }
@@ -726,7 +769,7 @@ bool zmStartTask(zmConn zo, zmTask cng, uint64_t* tId){
   string prTask = cng.prevTId ? cng.prevTId : "";
   string params = cng.params ? cng.params : "";
 
-  return static_cast<ZM_DB::DbProvider*>(zo)->startTask(cng.ptId, params, prTask, *tId);
+  return static_cast<ZM_DB::DbProvider*>(zo)->startTask(cng.ptId, cng.priority, params, prTask, *tId);
 }
 bool zmStopTask(zmConn zo, uint64_t tId){
   if (!zo) return false;
@@ -840,10 +883,10 @@ bool zmTimeOfTask(zmConn zo, uint64_t tId, zmTaskTime* outTTime){
   return false;
 }
 
-bool zmSetEndTaskCBack(zmConn zo, uint64_t tId, zmChangeTaskStateCBack cback){
+bool zmSetChangeTaskStateCBack(zmConn zo, uint64_t tId, zmChangeTaskStateCBack cback, void* userData){
   if (!zo) return false; 
 
-  return static_cast<ZM_DB::DbProvider*>(zo)->setChangeTaskStateCBack(tId, (ZM_DB::changeTaskStateCBack)cback);
+  return static_cast<ZM_DB::DbProvider*>(zo)->setChangeTaskStateCBack(tId, (ZM_DB::ChangeTaskStateCBack)cback, userData);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

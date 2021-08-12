@@ -1,11 +1,10 @@
-/* eslint-disable no-unused-vars */
-
 import React from "react";
 import { connect } from "react-redux";
 import { Col, Button, Modal, Form} from "react-bootstrap";
  
-import * as Action from "./redux/actions"; 
-import { IUser, IPipeline, IGroup, ITaskTemplate, ITask } from "./types";
+import * as Action from "../redux/actions"; 
+import { ITaskTemplate } from "../types";
+import {ServerAPI} from "../server_api"
 
 import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -14,11 +13,7 @@ interface IProps {
   onHide : (selTaskTemplate : ITaskTemplate) => any;
   selTaskTemplate : ITaskTemplate;
   
-  user : IUser;                                                 // | Store
-  pipelines : Map<number, IPipeline>;                           // | 
-  groups : Map<number, IGroup>;                         // |
-  taskTemplates : Map<number, ITaskTemplate>;                   // |
-  tasks : Map<number, ITask>;                                   // |
+  taskTemplates : Map<number, ITaskTemplate>;                   // | Store
   
   onAddTaskTemplate : (taskTemplate : ITaskTemplate) => any;    // | Actions 
   onChangeTaskTemplate : (taskTemplate : ITaskTemplate) => any; // |
@@ -87,45 +82,35 @@ class TaskTemplateDialog extends React.Component<IProps, IState>{
       description
     }
     if (this.m_isNewTask){
-      fetch('api/addTaskTemplate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json;charset=utf-8'
+      ServerAPI.addTaskTemplate(newTaskTemplate, 
+        (respTaskTemplate)=>{
+          this.props.onAddTaskTemplate(respTaskTemplate);      
+          this.setState({statusMess : "Success create of Task Template"});    
+          clearTimeout(this.m_tout);
+          this.m_tout = setTimeout(() => { 
+            this.setState({statusMess : ""});
+            this.props.onHide(respTaskTemplate);
+          }, 1000)
         },
-        body: JSON.stringify(newTaskTemplate)})
-      .then(response => response.json())    
-      .then(taskTemplate =>{
-        this.props.onAddTaskTemplate(taskTemplate);      
-        this.setState({statusMess : "Success create of Task Template"});    
-        clearTimeout(this.m_tout);
-        this.m_tout = setTimeout(() => { 
-          this.setState({statusMess : ""});
-          this.props.onHide(newTaskTemplate);
-        }, 1000)})
-      .catch(() => {
-        this.setState({statusMess : "api/addTaskTemplate error"});
-        clearTimeout(this.m_tout);
-        this.m_tout = setTimeout(() => this.setState({statusMess : ""}), 3000);  
-      }); 
+        ()=>{
+          this.setState({statusMess : "ServerAPI.addTaskTemplate error"});
+          clearTimeout(this.m_tout);
+          this.m_tout = setTimeout(() => this.setState({statusMess : ""}), 3000);
+        });       
     }
     else{
-      fetch('api/changeTaskTemplate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json;charset=utf-8'
+      ServerAPI.changeTaskTemplate(newTaskTemplate, 
+        (respTaskTemplate)=>{
+          this.props.onChangeTaskTemplate(respTaskTemplate); 
+          this.setState({statusMess : "Success change of Task Template"}); 
+          clearTimeout(this.m_tout);
+          this.m_tout = setTimeout(() => this.setState({statusMess : ""}), 3000);
         },
-        body: JSON.stringify(newTaskTemplate)})
-      .then(response => response.json())    
-      .then(respTaskTemplate =>{ 
-        this.props.onChangeTaskTemplate(respTaskTemplate); 
-        this.setState({statusMess : "Success change of Task Template"}); 
-        clearTimeout(this.m_tout);
-        this.m_tout = setTimeout(() => this.setState({statusMess : ""}), 3000);})
-      .catch(() => {
-        this.setState({statusMess : "api/changeTaskTemplate error"});
-        clearTimeout(this.m_tout);
-        this.m_tout = setTimeout(() => this.setState({statusMess : ""}), 3000);  
-      }); 
+        ()=>{
+          this.setState({statusMess : "ServerAPI.changeTaskTemplate error"});
+          clearTimeout(this.m_tout);
+          this.m_tout = setTimeout(() => this.setState({statusMess : ""}), 3000);  
+        });
     }      
   }
 
