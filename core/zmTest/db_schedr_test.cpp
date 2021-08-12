@@ -56,7 +56,7 @@ protected:
 };
 
 TEST_F(DBSchedrTest, getSchedrByCP){
-  ZM_Base::Scheduler schedr;
+  ZM_Base::Scheduler schedr{0};
   schedr.state = ZM_Base::StateType::READY;
   schedr.connectPnt = "localhost:4444"; 
   schedr.capacityTask = 105; 
@@ -85,7 +85,7 @@ TEST_F(DBSchedrTest, getTaskOfSchedr){
   uint64_t uId = 0;  
   EXPECT_TRUE(_pDb->addUser(usr, uId) && (uId > 0)) << _pDb->getLastError();
 
-  ZM_Base::Scheduler schedr;
+  ZM_Base::Scheduler schedr{0};
   schedr.state = ZM_Base::StateType::READY;
   schedr.connectPnt = "localhost:4444"; 
   schedr.capacityTask = 105; 
@@ -100,14 +100,14 @@ TEST_F(DBSchedrTest, getTaskOfSchedr){
   uint64_t wId = 0;  
   EXPECT_TRUE(_pDb->addWorker(worker, wId) && (wId > 0)) << _pDb->getLastError();  
 
-  ZM_Base::UPipeline ppline;
+  ZM_Base::UPipeline ppline{0};
   ppline.name = "newPP";
   ppline.description = "dfsdf";
   ppline.uId = uId;
   uint64_t pId = 0;  
   EXPECT_TRUE(_pDb->addPipeline(ppline, pId) && (pId > 0)) << _pDb->getLastError(); 
  
-  ZM_Base::UTaskTemplate templ;
+  ZM_Base::UTaskTemplate templ{0};
   templ.uId = uId; 
   templ.sId = 0; 
   templ.wId = 0; 
@@ -119,14 +119,14 @@ TEST_F(DBSchedrTest, getTaskOfSchedr){
   uint64_t ttId = 0;  
   EXPECT_TRUE(_pDb->addTaskTemplate(templ, ttId) && (ttId > 0)) << _pDb->getLastError(); 
 
-  ZM_Base::UTaskPipeline task{0};
+  ZM_Base::UPipelineTask task{0};
   task.name = "t";
   task.pplId = pId; 
   task.gId = 0; 
   task.priority = 1;
   task.ttId = ttId;
   uint64_t ptId1 = 0;  
-  EXPECT_TRUE(_pDb->addTaskPipeline(task, ptId1) && (ptId1 > 0)) << _pDb->getLastError();  
+  EXPECT_TRUE(_pDb->addPipelineTask(task, ptId1) && (ptId1 > 0)) << _pDb->getLastError();  
 
   uint64_t tId1 = 0;  
   EXPECT_TRUE(_pDb->startTask(ptId1, 1, "param11,param12,param13", "", tId1)) << _pDb->getLastError();        
@@ -135,7 +135,7 @@ TEST_F(DBSchedrTest, getTaskOfSchedr){
   task.priority = 1;
   task.ttId = ttId;
   uint64_t ptId2 = 0;  
-  EXPECT_TRUE(_pDb->addTaskPipeline(task, ptId2) && (ptId2 > 0)) << _pDb->getLastError();  
+  EXPECT_TRUE(_pDb->addPipelineTask(task, ptId2) && (ptId2 > 0)) << _pDb->getLastError();  
 
   uint64_t tId2 = 0;  
   EXPECT_TRUE(_pDb->startTask(ptId2, 1, "param21,param22,param23", to_string(tId1), tId2 )) << _pDb->getLastError();        
@@ -202,7 +202,7 @@ TEST_F(DBSchedrTest, getNewTasksForSchedr){
   uint64_t uId = 0;  
   EXPECT_TRUE(_pDb->addUser(usr, uId) && (uId > 0)) << _pDb->getLastError();
 
-  ZM_Base::Scheduler schedr;
+  ZM_Base::Scheduler schedr{0};
   schedr.state = ZM_Base::StateType::READY;
   schedr.connectPnt = "localhost:4444"; 
   schedr.capacityTask = 105; 
@@ -217,14 +217,14 @@ TEST_F(DBSchedrTest, getNewTasksForSchedr){
   uint64_t wId = 0;  
   EXPECT_TRUE(_pDb->addWorker(worker, wId) && (wId > 0)) << _pDb->getLastError();  
 
-  ZM_Base::UPipeline ppline;
+  ZM_Base::UPipeline ppline{0};
   ppline.name = "newPP";
   ppline.description = "dfsdf";
   ppline.uId = uId;
   uint64_t pId = 0;  
   EXPECT_TRUE(_pDb->addPipeline(ppline, pId) && (pId > 0)) << _pDb->getLastError(); 
       
-  ZM_Base::UTaskTemplate templ;
+  ZM_Base::UTaskTemplate templ{0};
   templ.uId = uId; 
   templ.sId = 0; 
   templ.description = "descr";
@@ -235,14 +235,14 @@ TEST_F(DBSchedrTest, getNewTasksForSchedr){
   uint64_t ttId = 0;  
   EXPECT_TRUE(_pDb->addTaskTemplate(templ, ttId) && (ttId > 0)) << _pDb->getLastError(); 
 
-  ZM_Base::UTaskPipeline task{0};
+  ZM_Base::UPipelineTask task{0};
   task.pplId = pId;
   task.name = "t"; 
   task.gId = 0; 
   task.priority = 1;
   task.ttId = ttId;
   uint64_t ptId1 = 0;  
-  EXPECT_TRUE(_pDb->addTaskPipeline(task, ptId1) && (ptId1 > 0)) << _pDb->getLastError();  
+  EXPECT_TRUE(_pDb->addPipelineTask(task, ptId1) && (ptId1 > 0)) << _pDb->getLastError();  
 
   uint64_t tId1 = 0;  
   EXPECT_TRUE(_pDb->startTask(ptId1, 1, "param11,param12,param13", "", tId1)) << _pDb->getLastError();        
@@ -251,7 +251,7 @@ TEST_F(DBSchedrTest, getNewTasksForSchedr){
   task.priority = 1;
   task.ttId = ttId;
   uint64_t ptId2 = 0;  
-  EXPECT_TRUE(_pDb->addTaskPipeline(task, ptId2) && (ptId2 > 0)) << _pDb->getLastError();  
+  EXPECT_TRUE(_pDb->addPipelineTask(task, ptId2) && (ptId2 > 0)) << _pDb->getLastError();  
 
   uint64_t tId2 = 0;  
   EXPECT_TRUE(_pDb->startTask(ptId2, 1, "param21,param22,param23", to_string(tId1), tId2)) << _pDb->getLastError();        
@@ -283,7 +283,7 @@ TEST_F(DBSchedrTest, getWorkerByTask){
   uint64_t uId = 0;  
   EXPECT_TRUE(_pDb->addUser(usr, uId) && (uId > 0)) << _pDb->getLastError();
 
-  ZM_Base::Scheduler schedr;
+  ZM_Base::Scheduler schedr{0};
   schedr.state = ZM_Base::StateType::READY;
   schedr.connectPnt = "localhost:4444"; 
   schedr.capacityTask = 105; 
@@ -298,14 +298,14 @@ TEST_F(DBSchedrTest, getWorkerByTask){
   uint64_t wId = 0;  
   EXPECT_TRUE(_pDb->addWorker(worker, wId) && (wId > 0)) << _pDb->getLastError();  
 
-  ZM_Base::UPipeline ppline;
+  ZM_Base::UPipeline ppline{0};
   ppline.name = "newPP";
   ppline.description = "dfsdf";
   ppline.uId = uId;
   uint64_t pId = 0;  
   EXPECT_TRUE(_pDb->addPipeline(ppline, pId) && (pId > 0)) << _pDb->getLastError(); 
   
-  ZM_Base::UTaskTemplate templ;
+  ZM_Base::UTaskTemplate templ{0};
   templ.uId = uId; 
   templ.sId = 0; 
   templ.description = "descr";
@@ -316,14 +316,14 @@ TEST_F(DBSchedrTest, getWorkerByTask){
   uint64_t ttId = 0;  
   EXPECT_TRUE(_pDb->addTaskTemplate(templ, ttId) && (ttId > 0)) << _pDb->getLastError(); 
 
-  ZM_Base::UTaskPipeline task{0};
+  ZM_Base::UPipelineTask task{0};
   task.name = "t";
   task.pplId = pId; 
   task.gId = 0; 
   task.priority = 1;
   task.ttId = ttId;
   uint64_t ptId1 = 0;  
-  EXPECT_TRUE(_pDb->addTaskPipeline(task, ptId1) && (ptId1 > 0)) << _pDb->getLastError();  
+  EXPECT_TRUE(_pDb->addPipelineTask(task, ptId1) && (ptId1 > 0)) << _pDb->getLastError();  
 
   uint64_t tId1 = 0;  
   EXPECT_TRUE(_pDb->startTask(ptId1, 1, "param11,param12,param13", "", tId1)) << _pDb->getLastError();        
@@ -332,7 +332,7 @@ TEST_F(DBSchedrTest, getWorkerByTask){
   task.priority = 1;
   task.ttId = ttId;
   uint64_t ptId2 = 0;  
-  EXPECT_TRUE(_pDb->addTaskPipeline(task, ptId2) && (ptId2 > 0)) << _pDb->getLastError();  
+  EXPECT_TRUE(_pDb->addPipelineTask(task, ptId2) && (ptId2 > 0)) << _pDb->getLastError();  
 
   uint64_t tId2 = 0;  
   EXPECT_TRUE(_pDb->startTask(ptId2, 1, "param21,param22,param23", "", tId2)) << _pDb->getLastError();        
@@ -353,7 +353,7 @@ TEST_F(DBSchedrTest, getWorkerByTask){
               (worker.id == wId)) << _pDb->getLastError();      
 }
 TEST_F(DBSchedrTest, sendAllMessFromSchedr){
-  ZM_Base::Scheduler schedr;
+  ZM_Base::Scheduler schedr{0};
   schedr.state = ZM_Base::StateType::READY;
   schedr.connectPnt = "localhost:4444"; 
   schedr.capacityTask = 105; 
