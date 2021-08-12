@@ -1,8 +1,6 @@
 import React from "react";
-import { connect } from "react-redux";
 import { Col, Button, Modal, Form} from "react-bootstrap";
  
-import * as Action from "../redux/actions"; 
 import { ITaskTemplate } from "../types";
 import {ServerAPI} from "../server_api"
 
@@ -23,7 +21,8 @@ interface IState {
   statusMess : string; 
 }; 
 
-class TaskTemplateDialog extends React.Component<IProps, IState>{
+export default
+class TaskTemplateDialogModal extends React.Component<IProps, IState>{
    
   private m_refObj : object;
   private m_tout : number;
@@ -162,20 +161,3 @@ class TaskTemplateDialog extends React.Component<IProps, IState>{
     )
   } 
   }
-
-////////////////////////////////////////////////////
-
-const mapStoreToProps = (store) => {
-  return store;
-};
-
-const mapDispatchToProps = (dispatch) => {
-  return {
-    onAddTaskTemplate : Action.addTaskTemplate(dispatch),
-    onChangeTaskTemplate : Action.changeTaskTemplate(dispatch),
-  }
-};
-
-let TaskTemplateDialogModal = connect(mapStoreToProps, mapDispatchToProps)(TaskTemplateDialog);
-
-export default TaskTemplateDialogModal;

@@ -1,8 +1,6 @@
 import React from "react";
-import { connect } from "react-redux";
 import { Col, Button, Modal, Form} from "react-bootstrap";
  
-import * as Action from "../redux/actions"; 
 import { IPipeline } from "../types";
 import {ServerAPI} from "../server_api"
 
@@ -23,7 +21,8 @@ interface IState {
   statusMess : string; 
 }; 
 
-class PipelineDialog extends React.Component<IProps, IState>{
+export default
+class PipelineDialogModal extends React.Component<IProps, IState>{
    
   private m_refObj : object;
   private m_tout : number;
@@ -140,20 +139,3 @@ class PipelineDialog extends React.Component<IProps, IState>{
     )
   } 
 }
-
-////////////////////////////////////////////////////
-
-const mapStoreToProps = (store) => {
-  return store;
-};
-
-const mapDispatchToProps = (dispatch) => {
-  return {
-    onAddPipeline : Action.addPipeline(dispatch),
-    onChangePipeline : Action.changePipeline(dispatch),
-  }
-};
-
-let PipelineDialogModal = connect(mapStoreToProps, mapDispatchToProps)(PipelineDialog);
-
-export default PipelineDialogModal;

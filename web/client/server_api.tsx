@@ -1,4 +1,4 @@
-import { IPipeline, ITaskTemplate, ITaskPipeline } from "./types";
+import { IPipeline, ITaskTemplate, IPipelineTask } from "./types";
 
 export namespace ServerAPI {
 
@@ -19,11 +19,11 @@ function getAllTaskTemplates(onFillTaskTemplates : (taskTemplates : Array<ITaskT
 }
 
 export
-function getAllTaskPipeline(onFillTasks : (tasks : Array<ITaskPipeline>) => any){
-  fetch('api/v1/taskPipeline')
+function getAllPipelineTasks(onFillTasks : (tasks : Array<IPipelineTask>) => any){
+  fetch('api/v1/pipelineTasks')
   .then(response => response.json())    
   .then(onFillTasks)
-  .catch(() => console.log('api/v1/taskPipeline fill error'));  
+  .catch(() => console.log('api/v1/pipelineTasks fill error'));  
 }
 
 export

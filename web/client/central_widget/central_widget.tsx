@@ -1,14 +1,12 @@
 import React from "react";
-import { connect } from "react-redux";
 import {Container, Row, Col, Tabs, Tab, Image, Card, ListGroup } from "react-bootstrap";
-import TaskTemplateDialogModal from "../task_template_dialog/task_template_dialog";
-import PipelineDialogModal from "../pipeline_dialog/pipeline_dialog";
+import TaskTemplateDialogModal from "./task_template_dialog";
+import PipelineDialogModal from "./pipeline_dialog";
 import TaskItem from "./task_item";
 import TaskHeader from "./task_header";
 import PipelineHeader from "./pipeline_header";
 import AckDeleteModal from "../common/ack_delete_modal";
 
-import * as Action from "../redux/actions";
 import { IPipeline, ITaskTemplate } from "../types";
 
 import "../css/app.css";
@@ -31,7 +29,8 @@ interface IStateApp {
   isShowAckPipelineDelete : boolean;
 };
 
-class CentralWidgetClass extends React.Component<IPropsApp, IStateApp>{
+export default
+class CentralWidget extends React.Component<IPropsApp, IStateApp>{
    
   private m_selTaskTemplate : ITaskTemplate = {} as ITaskTemplate;
   private m_selPipeline : IPipeline = {} as IPipeline;
@@ -188,18 +187,3 @@ class CentralWidgetClass extends React.Component<IPropsApp, IStateApp>{
     )
   } 
 }
-
-const mapStoreToProps = (store) => {
-  return store;
-}
-
-const mapDispatchToProps = (dispatch) => {
-  return {
-    onDelTaskTemplate : Action.delTaskTemplate(dispatch),
-    onDelPipeline : Action.delPipeline(dispatch), 
-  }
-}
-
-let CentralWidget = connect(mapStoreToProps, mapDispatchToProps)(CentralWidgetClass);
-
-export default CentralWidget;
