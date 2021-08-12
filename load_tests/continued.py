@@ -107,7 +107,7 @@ for i in range(100):
   tmWaitTasks = time.time() - tmWaitTasks
   
   print('Complete ', taskCnt * (i + 1), ' tasks:'
-   ' tmSumm ', round(tmStartTasks, 1) + round(tmWaitTasks, 1),
+   ' tmSumm ', round(tmStartTasks + tmWaitTasks, 1),
    ' tmStartTasks ', round(tmStartTasks, 1),
    ' tmWaitTasks ', round(tmWaitTasks, 1))
 

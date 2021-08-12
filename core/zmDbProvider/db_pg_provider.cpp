@@ -160,7 +160,9 @@ bool DbProvider::createTables(){
         "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1),"
         "startTime    TIMESTAMP NOT NULL DEFAULT current_timestamp,"
         "stopTime     TIMESTAMP NOT NULL DEFAULT current_timestamp,"
-        "internalData TEXT NOT NULL DEFAULT '');";
+        "internalData TEXT NOT NULL DEFAULT '',"
+        "name        TEXT NOT NULL DEFAULT '',"
+        "description  TEXT NOT NULL DEFAULT '');";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
@@ -174,7 +176,9 @@ bool DbProvider::createTables(){
         "load         INT NOT NULL DEFAULT 0 CHECK (load BETWEEN 0 AND 100),"
         "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1),"
         "startTime    TIMESTAMP NOT NULL DEFAULT current_timestamp,"
-        "stopTime     TIMESTAMP NOT NULL DEFAULT current_timestamp);";
+        "stopTime     TIMESTAMP NOT NULL DEFAULT current_timestamp,"
+        "name         TEXT NOT NULL DEFAULT '',"
+        "description  TEXT NOT NULL DEFAULT '');";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
@@ -226,6 +230,7 @@ bool DbProvider::createTables(){
         "averDurationSec INT NOT NULL CHECK (averDurationSec > 0),"
         "maxDurationSec  INT NOT NULL CHECK (maxDurationSec > 0),"
         "schedrPreset INT REFERENCES tblScheduler,"
+        "workerPreset INT REFERENCES tblWorker,"
         "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
@@ -235,6 +240,8 @@ bool DbProvider::createTables(){
         "pipeline     INT NOT NULL REFERENCES tblUPipeline,"
         "taskTempl    INT NOT NULL REFERENCES tblUTaskTemplate,"
         "taskGroup    INT REFERENCES tblUTaskGroup,"
+        "name         TEXT NOT NULL CHECK (name <> ''),"
+        "description  TEXT NOT NULL,"
         "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
     
@@ -347,14 +354,15 @@ bool DbProvider::createTables(){
         "  qid int,"
         "  averDurSec int,"
         "  maxDurSec int,"
+        "  workerPreset int,"
         "  script text,"
         "  params text[],"
         "  prevTasks int[]) AS $$ "
         "DECLARE "
         "  t int;"
         "BEGIN"
-        "  FOR qid, averDurSec, maxDurSec, script, params, prevTasks IN"
-        "    SELECT tq.id, tt.averDurationSec, tt.maxDurationSec,"
+        "  FOR qid, averDurSec, maxDurSec, workerPreset, script, params, prevTasks IN"
+        "    SELECT tq.id, tt.averDurationSec, tt.maxDurationSec, tt.workerPreset,"
         "           tt.script, tp.params, pt.prevTasks"
         "    FROM tblUTaskTemplate tt "
         "    JOIN tblTaskQueue tq ON tq.taskTempl = tt.id "
@@ -380,6 +388,7 @@ bool DbProvider::createTables(){
         "  qid int,"
         "  averDurSec int,"
         "  maxDurSec int,"
+        "  workerPreset int,"
         "  script text,"
         "  params text[],"
         "  prevTasks int[]) AS $$ "
@@ -387,8 +396,8 @@ bool DbProvider::createTables(){
         "  t int;"
         "BEGIN"
         "  <<mBegin>> "
-        "  FOR qid, averDurSec, maxDurSec, script, params, prevTasks IN"
-        "    SELECT tq.id, tt.averDurationSec, tt.maxDurationSec,"
+        "  FOR qid, averDurSec, maxDurSec, workerPreset, script, params, prevTasks IN"
+        "    SELECT tq.id, tt.averDurationSec, tt.maxDurationSec, tt.workerPreset,"
         "           tt.script, tp.params, pt.prevTasks"
         "    FROM tblUTaskTemplate tt "
         "    JOIN tblTaskQueue tq ON tq.taskTempl = tt.id "
@@ -552,10 +561,12 @@ bool DbProvider::addSchedr(const ZM_Base::Scheduler& schedl, uint64_t& outSchId)
   ss << "WITH ncp AS (INSERT INTO tblConnectPnt (ipAddr, port) VALUES("
         " '" << connPnt[0] << "',"
         " '" << connPnt[1] << "') RETURNING id)"
-        "INSERT INTO tblScheduler (connPnt, state, capacityTask) VALUES("
+        "INSERT INTO tblScheduler (connPnt, state, capacityTask, name, description) VALUES("
         "(SELECT id FROM ncp),"
         "'" << (int)schedl.state << "',"
-        "'" << schedl.capacityTask << "') RETURNING id;";
+        "'" << schedl.capacityTask << "',"
+        "'" << schedl.name << "',"
+        "'" << schedl.description << "') RETURNING id;";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
@@ -568,7 +579,7 @@ bool DbProvider::addSchedr(const ZM_Base::Scheduler& schedl, uint64_t& outSchId)
 bool DbProvider::getSchedr(uint64_t sId, ZM_Base::Scheduler& cng){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
-  ss << "SELECT cp.ipAddr, cp.port, s.state, s.capacityTask FROM tblScheduler s "
+  ss << "SELECT cp.ipAddr, cp.port, s.state, s.capacityTask, s.name, s.description FROM tblScheduler s "
         "JOIN tblConnectPnt cp ON cp.id = s.connPnt "
         "WHERE s.id = " << sId << " AND s.isDelete = 0;";
 
@@ -584,6 +595,8 @@ bool DbProvider::getSchedr(uint64_t sId, ZM_Base::Scheduler& cng){
   cng.connectPnt = PQgetvalue(pgr.res, 0, 0) + string(":") + PQgetvalue(pgr.res, 0, 1);
   cng.state = (ZM_Base::StateType)atoi(PQgetvalue(pgr.res, 0, 2));
   cng.capacityTask = atoi(PQgetvalue(pgr.res, 0, 3));
+  cng.name = PQgetvalue(pgr.res, 0, 4);
+  cng.description = PQgetvalue(pgr.res, 0, 5);
   return true;
 }
 bool DbProvider::changeSchedr(uint64_t sId, const ZM_Base::Scheduler& newCng){  
@@ -595,7 +608,9 @@ bool DbProvider::changeSchedr(uint64_t sId, const ZM_Base::Scheduler& newCng){
   }
   stringstream ss;
   ss << "UPDATE tblScheduler SET "
-        "capacityTask = '" << newCng.capacityTask << "' "
+        "capacityTask = '" << newCng.capacityTask << "', "
+        "name = '" << newCng.name << "', "
+        "description = '" << newCng.description << "' "
         "WHERE id = " << sId << " AND isDelete = 0; "
 
         "UPDATE tblConnectPnt SET "
@@ -668,11 +683,13 @@ bool DbProvider::addWorker(const ZM_Base::Worker& worker, uint64_t& outWkrId){
   ss << "WITH ncp AS (INSERT INTO tblConnectPnt (ipAddr, port) VALUES("
         " '" << connPnt[0] << "',"
         " '" << connPnt[1] << "') RETURNING id)"
-        "INSERT INTO tblWorker (connPnt, schedr, state, capacityTask) VALUES("
+        "INSERT INTO tblWorker (connPnt, schedr, state, capacityTask, name, description) VALUES("
         "(SELECT id FROM ncp),"
         "'" << (int)worker.sId << "',"
         "'" << (int)worker.state << "',"
-        "'" << worker.capacityTask << "') RETURNING id;";
+        "'" << worker.capacityTask << "',"
+        "'" << worker.name << "',"
+        "'" << worker.description << "') RETURNING id;";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
@@ -685,7 +702,7 @@ bool DbProvider::addWorker(const ZM_Base::Worker& worker, uint64_t& outWkrId){
 bool DbProvider::getWorker(uint64_t wId, ZM_Base::Worker& cng){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
-  ss << "SELECT cp.ipAddr, cp.port, w.schedr, w.state, w.capacityTask FROM tblWorker w "
+  ss << "SELECT cp.ipAddr, cp.port, w.schedr, w.state, w.capacityTask, w.name, w.description FROM tblWorker w "
         "JOIN tblConnectPnt cp ON cp.id = w.connPnt "
         "WHERE w.id = " << wId << " AND w.isDelete = 0;";
 
@@ -702,6 +719,8 @@ bool DbProvider::getWorker(uint64_t wId, ZM_Base::Worker& cng){
   cng.sId = stoull(PQgetvalue(pgr.res, 0, 2));
   cng.state = (ZM_Base::StateType)atoi(PQgetvalue(pgr.res, 0, 3));
   cng.capacityTask = atoi(PQgetvalue(pgr.res, 0, 4));
+  cng.name = PQgetvalue(pgr.res, 0, 5);
+  cng.description = PQgetvalue(pgr.res, 0, 6);
   return true;
 }
 bool DbProvider::changeWorker(uint64_t wId, const ZM_Base::Worker& newCng){
@@ -714,7 +733,9 @@ bool DbProvider::changeWorker(uint64_t wId, const ZM_Base::Worker& newCng){
   stringstream ss;
   ss << "UPDATE tblWorker SET "
         "schedr = '" << (int)newCng.sId << "',"
-        "capacityTask = '" << newCng.capacityTask << "' "
+        "capacityTask = '" << newCng.capacityTask << "',"
+        "name = '" << newCng.name << "',"
+        "description = '" << newCng.description << "' "
         "WHERE id = " << wId << " AND isDelete = 0; "
 
         "UPDATE tblConnectPnt SET "
@@ -964,9 +985,10 @@ std::vector<uint64_t> DbProvider::getAllGroups(uint64_t pplId){
 bool DbProvider::addTaskTemplate(const ZM_Base::UTaskTemplate& cng, uint64_t& outTId){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
-  ss << "INSERT INTO tblUTaskTemplate (usr, schedrPreset, name, description, script, averDurationSec, maxDurationSec) VALUES("
+  ss << "INSERT INTO tblUTaskTemplate (usr, schedrPreset, workerPreset, name, description, script, averDurationSec, maxDurationSec) VALUES("
         "'" << cng.uId << "',"
         "NULLIF(" << cng.sId << ", 0),"
+        "NULLIF(" << cng.wId << ", 0),"
         "'" << cng.name << "',"
         "'" << cng.description << "',"
         "'" << cng.script << "',"
@@ -984,7 +1006,7 @@ bool DbProvider::addTaskTemplate(const ZM_Base::UTaskTemplate& cng, uint64_t& ou
 bool DbProvider::getTaskTemplate(uint64_t tId, ZM_Base::UTaskTemplate& outTCng){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
-  ss << "SELECT usr, COALESCE(schedrPreset, 0), name, description, script, averDurationSec, maxDurationSec "
+  ss << "SELECT usr, COALESCE(schedrPreset, 0), COALESCE(workerPreset, 0), name, description, script, averDurationSec, maxDurationSec "
         "FROM tblUTaskTemplate "
         "WHERE id = " << tId << " AND isDelete = 0;";
 
@@ -999,11 +1021,12 @@ bool DbProvider::getTaskTemplate(uint64_t tId, ZM_Base::UTaskTemplate& outTCng){
   }
   outTCng.uId = stoull(PQgetvalue(pgr.res, 0, 0));
   outTCng.sId = stoull(PQgetvalue(pgr.res, 0, 1));
-  outTCng.name = PQgetvalue(pgr.res, 0, 2);
-  outTCng.description = PQgetvalue(pgr.res, 0, 3);
-  outTCng.script = PQgetvalue(pgr.res, 0, 4);  
-  outTCng.averDurationSec = atoi(PQgetvalue(pgr.res, 0, 5));
-  outTCng.maxDurationSec = atoi(PQgetvalue(pgr.res, 0, 6));
+  outTCng.wId = stoull(PQgetvalue(pgr.res, 0, 2));
+  outTCng.name = PQgetvalue(pgr.res, 0, 3);
+  outTCng.description = PQgetvalue(pgr.res, 0, 4);
+  outTCng.script = PQgetvalue(pgr.res, 0, 5);  
+  outTCng.averDurationSec = atoi(PQgetvalue(pgr.res, 0, 6));
+  outTCng.maxDurationSec = atoi(PQgetvalue(pgr.res, 0, 7));
   return true;
 };
 bool DbProvider::changeTaskTemplate(uint64_t tId, const ZM_Base::UTaskTemplate& newTCng){
@@ -1012,6 +1035,7 @@ bool DbProvider::changeTaskTemplate(uint64_t tId, const ZM_Base::UTaskTemplate& 
   ss << "UPDATE tblUTaskTemplate SET "
         "usr = '" << newTCng.uId << "',"
         "schedrPreset = NULLIF(" << newTCng.sId << ", 0),"
+        "workerPreset = NULLIF(" << newTCng.wId << ", 0),"
         "name = '" << newTCng.name << "',"
         "description = '" << newTCng.description << "', "
         "script = '" << newTCng.script << "',"
@@ -1063,10 +1087,12 @@ bool DbProvider::addTaskPipeline(const ZM_Base::UTaskPipeline& cng, uint64_t& ou
   lock_guard<mutex> lk(m_impl->m_mtx);
   
   stringstream ss;
-  ss << "INSERT INTO tblUPipelineTask (pipeline, taskTempl, taskGroup) VALUES("
+  ss << "INSERT INTO tblUPipelineTask (pipeline, taskTempl, taskGroup, name, description) VALUES("
         "'" << cng.pplId << "',"
         "'" << cng.ttId << "',"
-        "NULLIF(" << cng.gId << ", 0)) RETURNING id;";
+        "NULLIF(" << cng.gId << ", 0),"
+        "'" << cng.name << "',"
+        "'" << cng.description<< "') RETURNING id;";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
@@ -1079,7 +1105,7 @@ bool DbProvider::addTaskPipeline(const ZM_Base::UTaskPipeline& cng, uint64_t& ou
 bool DbProvider::getTaskPipeline(uint64_t tId, ZM_Base::UTaskPipeline& outTCng){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
-  ss << "SELECT pipeline, COALESCE(taskGroup, 0), taskTempl "
+  ss << "SELECT pipeline, COALESCE(taskGroup, 0), taskTempl, name, description "
         "FROM tblUPipelineTask "
         "WHERE id = " << tId << " AND isDelete = 0;";
 
@@ -1095,6 +1121,8 @@ bool DbProvider::getTaskPipeline(uint64_t tId, ZM_Base::UTaskPipeline& outTCng){
   outTCng.pplId = stoull(PQgetvalue(pgr.res, 0, 0));
   outTCng.gId = stoull(PQgetvalue(pgr.res, 0, 1));
   outTCng.ttId = stoull(PQgetvalue(pgr.res, 0, 2));
+  outTCng.name = PQgetvalue(pgr.res, 0, 3);
+  outTCng.description = PQgetvalue(pgr.res, 0, 4);
   return true;
 }
 bool DbProvider::changeTaskPipeline(uint64_t tId, const ZM_Base::UTaskPipeline& newCng){
@@ -1104,7 +1132,9 @@ bool DbProvider::changeTaskPipeline(uint64_t tId, const ZM_Base::UTaskPipeline& 
   ss << "UPDATE tblUPipelineTask SET "
         "pipeline = '" << newCng.pplId << "',"
         "taskTempl = '" << newCng.ttId << "',"
-        "taskGroup = NULLIF(" << newCng.gId << ", 0) "   
+        "taskGroup = NULLIF(" << newCng.gId << ", 0),"
+        "name = '" << newCng.name << "',"
+        "description = '" << newCng.description << "' "   
         "WHERE id = " << tId << " AND isDelete = 0;";
           
   PGres pgr(PQexec(_pg, ss.str().c_str()));
@@ -1392,7 +1422,7 @@ bool DbProvider::getSchedr(const std::string& connPnt, ZM_Base::Scheduler& outCn
     return false;
   }
   stringstream ss;
-  ss << "SELECT s.id, s.state, s.capacityTask, s.activeTask, s.internalData FROM tblScheduler s "
+  ss << "SELECT s.id, s.state, s.capacityTask, s.activeTask, s.internalData, s.name, s.description FROM tblScheduler s "
         "JOIN tblConnectPnt cp ON cp.id = s.connPnt "
         "WHERE cp.ipAddr = '" << cp[0] << "' AND cp.port = '" << cp[1] << "' AND s.isDelete = 0;";
 
@@ -1411,6 +1441,8 @@ bool DbProvider::getSchedr(const std::string& connPnt, ZM_Base::Scheduler& outCn
   outCng.capacityTask = atoi(PQgetvalue(pgr.res, 0, 2));
   outCng.activeTask = atoi(PQgetvalue(pgr.res, 0, 3));
   outCng.internalData = PQgetvalue(pgr.res, 0, 4);
+  outCng.name = PQgetvalue(pgr.res, 0, 5);
+  outCng.description = PQgetvalue(pgr.res, 0, 6);
   return true;
 }
 bool DbProvider::getTasksOfSchedr(uint64_t sId, std::vector<ZM_Base::Task>& out){
@@ -1425,12 +1457,13 @@ bool DbProvider::getTasksOfSchedr(uint64_t sId, std::vector<ZM_Base::Task>& out)
   }
   int tsz = PQntuples(pgr.res);
   for (int i = 0; i < tsz; ++i){
-    string params = PQgetvalue(pgr.res, i, 4);
+    string params = PQgetvalue(pgr.res, i, 5);
     params = params.substr(1, params.size() - 2); // remove { and }
     out.push_back(ZM_Base::Task{stoull(PQgetvalue(pgr.res, i, 0)),
-                                atoi(PQgetvalue(pgr.res, i, 1)),
+                                stoull(PQgetvalue(pgr.res, i, 1)),
                                 atoi(PQgetvalue(pgr.res, i, 2)),
-                                PQgetvalue(pgr.res, i, 3),
+                                atoi(PQgetvalue(pgr.res, i, 3)),
+                                PQgetvalue(pgr.res, i, 4),
                                 params});
   }
   return true;
@@ -1438,7 +1471,7 @@ bool DbProvider::getTasksOfSchedr(uint64_t sId, std::vector<ZM_Base::Task>& out)
 bool DbProvider::getWorkersOfSchedr(uint64_t sId, std::vector<ZM_Base::Worker>& out){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
-  ss << "SELECT w.id, w.state, w.capacityTask, w.activeTask, cp.ipAddr, cp.port "
+  ss << "SELECT w.id, w.state, w.capacityTask, w.activeTask, cp.ipAddr, cp.port, w.name, w.description "
         "FROM tblWorker w "
         "JOIN tblConnectPnt cp ON cp.id = w.connPnt "
         "WHERE w.schedr = " << sId << " AND w.isDelete = 0;";
@@ -1457,7 +1490,9 @@ bool DbProvider::getWorkersOfSchedr(uint64_t sId, std::vector<ZM_Base::Worker>& 
                                    atoi(PQgetvalue(pgr.res, i, 3)),
                                    ZM_Base::Worker::RATING_MAX,
                                    0,
-                                   PQgetvalue(pgr.res, i, 4) + string(":") + PQgetvalue(pgr.res, i, 5)});
+                                   PQgetvalue(pgr.res, i, 4) + string(":") + PQgetvalue(pgr.res, i, 5),
+                                   PQgetvalue(pgr.res, i, 6),
+                                   PQgetvalue(pgr.res, i, 7)});
   }
   return true;
 }
@@ -1473,12 +1508,13 @@ bool DbProvider::getNewTasksForSchedr(uint64_t sId, int maxTaskCnt, std::vector<
   }
   int tsz = PQntuples(pgr.res);
   for (int i = 0; i < tsz; ++i){
-    string params = PQgetvalue(pgr.res, i, 4);
+    string params = PQgetvalue(pgr.res, i, 5);
     params = params.substr(1, params.size() - 2); // remove { and }
     out.push_back(ZM_Base::Task{stoull(PQgetvalue(pgr.res, i, 0)),
-                                atoi(PQgetvalue(pgr.res, i, 1)),
+                                stoull(PQgetvalue(pgr.res, i, 1)),
                                 atoi(PQgetvalue(pgr.res, i, 2)),
-                                PQgetvalue(pgr.res, i, 3),
+                                atoi(PQgetvalue(pgr.res, i, 3)),
+                                PQgetvalue(pgr.res, i, 4),
                                 params});
   }
   return true;

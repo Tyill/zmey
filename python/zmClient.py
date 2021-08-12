@@ -183,11 +183,15 @@ class _UserCng_C(ctypes.Structure):
               ('description', ctypes.c_char_p)]
 class _SchedrCng_C(ctypes.Structure):
   _fields_ = [('capacityTask', ctypes.c_uint32),
-              ('connectPnt', ctypes.c_char * 256)]
+              ('connectPnt', ctypes.c_char * 256),
+              ('name', ctypes.c_char * 256),
+              ('description', ctypes.c_char_p)]
 class _WorkerCng_C(ctypes.Structure):
   _fields_ = [('schedrId', ctypes.c_uint64),
               ('capacityTask', ctypes.c_uint32),
-              ('connectPnt', ctypes.c_char * 256)]
+              ('connectPnt', ctypes.c_char * 256),
+              ('name', ctypes.c_char * 256),
+              ('description', ctypes.c_char_p)]
 class _PipelineCng_C(ctypes.Structure):
   _fields_ = [('userId', ctypes.c_uint64),
               ('name', ctypes.c_char * 256),
@@ -199,6 +203,7 @@ class _GroupCng_C(ctypes.Structure):
 class _TaskTemplCng_C(ctypes.Structure):
   _fields_ = [('userId', ctypes.c_uint64),
               ('schedrPresetId', ctypes.c_uint64),
+              ('workerPresetId', ctypes.c_uint64),
               ('averDurationSec', ctypes.c_uint32),
               ('maxDurationSec', ctypes.c_uint32),
               ('name', ctypes.c_char * 256),
@@ -207,7 +212,9 @@ class _TaskTemplCng_C(ctypes.Structure):
 class _TaskPipelineCng_C(ctypes.Structure):
   _fields_ = [('pplId', ctypes.c_uint64),
               ('gId', ctypes.c_uint64),
-              ('ttId', ctypes.c_uint64)]
+              ('ttId', ctypes.c_uint64),
+              ('name', ctypes.c_char * 256),
+              ('description', ctypes.c_char_p)]
 class _TaskCng_C(ctypes.Structure):
   _fields_ = [('pplId', ctypes.c_uint64),
               ('priority', ctypes.c_uint32),
@@ -452,6 +459,8 @@ class Connection:
       scng = _SchedrCng_C()
       scng.connectPnt = iosch.connectPnt.encode('utf-8')
       scng.capacityTask = iosch.capacityTask
+      scng.name = iosch.name.encode('utf-8')
+      scng.description = iosch.description.encode('utf-8')
       
       sid = ctypes.c_uint64(0)
       
@@ -479,7 +488,11 @@ class Connection:
       if (pfun(self._zmConn, sid, ctypes.byref(scng))):      
         iosch.connectPnt = scng.connectPnt.decode('utf-8')
         iosch.capacityTask = scng.capacityTask
-      return True
+        iosch.name = scng.name.decode('utf-8')
+        if scng.description:
+          iosch.description = scng.description.decode('utf-8')
+          self._freeResources()
+        return True
     return False
   def changeScheduler(self, isch : Schedr) -> bool:
     """
@@ -492,6 +505,8 @@ class Connection:
       scng = _SchedrCng_C()
       scng.connectPnt = isch.connectPnt.encode('utf-8')
       scng.capacityTask = isch.capacityTask
+      scng.name = isch.name.encode('utf-8')
+      scng.description = isch.description.encode('utf-8')
       
       pfun = _lib.zmChangeScheduler
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, _SchedrCng_C)
@@ -614,7 +629,9 @@ class Connection:
       wcng.schedrId = iowkr.sId
       wcng.connectPnt = iowkr.connectPnt.encode('utf-8')
       wcng.capacityTask = iowkr.capacityTask
-      
+      wcng.name = iowkr.name.encode('utf-8')
+      wcng.description = iowkr.description.encode('utf-8')
+
       wid = ctypes.c_uint64(0)
       
       pfun = _lib.zmAddWorker
@@ -642,6 +659,10 @@ class Connection:
         iowkr.sId = wcng.schedrId
         iowkr.connectPnt = wcng.connectPnt.decode('utf-8')
         iowkr.capacityTask = wcng.capacityTask
+        iowkr.name = wcng.name.decode('utf-8')
+        if wcng.description:
+          iowkr.description = wcng.description.decode('utf-8')
+          self._freeResources()
         return True
     return False
   def changeWorker(self, iwkr : Worker) -> bool:
@@ -656,7 +677,9 @@ class Connection:
       wcng.schedrId = iwkr.sId
       wcng.connectPnt = iwkr.connectPnt.encode('utf-8')
       wcng.capacityTask = iwkr.capacityTask
-      
+      wcng.name = iwkr.name.encode('utf-8')
+      wcng.description = iwkr.description.encode('utf-8')
+
       pfun = _lib.zmChangeWorker
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, _WorkerCng_C)
       pfun.restype = ctypes.c_bool
@@ -994,6 +1017,7 @@ class Connection:
       tcng = _TaskTemplCng_C()
       tcng.userId = iott.uId
       tcng.schedrPresetId = iott.sId
+      tcng.workerPresetId = iott.wId
       tcng.averDurationSec = iott.averDurationSec
       tcng.maxDurationSec = iott.maxDurationSec
       tcng.name = iott.name.encode('utf-8')
@@ -1026,6 +1050,7 @@ class Connection:
       if (pfun(self._zmConn, ttid, ctypes.byref(tcng))):      
         iott.uId = tcng.userId
         iott.sId = tcng.schedrPresetId
+        iott.wId = tcng.workerPresetId
         iott.averDurationSec = tcng.averDurationSec
         iott.maxDurationSec = tcng.maxDurationSec
         iott.name = tcng.name.decode('utf-8')
@@ -1047,6 +1072,7 @@ class Connection:
       tcng = _TaskTemplCng_C()
       tcng.userId = iott.uId
       tcng.schedrPresetId = iott.sId
+      tcng.workerPresetId = iott.wId
       tcng.averDurationSec = iott.averDurationSec
       tcng.maxDurationSec = iott.maxDurationSec            
       tcng.name = iott.name.encode('utf-8')
@@ -1113,7 +1139,9 @@ class Connection:
       tcng.pplId = iot.pplId
       tcng.ttId = iot.ttId
       tcng.gId = iot.gId
-      
+      tcng.name = iot.name.encode('utf-8')
+      tcng.description = iot.description.encode('utf-8')
+
       tid = ctypes.c_uint64(0)
       
       pfun = _lib.zmAddTaskPipeline
@@ -1141,6 +1169,10 @@ class Connection:
         iot.pplId = tcng.pplId
         iot.ttId = tcng.ttId
         iot.gId = tcng.gId
+        iot.name = tcng.name.decode('utf-8')
+        if tcng.description:
+          iot.description = tcng.description.decode('utf-8')          
+          self._freeResources()  
         return True
     return False
   def changeTaskPipeline(self, iot : TaskPipeline) -> bool:
@@ -1155,7 +1187,9 @@ class Connection:
       tcng.pplId = iot.pplId
       tcng.ttId = iot.ttId
       tcng.gId = iot.gId
-            
+      tcng.name = iot.name.encode('utf-8')
+      tcng.description = iot.description.encode('utf-8')
+      
       pfun = _lib.zmChangeTaskPipeline
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, _TaskPipelineCng_C)
       pfun.restype = ctypes.c_bool

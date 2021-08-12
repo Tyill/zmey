@@ -51,15 +51,16 @@ typedef void* zmConn;
 
 /// state
 enum zmStateType{
-  zmUndefined = -1,
-  zmReady,
-  zmStart,
-  zmRunning,
-  zmPause,
-  zmStop,    
-  zmCompleted,
-  zmError,
-  zmNotResponding,
+  zmSTATE_UNDEFINED = -1,
+  zmSTATE_READY,
+  zmSTATE_START,
+  zmSTATE_RUNNING,
+  zmSTATE_PAUSE,
+  zmSTATE_STOP,    
+  zmSTATE_COMPLETED,
+  zmSTATE_ERROR,
+  zmSTATE_CANCEL,
+  zmSTATE_NOT_RESPONDING,
 };
 
 /// version lib
@@ -162,6 +163,8 @@ ZMEY_API uint32_t zmGetAllUsers(zmConn, uint64_t** outUserId);
 struct zmSchedr{
   uint32_t capacityTask = 10000; ///< permissible simultaneous number of tasks 
   char connectPnt[256];          ///< remote connection point: IP or DNS:port  
+  char name[256];                ///< scheduler name. Optional.
+  char* description;             ///< description of schedr. The memory is allocated by the user. May be NULL 
 };
 /// add new scheduler
 /// @param[in] zmConn - object connect
@@ -227,9 +230,11 @@ ZMEY_API uint32_t zmGetAllSchedulers(zmConn, zmStateType state, uint64_t** outSc
 
 /// worker config
 struct zmWorker{
-  uint64_t sId;               ///< scheduler id 
+  uint64_t sId;               ///< worker id 
   uint32_t capacityTask = 10; ///< permissible simultaneous number of tasks
-  char connectPnt[256];       ///< remote connection point: IP or DNS:port   
+  char connectPnt[256];       ///< remote connection point: IP or DNS:port  
+  char name[256];             ///< worker name. Optional.
+  char* description;          ///< description of worker. The memory is allocated by the user. May be NULL 
 };
   
 /// add new worker
@@ -388,6 +393,7 @@ ZMEY_API uint32_t zmGetAllGroups(zmConn, uint64_t pplId, uint64_t** outGId);
 struct zmTaskTemplate{
   uint64_t userId;          ///< user id
   uint64_t schedrPresetId;  ///< schedr preset id. Default 0
+  uint64_t workerPresetId;  ///< worker preset id. Default 0
   uint32_t averDurationSec; ///< estimated lead time, sec 
   uint32_t maxDurationSec;  ///< maximum lead time, sec
   char name[256];           ///< task template name
@@ -439,6 +445,8 @@ struct zmTaskPipeline{
   uint64_t pplId;          ///< pipeline id
   uint64_t gId;            ///< group id. 0 if group no exist.
   uint64_t ttId;           ///< task template id
+  char name[256];          ///< task name
+  char* description;       ///< description of task. The memory is allocated by the user. May be NULL
 };
 
 /// add pipeline task
@@ -483,7 +491,7 @@ struct zmTask{
   uint64_t ptId;           ///< pipeline task id
   uint32_t priority;       ///< [1..3]
   char* params;            ///< CLI params for script. May be NULL
-  char* prevTId;           ///< prev task to be completed: tId1, tId2... May be NULL 
+  char* prevTId;           ///< prev task to be completed: "tId1, tId2..." May be NULL 
 };
 
 /// start task
