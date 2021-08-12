@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 module.exports = {
-  entry: './tsx/app.tsx',  
+  entry: './client/app.tsx',  
   output: {
     publicPath: 'js/',
     path: __dirname + '/js/',

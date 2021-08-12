@@ -52,13 +52,16 @@ bool Executor::sendTaskToWorker()
   }
   
   while (!m_tasks.empty()){
+    ZM_Base::Task task;
+    m_tasks.front(task);
     sort(m_refWorkers.begin(), m_refWorkers.end(), [](const ZM_Base::Worker* l, const ZM_Base::Worker* r){
       return float(l->activeTask + l->load / 10.f) / l->rating < float(r->activeTask + r->load / 10.f) / r->rating;
     });
     auto iWr = find_if(m_refWorkers.begin(), m_refWorkers.end(),
-      [this](const ZM_Base::Worker* w){                
+      [this, &task](const ZM_Base::Worker* w){                
         bool isSpare = false;
-        if ((w->state == ZM_Base::StateType::RUNNING) && (w->activeTask <= w->capacityTask) && (w->rating > 1)){ 
+        if (((task.wId == 0) || (task.wId == w->id)) && (w->state == ZM_Base::StateType::RUNNING) && 
+            (w->activeTask <= w->capacityTask) && (w->rating > 1)){ 
           for(auto& wt : m_workers[w->connectPnt].taskList){
             if (wt == 0){
               isSpare = true;
@@ -68,27 +71,27 @@ bool Executor::sendTaskToWorker()
         }
         return isSpare;
       }); 
+    
     if(iWr != m_refWorkers.end()){
-      ZM_Base::Task t;
-      m_tasks.tryPop(t);
+      m_tasks.tryPop(task);
       map<string, string> data{
         {"command",         to_string((int)ZM_Base::MessType::NEW_TASK)},
         {"connectPnt",      m_schedr.connectPnt},
-        {"taskId",          to_string(t.id)},
-        {"params",          t.params}, 
-        {"script",          t.script},
-        {"averDurationSec", to_string(t.averDurationSec)}, 
-        {"maxDurationSec",  to_string(t.maxDurationSec)}        
+        {"taskId",          to_string(task.id)},
+        {"params",          task.params}, 
+        {"script",          task.script},
+        {"averDurationSec", to_string(task.averDurationSec)}, 
+        {"maxDurationSec",  to_string(task.maxDurationSec)}        
       };
       const string& wConnPnt = (*iWr)->connectPnt;
       if (ZM_Tcp::asyncSendData(wConnPnt, ZM_Aux::serialn(data))){
         ++(*iWr)->activeTask;
         m_workers[wConnPnt].base.activeTask = (*iWr)->activeTask; 
-        m_messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::TASK_START, (*iWr)->id, t.id}); 
+        m_messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::TASK_START, (*iWr)->id, task.id}); 
 
         for(auto& wt : m_workers[wConnPnt].taskList){
           if (wt == 0){
-            wt = t.id;
+            wt = task.id;
             break;
           }
         } 

@@ -89,9 +89,10 @@ namespace ZM_Base{
     std::string name;         // unique name
     std::string description;
   };
-  
+  // task object
   struct Task{
     uint64_t id;              // id tblTaskQueue
+    uint64_t wId;             // preset worker id tblWorker. Default 0 - not set
     int averDurationSec;      // estimated lead time
     int maxDurationSec;       // maximum lead time
     std::string script;       // script on bash, python or cmd
@@ -101,7 +102,8 @@ namespace ZM_Base{
   // tblUTaskTemplate
   struct UTaskTemplate{
     uint64_t uId;             // parent id tblUser
-    uint64_t sId;             // preset schedr id tblScheduler
+    uint64_t sId;             // preset schedr id tblScheduler. Default 0 - not set
+    uint64_t wId;             // preset worker id tblWorker. Default 0 - not set
     int averDurationSec;      // estimated lead time
     int maxDurationSec;       // maximum lead time
     std::string name;
@@ -115,6 +117,8 @@ namespace ZM_Base{
     uint64_t pplId;           // id tblUPipeline
     uint64_t gId;             // id tblUGroup
     int priority;             // [1..3]    
+    std::string name;
+    std::string description;
   };
   // tblScheduler
   struct Scheduler{
@@ -124,6 +128,8 @@ namespace ZM_Base{
     int activeTask;           // number of running tasks (approximate quantity)
     std::string connectPnt;   // connection point: IP or DNS ':' port
     std::string internalData; // config data in json
+    std::string name;
+    std::string description;
   };
   // tblWorker
   struct Worker{
@@ -132,9 +138,11 @@ namespace ZM_Base{
     StateType state;  
     int capacityTask;         // the number of tasks that can be performed simultaneously  
     int activeTask;           // number of running tasks (approximate quantity)
-    int rating;               // manager is assigned a rating to the worker[1..10]
+    int rating;               // assigned a rating to the worker[1..10]
     int load;                 // current load [0..100]
     std::string connectPnt;   // connection point: IP or DNS ':' port
+    std::string name;
+    std::string description;
     static const int RATING_MAX = 10;
   };
 }

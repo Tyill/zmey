@@ -4,7 +4,7 @@ const webpack = require('webpack');
 module.exports = {
   entry: [
     'webpack-dev-server/client/?http://localhost:8080',
-    './tsx/app.tsx',
+    './client/app.tsx',
   ],  
   output: {
     publicPath: 'js/',
@@ -26,11 +26,9 @@ module.exports = {
    },
   devServer: {
     hot: true,
-    // host: '192.168.1.3',
-    // port: 8080,
-    proxy: {
-      '/': 'http://localhost:5000', 
-    },   
+    // proxy: {
+    //   '/': 'http://localhost:5000', 
+    // },   
   },  
   plugins: [new webpack.HotModuleReplacementPlugin()]   
 }

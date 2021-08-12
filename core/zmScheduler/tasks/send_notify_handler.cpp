@@ -72,6 +72,7 @@ void Executor::sendNotifyHandler(const string& cp, const string& data, const std
         checkFieldNum(maxDurationSec);
         ZM_Base::Task t;
         t.id = stoull(mess["taskId"]);
+        t.wId = wId;
         t.params = mess["params"];
         t.script = mess["script"];
         t.averDurationSec = stoi(mess["averDurationSec"]);

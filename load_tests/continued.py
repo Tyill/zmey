@@ -81,7 +81,7 @@ for i in range(sCnt):
 # add tasks
 taskCnt = 10000
 for j in range(taskCnt):
-  pt = zm.TaskPipeline(pplId=ppl.id, ttId=tt.id)
+  pt = zm.TaskPipeline(name="pt", pplId=ppl.id, ttId=tt.id)
   zo.addTaskPipeline(pt)
 
 for i in range(100):
@@ -107,7 +107,7 @@ for i in range(100):
   tmWaitTasks = time.time() - tmWaitTasks
   
   print('Complete ', taskCnt * (i + 1), ' tasks:'
-   ' tmSumm ', round(tmStartTasks, 1) + round(tmWaitTasks, 1),
+   ' tmSumm ', round(tmStartTasks + tmWaitTasks, 1),
    ' tmStartTasks ', round(tmStartTasks, 1),
    ' tmWaitTasks ', round(tmWaitTasks, 1))
 
