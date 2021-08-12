@@ -143,11 +143,11 @@ public:
   bool delTaskTemplate(uint64_t ttId);
   std::vector<uint64_t> getAllTaskTemplates(uint64_t parent);
 
-  bool addTaskPipeline(const ZM_Base::UTaskPipeline&, uint64_t& outTId);
-  bool getTaskPipeline(uint64_t ptId, ZM_Base::UTaskPipeline&);
-  bool changeTaskPipeline(uint64_t ptId, const ZM_Base::UTaskPipeline& newTCng);
-  bool delTaskPipeline(uint64_t ptId);
-  std::vector<uint64_t> getAllTasksPipeline(uint64_t pplId);
+  bool addPipelineTask(const ZM_Base::UPipelineTask&, uint64_t& outTId);
+  bool getPipelineTask(uint64_t ptId, ZM_Base::UPipelineTask&);
+  bool changePipelineTask(uint64_t ptId, const ZM_Base::UPipelineTask& newTCng);
+  bool delPipelineTask(uint64_t ptId);
+  std::vector<uint64_t> getAllPipelineTasks(uint64_t pplId);
   
   bool startTask(uint64_t ptId, uint32_t priority, const std::string& params, const std::string& prevTasks, uint64_t& tId);
   bool cancelTask(uint64_t tId);

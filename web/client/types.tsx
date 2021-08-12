@@ -38,12 +38,14 @@ interface ITaskTemplate{
 };   
 
 export
-interface ITaskPipeline{       ///< task of pipeline
+interface IPipelineTask{       
   id : number;
   pplId : number;              ///< pipeline id
   ttId : number;               ///< task template id    
   prevTasksId : Array<number>; ///< pipeline task id of previous tasks
-  nextTasksId : Array<number>; ///< pipeline task id of next tasks    
+  nextTasksId : Array<number>; ///< pipeline task id of next tasks  
+  name : string;
+  description : string;  
 };
 
 export
@@ -76,5 +78,5 @@ interface IStoreType{
   user : IUser;
   pipelines : Map<number, IPipeline>;         ///< key - pipeline id
   taskTemplates : Map<number, ITaskTemplate>; ///< key - taskTemplate id
-  taskPipeline : Map<number, ITaskPipeline>;  ///< key - taskPipeline id
+  pipelineTask : Map<number, IPipelineTask>;  ///< key - pipelineTask id
 };
