@@ -111,7 +111,7 @@ ZMEY_API bool zmGetLastError(zmConn, char* err/*sz 256*/);
 
 /// user config
 struct zmUser{  
-  char name[256];    ///< unique name
+  char name[256];    ///< unique name. Necessarily
   char passw[256];   ///< password  
   char* description; ///< the memory is allocated by the user. May be NULL  
 };
@@ -304,7 +304,7 @@ ZMEY_API uint32_t zmGetAllWorkers(zmConn, uint64_t sId, zmStateType state, uint6
 /// pipeline config
 struct zmPipeline{
   uint64_t userId;         ///< user id
-  char name[256];          ///< pipeline name
+  char name[256];          ///< pipeline name. Necessarily
   char* description;       ///< description of pipeline. The memory is allocated by the user. May be NULL
 };
 
@@ -348,7 +348,7 @@ ZMEY_API uint32_t zmGetAllPipelines(zmConn, uint64_t userId, uint64_t** outPPLId
 /// group config
 struct zmGroup{
   uint64_t pplId;          ///< pipeline id
-  char name[256];          ///< group name
+  char name[256];          ///< group name. Necessarily
   char* description;       ///< description of group. The memory is allocated by the user. May be NULL
 };
 
@@ -396,7 +396,7 @@ struct zmTaskTemplate{
   uint64_t workerPresetId;  ///< worker preset id. Default 0
   uint32_t averDurationSec; ///< estimated lead time, sec 
   uint32_t maxDurationSec;  ///< maximum lead time, sec
-  char name[256];           ///< task template name
+  char name[256];           ///< task template name. Necessarily
   char* description;        ///< description of task. The memory is allocated by the user. May be NULL
   char* script;             ///< script on bash, python or cmd. The memory is allocated by the user
 };
@@ -441,11 +441,11 @@ ZMEY_API uint32_t zmGetAllTaskTemplates(zmConn, uint64_t userId, uint64_t** outT
 /// Task of pipeline
 
 /// pipeline task config
-struct zmTaskPipeline{
+struct zmPipelineTask{
   uint64_t pplId;          ///< pipeline id
   uint64_t gId;            ///< group id. 0 if group no exist.
   uint64_t ttId;           ///< task template id
-  char name[256];          ///< task name
+  char name[256];          ///< task name. Necessarily
   char* description;       ///< description of task. The memory is allocated by the user. May be NULL
 };
 
@@ -454,34 +454,34 @@ struct zmTaskPipeline{
 /// @param[in] cng - pipeline task config
 /// @param[out] outPtId - pipeline task id
 /// @return true - ok
-ZMEY_API bool zmAddTaskPipeline(zmConn, zmTaskPipeline cng, uint64_t* outPtId);
+ZMEY_API bool zmAddPipelineTask(zmConn, zmPipelineTask cng, uint64_t* outPtId);
 
 /// get pipeline task config
 /// @param[in] zmConn - object connect
 /// @param[in] ptId - pipeline task id
 /// @param[out] outTCng - pipeline task config. The memory is allocated by the user
 /// @return true - ok
-ZMEY_API bool zmGetTaskPipeline(zmConn, uint64_t ptId, zmTaskPipeline* outTCng);
+ZMEY_API bool zmGetPipelineTask(zmConn, uint64_t ptId, zmPipelineTask* outTCng);
 
 /// change pipeline task config
 /// @param[in] zmConn - object connect
 /// @param[in] ptId - pipeline task id
 /// @param[in] newCng - pipeline task config
 /// @return true - ok
-ZMEY_API bool zmChangeTaskPipeline(zmConn, uint64_t ptId, zmTaskPipeline newCng);
+ZMEY_API bool zmChangePipelineTask(zmConn, uint64_t ptId, zmPipelineTask newCng);
 
 /// delete pipeline task
 /// @param[in] zmConn - object connect
 /// @param[in] ptId - pipeline task id
 /// @return true - ok
-ZMEY_API bool zmDelTaskPipeline(zmConn, uint64_t ptId);
+ZMEY_API bool zmDelPipelineTask(zmConn, uint64_t ptId);
 
 /// get all pipeline tasks
 /// @param[in] zmConn - object connect
 /// @param[in] pplId - pipeline id
 /// @param[out] outQTId - pipeline task id. Pass NULL, no need to free memory
 /// @return count of pipeline tasks
-ZMEY_API uint32_t zmGetAllTasksPipeline(zmConn, uint64_t pplId, uint64_t** outQTId);
+ZMEY_API uint32_t zmGetAllPipelineTasks(zmConn, uint64_t pplId, uint64_t** outQTId);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Task object

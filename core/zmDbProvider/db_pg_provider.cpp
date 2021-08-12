@@ -1083,7 +1083,7 @@ std::vector<uint64_t> DbProvider::getAllTaskTemplates(uint64_t usr){
   return ret;
 }
 
-bool DbProvider::addTaskPipeline(const ZM_Base::UTaskPipeline& cng, uint64_t& outTId){
+bool DbProvider::addPipelineTask(const ZM_Base::UPipelineTask& cng, uint64_t& outTId){
   lock_guard<mutex> lk(m_impl->m_mtx);
   
   stringstream ss;
@@ -1102,7 +1102,7 @@ bool DbProvider::addTaskPipeline(const ZM_Base::UTaskPipeline& cng, uint64_t& ou
   outTId = stoull(PQgetvalue(pgr.res, 0, 0));
   return true;
 }
-bool DbProvider::getTaskPipeline(uint64_t tId, ZM_Base::UTaskPipeline& outTCng){
+bool DbProvider::getPipelineTask(uint64_t tId, ZM_Base::UPipelineTask& outTCng){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
   ss << "SELECT pipeline, COALESCE(taskGroup, 0), taskTempl, name, description "
@@ -1125,7 +1125,7 @@ bool DbProvider::getTaskPipeline(uint64_t tId, ZM_Base::UTaskPipeline& outTCng){
   outTCng.description = PQgetvalue(pgr.res, 0, 4);
   return true;
 }
-bool DbProvider::changeTaskPipeline(uint64_t tId, const ZM_Base::UTaskPipeline& newCng){
+bool DbProvider::changePipelineTask(uint64_t tId, const ZM_Base::UPipelineTask& newCng){
   lock_guard<mutex> lk(m_impl->m_mtx);
  
   stringstream ss;
@@ -1144,7 +1144,7 @@ bool DbProvider::changeTaskPipeline(uint64_t tId, const ZM_Base::UTaskPipeline& 
   }  
   return true;
 }
-bool DbProvider::delTaskPipeline(uint64_t tId){
+bool DbProvider::delPipelineTask(uint64_t tId){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
   ss << "UPDATE tblUPipelineTask SET "
@@ -1158,7 +1158,7 @@ bool DbProvider::delTaskPipeline(uint64_t tId){
   }  
   return true;
 }
-std::vector<uint64_t> DbProvider::getAllTasksPipeline(uint64_t pplId){  
+std::vector<uint64_t> DbProvider::getAllPipelineTasks(uint64_t pplId){  
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
   ss << "SELECT ut.id FROM tblUPipelineTask ut "

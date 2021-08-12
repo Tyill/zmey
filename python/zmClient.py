@@ -137,8 +137,8 @@ class TaskTemplate:
     self.name = name    
     self.description = description
     self.script = script   
-class TaskPipeline: 
-  """TaskPipeline config""" 
+class PipelineTask: 
+  """PipelineTask config""" 
   def __init__(self,
                id : int = 0,
                pplId : int = 0,
@@ -223,7 +223,7 @@ class _TaskTemplCng_C(ctypes.Structure):
               ('name', ctypes.c_char * 256),
               ('description', ctypes.c_char_p),
               ('script', ctypes.c_char_p)]
-class _TaskPipelineCng_C(ctypes.Structure):
+class _PipelineTaskCng_C(ctypes.Structure):
   _fields_ = [('pplId', ctypes.c_uint64),
               ('gId', ctypes.c_uint64),
               ('ttId', ctypes.c_uint64),
@@ -1142,14 +1142,14 @@ class Connection:
   #############################################################################
   ### Task of Pipeline
  
-  def addTaskPipeline(self, iot : TaskPipeline) -> bool:
+  def addPipelineTask(self, iot : PipelineTask) -> bool:
     """
     Add new Task
     :param iot: new Task config
     :return: True - ok
     """
     if (self._zmConn):
-      tcng = _TaskPipelineCng_C()
+      tcng = _PipelineTaskCng_C()
       tcng.pplId = iot.pplId
       tcng.ttId = iot.ttId
       tcng.gId = iot.gId
@@ -1158,26 +1158,26 @@ class Connection:
 
       tid = ctypes.c_uint64(0)
       
-      pfun = _lib.zmAddTaskPipeline
-      pfun.argtypes = (ctypes.c_void_p, _TaskPipelineCng_C, ctypes.POINTER(ctypes.c_uint64))
+      pfun = _lib.zmAddPipelineTask
+      pfun.argtypes = (ctypes.c_void_p, _PipelineTaskCng_C, ctypes.POINTER(ctypes.c_uint64))
       pfun.restype = ctypes.c_bool
       if (pfun(self._zmConn, tcng, ctypes.byref(tid))):
         iot.id = tid.value
         return True
     return False
-  def getTaskPipeline(self, iot : TaskPipeline) -> bool:
+  def getPipelineTask(self, iot : PipelineTask) -> bool:
     """
     Get pipeline task config by ID
     :param iot: Task config
     :return: True - ok
     """
     if (self._zmConn):
-      tcng = _TaskPipelineCng_C()
+      tcng = _PipelineTaskCng_C()
 
       tid = ctypes.c_uint64(iot.id)
       
-      pfun = _lib.zmGetTaskPipeline
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(_TaskPipelineCng_C))
+      pfun = _lib.zmGetPipelineTask
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(_PipelineTaskCng_C))
       pfun.restype = ctypes.c_bool
       if (pfun(self._zmConn, tid, ctypes.byref(tcng))):      
         iot.pplId = tcng.pplId
@@ -1189,7 +1189,7 @@ class Connection:
           self._freeResources()  
         return True
     return False
-  def changeTaskPipeline(self, iot : TaskPipeline) -> bool:
+  def changePipelineTask(self, iot : PipelineTask) -> bool:
     """
     Change Task config
     :param iot: new Task config
@@ -1197,19 +1197,19 @@ class Connection:
     """
     if (self._zmConn):
       tid = ctypes.c_uint64(iot.id)
-      tcng = _TaskPipelineCng_C()
+      tcng = _PipelineTaskCng_C()
       tcng.pplId = iot.pplId
       tcng.ttId = iot.ttId
       tcng.gId = iot.gId
       tcng.name = iot.name.encode('utf-8')
       tcng.description = iot.description.encode('utf-8')
       
-      pfun = _lib.zmChangeTaskPipeline
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, _TaskPipelineCng_C)
+      pfun = _lib.zmChangePipelineTask
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, _PipelineTaskCng_C)
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, tid, tcng)
     return False
-  def delTaskPipeline(self, ptId : int) -> bool:
+  def delPipelineTask(self, ptId : int) -> bool:
     """
     Delete pipeline task
     :param tId: Task id
@@ -1218,12 +1218,12 @@ class Connection:
     if (self._zmConn):
       tid = ctypes.c_uint64(ptId)
             
-      pfun = _lib.zmDelTaskPipeline
+      pfun = _lib.zmDelPipelineTask
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, tid)
     return False
-  def getAllTasksPipeline(self, pplId : int, state : StateType) -> List[TaskPipeline]:
+  def getAllPipelineTasks(self, pplId : int, state : StateType) -> List[PipelineTask]:
     """
     Get all tasks of pipeline
     :param pplId: Pipeline id
@@ -1234,7 +1234,7 @@ class Connection:
       cpplId = ctypes.c_uint64(pplId)
       cstate = ctypes.c_int32(state.value)
 
-      pfun = _lib.zmGetAllTasksPipeline
+      pfun = _lib.zmGetAllPipelineTasks
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.c_int32, ctypes.POINTER(ctypes.POINTER(ctypes.c_uint64)))
       pfun.restype = ctypes.c_uint32
       dbuffer = ctypes.POINTER(ctypes.c_uint64)()
@@ -1246,8 +1246,8 @@ class Connection:
       
         ott = []
         for i in range(osz):
-          t = Task(oid[i])
-          self.getTask(t)
+          t = PipelineTask(oid[i])
+          self.getPipelineTask(t)
           ott.append(t)
         return ott
     return []
