@@ -10,11 +10,7 @@ interface IProps {
   show : boolean;
   onHide : (selTaskTemplate : ITaskTemplate) => any;
   selTaskTemplate : ITaskTemplate;
-  
-  taskTemplates : Map<number, ITaskTemplate>;                   // | Store
-  
-  onAddTaskTemplate : (taskTemplate : ITaskTemplate) => any;    // | Actions 
-  onChangeTaskTemplate : (taskTemplate : ITaskTemplate) => any; // |
+  taskTemplates : Map<number, ITaskTemplate>;
 };
 
 interface IState {
@@ -83,7 +79,7 @@ class TaskTemplateDialogModal extends React.Component<IProps, IState>{
     if (this.m_isNewTask){
       ServerAPI.addTaskTemplate(newTaskTemplate, 
         (respTaskTemplate)=>{
-          this.props.onAddTaskTemplate(respTaskTemplate);      
+          //this.props.onAddTaskTemplate(respTaskTemplate);      
           this.setState({statusMess : "Success create of Task Template"});    
           clearTimeout(this.m_tout);
           this.m_tout = setTimeout(() => { 
@@ -100,7 +96,7 @@ class TaskTemplateDialogModal extends React.Component<IProps, IState>{
     else{
       ServerAPI.changeTaskTemplate(newTaskTemplate, 
         (respTaskTemplate)=>{
-          this.props.onChangeTaskTemplate(respTaskTemplate); 
+          //this.props.onChangeTaskTemplate(respTaskTemplate); 
           this.setState({statusMess : "Success change of Task Template"}); 
           clearTimeout(this.m_tout);
           this.m_tout = setTimeout(() => this.setState({statusMess : ""}), 3000);

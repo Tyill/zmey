@@ -1,20 +1,21 @@
 import os
-import sys
-sys.path.append("../python")
-import python.zmClient as zm
-from python.zmClient import(
-  User, TaskTemplate, Pipeline
-)
+from typing import List
 import json
-import functools
+
+import python.zmClient as zm 
+from python.zmClient import(
+  StateType, User, TaskTemplate, Pipeline
+)
+
+from . import auth
 from flask import(
-  g, Blueprint, redirect, url_for, request, render_template
+  g, Blueprint, request
 )
 
 _zmCommon = None
 _zmTaskWatch = None
 
-def initApp(zmeyConnStr : str):
+def init(zmeyConnStr : str):
 
   libname = 'libzmClient.so'
   if os.name == 'nt':
@@ -32,6 +33,21 @@ def initApp(zmeyConnStr : str):
   
   _zmCommon.createTables()
 
+  # add user
+  # usr = zm.User(name='alm')
+  # if (not _zmCommon.addUser(usr)):
+  #   exit(-1)
+    
+  # add taskTemplate
+  # tt = zm.TaskTemplate(name='tt', uId=1, averDurationSec = 1, maxDurationSec = 10, script="#! /bin/sh \n sleep 1; echo res ")
+  # if (not _zmCommon.addTaskTemplate(tt)):
+  #   exit(-1)
+    
+  # # add pipeline
+  # ppl = zm.Pipeline(name='ppl', uId=1)
+  # if (not _zmCommon.addPipeline(ppl)):
+  #   exit(-1)
+   
   global _zmTaskWatch 
   _zmTaskWatch = zm.Connection(zmeyConnStr) 
   
@@ -41,23 +57,7 @@ def initApp(zmeyConnStr : str):
 def lastError() -> str:
   _zmCommon.getLastError()
 
-bp = Blueprint('zmey', __name__, url_prefix='/api')
-
-def loginRequired(view):
-  @functools.wraps(view)
-  def wrapped_view(**kwargs):
-    if (g.userId is None):
-      return redirect(url_for('auth.login'))
-    return view(**kwargs)
-  return wrapped_view
-
-def adminRequired(view):
-  @functools.wraps(view)
-  def wrapped_view(**kwargs):
-    if (g.userId is None) or (g.userName != "admin"):
-      return redirect(url_for('auth.login'))
-    return view(**kwargs)
-  return wrapped_view
+bp = Blueprint('api', __name__, url_prefix='/api/v1')
 
 ###############################################################################
 ### User
@@ -72,51 +72,30 @@ def getUser(uname : str, passw : str) -> User:
 def changeUser(usr : User) -> bool:
   return _zmCommon.changeUser(usr)
 
-def allUsers() -> [User]:
+def allUsers() -> List[User]:
   return _zmCommon.getAllUsers()
 
 ###############################################################################
 ### Scheduler
 
-@bp.route('/addSchedr')
-@adminRequired
-def addSchedr():
-  jn = request.get_json(silent=True)
-  return None#_zmCommon.addScheduler(schr)
-
-@bp.route('/delSchedr')
-@adminRequired
-def delSchedr():
-  return None#_zmCommon.delScheduler(schr.id)
-
-@bp.route('/allSchedrs')
-@adminRequired
+@bp.route('/schedulers')
+@auth.adminRequired
 def allSchedrs():
   return None#_zmCommon.getAllSchedulers()
 
 ###############################################################################
 ### Worker
 
-@bp.route('/addWorker')
-@adminRequired
-def addWorker():
-  return None#_zmCommon.addWorker(wkr)
-
-@bp.route('/delWorker')
-@adminRequired
-def delWorker():
-  return None#_zmCommon.delWorker(wkr.id)
-
-@bp.route('/allWorkers')
-@adminRequired
+@bp.route('/workers')
+@auth.adminRequired
 def allWorkers():
   return None#_zmCommon.getAllWorkers(schId)
 
 ###############################################################################
 ### Pipeline
 
-@bp.route('/addPipeline', methods=(['POST']))
-@loginRequired
+@bp.route('/pipelines', methods=(['POST']))
+@auth.loginRequired
 def addPipeline():
   try: 
     jnReq = request.get_json(silent=True)  
@@ -129,8 +108,8 @@ def addPipeline():
   except Exception:
     return ('bad request', 400)
 
-@bp.route('/changePipeline', methods=(['POST']))
-@loginRequired 
+@bp.route('/pipelines', methods=(['UPDATE']))
+@auth.loginRequired 
 def changePipeline():
   try:
     jnReq = request.get_json(silent=True)
@@ -144,8 +123,8 @@ def changePipeline():
   except Exception:
     return ('bad request', 400)
 
-@bp.route('/delPipeline')
-@loginRequired
+@bp.route('/pipelines', methods=(['DELETE']))
+@auth.loginRequired
 def delPipeline():
   try:
     id = int(request.args.get('id', '0'))
@@ -153,8 +132,8 @@ def delPipeline():
   except Exception:
     return ('bad request', 400)
 
-@bp.route('/allPipelines')
-@loginRequired
+@bp.route('/pipelines', methods=(['GET']))
+@auth.loginRequired
 def allPipelines():
   ret = []
   for p in _zmCommon.getAllPipelines(g.userId):
@@ -164,8 +143,8 @@ def allPipelines():
 ###############################################################################
 ### TaskTemplate
 
-@bp.route('/addTaskTemplate', methods=(['POST']))
-@loginRequired
+@bp.route('/taskTemplates', methods=(['POST']))
+@auth.loginRequired
 def addTaskTemplate():
   try: 
     jnReq = request.get_json(silent=True)  
@@ -181,8 +160,8 @@ def addTaskTemplate():
   except Exception:
     return ('bad request', 400)
 
-@bp.route('/changeTaskTemplate', methods=(['POST']))
-@loginRequired 
+@bp.route('/taskTemplates', methods=(['UPDATE']))
+@auth.loginRequired 
 def changeTaskTemplate():
   try:
     jnReq = request.get_json(silent=True)
@@ -199,8 +178,8 @@ def changeTaskTemplate():
   except Exception:
     return ('bad request', 400)
 
-@bp.route('/delTaskTemplate')
-@loginRequired
+@bp.route('/taskTemplates', methods=(['DELETE']))
+@auth.loginRequired
 def delTaskTemplate():
   try:
     id = int(request.args.get('id', '0'))
@@ -208,8 +187,8 @@ def delTaskTemplate():
   except Exception:
     return ('bad request', 400)
 
-@bp.route('/allTaskTemplates')
-@loginRequired
+@bp.route('/taskTemplates', methods=(['GET']))
+@auth.loginRequired
 def allTaskTemplates():  
   ret = []
   for t in _zmCommon.getAllTaskTemplates(g.userId):
@@ -219,60 +198,59 @@ def allTaskTemplates():
 ###############################################################################
 ### Group of tasks
 
-@bp.route('/addTaskGroup')
-@loginRequired
+@bp.route('/taskGroups', methods=(['POST']))
+@auth.loginRequired
 def addTaskGroup():
-  return None#_zmCommon.addTask(tsk)
+  return None
 
-@bp.route('/changeTaskGroup')
-@loginRequired
+@bp.route('/taskGroups', methods=(['UPDATE']))
+@auth.loginRequired
 def changeTaskGroup():
-  return None#_zmCommon.changeTask(tsk)
+  return None
 
-@bp.route('/delTaskGroup')
-@loginRequired
+@bp.route('/taskGroups', methods=(['DELETE']))
+@auth.loginRequired
 def delTaskGroup():
-  return None#_zmCommon.delTask(tsk.id)
+  return None
 
-@bp.route('/allTaskGroups')
-@loginRequired
+@bp.route('/taskGroups', methods=(['GET']))
+@auth.loginRequired
 def allTaskGroups():
-  ret = []
-  for p in _zmCommon.getAllPipelines(g.userId):
-    for gr in _zmCommon.getAllGroups(p.id):
-      ret.append(gr.__dict__)
-  return json.dumps(ret)
+  return None
 
 ###############################################################################
-### Task
+### Task of pipeline
 
-@bp.route('/addTask')
-@loginRequired
+@bp.route('/pipelineTasks', methods=(['POST']))
+@auth.loginRequired
 def addTask():
   return None#_zmCommon.addTask(tsk)
 
-@bp.route('/changeTask')
-@loginRequired
+@bp.route('/pipelineTasks', methods=(['UPDATE']))
+@auth.loginRequired
 def changeTask():
-  return None#_zmCommon.changeTask(tsk)
+  return None
 
-@bp.route('/delTask')
-@loginRequired
+@bp.route('/pipelineTasks', methods=(['DELETE']))
+@auth.loginRequired
 def delTask():
-  return None#_zmCommon.delTask(tsk.id)
+  return None
 
-@bp.route('/allTasks')
-@loginRequired
+@bp.route('/pipelineTasks', methods=(['GET']))
+@auth.loginRequired
 def allTasks():
   ret = []
   for p in _zmCommon.getAllPipelines(g.userId):
-    for t in _zmCommon.getAllTasks(p.id):
+    for t in _zmCommon.getAllPipelineTasks(p.id):
       t.state = t.state.value
-      ret.append(t.__dict__) 
+      ret.append(t.__dict__)
   return json.dumps(ret)
 
-@bp.route('/startTask')
-@loginRequired
+###############################################################################
+### Task object
+
+@bp.route('/tasks', methods=(['GET']))
+@auth.loginRequired
 def startTask():
   # if _zmCommon.startTask(tId):
   #   _zmTaskWatch.setChangeTaskStateCBack(tId, hChangeTask)
@@ -281,6 +259,6 @@ def startTask():
   return None
 
 @bp.route('/stopTask')
-@loginRequired
+@auth.loginRequired
 def stopTask():
   return None#_zmCommon.stopTask(tId)

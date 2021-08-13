@@ -23,6 +23,7 @@ interface IUser {
 export
 interface IPipeline{
   id : number;     
+  uId : number;
   name : string;
   description : string;
 };
@@ -30,11 +31,14 @@ interface IPipeline{
 export
 interface ITaskTemplate{
   id : number;
-  name : string;            
-  script : string;  
+  uId : number;
+  sId : number;
+  wId : number;
   averDurationSec : number;    ///< estimated lead time 
   maxDurationSec : number;     ///< maximum lead time
-  description : string;  
+  name : string;  
+  description : string;
+  script : string;  
 };   
 
 export
@@ -71,12 +75,4 @@ interface ITaskTime{
   takeInWorkTime : string;
   startTime : string;
   stopTime : string;
-};
-
-export
-interface IStoreType{
-  user : IUser;
-  pipelines : Map<number, IPipeline>;         ///< key - pipeline id
-  taskTemplates : Map<number, ITaskTemplate>; ///< key - taskTemplate id
-  pipelineTask : Map<number, IPipelineTask>;  ///< key - pipelineTask id
 };

@@ -10,11 +10,7 @@ interface IProps {
   show : boolean;
   onHide : (selPipeline : IPipeline) => any;
   selPipeline : IPipeline;
-  
-  pipelines : Map<number, IPipeline>;               // | Store
-  
-  onAddPipeline : (pipeline : IPipeline) => any;    // | Actions 
-  onChangePipeline : (pipeline : IPipeline) => any; // |
+  pipelines : Map<number, IPipeline>;
 };
 
 interface IState {
@@ -75,13 +71,8 @@ class PipelineDialogModal extends React.Component<IProps, IState>{
     if (this.m_isNewPipeline){
       ServerAPI.addPipeline(newPipeline, 
         (respPipeline)=>{
-          this.props.onAddPipeline(respPipeline);      
-          this.setState({statusMess : "Success create of Task Pipeline"});    
-          clearTimeout(this.m_tout);
-          this.m_tout = setTimeout(() => { 
-            this.setState({statusMess : ""});
-            this.props.onHide(respPipeline);
-          }, 1000)
+          //this.props.onAddPipeline(respPipeline);      
+          this.setStatusMess("Success create of Task Pipeline");
         },
         ()=>{
           this.setState({statusMess : "ServerAPI.addPipeline error"});
@@ -92,7 +83,7 @@ class PipelineDialogModal extends React.Component<IProps, IState>{
     else{
       ServerAPI.changePipeline(newPipeline, 
         (respPipeline)=>{
-          this.props.onChangePipeline(respPipeline); 
+          //this.props.onChangePipeline(respPipeline); 
           this.setState({statusMess : "Success change of Task Pipeline"}); 
           clearTimeout(this.m_tout);
           this.m_tout = setTimeout(() => this.setState({statusMess : ""}), 3000);
@@ -103,6 +94,14 @@ class PipelineDialogModal extends React.Component<IProps, IState>{
           this.m_tout = setTimeout(() => this.setState({statusMess : ""}), 3000);  
         }); 
     }      
+  }
+
+  setStatusMess(mess : string){
+    this.setState({statusMess : mess});    
+    clearTimeout(this.m_tout);
+    this.m_tout = setTimeout(() => { 
+      this.setState({statusMess : ""});
+    }, 1000)
   }
 
   render(){  

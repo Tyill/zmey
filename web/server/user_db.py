@@ -1,10 +1,9 @@
-import functools
 import os
 from flask import(
-  g, Blueprint, redirect, url_for, request, render_template
+  g
 )
 
-def initApp(app):
+def init(app):
   app.teardown_appcontext(closeUserDb)
 
 def userDb(uname : str):
@@ -20,6 +19,7 @@ def userDb(uname : str):
     if not isExist:
       initUserDb(uname)
   return g.db
+
 def initUserDb(db):
   cr = db.cursor() 
   cr.execute(
@@ -57,23 +57,8 @@ def initUserDb(db):
       objType    INTEGER NOT NULL,          \
       attrJSON   TEXT NOT NULL);"
   )
+  
 def closeUserDb(e = None):
   db = g.pop('db', None)
   if db is not None:
       db.close()
-
-def loginRequired(view):
-  @functools.wraps(view)
-  def wrapped_view(**kwargs):
-    if g.userId is None:
-      return redirect(url_for('auth.login'))
-    return view(**kwargs)
-  return wrapped_view
-
-bp = Blueprint('gui', __name__)
-
-@bp.route('/')
-@loginRequired
-def index():
-  return render_template('gui/index.html')
-

@@ -6,20 +6,17 @@ import TaskItem from "./task_item";
 import TaskHeader from "./task_header";
 import PipelineHeader from "./pipeline_header";
 import AckDeleteModal from "../common/ack_delete_modal";
+import { observer } from "mobx-react-lite"
 
-import { IPipeline, ITaskTemplate } from "../types";
+import { IPipeline, IPipelineTask, ITaskTemplate } from "../types";
+import { Pipelines, TaskTemplates, PipelineTasks} from "../store/store";
 
-import "../css/app.css";
+import "../css/style.css";
 import "../css/fontello.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { ServerAPI } from "../server_api";
 
 interface IPropsApp {
-  pipelines : Map<number, IPipeline>;                         // | Store
-  taskTemplates : Map<number, ITaskTemplate>;                 // |
-  
-  onDelTaskTemplate : (taskTemplate : ITaskTemplate) => any;  // | Actions
-  onDelPipeline : (pipeline : IPipeline) => any;              // |
 };
 
 interface IStateApp {
@@ -46,28 +43,40 @@ class CentralWidget extends React.Component<IPropsApp, IStateApp>{
  
   render(){
     
+   
     let pipelines = []
-    for (let v of this.props.pipelines.values()){     
+    for (let v of Pipelines.m_pipelines.values()){     
       pipelines.push(<Tab key={v.id} eventKey={v.id.toString()} title={v.name}></Tab>);
     }
+
+    let PPList = observer(() => 
+      <Tabs defaultActiveKey="profile" id="uncontrolled-tab-example" style={{height: "48px"}}
+      /*onSelect={(key) => this.m_selPipeline = this.props.pipelines.get(parseInt(key))}*/>
+        {pipelines}
+      </Tabs>   
+    );
+
+   // let PPList = observer(() => <Tab key={v.id} eventKey={v.id.toString()} title={v.name}></Tab>);
+
     let taskTemlates = []
-    for (let v of this.props.taskTemplates.values()){
-      taskTemlates.push(<TaskItem key={v.id} title={v.name} tooltip={v.description}
+    for (let v of TaskTemplates.getAll().values()){
+      taskTemlates.push(observer(() => 
+                        <TaskItem key={v.id} title={v.name} tooltip={v.description}
                                   hEdit={()=>{
-                                    this.m_selTaskTemplate = this.props.taskTemplates.get(v.id);
+                                    this.m_selTaskTemplate = TaskTemplates.get(v.id);
                                     this.setState((oldState, props)=>{
                                       let isShowTaskTemplateConfig = true;
                                       return {isShowTaskTemplateConfig};
                                     });
                                   }}
                                   hDelete={()=>{
-                                    this.m_selTaskTemplate = this.props.taskTemplates.get(v.id);
+                                    this.m_selTaskTemplate = TaskTemplates.get(v.id);
                                     this.setState((oldState, props)=>{
                                       let isShowAckTaskTemplateDelete = true;
                                       return {isShowAckTaskTemplateDelete};
                                     });
                                   }}>
-                        </TaskItem>);
+                        </TaskItem>));
     }
        
     return (
@@ -75,7 +84,7 @@ class CentralWidget extends React.Component<IPropsApp, IStateApp>{
         <Container fluid style={{ margin: 0, padding: 0}}>
           <Row noGutters={true} style={{borderBottom: "1px solid #dbdbdb"}}>
             <Col className="col menuHeader">               
-              <Image src="client/images/label.svg" style={{ margin: 5}} title="Application for schedule and monitor workflows"></Image>
+              <Image src="../images/label.svg" style={{ margin: 5}} title="Application for schedule and monitor workflows"></Image>
             </Col>
           </Row>
           <Row noGutters={true} >
@@ -110,10 +119,7 @@ class CentralWidget extends React.Component<IPropsApp, IStateApp>{
                                   let isShowAckPipelineDelete = true;
                                   return {isShowAckPipelineDelete};
                                 }); }} />
-              <Tabs defaultActiveKey="profile" id="uncontrolled-tab-example" style={{height: "48px"}}
-                    onSelect={(key) => this.m_selPipeline = this.props.pipelines.get(parseInt(key))}>
-                {pipelines}
-              </Tabs>                                       
+             <PPList/>                                  
             </Col>
             <Col className="col-2" > 
             </Col>
@@ -126,7 +132,7 @@ class CentralWidget extends React.Component<IPropsApp, IStateApp>{
           </Row>
         </Container> 
 
-        <TaskTemplateDialogModal selTaskTemplate={this.m_selTaskTemplate} 
+        {/* <TaskTemplateDialogModal selTaskTemplate={this.m_selTaskTemplate} 
                                  show={this.state.isShowTaskTemplateConfig} 
                                  onHide={(selTaskTemplate : ITaskTemplate)=>{
                                    this.m_selTaskTemplate = selTaskTemplate;
@@ -144,7 +150,7 @@ class CentralWidget extends React.Component<IPropsApp, IStateApp>{
                                  let isShowPipelineConfig = false;
                                  return {isShowPipelineConfig};
                                });
-                             }}/>
+                             }}/> */}
 
         <AckDeleteModal name={this.m_selTaskTemplate.name}
                         title="Delete the Task Template?"
@@ -152,7 +158,7 @@ class CentralWidget extends React.Component<IPropsApp, IStateApp>{
                         onYes={() => ServerAPI.delTaskTemplate(this.m_selTaskTemplate,
                           ()=>{                          
                             let taskTemplate = this.m_selTaskTemplate;
-                            this.props.onDelTaskTemplate(taskTemplate); 
+                           // this.props.onDelTaskTemplate(taskTemplate); 
                             this.setState((oldState, props)=>{
                               let isShowAckTaskTemplateDelete = false;
                               return {isShowAckTaskTemplateDelete};
@@ -171,7 +177,7 @@ class CentralWidget extends React.Component<IPropsApp, IStateApp>{
                         onYes={() => ServerAPI.deletePipeline(this.m_selPipeline,
                           ()=>{                          
                             let pipeline = this.m_selPipeline;
-                            this.props.onDelPipeline(pipeline); 
+                           // this.props.onDelPipeline(pipeline); 
                             this.setState((oldState, props)=>{
                               let isShowAckPipelineDelete = false;
                               return {isShowAckPipelineDelete};

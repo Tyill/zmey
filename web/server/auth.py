@@ -1,3 +1,4 @@
+import functools
 from markupsafe import escape
 from flask import (
   Blueprint, flash, g, redirect, render_template, request, session, url_for
@@ -58,3 +59,21 @@ def load_logged_in_user():
 def logout():
   session.clear()
   return redirect(url_for('gui.index'))
+  
+def loginRequired(view):
+  @functools.wraps(view)
+  def wrapped_view(**kwargs):
+    if g.userId is None:
+      return redirect(url_for('auth.login'))
+    return view(**kwargs)
+  return wrapped_view
+
+def adminRequired(view):
+  @functools.wraps(view)
+  def wrapped_view(**kwargs):
+    if (g.userId is None) or (g.userName != "admin"):
+      return redirect(url_for('auth.login'))
+    return view(**kwargs)
+  return wrapped_view
+
+

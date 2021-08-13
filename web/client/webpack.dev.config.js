@@ -26,9 +26,9 @@ module.exports = {
    },
   devServer: {
     hot: true,
-    // proxy: {
-    //   '/': 'http://localhost:5000', 
-    // },   
+    proxy: {
+      '/': 'http://localhost:5000', 
+    },   
   },  
   plugins: [new webpack.HotModuleReplacementPlugin()]   
 }

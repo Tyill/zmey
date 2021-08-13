@@ -1223,7 +1223,7 @@ class Connection:
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, tid)
     return False
-  def getAllPipelineTasks(self, pplId : int, state : StateType) -> List[PipelineTask]:
+  def getAllPipelineTasks(self, pplId : int) -> List[PipelineTask]:
     """
     Get all tasks of pipeline
     :param pplId: Pipeline id
@@ -1232,13 +1232,12 @@ class Connection:
     """
     if (self._zmConn):
       cpplId = ctypes.c_uint64(pplId)
-      cstate = ctypes.c_int32(state.value)
 
       pfun = _lib.zmGetAllPipelineTasks
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.c_int32, ctypes.POINTER(ctypes.POINTER(ctypes.c_uint64)))
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(ctypes.POINTER(ctypes.c_uint64)))
       pfun.restype = ctypes.c_uint32
       dbuffer = ctypes.POINTER(ctypes.c_uint64)()
-      osz = pfun(self._zmConn, cpplId, cstate, ctypes.byref(dbuffer))
+      osz = pfun(self._zmConn, cpplId, ctypes.byref(dbuffer))
             
       if dbuffer and (osz > 0):
         oid = [dbuffer[i] for i in range(osz)]
