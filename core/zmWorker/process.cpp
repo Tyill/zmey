@@ -72,7 +72,7 @@ Process::Process(Application& app, Executor& exr, const ZM_Base::Task& tsk):
       CHECK(dup2(1, 2), "dup2(1, 2)");        // stderr -> stdout
       
       auto params = !tsk.params.empty() ? ZM_Aux::split(tsk.params, ',') : vector<string>();
-
+     
       char** argVec = new char*[params.size() + 2];
       argVec[0] = (char*)scriptFile.c_str();
       for(size_t i = 0; i < params.size(); ++i){

@@ -303,7 +303,7 @@ class Connection:
     """
     if (self._zmConn):      
       def c_ecb(err: ctypes.c_char_p, udata: ctypes.c_void_p):
-        ucb(err.decode("utf-8"))
+        ucb(err.value.decode("utf-8"))
       
       errCBackType = ctypes.CFUNCTYPE(None, ctypes.c_char_p, ctypes.c_void_p)    
       self._userErrCBack = errCBackType(c_ecb)
@@ -1372,8 +1372,8 @@ class Connection:
       pfun.restype = ctypes.c_bool
       if (pfun(self._zmConn, tid, ctypes.byref(tresult))):      
         if tresult:
-          iot.result = tresult.decode("utf-8")  
-          self._freeResources(None, tresult)
+          iot.result = tresult.value.decode("utf-8")
+          self._freeResources()
         return True
     return False
   def taskTime(self, iot : Task) -> bool:
