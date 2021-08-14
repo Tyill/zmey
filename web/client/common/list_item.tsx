@@ -3,6 +3,8 @@ import {ListGroup} from "react-bootstrap";
 
 interface IPropsTaskItem { 
   title : string;
+  labelDelete : string;
+  labelEdit : string;
   tooltip : string;
   key : number;   
   hEdit : () => any;
@@ -13,7 +15,7 @@ interface IStateTaskItem {
 };
 
 export default
-class TaskItem extends React.Component<IPropsTaskItem, IStateTaskItem>{  
+class ListItem extends React.Component<IPropsTaskItem, IStateTaskItem>{  
   constructor(props : IPropsTaskItem){
     super(props);    
     this.state  = { isShowBtn : false };   
@@ -21,18 +23,18 @@ class TaskItem extends React.Component<IPropsTaskItem, IStateTaskItem>{
   render(){  
     return (
       <ListGroup.Item action title={this.props.tooltip}
-                      onMouseEnter={(e)=>this.setState((oldState, props)=>{ let isShowBtn = true; return {isShowBtn}})}
-                      onMouseLeave={(e)=>this.setState((oldState, props)=>{ let isShowBtn = false; return {isShowBtn}})}>
+                      onMouseEnter={(e)=>this.setState({isShowBtn : true})}
+                      onMouseLeave={(e)=>this.setState({isShowBtn : false})}>
         {this.props.title}
         {this.state.isShowBtn ?
           <span>
             <a className = "icon-delete"
-                  title="Delete Task Template"
+                  title={this.props.labelDelete}
                   style={{float: "right", marginLeft: "20px" }} 
                   onClick={this.props.hDelete}>
             </a>
             <a className="icon-edit" 
-                  title= "Edit Task Template"
+                  title= {this.props.labelEdit}
                   style={{float: "right"}} 
                   onClick={this.props.hEdit}>
             </a>            

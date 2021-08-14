@@ -3,7 +3,7 @@ import { Modal, Button } from "react-bootstrap";
 
 interface IPropsAckDeleteModal { 
   show : boolean;
-  name : string;
+  description : string;
   title : string;
   onYes : () => any;  
   onHide : () => any;  
@@ -24,7 +24,7 @@ class AckDeleteModal extends React.Component<IPropsAckDeleteModal, IStateAckDele
           <Modal.Title>{this.props.title}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <p>{this.props.name}</p>
+          <p>{this.props.description}</p>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" style={{minWidth:"100px"}} onClick={this.props.onYes}>Yes</Button>

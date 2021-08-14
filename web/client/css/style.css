@@ -1,3 +1,8 @@
 .menuHeader{
   background-color: rgb(238, 255, 255);
 }
+
+.taskTemplateDialogModal{
+  width: 60vw;
+  max-width: 60vw;
+}

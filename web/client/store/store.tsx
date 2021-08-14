@@ -1,5 +1,5 @@
 import { IUser, IPipeline, ITaskTemplate, IPipelineTask } from "../types"
-import { makeObservable, observable, action,computed } from "mobx"
+import { makeObservable, observable, action } from "mobx"
 
 class UserStoreClass {
   m_user : IUser;  
@@ -40,6 +40,12 @@ class PipelinesStoreClass {
   get(id : Number) : IPipeline {
     return this.m_pipelines.has(id) ? this.m_pipelines.get(id) : null;
   }
+  getByName(name : string) : IPipeline {
+    for (const pp of this.m_pipelines){
+      if (pp[1].name == name) return pp[1];
+    }
+    return null;
+  }
   setAll(ppl : Map<Number, IPipeline>){
     this.m_pipelines = ppl;
   }
@@ -51,7 +57,7 @@ class PipelinesStoreClass {
   }
   upd(ppl : IPipeline){
     if (this.m_pipelines.has(ppl.id))
-      this.m_pipelines[ppl.id] = ppl;
+      this.m_pipelines.set(ppl.id, ppl);
   }
 }
 export
@@ -68,18 +74,20 @@ class TaskTemplatesStoreClass {
         add: action,
         del: action,
         upd: action,
-        count : computed,
       });
       this.m_taskTemplates = new Map<Number, ITaskTemplate>();
-  }
-  get count(){
-    return this.m_taskTemplates.size;
   }
   getAll() : Map<Number, ITaskTemplate>{
     return this.m_taskTemplates;
   }
   get(id : Number) : ITaskTemplate {
     return this.m_taskTemplates.has(id) ? this.m_taskTemplates.get(id) : null;
+  }
+  getByName(name : string) : ITaskTemplate {
+    for (const tt of this.m_taskTemplates){
+      if (tt[1].name == name) return tt[1];
+    }
+    return null;
   }
   setAll(ttl : Map<Number, ITaskTemplate>){
     this.m_taskTemplates = ttl;
@@ -91,8 +99,9 @@ class TaskTemplatesStoreClass {
     this.m_taskTemplates.delete(id);
   }
   upd(ttl : ITaskTemplate){
-    if (this.m_taskTemplates.has(ttl.id))
-      this.m_taskTemplates[ttl.id] = ttl;
+    if (this.m_taskTemplates.has(ttl.id)){
+      this.m_taskTemplates.set(ttl.id, ttl);
+    }
   }
 }
 export
@@ -129,7 +138,7 @@ class PipelineTasksStoreClass {
   }
   upd(ppt : IPipelineTask){
     if (this.m_pipelineTasks.has(ppt.id))
-      this.m_pipelineTasks[ppt.id] = ppt;
+      this.m_pipelineTasks.set(ppt.id, ppt);
   }
 }
 export

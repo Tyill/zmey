@@ -1,29 +1,29 @@
-import { IPipeline, ITaskTemplate, IPipelineTask } from "./types";
+import { IPipeline, ITaskTemplate, IPipelineTask } from "../types";
 
 export namespace ServerAPI {
 
 export
-function getAllPipelines(onFillPipelines : (pipelines : Array<IPipeline>) => any){
+function getAllPipelines(onFillPipelines : (pipelines : Array<IPipeline>) => any, onError : () => any){
   fetch('api/v1/pipelines')
   .then(response => response.json())    
   .then(onFillPipelines)
-  .catch(() => console.log('api/v1/pipelines fill error'));
+  .catch(onError); 
 }
 
 export
-function getAllTaskTemplates(onFillTaskTemplates : (taskTemplates : Array<ITaskTemplate>) => any){
+function getAllTaskTemplates(onFillTaskTemplates : (taskTemplates : Array<ITaskTemplate>) => any, onError : () => any){
   fetch('api/v1/taskTemplates')
   .then(response => response.json())    
   .then(onFillTaskTemplates)
-  .catch(() => console.log('api/v1/taskTemplates fill error')); 
+  .catch(onError); 
 }
 
 export
-function getAllPipelineTasks(onFillTasks : (tasks : Array<IPipelineTask>) => any){
+function getAllPipelineTasks(onFillTasks : (tasks : Array<IPipelineTask>) => any, onError : () => any){
   fetch('api/v1/pipelineTasks')
   .then(response => response.json())    
   .then(onFillTasks)
-  .catch(() => console.log('api/v1/pipelineTasks fill error'));  
+  .catch(onError); 
 }
 
 export
@@ -53,10 +53,10 @@ function changeTaskTemplate(taskTemplate : ITaskTemplate, onSucces : (respTaskTe
 }
 
 export
-function delTaskTemplate(taskTemlate : ITaskTemplate, onSucces : () => any){
-  fetch('api/taskTemplates/' + taskTemlate.id, { method: 'DELETE'})
-  .then(onSucces)
-  .catch(() => console.log('api/v1/taskTemplates/' + taskTemlate.id + ' delete error'));
+function delTaskTemplate(taskTemlate : ITaskTemplate, onSucces : () => any, onError : () => any){
+  fetch('api/v1/taskTemplates/' + taskTemlate.id, { method: 'DELETE'})
+  .then((resp : Response)=> resp.ok ? onSucces() : onError())
+  .catch(onError); 
 }
 
 export
@@ -86,9 +86,9 @@ function changePipeline(newPipeline : IPipeline, onSucces : (respPipeline : IPip
 } 
 
 export
-function deletePipeline(pipeline : IPipeline, onSucces : () => any){
+function delPipeline(pipeline : IPipeline, onSucces : () => any, onError : () => any ){
   fetch('api/v1/pipelines/' + pipeline.id, { method: 'DELETE'})
-  .then(onSucces) 
-  .catch(() => console.log('api/v1/pipelines/' + pipeline.id + ' delete error'));
+  .then((resp : Response)=> resp.ok ? onSucces() : onError())
+  .catch(onError); 
 }
 }

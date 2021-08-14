@@ -32,21 +32,6 @@ def init(zmeyConnStr : str):
   _zmCommon.setErrorCBack(lambda err: print(err))  
   
   _zmCommon.createTables()
-
-  # add user
-  # usr = zm.User(name='alm')
-  # if (not _zmCommon.addUser(usr)):
-  #   exit(-1)
-    
-  # add taskTemplate
-  # tt = zm.TaskTemplate(name='tt', uId=1, averDurationSec = 1, maxDurationSec = 10, script="#! /bin/sh \n sleep 1; echo res ")
-  # if (not _zmCommon.addTaskTemplate(tt)):
-  #   exit(-1)
-    
-  # # add pipeline
-  # ppl = zm.Pipeline(name='ppl', uId=1)
-  # if (not _zmCommon.addPipeline(ppl)):
-  #   exit(-1)
    
   global _zmTaskWatch 
   _zmTaskWatch = zm.Connection(zmeyConnStr) 
@@ -102,32 +87,31 @@ def addPipeline():
 
     ppl = Pipeline()
     ppl.name = jnReq['name']
-    ppl.uId = g.userId
+    ppl.userId = g.userId
     ppl.description = jnReq['description']  
     return json.dumps(ppl.__dict__) if _zmCommon.addPipeline(ppl) else ('internal error', 500)
   except Exception:
     return ('bad request', 400)
 
-@bp.route('/pipelines', methods=(['UPDATE']))
+@bp.route('/pipelines/<int:id>', methods=(['PUT']))
 @auth.loginRequired 
-def changePipeline():
+def changePipeline(id : int):
   try:
     jnReq = request.get_json(silent=True)
   
     ppl = Pipeline()
-    ppl.id = jnReq['id']
-    ppl.uId = g.userId
+    ppl.id = id
+    ppl.userId = g.userId
     ppl.name = jnReq['name']
     ppl.description = jnReq['description']    
     return json.dumps(ppl.__dict__) if _zmCommon.changePipeline(ppl) else ('internal error', 500)
   except Exception:
     return ('bad request', 400)
 
-@bp.route('/pipelines', methods=(['DELETE']))
+@bp.route('/pipelines/<int:id>', methods=(['DELETE']))
 @auth.loginRequired
-def delPipeline():
+def delPipeline(id : int):
   try:
-    id = int(request.args.get('id', '0'))
     return ('ok', 200) if _zmCommon.delPipeline(id) else ('bad request', 400)  
   except Exception:
     return ('bad request', 400)
@@ -151,7 +135,7 @@ def addTaskTemplate():
 
     ttl = TaskTemplate()
     ttl.name = jnReq['name']
-    ttl.uId = g.userId
+    ttl.userId = g.userId
     ttl.script = jnReq['script']
     ttl.averDurationSec = int(jnReq['averDurationSec'])
     ttl.maxDurationSec = int(jnReq['maxDurationSec'])
@@ -160,15 +144,15 @@ def addTaskTemplate():
   except Exception:
     return ('bad request', 400)
 
-@bp.route('/taskTemplates', methods=(['UPDATE']))
+@bp.route('/taskTemplates/<int:id>', methods=(['PUT']))
 @auth.loginRequired 
-def changeTaskTemplate():
+def changeTaskTemplate(id : int):
   try:
     jnReq = request.get_json(silent=True)
   
     ttl = TaskTemplate()
-    ttl.id = jnReq['id']
-    ttl.uId = g.userId
+    ttl.id = id
+    ttl.userId = g.userId
     ttl.name = jnReq['name']
     ttl.script = jnReq['script']
     ttl.averDurationSec = jnReq['averDurationSec']
@@ -178,11 +162,10 @@ def changeTaskTemplate():
   except Exception:
     return ('bad request', 400)
 
-@bp.route('/taskTemplates', methods=(['DELETE']))
+@bp.route('/taskTemplates/<int:id>', methods=(['DELETE']))
 @auth.loginRequired
-def delTaskTemplate():
+def delTaskTemplate(id : int):  
   try:
-    id = int(request.args.get('id', '0'))
     return ('ok', 200) if _zmCommon.delTaskTemplate(id) else ('bad request', 400)  
   except Exception:
     return ('bad request', 400)

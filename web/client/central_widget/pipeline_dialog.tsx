@@ -2,7 +2,8 @@ import React from "react";
 import { Col, Button, Modal, Form} from "react-bootstrap";
  
 import { IPipeline } from "../types";
-import {ServerAPI} from "../server_api"
+import { Pipelines} from "../store/store";
+import {ServerAPI} from "../server_api/server_api"
 
 import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -10,7 +11,6 @@ interface IProps {
   show : boolean;
   onHide : (selPipeline : IPipeline) => any;
   selPipeline : IPipeline;
-  pipelines : Map<number, IPipeline>;
 };
 
 interface IState {
@@ -21,7 +21,7 @@ export default
 class PipelineDialogModal extends React.Component<IProps, IState>{
    
   private m_refObj : object;
-  private m_tout : number;
+  private m_tout : number = 0;
   private m_isNewPipeline : boolean;
   private m_nameMem : string;
 
@@ -50,9 +50,9 @@ class PipelineDialogModal extends React.Component<IProps, IState>{
         description = this.m_refObj["description"].value;
     if (!name)
       error = "Name is empty"; 
-    else if (this.m_isNewPipeline && [...this.props.pipelines].find(item => item[1].name == name))
+    else if (this.m_isNewPipeline && Pipelines.getByName(name))
       error = `This name '${name}' already exists`;
-    else if (!this.m_isNewPipeline && this.m_nameMem && (this.m_nameMem != name) && [...this.props.pipelines].find(item => item[1].name == name))
+    else if (!this.m_isNewPipeline && this.m_nameMem && (this.m_nameMem != name) && Pipelines.getByName(name))
       error = `This name '${name}' already exists`;
        
     if (error){
@@ -71,37 +71,30 @@ class PipelineDialogModal extends React.Component<IProps, IState>{
     if (this.m_isNewPipeline){
       ServerAPI.addPipeline(newPipeline, 
         (respPipeline)=>{
-          //this.props.onAddPipeline(respPipeline);      
-          this.setStatusMess("Success create of Task Pipeline");
+          Pipelines.add(respPipeline);      
+          this.setStatusMess("Success create of Pipeline", 1, ()=>this.props.onHide(respPipeline));
         },
-        ()=>{
-          this.setState({statusMess : "ServerAPI.addPipeline error"});
-          clearTimeout(this.m_tout);
-          this.m_tout = setTimeout(() => this.setState({statusMess : ""}), 3000);  
-        }); 
+        ()=>this.setStatusMess("Server error create of Pipeline")
+      )         
     }
     else{
       ServerAPI.changePipeline(newPipeline, 
         (respPipeline)=>{
-          //this.props.onChangePipeline(respPipeline); 
-          this.setState({statusMess : "Success change of Task Pipeline"}); 
-          clearTimeout(this.m_tout);
-          this.m_tout = setTimeout(() => this.setState({statusMess : ""}), 3000);
+          Pipelines.upd(respPipeline); 
+          this.setStatusMess("Success change of Pipeline");
         },
-        () => {
-          this.setState({statusMess : "ServerAPI.changePipeline error"});
-          clearTimeout(this.m_tout);
-          this.m_tout = setTimeout(() => this.setState({statusMess : ""}), 3000);  
-        }); 
+        () =>this.setStatusMess("Server error change of pipeline")
+      )
     }      
   }
 
-  setStatusMess(mess : string){
+  setStatusMess(mess : string, delaySec : number = 3, cback : ()=>void = null){
     this.setState({statusMess : mess});    
-    clearTimeout(this.m_tout);
+    if (this.m_tout) clearTimeout(this.m_tout);
     this.m_tout = setTimeout(() => { 
       this.setState({statusMess : ""});
-    }, 1000)
+      if (cback) cback();
+    }, delaySec * 1000)
   }
 
   render(){  
@@ -116,7 +109,7 @@ class PipelineDialogModal extends React.Component<IProps, IState>{
         <Modal.Body>
           <Form>
             <Form.Row>
-              <Form.Group as={Col} controlId="name">
+              <Form.Group as={Col} style={{maxWidth:"200px"}} controlId="name">
                 <Form.Label>Name</Form.Label>
                 <Form.Control type="text" ref={(input) => {this.m_refObj["name"] = input }} placeholder="any" defaultValue={ppl.name}/>
               </Form.Group>

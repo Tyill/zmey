@@ -22,8 +22,7 @@ interface IUser {
 
 export
 interface IPipeline{
-  id : number;     
-  uId : number;
+  id : number;
   name : string;
   description : string;
 };
@@ -31,9 +30,6 @@ interface IPipeline{
 export
 interface ITaskTemplate{
   id : number;
-  uId : number;
-  sId : number;
-  wId : number;
   averDurationSec : number;    ///< estimated lead time 
   maxDurationSec : number;     ///< maximum lead time
   name : string;  
@@ -55,7 +51,7 @@ interface IPipelineTask{
 export
 interface ITask{               ///< task object
   id : number;
-  tpplId : number;             ///< task pipeline id
+  pplTaskId : number;          ///< pipeline task id
   priority : number;           ///< [1..3] 
   params : Array<string>;      ///< CLI params for script
 };

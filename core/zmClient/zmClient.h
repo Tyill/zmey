@@ -230,7 +230,7 @@ ZMEY_API uint32_t zmGetAllSchedulers(zmConn, zmStateType state, uint64_t** outSc
 
 /// worker config
 struct zmWorker{
-  uint64_t sId;               ///< worker id 
+  uint64_t sId;               ///< scheduler id 
   uint32_t capacityTask = 10; ///< permissible simultaneous number of tasks
   char connectPnt[256];       ///< remote connection point: IP or DNS:port  
   char name[256];             ///< worker name. Optional.
@@ -488,10 +488,10 @@ ZMEY_API uint32_t zmGetAllPipelineTasks(zmConn, uint64_t pplId, uint64_t** outQT
 
 /// task config
 struct zmTask{
-  uint64_t ptId;           ///< pipeline task id
+  uint64_t pplTaskId;      ///< pipeline task id
   uint32_t priority;       ///< [1..3]
   char* params;            ///< CLI params for script. May be NULL
-  char* prevTId;           ///< prev task to be completed: "tId1, tId2..." May be NULL 
+  char* prevTaskId;        ///< prev task to be completed: "tId1, tId2..." May be NULL 
 };
 
 /// start task

@@ -766,10 +766,10 @@ uint32_t zmGetAllPipelineTasks(zmConn zo, uint64_t pplId, uint64_t** outQTId){
 bool zmStartTask(zmConn zo, zmTask cng, uint64_t* tId){
   if (!zo || !tId) return false;
 
-  string prTask = cng.prevTId ? cng.prevTId : "";
+  string prTask = cng.prevTaskId ? cng.prevTaskId : "";
   string params = cng.params ? cng.params : "";
 
-  return static_cast<ZM_DB::DbProvider*>(zo)->startTask(cng.ptId, cng.priority, params, prTask, *tId);
+  return static_cast<ZM_DB::DbProvider*>(zo)->startTask(cng.pplTaskId, cng.priority, params, prTask, *tId);
 }
 bool zmStopTask(zmConn zo, uint64_t tId){
   if (!zo) return false;

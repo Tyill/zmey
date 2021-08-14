@@ -1,25 +1,31 @@
 import React from "react";
 import {Container, Row, Col, Tabs, Tab, Image, Card, ListGroup } from "react-bootstrap";
+import { observer } from "mobx-react-lite"
+
 import TaskTemplateDialogModal from "./task_template_dialog";
 import PipelineDialogModal from "./pipeline_dialog";
-import TaskItem from "./task_item";
-import TaskHeader from "./task_header";
-import PipelineHeader from "./pipeline_header";
 import AckDeleteModal from "../common/ack_delete_modal";
-import { observer } from "mobx-react-lite"
+import ListItem from "../common/list_item";
+import ListHeader from "../common/list_header";
 
 import { IPipeline, IPipelineTask, ITaskTemplate } from "../types";
 import { Pipelines, TaskTemplates, PipelineTasks} from "../store/store";
+import { ServerAPI } from "../server_api/server_api";
 
 import "../css/style.css";
 import "../css/fontello.css";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { ServerAPI } from "../server_api";
 
-interface IPropsApp {
+enum State{
+  Error,
+  Ok,
+}
+
+interface IProps {
+  setStatusMess : (mess : string, State)=>void;
 };
 
-interface IStateApp {
+interface IState {
   isShowTaskTemplateConfig : boolean;
   isShowPipelineConfig : boolean;
   isShowAckTaskTemplateDelete : boolean;
@@ -27,12 +33,12 @@ interface IStateApp {
 };
 
 export default
-class CentralWidget extends React.Component<IPropsApp, IStateApp>{
+class CentralWidget extends React.Component<IProps, IState>{
    
   private m_selTaskTemplate : ITaskTemplate = {} as ITaskTemplate;
   private m_selPipeline : IPipeline = {} as IPipeline;
-
-  constructor(props : IPropsApp){
+  
+  constructor(props : IProps){
     super(props);
     
     this.state  = { isShowTaskTemplateConfig : false,
@@ -42,43 +48,58 @@ class CentralWidget extends React.Component<IPropsApp, IStateApp>{
   }    
  
   render(){
-    
    
-    let pipelines = []
-    for (let v of Pipelines.m_pipelines.values()){     
-      pipelines.push(<Tab key={v.id} eventKey={v.id.toString()} title={v.name}></Tab>);
-    }
-
-    let PPList = observer(() => 
-      <Tabs defaultActiveKey="profile" id="uncontrolled-tab-example" style={{height: "48px"}}
-      /*onSelect={(key) => this.m_selPipeline = this.props.pipelines.get(parseInt(key))}*/>
+    let PipelineTabs = observer(() => {
+      let pipelines = [];
+      for (let v of Pipelines.getAll().values()){     
+        pipelines.push(<Tab key={v.id} eventKey={v.id.toString()} title={v.name}></Tab>);
+      }
+      return <Tabs defaultActiveKey="profile" id="uncontrolled-tab-example" style={{height: "48px"}}
+        onSelect={(key) => this.m_selPipeline = Pipelines.get(parseInt(key))}>
         {pipelines}
       </Tabs>   
-    );
+    });
+        
+    let TaskTemplateList = observer(() => {
+      let taskTemlates = [];
+      for (let v of TaskTemplates.getAll().values()){
+        taskTemlates.push(<ListItem key={v.id} title={v.name} tooltip={v.description}
+                                    labelEdit={"Edit TaskTemplate"} labelDelete={"Delete TaskTemplate"}                                                   
+                                    hEdit={()=>{
+                                      this.m_selTaskTemplate = TaskTemplates.get(v.id);
+                                      this.setState({isShowTaskTemplateConfig : true});
+                                    }}
+                                    hDelete={()=>{
+                                      this.m_selTaskTemplate = TaskTemplates.get(v.id);
+                                      this.setState({isShowAckTaskTemplateDelete : true});
+                                    }}>
+                          </ListItem>);
+      }
+      return <ListGroup className="list-group-flush" style={{maxHeight: "50vh", overflowY:"auto"}} >
+               {taskTemlates}
+             </ListGroup>
+    });
 
-   // let PPList = observer(() => <Tab key={v.id} eventKey={v.id.toString()} title={v.name}></Tab>);
-
-    let taskTemlates = []
-    for (let v of TaskTemplates.getAll().values()){
-      taskTemlates.push(observer(() => 
-                        <TaskItem key={v.id} title={v.name} tooltip={v.description}
-                                  hEdit={()=>{
-                                    this.m_selTaskTemplate = TaskTemplates.get(v.id);
-                                    this.setState((oldState, props)=>{
-                                      let isShowTaskTemplateConfig = true;
-                                      return {isShowTaskTemplateConfig};
-                                    });
-                                  }}
-                                  hDelete={()=>{
-                                    this.m_selTaskTemplate = TaskTemplates.get(v.id);
-                                    this.setState((oldState, props)=>{
-                                      let isShowAckTaskTemplateDelete = true;
-                                      return {isShowAckTaskTemplateDelete};
-                                    });
-                                  }}>
-                        </TaskItem>));
-    }
-       
+    let PipilineList = observer(() => {
+      let pipelines = [];
+      for (let v of Pipelines.getAll().values()){
+        pipelines.push(<ListItem key={v.id} title={v.name} tooltip={v.description}
+                                    labelEdit={"Edit Pipeline"} labelDelete={"Delete Pipeline"}                                                   
+                                    hEdit={()=>{
+                                      this.m_selPipeline = Pipelines.get(v.id);
+                                      this.setState({isShowPipelineConfig : true});
+                                    }}
+                                    hDelete={()=>{
+                                      this.m_selPipeline = Pipelines.get(v.id);
+                                      this.setState({isShowAckPipelineDelete : true});
+                                    }}>
+                          </ListItem>);
+      }
+      return <ListGroup className="list-group-flush" style={{ maxHeight: "50vh", overflowY:"auto"}} >
+               {pipelines}
+             </ListGroup>
+    });
+   
     return (
       <div>
         <Container fluid style={{ margin: 0, padding: 0}}>
@@ -88,107 +109,67 @@ class CentralWidget extends React.Component<IPropsApp, IStateApp>{
             </Col>
           </Row>
           <Row noGutters={true} >
-            <Col className="col-2" style={{borderRight: "1px solid #dbdbdb"}}>   
-              <TaskHeader hNew={()=>{ 
-                            this.m_selTaskTemplate.id = 0;
-                            this.setState((oldState, props)=>{
-                              let isShowTaskTemplateConfig = true;
-                              return {isShowTaskTemplateConfig};
-                            });
-              }}/>                
-              <ListGroup className="list-group-flush" style={{minHeight: "70vh", maxHeight: "70vh", overflowY:"auto"}} >
-                {taskTemlates}
-              </ListGroup>
+            <Col className="col-2"  style={{  borderRight: "1px solid #dbdbdb"}}>   
+              <ListHeader title={"TaskTemplates"}
+                          labelNew={"New TaskTemplate"}
+                          hNew={()=>{ this.m_selTaskTemplate.id = 0;
+                                      this.setState({isShowTaskTemplateConfig : true}); }}/>               
+              <TaskTemplateList/>
+
+              <ListHeader title={"Pipelines"}
+                          labelNew={"New Pipeline"}
+                          hNew={()=>{ this.m_selPipeline.id = 0;
+                                      this.setState({isShowPipelineConfig : true}); }}/>               
+              <PipilineList/>
             </Col>
-            <Col className="col" style={{borderRight: "1px solid #dbdbdb"}}> 
-              <PipelineHeader hNew={()=>{ 
-                                this.m_selPipeline.id = 0;
-                                this.setState((oldState, props)=>{
-                                  let isShowPipelineConfig = true;
-                                  return {isShowPipelineConfig};
-                                });}}
-                              hEdit={()=>{
-                                // this.m_selPipeline = this.props.pipelines.get(v.id);
-                                this.setState((oldState, props)=>{
-                                  let isShowPipelineConfig = true;
-                                  return {isShowPipelineConfig};
-                                }); }}
-                              hDelete={()=>{
-                                // this.m_selTaskTemplate = this.props.taskTemplates.get(v.id);
-                                this.setState((oldState, props)=>{
-                                  let isShowAckPipelineDelete = true;
-                                  return {isShowAckPipelineDelete};
-                                }); }} />
-             <PPList/>                                  
-            </Col>
-            <Col className="col-2" > 
-            </Col>
-          </Row>
-          <Row noGutters={true} >
-            <Col className="col" >   
-              <Card style={{height: "50px"}}> 
-              </Card>
+            
+            <Col style={{  borderRight: "1px solid #dbdbdb"}}>                            
+              <PipelineTabs/>
             </Col>
           </Row>
         </Container> 
 
-        {/* <TaskTemplateDialogModal selTaskTemplate={this.m_selTaskTemplate} 
+        <TaskTemplateDialogModal selTaskTemplate={this.m_selTaskTemplate} 
                                  show={this.state.isShowTaskTemplateConfig} 
                                  onHide={(selTaskTemplate : ITaskTemplate)=>{
                                    this.m_selTaskTemplate = selTaskTemplate;
-                                   this.setState((oldState, props)=>{
-                                     let isShowTaskTemplateConfig = false;
-                                     return {isShowTaskTemplateConfig};
-                                   });
+                                   this.setState({isShowTaskTemplateConfig : false});
                                  }}/>
         
         <PipelineDialogModal selPipeline={this.m_selPipeline} 
                              show={this.state.isShowPipelineConfig} 
                              onHide={(selPipeline : IPipeline)=>{
                                this.m_selPipeline = selPipeline;
-                               this.setState((oldState, props)=>{
-                                 let isShowPipelineConfig = false;
-                                 return {isShowPipelineConfig};
-                               });
-                             }}/> */}
+                               this.setState({isShowPipelineConfig : false});
+                             }}/>
 
-        <AckDeleteModal name={this.m_selTaskTemplate.name}
-                        title="Delete the Task Template?"
+        <AckDeleteModal description={this.m_selTaskTemplate.description}
+                        title={`Delete '${this.m_selTaskTemplate.name}' TaskTemplate?`}
                         show={this.state.isShowAckTaskTemplateDelete}
-                        onYes={() => ServerAPI.delTaskTemplate(this.m_selTaskTemplate,
-                          ()=>{                          
-                            let taskTemplate = this.m_selTaskTemplate;
-                           // this.props.onDelTaskTemplate(taskTemplate); 
-                            this.setState((oldState, props)=>{
-                              let isShowAckTaskTemplateDelete = false;
-                              return {isShowAckTaskTemplateDelete};
-                            });
-                          })} 
-                        onHide={()=>{
-                          this.setState((oldState, props)=>{
-                            let isShowAckTaskTemplateDelete = false;
-                            return {isShowAckTaskTemplateDelete};
-                          });
-                        }}/>
+                        onYes={() =>
+                          ServerAPI.delTaskTemplate(this.m_selTaskTemplate,
+                            ()=>{
+                              TaskTemplates.del(this.m_selTaskTemplate.id); 
+                              this.props.setStatusMess(`TaskTemplate '${this.m_selTaskTemplate.name}' is delete`, State.Ok);
+                              this.setState({isShowAckTaskTemplateDelete : false});
+                            },
+                            ()=>this.props.setStatusMess("Server error delete of TaskTemplate", State.Error))
+                        } 
+                        onHide={()=>this.setState({isShowAckTaskTemplateDelete : false})}/>
 
-        <AckDeleteModal name={this.m_selPipeline.name}
-                        title="Delete the Task Pipeline?"
+        <AckDeleteModal description={this.m_selPipeline.description}
+                        title={`Delete '${this.m_selPipeline.name}' Pipeline?`}
                         show={this.state.isShowAckPipelineDelete}
-                        onYes={() => ServerAPI.deletePipeline(this.m_selPipeline,
-                          ()=>{                          
-                            let pipeline = this.m_selPipeline;
-                           // this.props.onDelPipeline(pipeline); 
-                            this.setState((oldState, props)=>{
-                              let isShowAckPipelineDelete = false;
-                              return {isShowAckPipelineDelete};
-                            });
-                          })} 
-                        onHide={()=>{
-                          this.setState((oldState, props)=>{
-                            let isShowAckPipelineDelete = false;
-                            return {isShowAckPipelineDelete};
-                          });
-                        }}/>
+                        onYes={() =>
+                          ServerAPI.delPipeline(this.m_selPipeline,
+                            ()=>{  
+                              Pipelines.del(this.m_selPipeline.id); 
+                              this.props.setStatusMess(`Pipeline '${this.m_selPipeline.name}' is delete`, State.Ok);
+                              this.setState({isShowAckPipelineDelete : false});
+                            },
+                            ()=>this.props.setStatusMess("Server error delete of Pipeline", State.Error))
+                        } 
+                        onHide={()=>this.setState({isShowAckPipelineDelete : false})}/>
       </div>
     )
   } 

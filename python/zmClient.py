@@ -102,7 +102,7 @@ class Pipeline:
                name : str = "",
                description : str = ""):
     self.id = id
-    self.uId = uId                   # User id
+    self.userId = uId                # User id
     self.name = name    
     self.description = description 
 class Group: 
@@ -120,18 +120,18 @@ class TaskTemplate:
   """TaskTemplate config""" 
   def __init__(self,
                id : int = 0,
-               uId : int = 0,
-               sId : int = 0,
-               wId : int = 0,
+               userId : int = 0,
+               schedrId : int = 0,
+               workerId : int = 0,
                averDurationSec : int = 1,
                maxDurationSec : int = 1,
                name : str = "",
                description : str = "",
                script: str = ""):
     self.id = id
-    self.uId = uId                   # User id
-    self.sId = sId                   # Scheduler preset id
-    self.wId = wId                   # Worker preset id
+    self.userId = userId                   # User id
+    self.schedrId = schedrId               # Scheduler preset id
+    self.workerId = workerId               # Worker preset id
     self.averDurationSec = averDurationSec
     self.maxDurationSec = maxDurationSec
     self.name = name    
@@ -156,7 +156,7 @@ class Task:
   """Task config""" 
   def __init__(self,
                id : int = 0,         
-               ptId : int = 0,         # Pipeline task id    
+               pplTaskId : int = 0,         # Pipeline task id    
                state : StateType = StateType.READY, 
                progress : int = 0,
                result : str = "",
@@ -167,7 +167,7 @@ class Task:
                startTime : str = "",
                stopTime : str = ""):
     self.id = id
-    self.ptId = ptId
+    self.pplTaskId = pplTaskId
     self.state = state
     self.progress = progress
     self.result = result
@@ -184,8 +184,8 @@ class InternError:
                wId : int = 0,
                createTime : str = 0,
                message : str = ""):
-    self.sId = sId                 # Schedr id    
-    self.wId = wId                 # Worker id
+    self.schedrId = sId                 # Schedr id    
+    self.workerId = wId                 # Worker id
     self.createTime = createTime   
     self.message = message          
   
@@ -230,10 +230,10 @@ class _PipelineTaskCng_C(ctypes.Structure):
               ('name', ctypes.c_char * 256),
               ('description', ctypes.c_char_p)]
 class _TaskCng_C(ctypes.Structure):
-  _fields_ = [('pplId', ctypes.c_uint64),
+  _fields_ = [('pplTaskId', ctypes.c_uint64),
               ('priority', ctypes.c_uint32),
               ('params', ctypes.c_char_p),
-              ('prevTId', ctypes.c_char_p)]
+              ('prevTaskId', ctypes.c_char_p)]
 class _TaskState_C(ctypes.Structure):
   _fields_ = [('progress', ctypes.c_uint32),
               ('state', ctypes.c_int32)]
@@ -303,7 +303,7 @@ class Connection:
     """
     if (self._zmConn):      
       def c_ecb(err: ctypes.c_char_p, udata: ctypes.c_void_p):
-        ucb(err.value.decode("utf-8"))
+        ucb(err.decode("utf-8"))
       
       errCBackType = ctypes.CFUNCTYPE(None, ctypes.c_char_p, ctypes.c_void_p)    
       self._userErrCBack = errCBackType(c_ecb)
@@ -819,7 +819,7 @@ class Connection:
     """
     if (self._zmConn):
       pcng = _PipelineCng_C()
-      pcng.userId = ioppl.uId
+      pcng.userId = ioppl.userId
       pcng.name = ioppl.name.encode('utf-8')
       pcng.description = ioppl.description.encode('utf-8')
       
@@ -847,7 +847,7 @@ class Connection:
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(_PipelineCng_C))
       pfun.restype = ctypes.c_bool
       if (pfun(self._zmConn, pplid, ctypes.byref(pcng))):      
-        ioppl.uId = pcng.userId
+        ioppl.userId = pcng.userId
         ioppl.name = pcng.name.decode('utf-8')
         if pcng.description:
           ioppl.description = pcng.description.decode('utf-8')
@@ -863,7 +863,7 @@ class Connection:
     if (self._zmConn):
       pplid = ctypes.c_uint64(ippl.id)
       pcng = _PipelineCng_C()
-      pcng.userId = ippl.uId
+      pcng.userId = ippl.userId
       pcng.name = ippl.name.encode('utf-8')
       pcng.description = ippl.description.encode('utf-8')
       
@@ -1029,9 +1029,9 @@ class Connection:
     """
     if (self._zmConn):
       tcng = _TaskTemplCng_C()
-      tcng.userId = iott.uId
-      tcng.schedrPresetId = iott.sId
-      tcng.workerPresetId = iott.wId
+      tcng.userId = iott.userId
+      tcng.schedrPresetId = iott.schedrId
+      tcng.workerPresetId = iott.workerId
       tcng.averDurationSec = iott.averDurationSec
       tcng.maxDurationSec = iott.maxDurationSec
       tcng.name = iott.name.encode('utf-8')
@@ -1062,9 +1062,9 @@ class Connection:
       pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(_TaskTemplCng_C))
       pfun.restype = ctypes.c_bool
       if (pfun(self._zmConn, ttid, ctypes.byref(tcng))):      
-        iott.uId = tcng.userId
-        iott.sId = tcng.schedrPresetId
-        iott.wId = tcng.workerPresetId
+        iott.userId = tcng.userId
+        iott.schedrId = tcng.schedrPresetId
+        iott.workerId = tcng.workerPresetId
         iott.averDurationSec = tcng.averDurationSec
         iott.maxDurationSec = tcng.maxDurationSec
         iott.name = tcng.name.decode('utf-8')
@@ -1084,9 +1084,9 @@ class Connection:
     if (self._zmConn):
       ttid = ctypes.c_uint64(iott.id)
       tcng = _TaskTemplCng_C()
-      tcng.userId = iott.uId
-      tcng.schedrPresetId = iott.sId
-      tcng.workerPresetId = iott.wId
+      tcng.userId = iott.userId
+      tcng.schedrPresetId = iott.schedrId
+      tcng.workerPresetId = iott.workerId
       tcng.averDurationSec = iott.averDurationSec
       tcng.maxDurationSec = iott.maxDurationSec            
       tcng.name = iott.name.encode('utf-8')
@@ -1264,9 +1264,9 @@ class Connection:
       tid = ctypes.c_uint64(0)
             
       tcng = _TaskCng_C()
-      tcng.pplId = iot.ptId      
+      tcng.pplTaskId = iot.pplTaskId      
       tcng.priority = iot.priority
-      tcng.prevTId = None
+      tcng.prevTaskId = None
       tcng.params = ','.join(iot.params).encode('utf-8')
 
       pfun = _lib.zmStartTask
@@ -1438,8 +1438,8 @@ class Connection:
       
       oerr = []
       for i in range(osz):
-        oerr[i].sId = dbuffer[i].schedrId
-        oerr[i].wId = dbuffer[i].workerId
+        oerr[i].schedrId = dbuffer[i].schedrId
+        oerr[i].workerId = dbuffer[i].workerId
         oerr[i].createTime = dbuffer[i].createTime
         oerr[i].message = dbuffer[i].message
       return oerr
