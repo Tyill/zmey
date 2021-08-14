@@ -915,20 +915,24 @@ void zmFreeResources(zmConn zo){
   
   {lock_guard<mutex> lk(m_mtxResources);
     auto& idRes = m_resources[zo].id;
-    std::sort(idRes.begin(), idRes.end());
-    idRes.resize(std::distance(idRes.begin(), std::unique(idRes.begin(), idRes.end())));
-    for (auto pId : idRes){ 
-      free(pId);
+    if (!idRes.empty()){
+      std::sort(idRes.begin(), idRes.end());
+      idRes.resize(std::distance(idRes.begin(), std::unique(idRes.begin(), idRes.end())));
+      for (auto pId : idRes){ 
+        free(pId);
+      }
+      idRes.clear();
     }
-    idRes.clear();
-
+    
     auto& strRes = m_resources[zo].str;
-    std::sort(strRes.begin(), strRes.end());
-    strRes.resize(std::distance(strRes.begin(), std::unique(strRes.begin(), strRes.end())));
-    for (auto pStr : strRes){
-      free(pStr);   
+    if (!strRes.empty()){
+      std::sort(strRes.begin(), strRes.end());
+      strRes.resize(std::distance(strRes.begin(), std::unique(strRes.begin(), strRes.end())));
+      for (auto pStr : strRes){
+        free(pStr);   
+      }
+      strRes.clear(); 
     }
-    strRes.clear(); 
   }  
 }
 }
