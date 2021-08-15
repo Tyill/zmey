@@ -15,7 +15,6 @@ enum StateType{
 
 export
 interface IUser {
-  id : number; 
   name: string;  
   description: string;
 }

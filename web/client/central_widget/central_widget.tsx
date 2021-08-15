@@ -1,5 +1,5 @@
 import React from "react";
-import {Container, Row, Col, Tabs, Tab, Image, Card, ListGroup } from "react-bootstrap";
+import { Container, Row, Col, Tabs, Image, ListGroup } from "react-bootstrap";
 import { observer } from "mobx-react-lite"
 
 import TaskTemplateDialogModal from "./task_template_dialog";
@@ -7,6 +7,8 @@ import PipelineDialogModal from "./pipeline_dialog";
 import AckDeleteModal from "../common/ack_delete_modal";
 import ListItem from "../common/list_item";
 import ListHeader from "../common/list_header";
+import TabItem from "../common/tab_item";
+import GraphPanel from "../graph_panel/graph_panel";
 
 import { IPipeline, IPipelineTask, ITaskTemplate } from "../types";
 import { Pipelines, TaskTemplates, PipelineTasks} from "../store/store";
@@ -30,6 +32,7 @@ interface IState {
   isShowPipelineConfig : boolean;
   isShowAckTaskTemplateDelete : boolean;
   isShowAckPipelineDelete : boolean;
+  opensPipelines : Array<IPipeline>;
 };
 
 export default
@@ -44,17 +47,28 @@ class CentralWidget extends React.Component<IProps, IState>{
     this.state  = { isShowTaskTemplateConfig : false,
                     isShowPipelineConfig : false,
                     isShowAckTaskTemplateDelete : false,
-                    isShowAckPipelineDelete : false };   
+                    isShowAckPipelineDelete : false,
+                    opensPipelines : []};   
   }    
  
   render(){
    
     let PipelineTabs = observer(() => {
       let pipelines = [];
-      for (let v of Pipelines.getAll().values()){     
-        pipelines.push(<Tab key={v.id} eventKey={v.id.toString()} title={v.name}></Tab>);
+      for (let v of this.state.opensPipelines){     
+        pipelines.push(<TabItem key={v.id} id={v.id}
+                                title={v.name}
+                                hDelete={(id:number)=>{
+                                  this.setState((prev, props)=>{
+                                    let ppls = prev.opensPipelines.filter(v=>{
+                                      return v.id != id;
+                                    });
+                                    return {opensPipelines : ppls};
+                                  });
+                                }}>
+                        </TabItem>);
       }
-      return <Tabs defaultActiveKey="profile" id="uncontrolled-tab-example" style={{height: "48px"}}
+      return <Tabs defaultActiveKey="profile" style={{ width: "100vw", height: "48px"}}
         onSelect={(key) => this.m_selPipeline = Pipelines.get(parseInt(key))}>
         {pipelines}
       </Tabs>   
@@ -63,7 +77,7 @@ class CentralWidget extends React.Component<IProps, IState>{
     let TaskTemplateList = observer(() => {
       let taskTemlates = [];
       for (let v of TaskTemplates.getAll().values()){
-        taskTemlates.push(<ListItem key={v.id} title={v.name} tooltip={v.description}
+        taskTemlates.push(<ListItem key={v.id} id={v.id} title={v.name} tooltip={v.description}
                                     labelEdit={"Edit TaskTemplate"} labelDelete={"Delete TaskTemplate"}                                                   
                                     hEdit={()=>{
                                       this.m_selTaskTemplate = TaskTemplates.get(v.id);
@@ -72,10 +86,14 @@ class CentralWidget extends React.Component<IProps, IState>{
                                     hDelete={()=>{
                                       this.m_selTaskTemplate = TaskTemplates.get(v.id);
                                       this.setState({isShowAckTaskTemplateDelete : true});
+                                    }}
+                                    hDClickItem={(id : number)=>{
+                                      
+                                      
                                     }}>
                           </ListItem>);
       }
-      return <ListGroup className="list-group-flush" style={{maxHeight: "50vh", overflowY:"auto"}} >
+      return <ListGroup className="list-group-flush" style={{ borderBottom: "1px solid #dbdbdb", maxHeight: "35vh", overflowY:"auto"}} >
                {taskTemlates}
              </ListGroup>
     });
@@ -83,33 +101,39 @@ class CentralWidget extends React.Component<IProps, IState>{
     let PipilineList = observer(() => {
       let pipelines = [];
       for (let v of Pipelines.getAll().values()){
-        pipelines.push(<ListItem key={v.id} title={v.name} tooltip={v.description}
-                                    labelEdit={"Edit Pipeline"} labelDelete={"Delete Pipeline"}                                                   
-                                    hEdit={()=>{
-                                      this.m_selPipeline = Pipelines.get(v.id);
-                                      this.setState({isShowPipelineConfig : true});
-                                    }}
-                                    hDelete={()=>{
-                                      this.m_selPipeline = Pipelines.get(v.id);
-                                      this.setState({isShowAckPipelineDelete : true});
-                                    }}>
+        pipelines.push(<ListItem key={v.id} id={v.id} title={v.name} tooltip={v.description}
+                                labelEdit={"Edit Pipeline"} labelDelete={"Delete Pipeline"}                                                   
+                                hEdit={()=>{
+                                  this.m_selPipeline = Pipelines.get(v.id);
+                                  this.setState({isShowPipelineConfig : true});
+                                }}
+                                hDelete={()=>{
+                                  this.m_selPipeline = Pipelines.get(v.id);
+                                  this.setState({isShowAckPipelineDelete : true});
+                                }}
+                                hDClickItem={(id : number)=>{                                  
+                                  this.setState((prev, props)=>{
+                                    const ppls = [...prev.opensPipelines, Pipelines.get(id)];
+                                    return {opensPipelines : ppls};
+                                  });
+                                }}>
                           </ListItem>);
       }
-      return <ListGroup className="list-group-flush" style={{ maxHeight: "50vh", overflowY:"auto"}} >
+      return <ListGroup className="list-group-flush" style={{ borderBottom: "1px solid #dbdbdb", maxHeight: "35vh", overflowY:"auto"}} >
                {pipelines}
              </ListGroup>
     });
    
     return (
-      <div>
-        <Container fluid style={{ margin: 0, padding: 0}}>
+      <>
+        <Container className="d-flex flex-column h-100 m-0 p-0" fluid >
           <Row noGutters={true} style={{borderBottom: "1px solid #dbdbdb"}}>
             <Col className="col menuHeader">               
               <Image src="../images/label.svg" style={{ margin: 5}} title="Application for schedule and monitor workflows"></Image>
             </Col>
           </Row>
-          <Row noGutters={true} >
-            <Col className="col-2"  style={{  borderRight: "1px solid #dbdbdb"}}>   
+          <Row noGutters={true} className="h-100" >
+            <Col className="col-2 m-0 p-0" style={{ borderRight: "1px solid #dbdbdb"}}>   
               <ListHeader title={"TaskTemplates"}
                           labelNew={"New TaskTemplate"}
                           hNew={()=>{ this.m_selTaskTemplate.id = 0;
@@ -120,11 +144,15 @@ class CentralWidget extends React.Component<IProps, IState>{
                           labelNew={"New Pipeline"}
                           hNew={()=>{ this.m_selPipeline.id = 0;
                                       this.setState({isShowPipelineConfig : true}); }}/>               
-              <PipilineList/>
-            </Col>
-            
-            <Col style={{  borderRight: "1px solid #dbdbdb"}}>                            
-              <PipelineTabs/>
+              <PipilineList/> 
+            </Col>            
+            <Col className="col-8 d-flex flex-column" style={{ borderRight: "1px solid #dbdbdb"}}>                            
+              <Row noGutters={true} >
+                <PipelineTabs />
+              </Row>
+              <Row noGutters={true} className="h-100" style={{ position:"relative", overflow:"auto"}}>
+                <GraphPanel pplId={0}/>
+              </Row>
             </Col>
           </Row>
         </Container> 
@@ -170,7 +198,7 @@ class CentralWidget extends React.Component<IProps, IState>{
                             ()=>this.props.setStatusMess("Server error delete of Pipeline", State.Error))
                         } 
                         onHide={()=>this.setState({isShowAckPipelineDelete : false})}/>
-      </div>
+      </>
     )
   } 
 }

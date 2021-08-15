@@ -24,6 +24,7 @@ class PipelineDialogModal extends React.Component<IProps, IState>{
   private m_tout : number = 0;
   private m_isNewPipeline : boolean;
   private m_nameMem : string;
+  private m_hasAdded : boolean;
 
   constructor(props : IProps){
     super(props);
@@ -36,6 +37,7 @@ class PipelineDialogModal extends React.Component<IProps, IState>{
     this.m_tout = 0;
     this.m_isNewPipeline = this.props.selPipeline.id == 0;
     this.m_nameMem = this.props.selPipeline.name;
+    this.m_hasAdded = false;
   }
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -45,6 +47,8 @@ class PipelineDialogModal extends React.Component<IProps, IState>{
 
   hSubmit(event) {
     
+    if (this.m_hasAdded) return;
+
     let error = "",
         name = this.m_refObj["name"].value,
         description = this.m_refObj["description"].value;
@@ -56,9 +60,7 @@ class PipelineDialogModal extends React.Component<IProps, IState>{
       error = `This name '${name}' already exists`;
        
     if (error){
-      this.setState({statusMess : error});
-      clearTimeout(this.m_tout);
-      this.m_tout = setTimeout(() => this.setState({statusMess : ""}), 3000);
+      this.setStatusMess(error);
       return;
     }
     this.m_nameMem = name;
@@ -68,13 +70,16 @@ class PipelineDialogModal extends React.Component<IProps, IState>{
       name,           
       description
     }
+    
     if (this.m_isNewPipeline){
+      this.m_hasAdded = true;
       ServerAPI.addPipeline(newPipeline, 
         (respPipeline)=>{
           Pipelines.add(respPipeline);      
-          this.setStatusMess("Success create of Pipeline", 1, ()=>this.props.onHide(respPipeline));
+          this.setStatusMess("Success create of Pipeline", 1,
+           ()=>{this.props.onHide(respPipeline); this.m_hasAdded = false;});
         },
-        ()=>this.setStatusMess("Server error create of Pipeline")
+        ()=>{this.setStatusMess("Server error create of Pipeline"); this.m_hasAdded = false;}
       )         
     }
     else{

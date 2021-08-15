@@ -1,8 +1,8 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import { Card } from "react-bootstrap";
 import CentralWidget from "./central_widget/central_widget";
 import { ServerAPI } from "./server_api/server_api"
+import { Container, Row } from "react-bootstrap";
 
 import "./css/style.css";
 import { IPipeline, IPipelineTask, ITaskTemplate } from "./types";
@@ -63,16 +63,19 @@ class App extends React.Component<IProps, IState>{
     }, 3000)
   }
 
-  render(){
-        
-    return <>           
-            <CentralWidget setStatusMess={(mess:string)=>this.setStatusMess(mess)}/>
-            <Card style={{ color: this.state.isStatusOk ? "black" : "red", position: "fixed",
-                           bottom:0, width:"100vw", height: 30, paddingLeft:5}}>
-              {this.state.statusMess}
-            </Card>
-           </>
-  } 
+  render(){         
+    return(
+      <Container className="d-flex flex-column h-100 m-0 p-0" fluid> 
+        <Row noGutters={true} className="h-100">      
+          <CentralWidget setStatusMess={(mess:string)=>this.setStatusMess(mess)}/>
+        </Row>
+        <Row noGutters={true}
+             style={{ color: this.state.isStatusOk ? "black" : "red", borderTop: "1px solid #dbdbdb",
+                      width:"100vw", height: 30, paddingLeft:5}} >        
+            {this.state.statusMess}         
+        </Row>
+      </Container>
+  )} 
 }
 
 ////////////////////////////////////////////////////

@@ -105,17 +105,6 @@ class Pipeline:
     self.userId = uId                # User id
     self.name = name    
     self.description = description 
-class Group: 
-  """Group config""" 
-  def __init__(self,
-               id : int = 0,
-               pplId : int = 0,
-               name : str = "",
-               description : str = ""):
-    self.id = id
-    self.pplId = pplId               # Pipeline id
-    self.name = name    
-    self.description = description 
 class TaskTemplate: 
   """TaskTemplate config""" 
   def __init__(self,
@@ -130,8 +119,6 @@ class TaskTemplate:
                script: str = ""):
     self.id = id
     self.userId = userId                   # User id
-    self.schedrId = schedrId               # Scheduler preset id
-    self.workerId = workerId               # Worker preset id
     self.averDurationSec = averDurationSec
     self.maxDurationSec = maxDurationSec
     self.name = name    
@@ -149,7 +136,6 @@ class PipelineTask:
     self.id = id
     self.pplId = pplId                 # Pipeline id    
     self.ttId = ttId                   # TaskTemplate id
-    self.gId = gId                     # taskGroup id
     self.name = name    
     self.description = description
 class Task:
@@ -208,10 +194,6 @@ class _WorkerCng_C(ctypes.Structure):
               ('description', ctypes.c_char_p)]
 class _PipelineCng_C(ctypes.Structure):
   _fields_ = [('userId', ctypes.c_uint64),
-              ('name', ctypes.c_char * 256),
-              ('description', ctypes.c_char_p)]
-class _GroupCng_C(ctypes.Structure):
-  _fields_ = [('pplId', ctypes.c_uint64),
               ('name', ctypes.c_char * 256),
               ('description', ctypes.c_char_p)]
 class _TaskTemplCng_C(ctypes.Structure):
@@ -914,111 +896,6 @@ class Connection:
     return []
 
   #############################################################################
-  ### Group of tasks
-  
-  def addGroup(self, iogrp : Group) -> bool:
-    """
-    Add new Group
-    :param iogrp: new Group config
-    :return: True - ok
-    """
-    if (self._zmConn):
-      gcng = _GroupCng_C()
-      gcng.pplId = iogrp.pplId
-      gcng.name = iogrp.name.encode('utf-8')
-      gcng.description = iogrp.description.encode('utf-8')
-      
-      gid = ctypes.c_uint64(0)
-      
-      pfun = _lib.zmAddGroup
-      pfun.argtypes = (ctypes.c_void_p, _GroupCng_C, ctypes.POINTER(ctypes.c_uint64))
-      pfun.restype = ctypes.c_bool
-      if (pfun(self._zmConn, gcng, ctypes.byref(gid))):
-        iogrp.id = gid.value
-        return True
-    return False
-  def getGroup(self, iogrp : Group) -> bool:
-    """
-    Get Group config by ID
-    :param iogrp: Group config
-    :return: True - ok
-    """
-    if (self._zmConn):
-      gcng = _GroupCng_C()
-
-      gid = ctypes.c_uint64(iogrp.id)
-      
-      pfun = _lib.zmGetGroup
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(_GroupCng_C))
-      pfun.restype = ctypes.c_bool
-      if (pfun(self._zmConn, gid, ctypes.byref(gcng))):      
-        iogrp.pplId = gcng.pplId
-        iogrp.name = gcng.name.decode('utf-8')
-        if gcng.description:
-          iogrp.description = gcng.description.decode('utf-8')
-          self._freeResources()
-        return True
-    return False
-  def changeGroup(self, igrp : User) -> bool:
-    """
-    Change Group config
-    :param igrp: new Group config
-    :return: True - ok
-    """
-    if (self._zmConn):
-      gid = ctypes.c_uint64(igrp.id)
-      gcng = _GroupCng_C()
-      gcng.pplId = igrp.pplId
-      gcng.name = igrp.name.encode('utf-8')
-      gcng.description = igrp.description.encode('utf-8')
-      
-      pfun = _lib.zmChangeGroup
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, _GroupCng_C)
-      pfun.restype = ctypes.c_bool
-      return pfun(self._zmConn, gid, gcng)
-    return False
-  def delGroup(self, grpId : int) -> bool:
-    """
-    Delete Group
-    :param grpId: Group id
-    :return: True - ok
-    """
-    if (self._zmConn):
-      gid = ctypes.c_uint64(grpId)
-            
-      pfun = _lib.zmDelGroup
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
-      pfun.restype = ctypes.c_bool
-      return pfun(self._zmConn, gid)
-    return False
-  def getAllGroups(self, pplId : int) -> List[Pipeline]:
-    """
-    Get all groups
-    :param pplId: Pipeline id
-    :return: list of groups
-    """
-    if (self._zmConn):
-      plineId = ctypes.c_uint64(pplId)
-
-      pfun = _lib.zmGetAllGroups
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(ctypes.POINTER(ctypes.c_uint64)))
-      pfun.restype = ctypes.c_uint32
-      dbuffer = ctypes.POINTER(ctypes.c_uint64)()
-      osz = pfun(self._zmConn, plineId, ctypes.byref(dbuffer))
-      
-      if dbuffer and (osz > 0):
-        oid = [dbuffer[i] for i in range(osz)]
-        self._freeResources()
-
-        ogrp = []
-        for i in range(osz):
-          g = Group(oid[i])
-          self.getGroup(g)
-          ogrp.append(g)
-        return ogrp
-    return []
-
-  #############################################################################
   ### Task template 
 
   def addTaskTemplate(self, iott : TaskTemplate) -> bool:
@@ -1030,8 +907,8 @@ class Connection:
     if (self._zmConn):
       tcng = _TaskTemplCng_C()
       tcng.userId = iott.userId
-      tcng.schedrPresetId = iott.schedrId
-      tcng.workerPresetId = iott.workerId
+      tcng.schedrPresetId = 0       # not used yet
+      tcng.workerPresetId = 0
       tcng.averDurationSec = iott.averDurationSec
       tcng.maxDurationSec = iott.maxDurationSec
       tcng.name = iott.name.encode('utf-8')
@@ -1063,8 +940,6 @@ class Connection:
       pfun.restype = ctypes.c_bool
       if (pfun(self._zmConn, ttid, ctypes.byref(tcng))):      
         iott.userId = tcng.userId
-        iott.schedrId = tcng.schedrPresetId
-        iott.workerId = tcng.workerPresetId
         iott.averDurationSec = tcng.averDurationSec
         iott.maxDurationSec = tcng.maxDurationSec
         iott.name = tcng.name.decode('utf-8')
@@ -1085,8 +960,8 @@ class Connection:
       ttid = ctypes.c_uint64(iott.id)
       tcng = _TaskTemplCng_C()
       tcng.userId = iott.userId
-      tcng.schedrPresetId = iott.schedrId
-      tcng.workerPresetId = iott.workerId
+      tcng.schedrPresetId = 0 # not used yet
+      tcng.workerPresetId = 0
       tcng.averDurationSec = iott.averDurationSec
       tcng.maxDurationSec = iott.maxDurationSec            
       tcng.name = iott.name.encode('utf-8')
@@ -1152,7 +1027,7 @@ class Connection:
       tcng = _PipelineTaskCng_C()
       tcng.pplId = iot.pplId
       tcng.ttId = iot.ttId
-      tcng.gId = iot.gId
+      tcng.gId = 0 # not used yet
       tcng.name = iot.name.encode('utf-8')
       tcng.description = iot.description.encode('utf-8')
 
@@ -1182,7 +1057,6 @@ class Connection:
       if (pfun(self._zmConn, tid, ctypes.byref(tcng))):      
         iot.pplId = tcng.pplId
         iot.ttId = tcng.ttId
-        iot.gId = tcng.gId
         iot.name = tcng.name.decode('utf-8')
         if tcng.description:
           iot.description = tcng.description.decode('utf-8')          
@@ -1200,7 +1074,7 @@ class Connection:
       tcng = _PipelineTaskCng_C()
       tcng.pplId = iot.pplId
       tcng.ttId = iot.ttId
-      tcng.gId = iot.gId
+      tcng.gId = 0 # not used yet
       tcng.name = iot.name.encode('utf-8')
       tcng.description = iot.description.encode('utf-8')
       
@@ -1266,7 +1140,7 @@ class Connection:
       tcng = _TaskCng_C()
       tcng.pplTaskId = iot.pplTaskId      
       tcng.priority = iot.priority
-      tcng.prevTaskId = None
+      tcng.prevTaskId = None # not used yet
       tcng.params = ','.join(iot.params).encode('utf-8')
 
       pfun = _lib.zmStartTask

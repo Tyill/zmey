@@ -1,26 +1,26 @@
 import React from "react";
 import {Card} from "react-bootstrap";
 
-interface IPropsTaskHeader {
+interface IProps {
   hNew : () => any;
   title : string;
   labelNew : string;
 };
-interface IStateTaskHeader { 
+interface IState { 
   isShowBtn : boolean; 
 };
 
 export default
-class ListHeader extends React.Component<IPropsTaskHeader, IStateTaskHeader>{  
-  constructor(props : IPropsTaskHeader){
+class ListHeader extends React.Component<IProps, IState>{  
+  constructor(props : IProps){
     super(props);    
     this.state  = { isShowBtn : false };   
   }   
   render(){           
     return (
-      <Card.Header as="h6" style={{height: "46px"}}
-                           onMouseEnter={(e)=>this.setState((oldState, props)=>{ let isShowBtn = true; return {isShowBtn}})}
-                           onMouseLeave={(e)=>this.setState((oldState, props)=>{ let isShowBtn = false; return {isShowBtn}})}>
+      <Card.Header as="h6" style={{ borderRadius:0, height: "46px"}}
+                           onMouseEnter={(e)=>this.setState({isShowBtn: true})}
+                           onMouseLeave={(e)=>this.setState({isShowBtn: false})}>
         {this.props.title}
         {this.state.isShowBtn ? 
           <a className="icon-new"      

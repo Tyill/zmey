@@ -1,19 +1,19 @@
 import React from "react";
 import { Modal, Button } from "react-bootstrap";
 
-interface IPropsAckDeleteModal { 
+interface IProps { 
   show : boolean;
   description : string;
   title : string;
   onYes : () => any;  
   onHide : () => any;  
 };
-interface IStateAckDeleteModal { 
+interface IState { 
 };
 
 export default
-class AckDeleteModal extends React.Component<IPropsAckDeleteModal, IStateAckDeleteModal>{  
-  constructor(props : IPropsAckDeleteModal){
+class AckDeleteModal extends React.Component<IProps, IState>{  
+  constructor(props : IProps){
     super(props);    
     this.state  = { isShowBtn : false };   
   }   

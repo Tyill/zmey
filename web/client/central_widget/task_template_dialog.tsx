@@ -25,6 +25,7 @@ class TaskTemplateDialogModal extends React.Component<IProps, IState>{
   private m_tout : number = 0;
   private m_isNewTask : boolean;
   private m_nameMem : string;
+  private m_hasAdded : boolean;
 
   constructor(props : IProps){
     super(props);
@@ -37,6 +38,7 @@ class TaskTemplateDialogModal extends React.Component<IProps, IState>{
     this.m_tout = 0;
     this.m_isNewTask = this.props.selTaskTemplate.id == 0;
     this.m_nameMem = this.props.selTaskTemplate.name;
+    this.m_hasAdded = false;
   }
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -45,6 +47,8 @@ class TaskTemplateDialogModal extends React.Component<IProps, IState>{
   }
 
   hSubmit(event) {
+
+    if (this.m_hasAdded) return;
     
     let error = "",
         name = this.m_refObj["name"].value,
@@ -76,12 +80,13 @@ class TaskTemplateDialogModal extends React.Component<IProps, IState>{
       description
     }
     if (this.m_isNewTask){
+      this.m_hasAdded = true;
       ServerAPI.addTaskTemplate(newTaskTemplate, 
         (respTaskTemplate)=>{
           TaskTemplates.add(respTaskTemplate);      
-          this.setStatusMess("Success create of TaskTemplate", 1, ()=>this.props.onHide(respTaskTemplate));          
+          this.setStatusMess("Success create of TaskTemplate", 1, ()=>{this.props.onHide(respTaskTemplate); this.m_hasAdded = false;});          
         },
-        ()=>this.setStatusMess("Server error create of TaskTemplate")
+        ()=>{this.setStatusMess("Server error create of TaskTemplate"); this.m_hasAdded = false}
       );       
     }
     else{

@@ -1,26 +1,5 @@
-import { IUser, IPipeline, ITaskTemplate, IPipelineTask } from "../types"
+import { IPipeline, ITaskTemplate, IPipelineTask } from "../types"
 import { makeObservable, observable, action } from "mobx"
-
-class UserStoreClass {
-  m_user : IUser;  
-  constructor() {
-      makeObservable(this, {
-        m_user: observable,
-        set: action,
-      });
-      this.m_user = { id : 0, name : '', description : ''};
-  }
-  get() {
-    return this.m_user;
-  }
-  set(usr : IUser){
-    this.m_user = usr;
-  }
-}
-export
-let User = new UserStoreClass();
-
-///////////////////////////////////////////////////////////////
 
 class PipelinesStoreClass {
   m_pipelines : Map<Number, IPipeline>;  
@@ -126,6 +105,15 @@ class PipelineTasksStoreClass {
   }
   get(id : Number) : IPipelineTask {
     return this.m_pipelineTasks.has(id) ? this.m_pipelineTasks.get(id) : null;
+  }
+  getByPPlId(pplId : Number) : Array<IPipelineTask> {
+    let ret = [] as Array<IPipelineTask>;
+    this.m_pipelineTasks.forEach(tt => {
+      if (tt.pplId == pplId){        
+        ret.push(tt);
+      }
+    })
+    return ret;
   }
   setAll(ppt : Map<Number, IPipelineTask>){
     this.m_pipelineTasks = ppt;

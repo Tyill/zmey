@@ -236,11 +236,11 @@ bool DbProvider::createTables(){
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
   
   ///////////////////////////////////////////////////////////////////////////
-  /// INDEXES
-  ss.str(""); 
-  ss << "CREATE INDEX IF NOT EXISTS inxTSState ON tblTaskState(state);"
-        "CREATE INDEX IF NOT EXISTS inxIECreateTime ON tblInternError(createTime);";
-  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+  /// INDEXES  not used yet
+//   ss.str(""); 
+//   ss << "CREATE INDEX IF NOT EXISTS inxTSState ON tblTaskState(state);"
+//         "CREATE INDEX IF NOT EXISTS inxQTPlTask ON tblTaskQueue(plTask);"
+//   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
   
   ///////////////////////////////////////////////////////////////////////////
   /// FUNCTIONS

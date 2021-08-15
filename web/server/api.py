@@ -179,29 +179,6 @@ def allTaskTemplates():
   return json.dumps(ret)
 
 ###############################################################################
-### Group of tasks
-
-@bp.route('/taskGroups', methods=(['POST']))
-@auth.loginRequired
-def addTaskGroup():
-  return None
-
-@bp.route('/taskGroups', methods=(['UPDATE']))
-@auth.loginRequired
-def changeTaskGroup():
-  return None
-
-@bp.route('/taskGroups', methods=(['DELETE']))
-@auth.loginRequired
-def delTaskGroup():
-  return None
-
-@bp.route('/taskGroups', methods=(['GET']))
-@auth.loginRequired
-def allTaskGroups():
-  return None
-
-###############################################################################
 ### Task of pipeline
 
 @bp.route('/pipelineTasks', methods=(['POST']))
