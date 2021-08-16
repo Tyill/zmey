@@ -4,7 +4,7 @@ import CentralWidget from "./central_widget/central_widget";
 import { ServerAPI } from "./server_api/server_api"
 import { Container, Row } from "react-bootstrap";
 
-import "./css/style.css";
+import "./css/style.less";
 import { IPipeline, IPipelineTask, ITaskTemplate } from "./types";
 import { Pipelines, TaskTemplates, PipelineTasks} from "./store/store";
 
@@ -31,7 +31,7 @@ class App extends React.Component<IProps, IState>{
       let ppl = new Map<Number, IPipeline>();
       for (let p of pipelines){
         ppl.set(p.id, p);
-      }      
+      }
       Pipelines.setAll(ppl);
     },
     ()=>this.setStatusMess("Server error fill Pipelines"));
@@ -46,7 +46,7 @@ class App extends React.Component<IProps, IState>{
     ()=>this.setStatusMess("Server error fill TaskTeplates"));
 
     ServerAPI.getAllPipelineTasks((pipelineTasks : Array<IPipelineTask>)=>{
-      let ppt = {} as Map<Number, IPipelineTask>;
+      let ppt = new Map<Number, IPipelineTask>();
       for (let pt of pipelineTasks){
         ppt.set(pt.id, pt);
       }
@@ -69,8 +69,8 @@ class App extends React.Component<IProps, IState>{
         <Row noGutters={true} className="h-100">      
           <CentralWidget setStatusMess={(mess:string)=>this.setStatusMess(mess)}/>
         </Row>
-        <Row noGutters={true}
-             style={{ color: this.state.isStatusOk ? "black" : "red", borderTop: "1px solid #dbdbdb",
+        <Row noGutters={true} className="borderTop"
+             style={{ color: this.state.isStatusOk ? "black" : "red",
                       width:"100vw", height: 30, paddingLeft:5}} >        
             {this.state.statusMess}         
         </Row>

@@ -20,7 +20,7 @@ class GraphPanel extends React.Component<IProps, IState>{
 
     return (
       <div style={{ width:"10000px", height:"10000px", position:"absolute"}}>
-        <GraphItem title="task" labelDelete="delete" labelEdit="edit" hEdit={()=>0} hDelete={()=>0}/>
+        <GraphItem title="task" labelDelete="Delete" labelEdit="Edit" hEdit={()=>0} hDelete={()=>0}/>
       </div>
     )
   }

@@ -6,7 +6,7 @@ import {ServerAPI} from "../server_api/server_api"
 import { TaskTemplates} from "../store/store";
 
 import "bootstrap/dist/css/bootstrap.min.css";
-import "../css/style.css";
+import "../css/style.less";
 
 interface IProps {
   show : boolean;
@@ -24,7 +24,6 @@ class TaskTemplateDialogModal extends React.Component<IProps, IState>{
   private m_refObj : object;
   private m_tout : number = 0;
   private m_isNewTask : boolean;
-  private m_nameMem : string;
   private m_hasAdded : boolean;
 
   constructor(props : IProps){
@@ -37,7 +36,6 @@ class TaskTemplateDialogModal extends React.Component<IProps, IState>{
     this.m_refObj = {};
     this.m_tout = 0;
     this.m_isNewTask = this.props.selTaskTemplate.id == 0;
-    this.m_nameMem = this.props.selTaskTemplate.name;
     this.m_hasAdded = false;
   }
 
@@ -62,14 +60,13 @@ class TaskTemplateDialogModal extends React.Component<IProps, IState>{
       error = "Script is empty";
     else if (this.m_isNewTask && TaskTemplates.getByName(name))
       error = `This name '${name}' already exists`;
-    else if (!this.m_isNewTask && this.m_nameMem && (this.m_nameMem != name) && TaskTemplates.getByName(name))
+    else if (!this.m_isNewTask && (this.props.selTaskTemplate.name != name) && TaskTemplates.getByName(name))
       error = `This name '${name}' already exists`;
        
     if (error){
       this.setStatusMess(error);
       return;
     }
-    this.m_nameMem = name;
     
     let newTaskTemplate : ITaskTemplate = {
       id : this.props.selTaskTemplate.id,
@@ -84,18 +81,18 @@ class TaskTemplateDialogModal extends React.Component<IProps, IState>{
       ServerAPI.addTaskTemplate(newTaskTemplate, 
         (respTaskTemplate)=>{
           TaskTemplates.add(respTaskTemplate);      
-          this.setStatusMess("Success create of TaskTemplate", 1, ()=>{this.props.onHide(respTaskTemplate); this.m_hasAdded = false;});          
+          this.setStatusMess("Success create of Task Template", 1, ()=>{this.props.onHide(respTaskTemplate); this.m_hasAdded = false;});          
         },
-        ()=>{this.setStatusMess("Server error create of TaskTemplate"); this.m_hasAdded = false}
+        ()=>{this.setStatusMess("Server error create of Task Template"); this.m_hasAdded = false}
       );       
     }
     else{
       ServerAPI.changeTaskTemplate(newTaskTemplate, 
         (respTaskTemplate)=>{
           TaskTemplates.upd(respTaskTemplate); 
-          this.setStatusMess("Success change of TaskTemplate");
+          this.setStatusMess("Success change of Task Template");
         },
-        ()=>this.setStatusMess("Server error change of TaskTemplate")
+        ()=>this.setStatusMess("Server error change of Task Template")
       );
     }      
   }
@@ -116,7 +113,7 @@ class TaskTemplateDialogModal extends React.Component<IProps, IState>{
     return (
       <Modal dialogClassName="taskTemplateDialogModal" show={this.props.show} onHide={()=>this.props.onHide(ttask)}  >
         <Modal.Header closeButton>
-          <Modal.Title> {this.m_isNewTask ? "Create of TaskTemplate" : "Edit of TaskTemplate"}</Modal.Title>
+          <Modal.Title> {this.m_isNewTask ? "Create of Task Template" : "Edit of Task Template"}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>

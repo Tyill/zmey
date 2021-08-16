@@ -3,30 +3,6 @@ import { IPipeline, ITaskTemplate, IPipelineTask } from "../types";
 export namespace ServerAPI {
 
 export
-function getAllPipelines(onFillPipelines : (pipelines : Array<IPipeline>) => any, onError : () => any){
-  fetch('api/v1/pipelines')
-  .then(response => response.json())    
-  .then(onFillPipelines)
-  .catch(onError); 
-}
-
-export
-function getAllTaskTemplates(onFillTaskTemplates : (taskTemplates : Array<ITaskTemplate>) => any, onError : () => any){
-  fetch('api/v1/taskTemplates')
-  .then(response => response.json())    
-  .then(onFillTaskTemplates)
-  .catch(onError); 
-}
-
-export
-function getAllPipelineTasks(onFillTasks : (tasks : Array<IPipelineTask>) => any, onError : () => any){
-  fetch('api/v1/pipelineTasks')
-  .then(response => response.json())    
-  .then(onFillTasks)
-  .catch(onError); 
-}
-
-export
 function addTaskTemplate(newTaskTemplate : ITaskTemplate, onSucces : (respTaskTemplate : ITaskTemplate) => any, onError : () => any ){
   fetch('api/v1/taskTemplates', {
     method: 'POST',
@@ -60,6 +36,16 @@ function delTaskTemplate(taskTemlate : ITaskTemplate, onSucces : () => any, onEr
 }
 
 export
+function getAllTaskTemplates(onFillTaskTemplates : (taskTemplates : Array<ITaskTemplate>) => any, onError : () => any){
+  fetch('api/v1/taskTemplates')
+  .then(response => response.json())    
+  .then(onFillTaskTemplates)
+  .catch(onError); 
+}
+
+/////////////////////////////////////////////////////////////////////////////////////
+
+export
 function addPipeline(newPipeline : IPipeline, onSucces : (respPipeline : IPipeline) => any, onError : () => any ){
   fetch('api/v1/pipelines', {
     method: 'POST',
@@ -89,6 +75,57 @@ export
 function delPipeline(pipeline : IPipeline, onSucces : () => any, onError : () => any ){
   fetch('api/v1/pipelines/' + pipeline.id, { method: 'DELETE'})
   .then((resp : Response)=> resp.ok ? onSucces() : onError())
+  .catch(onError); 
+}
+
+export
+function getAllPipelines(onFillPipelines : (pipelines : Array<IPipeline>) => any, onError : () => any){
+  fetch('api/v1/pipelines')
+  .then(response => response.json())    
+  .then(onFillPipelines)
+  .catch(onError); 
+}
+
+/////////////////////////////////////////////////////////////////////////////////////
+
+export
+function addPipelineTask(newPipelineTask : IPipelineTask, onSucces : (respPipeline : IPipelineTask) => any, onError : () => any ){
+  fetch('api/v1/pipelineTasks', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8'
+    },
+    body: JSON.stringify(newPipelineTask)})
+  .then(response => response.json())    
+  .then(onSucces)
+  .catch(onError);    
+} 
+
+export
+function changePipelineTask(newPipelineTask : IPipeline, onSucces : (respPipeline : IPipelineTask) => any, onError : () => any ){
+  fetch('api/v1/pipelineTasks/' + newPipelineTask.id, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8'
+    },
+    body: JSON.stringify(newPipelineTask)})
+  .then(response => response.json())    
+  .then(onSucces)
+  .catch(onError);    
+} 
+
+export
+function delPipelineTask(pipelineTask : IPipelineTask, onSucces : () => any, onError : () => any ){
+  fetch('api/v1/pipelineTask/' + pipelineTask.id, { method: 'DELETE'})
+  .then((resp : Response)=> resp.ok ? onSucces() : onError())
+  .catch(onError); 
+}
+
+export
+function getAllPipelineTasks(onFillTasks : (tasks : Array<IPipelineTask>) => any, onError : () => any){
+  fetch('api/v1/pipelineTasks')
+  .then(response => response.json())    
+  .then(onFillTasks)
   .catch(onError); 
 }
 }

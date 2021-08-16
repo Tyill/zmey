@@ -23,7 +23,6 @@ class PipelineDialogModal extends React.Component<IProps, IState>{
   private m_refObj : object;
   private m_tout : number = 0;
   private m_isNewPipeline : boolean;
-  private m_nameMem : string;
   private m_hasAdded : boolean;
 
   constructor(props : IProps){
@@ -36,7 +35,6 @@ class PipelineDialogModal extends React.Component<IProps, IState>{
     this.m_refObj = {};
     this.m_tout = 0;
     this.m_isNewPipeline = this.props.selPipeline.id == 0;
-    this.m_nameMem = this.props.selPipeline.name;
     this.m_hasAdded = false;
   }
 
@@ -56,14 +54,13 @@ class PipelineDialogModal extends React.Component<IProps, IState>{
       error = "Name is empty"; 
     else if (this.m_isNewPipeline && Pipelines.getByName(name))
       error = `This name '${name}' already exists`;
-    else if (!this.m_isNewPipeline && this.m_nameMem && (this.m_nameMem != name) && Pipelines.getByName(name))
+    else if (!this.m_isNewPipeline && (this.props.selPipeline.name != name) && Pipelines.getByName(name))
       error = `This name '${name}' already exists`;
        
     if (error){
       this.setStatusMess(error);
       return;
     }
-    this.m_nameMem = name;
     
     let newPipeline : IPipeline = {
       id : this.props.selPipeline.id,
@@ -109,7 +106,7 @@ class PipelineDialogModal extends React.Component<IProps, IState>{
     return (
       <Modal show={this.props.show} onHide={()=>this.props.onHide(ppl)} >
         <Modal.Header closeButton>
-          <Modal.Title> {this.m_isNewPipeline ? "Create of Task Pipeline" : "Edit of Task Pipeline"}</Modal.Title>
+          <Modal.Title> {this.m_isNewPipeline ? "Create of Pipeline" : "Edit of Task Pipeline"}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>

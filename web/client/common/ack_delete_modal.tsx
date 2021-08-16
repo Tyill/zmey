@@ -1,13 +1,18 @@
 import React from "react";
 import { Modal, Button } from "react-bootstrap";
 
-interface IProps { 
-  show : boolean;
+export
+interface IAckDeleteDialog {
   description : string;
   title : string;
-  onYes : () => any;  
-  onHide : () => any;  
+  show : boolean;
+  onYes : ()=>any;
+  onHide :()=>any;
 };
+
+interface IProps extends IAckDeleteDialog { 
+};
+
 interface IState { 
 };
 
@@ -21,7 +26,7 @@ class AckDeleteModal extends React.Component<IProps, IState>{
     return (
       <Modal show={this.props.show} onHide={this.props.onHide}>
         <Modal.Header closeButton>
-          <Modal.Title>{this.props.title}</Modal.Title>
+          <Modal.Title className="unselectable">{this.props.title}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <p>{this.props.description}</p>

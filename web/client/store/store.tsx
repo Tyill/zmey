@@ -115,6 +115,12 @@ class PipelineTasksStoreClass {
     })
     return ret;
   }
+  getByName(name : string) : IPipelineTask {
+    for (const pt of this.m_pipelineTasks){
+      if (pt[1].name == name) return pt[1];
+    }
+    return null;
+  }
   setAll(ppt : Map<Number, IPipelineTask>){
     this.m_pipelineTasks = ppt;
   }

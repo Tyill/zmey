@@ -18,9 +18,9 @@ class ListHeader extends React.Component<IProps, IState>{
   }   
   render(){           
     return (
-      <Card.Header as="h6" style={{ borderRadius:0, height: "46px"}}
-                           onMouseEnter={(e)=>this.setState({isShowBtn: true})}
-                           onMouseLeave={(e)=>this.setState({isShowBtn: false})}>
+      <Card.Header className="unselectable" as="h6" style={{ borderRadius:0, height: "46px"}}
+                   onMouseEnter={(e)=>this.setState({isShowBtn: true})}
+                   onMouseLeave={(e)=>this.setState({isShowBtn: false})}>
         {this.props.title}
         {this.state.isShowBtn ? 
           <a className="icon-new"      
