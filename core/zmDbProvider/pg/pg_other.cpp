@@ -93,9 +93,9 @@ bool DbProvider::delAllTables(){
         "DROP TABLE IF EXISTS tblTaskTemplate CASCADE; "
         "DROP TABLE IF EXISTS tblInternError CASCADE; "
         "DROP TABLE IF EXISTS tblConnectPnt CASCADE; "
-        "DROP FUNCTION IF EXISTS funcStartTask;"
-        "DROP FUNCTION IF EXISTS funcTasksOfSchedr;"
-        "DROP FUNCTION IF EXISTS funcNewTasksForSchedr;";
+        "DROP FUNCTION IF EXISTS functasksofschedr(integer);"
+        "DROP FUNCTION IF EXISTS funcstarttask(integer,integer,text[],integer[]);"
+        "DROP FUNCTION IF EXISTS funcnewtasksforschedr(integer,integer);";
   
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){

@@ -39,22 +39,12 @@ zo = zm.Connection("host=localhost port=5432 password=123 dbname=zmeydb connect_
 zo.setErrorCBack(lambda err: print(err))
 
 zo.createTables()
-
-# add user
-usr = zm.User(name='alm')
-if (not zo.addUser(usr)):
-  exit(-1)
   
 # add taskTemplate
-tt = zm.TaskTemplate(name='tt', uId=usr.id, maxDurationSec = 10, script="#! /bin/sh \n sleep 1; echo res ")
+tt = zm.TaskTemplate(name='tt', userId=0, maxDurationSec = 10, script="#! /bin/sh \n sleep 1; echo res ")
 if (not zo.addTaskTemplate(tt)):
   exit(-1)
   
-# add pipeline
-ppl = zm.Pipeline(name='ppl', uId=usr.id)
-if (not zo.addPipeline(ppl)):
-  exit(-1)
-
 # add and start schedulers and workers
 print('Add and start schedulers and workers')  
 sCnt = 5
@@ -78,18 +68,13 @@ for i in range(sCnt):
                                     '-sa=localhost:' + str(4440 + i),
                                     '-la=localhost:' + str(4450 + i * wCnt + j)]))
 
-# add tasks
-taskCnt = 10000
-for j in range(taskCnt):
-  pt = zm.PipelineTask(name="pt", pplId=ppl.id, ttId=tt.id)
-  zo.addPipelineTask(pt)
-
+taskCnt = 1000
 for i in range(100):
   # start tasks
   tasks = []
   tmStartTasks = time.time()   
   for j in range(taskCnt):
-    t = zm.Task(ptId=pt.id)
+    t = zm.Task(ttlId=tt.id)
     zo.startTask(t)
     tasks.append(t)
   tmStartTasks = time.time() - tmStartTasks

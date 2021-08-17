@@ -72,7 +72,9 @@ bool DbProvider::getTasksOfSchedr(uint64_t sId, std::vector<ZM_Base::Task>& out)
   int tsz = PQntuples(pgr.res);
   for (int i = 0; i < tsz; ++i){
     string params = PQgetvalue(pgr.res, i, 5);
-    params = params.substr(2, params.size() - 4); // remove {" and "}
+    params = params.substr(1, params.size() - 2); // remove { and }
+    ZM_Aux::replace(params, "\"", "");
+
     out.push_back(ZM_Base::Task {
       stoull(PQgetvalue(pgr.res, i, 0)),
       stoull(PQgetvalue(pgr.res, i, 3)),
@@ -125,7 +127,8 @@ bool DbProvider::getNewTasksForSchedr(uint64_t sId, int maxTaskCnt, std::vector<
   int tsz = PQntuples(pgr.res);
   for (int i = 0; i < tsz; ++i){
     string params = PQgetvalue(pgr.res, i, 5);
-    params = params.substr(2, params.size() - 4); // remove {" and "}
+    params = params.substr(1, params.size() - 2); // remove { and }
+    ZM_Aux::replace(params, "\"", "");
 
     out.push_back(ZM_Base::Task {
       stoull(PQgetvalue(pgr.res, i, 0)),
@@ -297,7 +300,8 @@ bool DbProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::MessSche
         ss << "UPDATE tblScheduler SET "
               "state = " << (int)ZM_Base::StateType::RUNNING << ", "
               "activeTask = " << stoi(data[0]) << ", "
-              "internalData = '" << data[1] << "' "
+              "internalData = '" << data[1] << "', "
+              "pingTime = current_timestamp "
               "WHERE id = " << sId << ";";
         break;
       }

@@ -376,7 +376,7 @@ bool zmAddTaskTemplate(zmConn zo, zmTaskTemplate cng, uint64_t* outTId){
     static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmAddTaskTemplate error: !outTId || !cng.script");
     return false;
   }
-  ZM_Base::UTaskTemplate task;
+  ZM_Base::TaskTemplate task;
   task.name = cng.name;
   task.description = cng.description ? cng.description : "";
   task.uId = cng.userId;
@@ -395,7 +395,7 @@ bool zmGetTaskTemplate(zmConn zo, uint64_t tId, zmTaskTemplate* outTCng){
     static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmGetTaskTemplateCng error: !outTCng");
     return false;
   }
-  ZM_Base::UTaskTemplate task;
+  ZM_Base::TaskTemplate task;
   if (static_cast<ZM_DB::DbProvider*>(zo)->getTaskTemplate(tId, task)){  
     strcpy(outTCng->name, task.name.c_str());  
     outTCng->averDurationSec = task.averDurationSec;
@@ -424,7 +424,7 @@ bool zmGetTaskTemplate(zmConn zo, uint64_t tId, zmTaskTemplate* outTCng){
 bool zmChangeTaskTemplate(zmConn zo, uint64_t tId, zmTaskTemplate newCng){
   if (!zo) return false; 
   
-  ZM_Base::UTaskTemplate task;
+  ZM_Base::TaskTemplate task;
   task.name = newCng.name;
   task.description = newCng.description ? newCng.description : "";
   task.uId = newCng.userId;
