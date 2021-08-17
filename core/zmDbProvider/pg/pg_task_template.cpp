@@ -28,10 +28,10 @@ using namespace std;
 
 namespace ZM_DB{
 
-bool DbProvider::addTaskTemplate(const ZM_Base::UTaskTemplate& cng, uint64_t& outTId){
+bool DbProvider::addTaskTemplate(const ZM_Base::TaskTemplate& cng, uint64_t& outTId){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
-  ss << "INSERT INTO tblUTaskTemplate (usr, schedrPreset, workerPreset, name, description, script, averDurationSec, maxDurationSec) VALUES("
+  ss << "INSERT INTO tblTaskTemplate (usr, schedrPreset, workerPreset, name, description, script, averDurationSec, maxDurationSec) VALUES("
         "'" << cng.uId << "',"
         "NULLIF(" << cng.sId << ", 0),"
         "NULLIF(" << cng.wId << ", 0),"
@@ -49,11 +49,11 @@ bool DbProvider::addTaskTemplate(const ZM_Base::UTaskTemplate& cng, uint64_t& ou
   outTId = stoull(PQgetvalue(pgr.res, 0, 0));
   return true;
 }
-bool DbProvider::getTaskTemplate(uint64_t tId, ZM_Base::UTaskTemplate& outTCng){
+bool DbProvider::getTaskTemplate(uint64_t tId, ZM_Base::TaskTemplate& outTCng){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
   ss << "SELECT usr, COALESCE(schedrPreset, 0), COALESCE(workerPreset, 0), name, description, script, averDurationSec, maxDurationSec "
-        "FROM tblUTaskTemplate "
+        "FROM tblTaskTemplate "
         "WHERE id = " << tId << " AND isDelete = 0;";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
@@ -75,10 +75,10 @@ bool DbProvider::getTaskTemplate(uint64_t tId, ZM_Base::UTaskTemplate& outTCng){
   outTCng.maxDurationSec = atoi(PQgetvalue(pgr.res, 0, 7));
   return true;
 };
-bool DbProvider::changeTaskTemplate(uint64_t tId, const ZM_Base::UTaskTemplate& newTCng){
+bool DbProvider::changeTaskTemplate(uint64_t tId, const ZM_Base::TaskTemplate& newTCng){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
-  ss << "UPDATE tblUTaskTemplate SET "
+  ss << "UPDATE tblTaskTemplate SET "
         "usr = '" << newTCng.uId << "',"
         "schedrPreset = NULLIF(" << newTCng.sId << ", 0),"
         "workerPreset = NULLIF(" << newTCng.wId << ", 0),"
@@ -99,7 +99,7 @@ bool DbProvider::changeTaskTemplate(uint64_t tId, const ZM_Base::UTaskTemplate& 
 bool DbProvider::delTaskTemplate(uint64_t tId){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
-  ss << "UPDATE tblUTaskTemplate SET "
+  ss << "UPDATE tblTaskTemplate SET "
         "isDelete = 1 "
         "WHERE id = " << tId << ";";
 
@@ -113,7 +113,7 @@ bool DbProvider::delTaskTemplate(uint64_t tId){
 std::vector<uint64_t> DbProvider::getAllTaskTemplates(uint64_t usr){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
-  ss << "SELECT id FROM tblUTaskTemplate "
+  ss << "SELECT id FROM tblTaskTemplate "
         "WHERE usr = " << usr << " AND isDelete = 0;";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));

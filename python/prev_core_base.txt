@@ -1,0 +1,739 @@
+// tblUser
+  struct User{
+    uint64_t id;              // id tblUser
+    std::string name;         // unique name
+    std::string passw;        // optional password
+    std::string description;
+  };
+  // tblUPipeline
+  struct UPipeline{
+    uint64_t id;              // id tblUPipeline
+    uint64_t uId;             // id tblUser
+    std::string name;         // unique name
+    std::string description;
+  };
+  // tblUGroup
+  struct UGroup{
+    uint64_t id;              // id tblUGroup
+    uint64_t pplId;           // id tblUPipeline
+    std::string name;         // unique name
+    std::string description;
+  };
+
+  // tblUTaskTemplate
+  struct UTaskTemplate{
+    uint64_t uId;             // parent id tblUser
+    uint64_t sId;             // preset schedr id tblScheduler. Default 0 - not set
+    uint64_t wId;             // preset worker id tblWorker. Default 0 - not set
+    int averDurationSec;      // estimated lead time
+    int maxDurationSec;       // maximum lead time
+    std::string name;
+    std::string description;
+    std::string script;       // script on bash, python or cmd
+  };
+  // tblUPipelineTask
+  struct UPipelineTask{
+    uint64_t id;              // id tblUPipelineTask 
+    uint64_t ttId;            // id tblUTaskTemplate
+    uint64_t pplId;           // id tblUPipeline
+    uint64_t gId;             // id tblUGroup
+    int priority;             // [1..3]    
+    std::string name;
+    std::string description;
+  };
+
+
+  
+///////////////////////////////////////////////////////////////////////////////
+/// User
+
+/// user config
+struct zmUser{  
+  char name[256];    ///< unique name. Necessarily
+  char passw[256];   ///< password  
+  char* description; ///< the memory is allocated by the user. May be NULL  
+};
+
+/// add new user
+/// @param[in] zmConn - object connect
+/// @param[in] newUserCng - new user config
+/// @param[out] outUserId - new user id
+/// @return true - ok
+ZMEY_API bool zmAddUser(zmConn, zmUser newUser, uint64_t* outUserId);
+
+/// get exist user id
+/// @param[in] zmConn - object connect
+/// @param[in] cng - user config
+/// @param[out] outUserId - user id
+/// @return true - ok
+ZMEY_API bool zmGetUserId(zmConn, zmUser cng, uint64_t* outUserId);
+
+/// get user config
+/// @param[in] zmConn - object connect
+/// @param[in] userId - user id
+/// @param[out] outCng - user config. The memory is allocated by the user
+/// @return true - ok
+ZMEY_API bool zmGetUserCng(zmConn, uint64_t userId, zmUser* outCng);
+
+/// change user config
+/// @param[in] zmConn - object connect
+/// @param[in] userId - user id
+/// @param[in] newCng - new user cng
+/// @return true - ok
+ZMEY_API bool zmChangeUser(zmConn, uint64_t userId, zmUser newCng);
+
+/// delete user
+/// @param[in] zmConn - object connect
+/// @param[in] userId - user id
+/// @return true - ok
+ZMEY_API bool zmDelUser(zmConn, uint64_t userId);
+
+/// get all users
+/// @param[in] zmConn - object connect
+/// @param[out] outUserId - users id. Pass NULL, no need to free memory
+/// @return count of users
+ZMEY_API uint32_t zmGetAllUsers(zmConn, uint64_t** outUserId);
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// Pipeline of tasks
+
+/// pipeline config
+struct zmPipeline{
+  uint64_t userId;         ///< user id
+  char name[256];          ///< pipeline name. Necessarily
+  char* description;       ///< description of pipeline. The memory is allocated by the user. May be NULL
+};
+
+/// add pipeline
+/// @param[in] zmConn - object connect
+/// @param[in] cng - pipeline config
+/// @param[out] outPPLId - pipeline id
+/// @return true - ok
+ZMEY_API bool zmAddPipeline(zmConn, zmPipeline cng, uint64_t* outPPLId);
+
+/// get pipeline config
+/// @param[in] zmConn - object connect
+/// @param[in] pplId - pipeline id
+/// @param[out] outCng - pipeline config. The memory is allocated by the user
+/// @return true - ok
+ZMEY_API bool zmGetPipeline(zmConn, uint64_t pplId, zmPipeline* outCng);
+
+/// change pipeline config
+/// @param[in] zmConn - object connect
+/// @param[in] pplId - pipeline id
+/// @param[in] newCng - pipeline config
+/// @return true - ok
+ZMEY_API bool zmChangePipeline(zmConn, uint64_t pplId, zmPipeline newCng);
+
+/// delete pipeline
+/// @param[in] zmConn - object connect
+/// @param[in] pplId - pipeline
+/// @return true - ok
+ZMEY_API bool zmDelPipeline(zmConn, uint64_t pplId);
+
+/// get all pipelines
+/// @param[in] zmConn - object connect
+/// @param[in] userId - user id
+/// @param[out] outPPLId - pipeline id. Pass NULL, no need to free memory
+/// @return count of pipelines
+ZMEY_API uint32_t zmGetAllPipelines(zmConn, uint64_t userId, uint64_t** outPPLId);
+
+///////////////////////////////////////////////////////////////////////////////
+/// Group of tasks
+
+/// group config
+struct zmGroup{
+  uint64_t pplId;          ///< pipeline id
+  char name[256];          ///< group name. Necessarily
+  char* description;       ///< description of group. The memory is allocated by the user. May be NULL
+};
+
+/// add group
+/// @param[in] zmConn - object connect
+/// @param[in] cng - group config
+/// @param[out] outGId - group id
+/// @return true - ok
+ZMEY_API bool zmAddGroup(zmConn, zmGroup cng, uint64_t* outGId);
+
+/// get group config
+/// @param[in] zmConn - object connect
+/// @param[in] gId - group id
+/// @param[out] outCng - group config. The memory is allocated by the user
+/// @return true - ok
+ZMEY_API bool zmGetGroup(zmConn, uint64_t gId, zmGroup* outCng);
+
+/// change group config
+/// @param[in] zmConn - object connect
+/// @param[in] gId - group id
+/// @param[in] newCng - group config
+/// @return true - ok
+ZMEY_API bool zmChangeGroup(zmConn, uint64_t gId, zmGroup newCng);
+
+/// delete group
+/// @param[in] zmConn - object connect
+/// @param[in] gId - group
+/// @return true - ok
+ZMEY_API bool zmDelGroup(zmConn, uint64_t gId);
+
+/// get all groups
+/// @param[in] zmConn - object connect
+/// @param[in] pplId - pipeline id
+/// @param[out] outGId - group id. Pass NULL, no need to free memory 
+/// @return count of groups
+ZMEY_API uint32_t zmGetAllGroups(zmConn, uint64_t pplId, uint64_t** outGId);
+
+///////////////////////////////////////////////////////////////////////////////
+/// Task template 
+
+/// task template config
+struct zmTaskTemplate{
+  uint64_t userId;          ///< user id
+  uint64_t schedrPresetId;  ///< schedr preset id. Default 0
+  uint64_t workerPresetId;  ///< worker preset id. Default 0
+  uint32_t averDurationSec; ///< estimated lead time, sec 
+  uint32_t maxDurationSec;  ///< maximum lead time, sec
+  char name[256];           ///< task template name. Necessarily
+  char* description;        ///< description of task. The memory is allocated by the user. May be NULL
+  char* script;             ///< script on bash, python or cmd. The memory is allocated by the user
+};
+
+/// add new task template
+/// @param[in] zmConn - object connect
+/// @param[in] cng - task template config
+/// @param[out] outTId - new task template id
+/// @return true - ok
+ZMEY_API bool zmAddTaskTemplate(zmConn, zmTaskTemplate cng, uint64_t* outTId);
+
+/// get task template cng
+/// @param[in] zmConn - object connect
+/// @param[in] ttId - task template  id
+/// @param[out] outTCng - task template config. The memory is allocated by the user
+/// @return true - ok
+ZMEY_API bool zmGetTaskTemplate(zmConn, uint64_t ttId, zmTaskTemplate* outTCng);
+
+/// change task template cng
+/// A new record is created for each change, the old one is not deleted.
+/// @param[in] zmConn - object connect
+/// @param[in] ttId - task template  id
+/// @param[in] newTCng - new task template config
+/// @return true - ok
+ZMEY_API bool zmChangeTaskTemplate(zmConn, uint64_t ttId, zmTaskTemplate newTCng);
+
+/// delete task template
+/// The record is marked, but not deleted.
+/// @param[in] zmConn - object connect
+/// @param[in] ttId - task template id
+/// @return true - ok
+ZMEY_API bool zmDelTaskTemplate(zmConn, uint64_t ttId);
+
+/// get all tasks templates
+/// @param[in] zmConn - object connect
+/// @param[in] userId - user id
+/// @param[out] outTId - task template id. Pass NULL, no need to free memory
+/// @return count of tasks
+ZMEY_API uint32_t zmGetAllTaskTemplates(zmConn, uint64_t userId, uint64_t** outTId);
+
+///////////////////////////////////////////////////////////////////////////////
+/// Task of pipeline
+
+/// pipeline task config
+struct zmPipelineTask{
+  uint64_t pplId;          ///< pipeline id
+  uint64_t gId;            ///< group id. 0 if group no exist.
+  uint64_t ttId;           ///< task template id
+  char name[256];          ///< task name. Necessarily
+  char* description;       ///< description of task. The memory is allocated by the user. May be NULL
+};
+
+/// add pipeline task
+/// @param[in] zmConn - object connect
+/// @param[in] cng - pipeline task config
+/// @param[out] outPtId - pipeline task id
+/// @return true - ok
+ZMEY_API bool zmAddPipelineTask(zmConn, zmPipelineTask cng, uint64_t* outPtId);
+
+/// get pipeline task config
+/// @param[in] zmConn - object connect
+/// @param[in] ptId - pipeline task id
+/// @param[out] outTCng - pipeline task config. The memory is allocated by the user
+/// @return true - ok
+ZMEY_API bool zmGetPipelineTask(zmConn, uint64_t ptId, zmPipelineTask* outTCng);
+
+/// change pipeline task config
+/// @param[in] zmConn - object connect
+/// @param[in] ptId - pipeline task id
+/// @param[in] newCng - pipeline task config
+/// @return true - ok
+ZMEY_API bool zmChangePipelineTask(zmConn, uint64_t ptId, zmPipelineTask newCng);
+
+/// delete pipeline task
+/// @param[in] zmConn - object connect
+/// @param[in] ptId - pipeline task id
+/// @return true - ok
+ZMEY_API bool zmDelPipelineTask(zmConn, uint64_t ptId);
+
+/// get all pipeline tasks
+/// @param[in] zmConn - object connect
+/// @param[in] pplId - pipeline id
+/// @param[out] outQTId - pipeline task id. Pass NULL, no need to free memory
+/// @return count of pipeline tasks
+ZMEY_API uint32_t zmGetAllPipelineTasks(zmConn, uint64_t pplId, uint64_t** outQTId);
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// User
+
+bool zmAddUser(zmConn zo, zmUser newUserCng, uint64_t* outUserId){
+  if (!zo) return false;
+  
+  if (!outUserId){
+     static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmAddUser error: !outUserId");
+     return false;
+  }
+  ZM_Base::User us;
+  us.name = newUserCng.name;
+  us.passw = newUserCng.passw;
+  us.description = newUserCng.description ? newUserCng.description : "";
+  
+  return static_cast<ZM_DB::DbProvider*>(zo)->addUser(us, *outUserId);
+}
+bool zmGetUserId(zmConn zo, zmUser cng, uint64_t* outUserId){
+  if (!zo) return false;
+  
+  if (!outUserId){
+     static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmGetUserId error: !outUserId");
+     return false;
+  }   
+  return static_cast<ZM_DB::DbProvider*>(zo)->getUserId(string(cng.name), string(cng.passw), *outUserId);
+}
+bool zmGetUserCng(zmConn zo, uint64_t userId, zmUser* outUserCng){
+  if (!zo) return false; 
+
+  if (!outUserCng){
+     static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmGetUserCng error: !outUserCng");
+     return false;
+  }
+  ZM_Base::User ur;
+  if (static_cast<ZM_DB::DbProvider*>(zo)->getUserCng(userId, ur)){    
+    strcpy(outUserCng->name, ur.name.c_str());
+    if (!ur.description.empty()){ 
+      outUserCng->description = (char*)realloc(outUserCng->description, ur.description.size() + 1);
+      {lock_guard<mutex> lk(m_mtxResources);
+        m_resources[zo].str.push_back(outUserCng->description);
+      }
+      strcpy(outUserCng->description, ur.description.c_str());
+    }else{
+      outUserCng->description = nullptr;
+    }  
+    return true;
+  }
+  return false;
+}
+bool zmChangeUser(zmConn zo, uint64_t userId, zmUser newCng){
+  if (!zo) return false;
+     
+  ZM_Base::User us;
+  us.name = newCng.name;
+  us.passw = newCng.passw;
+  us.description = newCng.description ? newCng.description : "";
+
+  return static_cast<ZM_DB::DbProvider*>(zo)->changeUser(userId, us);
+}
+bool zmDelUser(zmConn zo, uint64_t userId){
+  if (!zo) return false;
+ 
+  return static_cast<ZM_DB::DbProvider*>(zo)->delUser(userId);
+}
+uint32_t zmGetAllUsers(zmConn zo, uint64_t** outUserId){
+  if (!zo) return 0; 
+
+  auto users = static_cast<ZM_DB::DbProvider*>(zo)->getAllUsers();
+  size_t usz = users.size();
+  if (usz > 0){
+    *outUserId = (uint64_t*)realloc(*outUserId, usz * sizeof(uint64_t));
+    {lock_guard<mutex> lk(m_mtxResources);
+      m_resources[zo].id.push_back(*outUserId);
+    }
+    memcpy(*outUserId, users.data(), usz * sizeof(uint64_t));
+  }else{
+    *outUserId = nullptr;
+  }
+  return (uint32_t)usz;
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// Pipeline of tasks
+
+bool zmAddPipeline(zmConn zo, zmPipeline cng, uint64_t* outPPLId){
+  if (!zo) return false;
+  
+  if (!outPPLId){
+     static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmAddPipeline error: !outPPLId");
+     return false;
+  }
+  ZM_Base::UPipeline pp;
+  pp.uId = cng.userId;
+  pp.name = cng.name;
+  pp.description = cng.description ? cng.description : "";
+  
+  return static_cast<ZM_DB::DbProvider*>(zo)->addPipeline(pp, *outPPLId);
+}
+bool zmGetPipeline(zmConn zo, uint64_t pplId, zmPipeline* outPPLCng){
+  if (!zo) return false; 
+
+  if (!outPPLCng){
+     static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmGetPipelineCng error: !outPPLCng");
+     return false;
+  }
+  ZM_Base::UPipeline pp;
+  if (static_cast<ZM_DB::DbProvider*>(zo)->getPipeline(pplId, pp)){    
+    outPPLCng->userId = pp.uId;
+    strcpy(outPPLCng->name, pp.name.c_str());
+    if (!pp.description.empty()){
+      outPPLCng->description = (char*)realloc(outPPLCng->description, pp.description.size() + 1);
+      {lock_guard<mutex> lk(m_mtxResources);
+        m_resources[zo].str.push_back(outPPLCng->description);
+      }
+      strcpy(outPPLCng->description, pp.description.c_str());  
+    }else{
+      outPPLCng->description = nullptr;
+    }
+    return true;
+  }
+  return false;
+}
+bool zmChangePipeline(zmConn zo, uint64_t pplId, zmPipeline newCng){
+  if (!zo) return false;
+     
+  ZM_Base::UPipeline pp;
+  pp.uId = newCng.userId;
+  pp.name = newCng.name;
+  pp.description = newCng.description ? newCng.description : "";
+
+  return static_cast<ZM_DB::DbProvider*>(zo)->changePipeline(pplId, pp);
+}
+bool zmDelPipeline(zmConn zo, uint64_t pplId){
+  if (!zo) return false;
+ 
+  return static_cast<ZM_DB::DbProvider*>(zo)->delPipeline(pplId);
+}
+uint32_t zmGetAllPipelines(zmConn zo, uint64_t userId, uint64_t** outPPLId){
+  if (!zo) return 0; 
+
+  auto ppls = static_cast<ZM_DB::DbProvider*>(zo)->getAllPipelines(userId);
+  size_t psz = ppls.size();
+  if (psz > 0){
+    *outPPLId = (uint64_t*)realloc(*outPPLId, psz * sizeof(uint64_t));
+    {lock_guard<mutex> lk(m_mtxResources);
+      m_resources[zo].id.push_back(*outPPLId);
+    }
+    memcpy(*outPPLId, ppls.data(), psz * sizeof(uint64_t));
+  }else{
+    *outPPLId = nullptr;
+  }
+  return (uint32_t)psz;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// Group of tasks
+bool zmAddGroup(zmConn zo, zmGroup cng, uint64_t* outGId){
+  if (!zo) return false;
+  
+  if (!outGId){
+     static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmAddGroup error: !outGId");
+     return false;
+  }
+  ZM_Base::UGroup gr;
+  gr.pplId = cng.pplId;
+  gr.name = cng.name;
+  gr.description = cng.description ? cng.description : "";
+  
+  return static_cast<ZM_DB::DbProvider*>(zo)->addGroup(gr, *outGId);
+}
+bool zmGetGroup(zmConn zo, uint64_t gId, zmGroup* outGCng){
+  if (!zo) return false; 
+
+  if (!outGCng){
+     static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmGetGroup error: !outGCng");
+     return false;
+  }
+  ZM_Base::UGroup gr;
+  if (static_cast<ZM_DB::DbProvider*>(zo)->getGroup(gId, gr)){    
+    outGCng->pplId = gr.pplId;
+    strcpy(outGCng->name, gr.name.c_str());
+    if (!gr.description.empty()){
+      outGCng->description = (char*)realloc(outGCng->description, gr.description.size() + 1);
+      {lock_guard<mutex> lk(m_mtxResources);
+        m_resources[zo].str.push_back(outGCng->description);
+      }
+      strcpy(outGCng->description, gr.description.c_str()); 
+    }else{
+      outGCng->description = nullptr;
+    }
+    return true;
+  }
+  return false;
+}
+bool zmChangeGroup(zmConn zo, uint64_t gId, zmGroup newCng){
+  if (!zo) return false;
+     
+  ZM_Base::UGroup gr;
+  gr.pplId = newCng.pplId;
+  gr.name = newCng.name;
+  gr.description = newCng.description ? newCng.description : "";
+
+  return static_cast<ZM_DB::DbProvider*>(zo)->changeGroup(gId, gr);
+}
+bool zmDelGroup(zmConn zo, uint64_t gId){
+  if (!zo) return false;
+ 
+  return static_cast<ZM_DB::DbProvider*>(zo)->delGroup(gId);
+}
+uint32_t zmGetAllGroups(zmConn zo, uint64_t pplId, uint64_t** outGId){
+  if (!zo) return 0; 
+
+  auto groups = static_cast<ZM_DB::DbProvider*>(zo)->getAllGroups(pplId);
+  size_t gsz = groups.size();
+  if (gsz > 0){
+    *outGId = (uint64_t*)realloc(*outGId, gsz * sizeof(uint64_t));
+    {lock_guard<mutex> lk(m_mtxResources);
+      m_resources[zo].id.push_back(*outGId);
+    }
+    memcpy(*outGId, groups.data(), gsz * sizeof(uint64_t));
+  }else{
+    *outGId = nullptr;
+  }
+  return (uint32_t)gsz;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// Task template
+
+bool zmAddTaskTemplate(zmConn zo, zmTaskTemplate cng, uint64_t* outTId){
+  if (!zo) return false;
+
+  if (!outTId || !cng.script){
+    static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmAddTaskTemplate error: !outTId || !cng.script");
+    return false;
+  }
+  ZM_Base::UTaskTemplate task;
+  task.name = cng.name;
+  task.description = cng.description ? cng.description : "";
+  task.uId = cng.userId;
+  task.sId = cng.schedrPresetId;
+  task.wId = cng.workerPresetId;
+  task.averDurationSec = cng.averDurationSec;
+  task.maxDurationSec = cng.maxDurationSec;
+  task.script = cng.script;
+
+  return static_cast<ZM_DB::DbProvider*>(zo)->addTaskTemplate(task, *outTId);
+}
+bool zmGetTaskTemplate(zmConn zo, uint64_t tId, zmTaskTemplate* outTCng){
+  if (!zo) return false; 
+
+  if (!outTCng){
+    static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmGetTaskTemplateCng error: !outTCng");
+    return false;
+  }
+  ZM_Base::UTaskTemplate task;
+  if (static_cast<ZM_DB::DbProvider*>(zo)->getTaskTemplate(tId, task)){  
+    strcpy(outTCng->name, task.name.c_str());  
+    outTCng->averDurationSec = task.averDurationSec;
+    outTCng->maxDurationSec = task.maxDurationSec;
+    outTCng->userId = task.uId;
+    outTCng->schedrPresetId = task.sId;
+    outTCng->workerPresetId = task.wId;
+    outTCng->script = (char*)realloc(outTCng->script, task.script.size() + 1);
+    {lock_guard<mutex> lk(m_mtxResources);
+      m_resources[zo].str.push_back(outTCng->script);
+    }
+    strcpy(outTCng->script, task.script.c_str());
+    if (!task.description.empty()){
+      outTCng->description = (char*)realloc(outTCng->description, task.description.size() + 1);
+      {lock_guard<mutex> lk(m_mtxResources);
+        m_resources[zo].str.push_back(outTCng->description);
+      }
+      strcpy(outTCng->description, task.description.c_str());
+    }else{
+      outTCng->description = nullptr;
+    }
+    return true;
+  }
+  return false;
+}
+bool zmChangeTaskTemplate(zmConn zo, uint64_t tId, zmTaskTemplate newCng){
+  if (!zo) return false; 
+  
+  ZM_Base::UTaskTemplate task;
+  task.name = newCng.name;
+  task.description = newCng.description ? newCng.description : "";
+  task.uId = newCng.userId;
+  task.sId = newCng.schedrPresetId;
+  task.wId = newCng.workerPresetId;
+  task.averDurationSec = newCng.averDurationSec;
+  task.maxDurationSec = newCng.maxDurationSec;
+  task.script = newCng.script;
+  return static_cast<ZM_DB::DbProvider*>(zo)->changeTaskTemplate(tId, task);
+}
+bool zmDelTaskTemplate(zmConn zo, uint64_t tId){
+  if (!zo) return false; 
+
+  return static_cast<ZM_DB::DbProvider*>(zo)->delTaskTemplate(tId);
+}
+uint32_t zmGetAllTaskTemplates(zmConn zo, uint64_t userId, uint64_t** outTId){
+  if (!zo) return 0; 
+
+  auto tasks = static_cast<ZM_DB::DbProvider*>(zo)->getAllTaskTemplates(userId);
+  size_t tsz = tasks.size();
+  if (tsz > 0){
+    *outTId = (uint64_t*)realloc(*outTId, tsz * sizeof(uint64_t));
+    {lock_guard<mutex> lk(m_mtxResources);
+      m_resources[zo].id.push_back(*outTId);
+    }
+    memcpy(*outTId, tasks.data(), tsz * sizeof(uint64_t));
+  }else{
+    *outTId = nullptr;
+  }
+  return (uint32_t)tsz;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// Task of pipeline
+
+bool zmAddPipelineTask(zmConn zo, zmPipelineTask cng, uint64_t* outQTId){
+  if (!zo) return false;
+
+  if (!outQTId){
+    static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmAddTask error: !outQTId");
+    return false;
+  }
+  ZM_Base::UPipelineTask task;
+  task.pplId = cng.pplId;
+  task.ttId = cng.ttId;
+  task.gId = cng.gId;
+  task.name = cng.name;
+  task.description = cng.description ? cng.description : "";
+
+  return static_cast<ZM_DB::DbProvider*>(zo)->addPipelineTask(task, *outQTId);
+}
+bool zmGetPipelineTask(zmConn zo, uint64_t ptId, zmPipelineTask* outCng){
+  if (!zo) return false;
+  
+  if (!outCng){
+    static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmGetPipelineTask error: !outCng");
+    return false;
+  }
+  ZM_Base::UPipelineTask task;
+  if (static_cast<ZM_DB::DbProvider*>(zo)->getPipelineTask(ptId, task)){
+    outCng->pplId = task.pplId;
+    outCng->gId = task.gId;
+    outCng->ttId = task.ttId;
+    strncpy(outCng->name, task.name.c_str(), 256);
+    if (!task.description.empty()){
+      outCng->description = (char*)realloc(outCng->description, task.description.size() + 1);
+      {lock_guard<mutex> lk(m_mtxResources);
+        m_resources[zo].str.push_back(outCng->description);
+      }
+      strcpy(outCng->description, task.description.c_str());
+    }else{
+      outCng->description = nullptr;
+    }
+    return true;
+  }
+  return false;
+}
+bool zmChangePipelineTask(zmConn zo, uint64_t tId, zmPipelineTask newCng){
+  if (!zo) return false;
+  
+  ZM_Base::UPipelineTask task;
+  task.pplId = newCng.pplId;
+  task.gId = newCng.gId;
+  task.ttId = newCng.ttId;
+  task.name = newCng.name;
+  task.description = newCng.description ? newCng.description : "";
+  
+  return static_cast<ZM_DB::DbProvider*>(zo)->changePipelineTask(tId, task);
+}
+bool zmDelPipelineTask(zmConn zo, uint64_t tId){
+  if (!zo) return false;
+
+  return static_cast<ZM_DB::DbProvider*>(zo)->delPipelineTask(tId);
+}
+uint32_t zmGetAllPipelineTasks(zmConn zo, uint64_t pplId, uint64_t** outQTId){
+  if (!zo) return 0; 
+
+  auto tasks = static_cast<ZM_DB::DbProvider*>(zo)->getAllPipelineTasks(pplId);
+  size_t tsz = tasks.size();
+  if (tsz > 0){
+    *outQTId = (uint64_t*)realloc(*outQTId, tsz * sizeof(uint64_t));
+    {lock_guard<mutex> lk(m_mtxResources);
+      m_resources[zo].id.push_back(*outQTId);
+    }
+    memcpy(*outQTId, tasks.data(), tsz * sizeof(uint64_t));
+  }else{
+    *outQTId = nullptr;
+  }
+  return (uint32_t)tsz;
+}
+
+
+ ///////////////////////////////////////////////////////////////////////////
+  /// USER TABLES
+
+  ss.str("");
+  ss << "CREATE TABLE IF NOT EXISTS tblUser("
+        "id           SERIAL PRIMARY KEY,"
+        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1),"
+        "name         TEXT NOT NULL UNIQUE CHECK (name <> ''),"
+        "passwHash    TEXT NOT NULL,"
+        "description  TEXT NOT NULL);";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+    
+  ss.str("");
+  ss << "CREATE TABLE IF NOT EXISTS tblUPipeline("
+        "id           SERIAL PRIMARY KEY,"
+        "usr          INT NOT NULL REFERENCES tblUser,"
+        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1),"
+        "name         TEXT NOT NULL CHECK (name <> ''),"
+        "description  TEXT NOT NULL);";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+
+  ss.str("");
+  ss << "CREATE TABLE IF NOT EXISTS tblUTaskGroup("
+        "id           SERIAL PRIMARY KEY,"
+        "pipeline     INT NOT NULL REFERENCES tblUPipeline,"
+        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1),"
+        "name         TEXT NOT NULL CHECK (name <> ''),"
+        "description  TEXT NOT NULL);";        
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+  
+  ss.str("");
+  ss << "CREATE TABLE IF NOT EXISTS tblUTaskTemplate("
+        "id           SERIAL PRIMARY KEY,"
+        "usr          INT NOT NULL REFERENCES tblUser,"
+        "name         TEXT NOT NULL CHECK (name <> ''),"
+        "description  TEXT NOT NULL,"
+        "script       TEXT NOT NULL CHECK (script <> ''),"
+        "averDurationSec INT NOT NULL CHECK (averDurationSec > 0),"
+        "maxDurationSec  INT NOT NULL CHECK (maxDurationSec > 0),"
+        "schedrPreset INT REFERENCES tblScheduler,"
+        "workerPreset INT REFERENCES tblWorker,"
+        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+
+  ss.str("");
+  ss << "CREATE TABLE IF NOT EXISTS tblUPipelineTask("
+        "id           SERIAL PRIMARY KEY,"
+        "pipeline     INT NOT NULL REFERENCES tblUPipeline,"
+        "taskTempl    INT NOT NULL REFERENCES tblUTaskTemplate,"
+        "taskGroup    INT REFERENCES tblUTaskGroup,"
+        "name         TEXT NOT NULL CHECK (name <> ''),"
+        "description  TEXT NOT NULL,"
+        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+    

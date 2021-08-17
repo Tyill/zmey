@@ -82,21 +82,17 @@ vector<ZM_DB::MessError> DbProvider::getInternErrors(uint64_t sId, uint64_t wId,
 bool DbProvider::delAllTables(){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
-  ss << "DROP TABLE IF EXISTS tblUPipelineTask CASCADE; "
-        "DROP TABLE IF EXISTS tblTaskState CASCADE; "
+  ss << "DROP TABLE IF EXISTS tblTaskState CASCADE; "
         "DROP TABLE IF EXISTS tblTaskTime CASCADE; "
         "DROP TABLE IF EXISTS tblTaskResult CASCADE; "
         "DROP TABLE IF EXISTS tblPrevTask CASCADE; "
         "DROP TABLE IF EXISTS tblTaskParam CASCADE; "
         "DROP TABLE IF EXISTS tblTaskQueue CASCADE; "
-        "DROP TABLE IF EXISTS tblUser CASCADE; "
         "DROP TABLE IF EXISTS tblScheduler CASCADE; "
         "DROP TABLE IF EXISTS tblWorker CASCADE; "
-        "DROP TABLE IF EXISTS tblUPipeline CASCADE; "
-        "DROP TABLE IF EXISTS tblUTaskTemplate CASCADE; "
+        "DROP TABLE IF EXISTS tblTaskTemplate CASCADE; "
         "DROP TABLE IF EXISTS tblInternError CASCADE; "
         "DROP TABLE IF EXISTS tblConnectPnt CASCADE; "
-        "DROP TABLE IF EXISTS tblUTaskGroup CASCADE;"
         "DROP FUNCTION IF EXISTS funcStartTask;"
         "DROP FUNCTION IF EXISTS funcTasksOfSchedr;"
         "DROP FUNCTION IF EXISTS funcNewTasksForSchedr;";

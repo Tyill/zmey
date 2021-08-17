@@ -1,5 +1,5 @@
 import React from "react";
-import { Col, Button, Modal, Form} from "react-bootstrap";
+import { Col, Button, Modal, Form, Table} from "react-bootstrap";
  
 import { IPipelineTask } from "../types";
 import { PipelineTasks, TaskTemplates} from "../store/store";
@@ -115,6 +115,35 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
                           </option>);
       }
     });
+
+    let params = [];
+  <Table striped bordered hover>
+  <thead>
+    <tr>
+      <th>Enable</th>
+      <th>Parameter</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>Mark</td>
+      <td>Otto</td>
+      <td>@mdo</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>Jacob</td>
+      <td>Thornton</td>
+      <td>@fat</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td colSpan="2">Larry the Bird</td>
+      <td>@twitter</td>
+    </tr>
+  </tbody>
+</Table>
 
     return (
       <Modal show={this.props.show} onHide={()=>this.props.onHide(task)} >

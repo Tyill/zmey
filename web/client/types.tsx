@@ -37,37 +37,43 @@ interface ITaskTemplate{
 };   
 
 export
+interface ITaskParam{
+  enable: boolean;
+  value: string;
+}
+
+export
 interface IPipelineTask{       
   id : number;
   pplId : number;              ///< pipeline id
   ttId : number;               ///< task template id    
-  prevTasksId : Array<number>; ///< pipeline task id of previous tasks
   nextTasksId : Array<number>; ///< pipeline task id of next tasks  
   name : string;
   description : string;  
+  params : Array<ITaskParam>;
 };
 
-export
-interface ITask{               ///< task object
-  id : number;
-  pplTaskId : number;          ///< pipeline task id
-  priority : number;           ///< [1..3] 
-  params : Array<string>;      ///< CLI params for script
-};
+// export
+// interface ITask{               ///< task object
+//   id : number;
+//   pplTaskId : number;          ///< pipeline task id
+//   priority : number;           ///< [1..3] 
+//   params : Array<string>;      ///< CLI params for script
+// };
 
-export
-interface ITaskState{
-  id : number;                 ///< task id
-  state : StateType;  
-  progress : number;  
-  result : string;
-};
+// export
+// interface ITaskState{
+//   id : number;                 ///< task id
+//   state : StateType;  
+//   progress : number;  
+//   result : string;
+// };
 
-export
-interface ITaskTime{
-  id : number;                 ///< task id
-  createTime : string;
-  takeInWorkTime : string;
-  startTime : string;
-  stopTime : string;
-};
+// export
+// interface ITaskTime{
+//   id : number;                 ///< task id
+//   createTime : string;
+//   takeInWorkTime : string;
+//   startTime : string;
+//   stopTime : string;
+// };

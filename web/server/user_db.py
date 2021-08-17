@@ -20,12 +20,21 @@ def userDb(uname : str):
       initUserDb(uname)
   return g.db
 
+#   id : number;
+#   pplId : number;              ///< pipeline id
+#   ttId : number;               ///< task template id    
+#   nextTasksId : Array<number>; ///< pipeline task id of next tasks  
+#   name : string;
+#   description : string;  
+#   params : Array<ITaskParam>;
+
 def initUserDb(db):
   cr = db.cursor() 
   cr.execute(
-    "CREATE TABLE tblMessType (             \
+    "CREATE TABLE tblPipelineTask (         \
       id INTEGER PRIMARY KEY AUTOINCREMENT, \
-      name       TEXT NOT NULL);"
+      pplId      INTEGER NOT NULL,          \
+      ttlId      INTEGER NOT NULL,          \
   ) 
   cr.execute(
     "CREATE TABLE tblJournalMess (          \

@@ -28,13 +28,13 @@ using namespace std;
 
 namespace ZM_DB{
 
-bool DbProvider::startTask(uint64_t ptId, uint32_t priority, const std::string& inparams, const std::string& prevTasks, uint64_t& tId){
+bool DbProvider::startTask(uint64_t ttlId, uint32_t priority, const std::string& inparams, const std::string& prevTasks, uint64_t& tId){
   lock_guard<mutex> lk(m_impl->m_mtx);  
 
   string params = "['" + inparams + "']";
   
   stringstream ss;
-  ss << "SELECT * FROM funcStartTask(" << ptId << "," << priority << ", ARRAY" << params << "::TEXT[], ARRAY[" << prevTasks << "]::INT[]);";
+  ss << "SELECT * FROM funcStartTask(" << ttlId << "," << priority << ", ARRAY" << params << "::TEXT[], ARRAY[" << prevTasks << "]::INT[]);";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){

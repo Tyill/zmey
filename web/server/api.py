@@ -4,7 +4,7 @@ import json
 
 import python.zmClient as zm 
 from python.zmClient import(
-  StateType, User, TaskTemplate, Pipeline
+  User, TaskTemplate, Pipeline
 )
 
 from . import auth

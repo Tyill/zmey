@@ -102,15 +102,7 @@ public:
   }
   
   bool createTables();
-
-  // for manager
-  bool addUser(const ZM_Base::User& newUserCng, uint64_t& outUserId);
-  bool getUserId(const std::string& name, const std::string& passw, uint64_t& outUserId);
-  bool getUserCng(uint64_t userId, ZM_Base::User& cng); 
-  bool changeUser(uint64_t userId, const ZM_Base::User& newCng);
-  bool delUser(uint64_t userId);
-  std::vector<uint64_t> getAllUsers();
-
+  
   bool addSchedr(const ZM_Base::Scheduler& schedl, uint64_t& outSchId);
   bool getSchedr(uint64_t sId, ZM_Base::Scheduler& outCng);
   bool changeSchedr(uint64_t sId, const ZM_Base::Scheduler& newCng);
@@ -124,32 +116,14 @@ public:
   bool delWorker(uint64_t wId);
   bool workerState(const std::vector<uint64_t>& wId, std::vector<ZM_Base::StateType>&);
   std::vector<uint64_t> getAllWorkers(uint64_t sId, ZM_Base::StateType);
-
-  bool addPipeline(const ZM_Base::UPipeline& cng, uint64_t& outPPLId);
-  bool getPipeline(uint64_t pplId, ZM_Base::UPipeline& cng);
-  bool changePipeline(uint64_t pplId, const ZM_Base::UPipeline& newCng);
-  bool delPipeline(uint64_t pplId);
-  std::vector<uint64_t> getAllPipelines(uint64_t userId);
-
-  bool addGroup(const ZM_Base::UGroup& cng, uint64_t& outGId);
-  bool getGroup(uint64_t gId, ZM_Base::UGroup& cng);
-  bool changeGroup(uint64_t gId, const ZM_Base::UGroup& newCng);
-  bool delGroup(uint64_t gId);
-  std::vector<uint64_t> getAllGroups(uint64_t pplId);
-
-  bool addTaskTemplate(const ZM_Base::UTaskTemplate& cng, uint64_t& outTId);
-  bool getTaskTemplate(uint64_t ttId, ZM_Base::UTaskTemplate& outTCng);
-  bool changeTaskTemplate(uint64_t ttId, const ZM_Base::UTaskTemplate& newTCng);
+ 
+  bool addTaskTemplate(const ZM_Base::TaskTemplate& cng, uint64_t& outTId);
+  bool getTaskTemplate(uint64_t ttId, ZM_Base::TaskTemplate& outTCng);
+  bool changeTaskTemplate(uint64_t ttId, const ZM_Base::TaskTemplate& newTCng);
   bool delTaskTemplate(uint64_t ttId);
   std::vector<uint64_t> getAllTaskTemplates(uint64_t parent);
 
-  bool addPipelineTask(const ZM_Base::UPipelineTask&, uint64_t& outTId);
-  bool getPipelineTask(uint64_t ptId, ZM_Base::UPipelineTask&);
-  bool changePipelineTask(uint64_t ptId, const ZM_Base::UPipelineTask& newTCng);
-  bool delPipelineTask(uint64_t ptId);
-  std::vector<uint64_t> getAllPipelineTasks(uint64_t pplId);
-  
-  bool startTask(uint64_t ptId, uint32_t priority, const std::string& params, const std::string& prevTasks, uint64_t& tId);
+  bool startTask(uint64_t ttlId, uint32_t priority, const std::string& params, const std::string& prevTasks, uint64_t& tId);
   bool cancelTask(uint64_t tId);
   bool taskState(const std::vector<uint64_t>& tId, std::vector<TaskState>&);
   bool taskResult(uint64_t tId, std::string&);

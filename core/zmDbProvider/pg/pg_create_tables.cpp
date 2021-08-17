@@ -63,9 +63,6 @@ bool DbProvider::createTables(){
   }
   QUERY("SELECT pg_catalog.set_config('search_path', 'public', false)", PGRES_TUPLES_OK);
 
-  ///////////////////////////////////////////////////////////////////////////
-  /// SYSTEM TABLES
-
   stringstream ss;
   ss << "CREATE TABLE IF NOT EXISTS tblConnectPnt("
         "id           SERIAL PRIMARY KEY,"
@@ -103,6 +100,7 @@ bool DbProvider::createTables(){
         "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1),"
         "startTime    TIMESTAMP NOT NULL DEFAULT current_timestamp,"
         "stopTime     TIMESTAMP NOT NULL DEFAULT current_timestamp,"
+        "pingTime     TIMESTAMP NOT NULL DEFAULT current_timestamp,"
         "internalData TEXT NOT NULL DEFAULT '',"
         "name        TEXT NOT NULL DEFAULT '',"
         "description  TEXT NOT NULL DEFAULT '');";
@@ -132,41 +130,11 @@ bool DbProvider::createTables(){
         "createTime   TIMESTAMP NOT NULL DEFAULT current_timestamp,"
         "message      TEXT NOT NULL);";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
-
-  ///////////////////////////////////////////////////////////////////////////
-  /// USER TABLES
-
+ 
   ss.str("");
-  ss << "CREATE TABLE IF NOT EXISTS tblUser("
+  ss << "CREATE TABLE IF NOT EXISTS tblTaskTemplate("
         "id           SERIAL PRIMARY KEY,"
-        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1),"
-        "name         TEXT NOT NULL UNIQUE CHECK (name <> ''),"
-        "passwHash    TEXT NOT NULL,"
-        "description  TEXT NOT NULL);";
-  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
-    
-  ss.str("");
-  ss << "CREATE TABLE IF NOT EXISTS tblUPipeline("
-        "id           SERIAL PRIMARY KEY,"
-        "usr          INT NOT NULL REFERENCES tblUser,"
-        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1),"
-        "name         TEXT NOT NULL CHECK (name <> ''),"
-        "description  TEXT NOT NULL);";
-  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
-
-  ss.str("");
-  ss << "CREATE TABLE IF NOT EXISTS tblUTaskGroup("
-        "id           SERIAL PRIMARY KEY,"
-        "pipeline     INT NOT NULL REFERENCES tblUPipeline,"
-        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1),"
-        "name         TEXT NOT NULL CHECK (name <> ''),"
-        "description  TEXT NOT NULL);";        
-  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
-  
-  ss.str("");
-  ss << "CREATE TABLE IF NOT EXISTS tblUTaskTemplate("
-        "id           SERIAL PRIMARY KEY,"
-        "usr          INT NOT NULL REFERENCES tblUser,"
+        "usr          INT NOT NULL,"
         "name         TEXT NOT NULL CHECK (name <> ''),"
         "description  TEXT NOT NULL,"
         "script       TEXT NOT NULL CHECK (script <> ''),"
@@ -178,24 +146,9 @@ bool DbProvider::createTables(){
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
-  ss << "CREATE TABLE IF NOT EXISTS tblUPipelineTask("
-        "id           SERIAL PRIMARY KEY,"
-        "pipeline     INT NOT NULL REFERENCES tblUPipeline,"
-        "taskTempl    INT NOT NULL REFERENCES tblUTaskTemplate,"
-        "taskGroup    INT REFERENCES tblUTaskGroup,"
-        "name         TEXT NOT NULL CHECK (name <> ''),"
-        "description  TEXT NOT NULL,"
-        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
-  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
-    
-  /////////////////////////////////////////////////////////////////////////////
-  /// SYSTEM TABLES
-
-  ss.str("");
   ss << "CREATE TABLE IF NOT EXISTS tblTaskQueue("
         "id           SERIAL PRIMARY KEY,"
-        "taskTempl    INT NOT NULL REFERENCES tblUTaskTemplate,"      
-        "plTask       INT NOT NULL REFERENCES tblUPipelineTask,"
+        "taskTempl    INT NOT NULL REFERENCES tblTaskTemplate,"      
         "schedr       INT REFERENCES tblScheduler,"
         "worker       INT REFERENCES tblWorker);";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
@@ -239,29 +192,20 @@ bool DbProvider::createTables(){
   /// INDEXES  not used yet
 //   ss.str(""); 
 //   ss << "CREATE INDEX IF NOT EXISTS inxTSState ON tblTaskState(state);"
-//         "CREATE INDEX IF NOT EXISTS inxQTPlTask ON tblTaskQueue(plTask);"
 //   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
   
   ///////////////////////////////////////////////////////////////////////////
   /// FUNCTIONS
   ss.str("");
   ss << "CREATE OR REPLACE FUNCTION "
-        "funcStartTask(ptId int, priority int,  tParams TEXT[], prvTasks int[]) "
+        "funcStartTask(ttlId int, priority int,  tParams TEXT[], prvTasks int[]) "
         "RETURNS int AS $$ "
         "DECLARE "
-        "  ptask tblUPipelineTask;"
         "  qId int := 0;"
         "BEGIN"
-        "  SELECT * INTO ptask "
-        "  FROM tblUPipelineTask "
-        "  WHERE id = ptId AND isDelete = 0;"
-        "  IF NOT FOUND THEN"
-        "    RETURN 0;"
-        "  END IF;"
         
-        "  INSERT INTO tblTaskQueue (taskTempl, plTask) VALUES("
-        "    ptask.taskTempl,"
-        "    ptId) RETURNING id INTO qId;"
+        "  INSERT INTO tblTaskQueue(taskTempl) "
+        "  VALUES(ttlId) RETURNING id INTO qId;"
         
         "  INSERT INTO tblTaskTime (qtask) VALUES("
         "    qId);"
@@ -305,7 +249,7 @@ bool DbProvider::createTables(){
         "  FOR qid, averDurSec, maxDurSec, workerPreset, script, params, prevTasks IN"
         "    SELECT tq.id, tt.averDurationSec, tt.maxDurationSec, COALESCE(tt.workerPreset, 0),"
         "           tt.script, tp.params, pt.prevTasks"
-        "    FROM tblUTaskTemplate tt "
+        "    FROM tblTaskTemplate tt "
         "    JOIN tblTaskQueue tq ON tq.taskTempl = tt.id "
         "    JOIN tblTaskState ts ON ts.qtask = tq.id "
         "    JOIN tblTaskParam tp ON tp.qtask = tq.id "
@@ -340,7 +284,7 @@ bool DbProvider::createTables(){
         "  FOR qid, averDurSec, maxDurSec, workerPreset, script, params, prevTasks IN"
         "    SELECT tq.id, tt.averDurationSec, tt.maxDurationSec, COALESCE(tt.workerPreset, 0),"
         "           tt.script, tp.params, pt.prevTasks"
-        "    FROM tblUTaskTemplate tt "
+        "    FROM tblTaskTemplate tt "
         "    JOIN tblTaskQueue tq ON tq.taskTempl = tt.id "
         "    JOIN tblTaskState ts ON ts.qtask = tq.id "
         "    JOIN tblTaskParam tp ON tp.qtask = tq.id "

@@ -51,17 +51,7 @@ class StateType(Enum):
   ERROR          = 6
   CANCEL         = 7
   NOT_RESPONDING = 8
-class User: 
-  """User config""" 
-  def __init__(self, 
-               id : int = 0,
-               name : str = "",
-               passw : str = "", 
-               description : str = ""):
-    self.id = id
-    self.name = name
-    self.passw = passw
-    self.description = description
+
 class Schedr: 
   """Schedr config""" 
   def __init__(self,
@@ -94,55 +84,29 @@ class Worker:
     self.capacityTask = capacityTask # permissible simultaneous number of tasks 
     self.name = name
     self.description = description
-class Pipeline: 
-  """Pipeline config""" 
-  def __init__(self,
-               id : int = 0,
-               uId : int = 0,
-               name : str = "",
-               description : str = ""):
-    self.id = id
-    self.userId = uId                # User id
-    self.name = name    
-    self.description = description 
 class TaskTemplate: 
   """TaskTemplate config""" 
   def __init__(self,
                id : int = 0,
                userId : int = 0,
-               schedrId : int = 0,
-               workerId : int = 0,
                averDurationSec : int = 1,
                maxDurationSec : int = 1,
                name : str = "",
                description : str = "",
                script: str = ""):
     self.id = id
-    self.userId = userId                   # User id
+    self.userId = userId               
     self.averDurationSec = averDurationSec
     self.maxDurationSec = maxDurationSec
     self.name = name    
     self.description = description
     self.script = script   
-class PipelineTask: 
-  """PipelineTask config""" 
-  def __init__(self,
-               id : int = 0,
-               pplId : int = 0,
-               ttId : int = 0,
-               gId : int = 0,
-               name = "",
-               description = ""):
-    self.id = id
-    self.pplId = pplId                 # Pipeline id    
-    self.ttId = ttId                   # TaskTemplate id
-    self.name = name    
-    self.description = description
+
 class Task:
   """Task config""" 
   def __init__(self,
                id : int = 0,         
-               pplTaskId : int = 0,         # Pipeline task id    
+               ttlId : int = 0,         # Task template id    
                state : StateType = StateType.READY, 
                progress : int = 0,
                result : str = "",
@@ -153,7 +117,7 @@ class Task:
                startTime : str = "",
                stopTime : str = ""):
     self.id = id
-    self.pplTaskId = pplTaskId
+    self.ttlId = ttlId
     self.state = state
     self.progress = progress
     self.result = result
@@ -177,10 +141,6 @@ class InternError:
   
 class _ConnectCng_C(ctypes.Structure):
   _fields_ = [('connStr', ctypes.c_char_p)]
-class _UserCng_C(ctypes.Structure):
-  _fields_ = [('name', ctypes.c_char * 256),
-              ('passw', ctypes.c_char * 256),
-              ('description', ctypes.c_char_p)]
 class _SchedrCng_C(ctypes.Structure):
   _fields_ = [('capacityTask', ctypes.c_uint32),
               ('connectPnt', ctypes.c_char * 256),
@@ -192,10 +152,6 @@ class _WorkerCng_C(ctypes.Structure):
               ('connectPnt', ctypes.c_char * 256),
               ('name', ctypes.c_char * 256),
               ('description', ctypes.c_char_p)]
-class _PipelineCng_C(ctypes.Structure):
-  _fields_ = [('userId', ctypes.c_uint64),
-              ('name', ctypes.c_char * 256),
-              ('description', ctypes.c_char_p)]
 class _TaskTemplCng_C(ctypes.Structure):
   _fields_ = [('userId', ctypes.c_uint64),
               ('schedrPresetId', ctypes.c_uint64),
@@ -205,14 +161,8 @@ class _TaskTemplCng_C(ctypes.Structure):
               ('name', ctypes.c_char * 256),
               ('description', ctypes.c_char_p),
               ('script', ctypes.c_char_p)]
-class _PipelineTaskCng_C(ctypes.Structure):
-  _fields_ = [('pplId', ctypes.c_uint64),
-              ('gId', ctypes.c_uint64),
-              ('ttId', ctypes.c_uint64),
-              ('name', ctypes.c_char * 256),
-              ('description', ctypes.c_char_p)]
 class _TaskCng_C(ctypes.Structure):
-  _fields_ = [('pplTaskId', ctypes.c_uint64),
+  _fields_ = [('ttlId', ctypes.c_uint64),
               ('priority', ctypes.c_uint32),
               ('params', ctypes.c_char_p),
               ('prevTaskId', ctypes.c_char_p)]
@@ -319,129 +269,7 @@ class Connection:
       return pfun(self._zmConn)
     return False
 
-  #############################################################################
-  ### User
   
-  def addUser(self, iousr : User) -> bool:
-    """
-    Add new User
-    :param iousr: new User config
-    :return: True - ok
-    """
-    if (self._zmConn):
-      ucng = _UserCng_C()
-      ucng.name = iousr.name.encode('utf-8')
-      ucng.passw = iousr.passw.encode('utf-8')
-      ucng.description = iousr.description.encode('utf-8')
-
-      uid = ctypes.c_uint64(0)
-      
-      pfun = _lib.zmAddUser
-      pfun.argtypes = (ctypes.c_void_p, _UserCng_C, ctypes.POINTER(ctypes.c_uint64))
-      pfun.restype = ctypes.c_bool
-      if (pfun(self._zmConn, ucng, ctypes.byref(uid))):
-        iousr.id = uid.value
-        return True
-    return False
-  def getUserId(self, iousr : User)-> bool:
-    """
-    Get exist User id
-    :param iousr: User config
-    :return: True - ok
-    """
-    if (self._zmConn):
-      ucng = _UserCng_C()
-      ucng.name = iousr.name.encode('utf-8')
-      ucng.passw = iousr.passw.encode('utf-8')
-      ucng.description = iousr.description.encode('utf-8')
-
-      uid = ctypes.c_uint64(0)
-      
-      pfun = _lib.zmGetUserId
-      pfun.argtypes = (ctypes.c_void_p, _UserCng_C, ctypes.POINTER(ctypes.c_uint64))
-      pfun.restype = ctypes.c_bool
-      if (pfun(self._zmConn, ucng, ctypes.byref(uid))):
-        iousr.id = uid.value
-        return True
-    return False
-  def getUserCng(self, iousr : User) -> bool:
-    """
-    Get User config by ID
-    :param iousr: User config
-    :return: True - ok
-    """
-    if (self._zmConn):
-      ucng = _UserCng_C()
-
-      uid = ctypes.c_uint64(iousr.id)
-      
-      pfun = _lib.zmGetUserCng
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(_UserCng_C))
-      pfun.restype = ctypes.c_bool
-      if (pfun(self._zmConn, uid, ctypes.byref(ucng))):      
-        iousr.name = ucng.name.decode('utf-8')
-        iousr.passw = ucng.passw.decode('utf-8')
-        if ucng.description:
-          iousr.description = ucng.description.decode('utf-8')
-          self._freeResources()      
-        return True
-    return False
-  def changeUser(self, iusr : User) -> bool:
-    """
-    Change User config
-    :param iusr: new User config
-    :return: True - ok
-    """
-    if (self._zmConn):
-      uid = ctypes.c_uint64(iusr.id)
-      ucng = _UserCng_C()
-      ucng.name = iusr.name.encode('utf-8')
-      ucng.passw = iusr.passw.encode('utf-8')
-      ucng.description = iusr.description.encode('utf-8')
-      
-      pfun = _lib.zmChangeUser
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, _UserCng_C)
-      pfun.restype = ctypes.c_bool
-      return pfun(self._zmConn, uid, ucng)
-    return False
-  def delUser(self, usrId) -> bool:
-    """
-    Delete User
-    :param usrId: User id
-    :return: True - ok
-    """
-    if (self._zmConn):
-      uid = ctypes.c_uint64(usrId)
-            
-      pfun = _lib.zmDelUser
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
-      pfun.restype = ctypes.c_bool
-      return pfun(self._zmConn, uid)
-    return False
-  def getAllUsers(self) -> List[User]:
-    """
-    Get all users
-    :return: list of users
-    """
-    if (self._zmConn):
-      pfun = _lib.zmGetAllUsers
-      pfun.argtypes = (ctypes.c_void_p, ctypes.POINTER(ctypes.POINTER(ctypes.c_uint64)))
-      pfun.restype = ctypes.c_uint32
-      dbuffer = ctypes.POINTER(ctypes.c_uint64)()
-      osz = pfun(self._zmConn, ctypes.byref(dbuffer))
-                  
-      if dbuffer and (osz > 0):
-        oid = [dbuffer[i] for i in range(osz)]
-        self._freeResources()
-
-        ousr = []
-        for i in range(osz):
-          u = User(oid[i])
-          self.getUserCng(u)
-          ousr.append(u)
-        return ousr
-    return []
-
   #############################################################################
   ### Scheduler
   
@@ -789,112 +617,7 @@ class Connection:
           owkr.append(w)
         return owkr
     return []
-  
-  #############################################################################
-  ### Pipeline of tasks
-  
-  def addPipeline(self, ioppl : Pipeline) -> bool:
-    """
-    Add new Pipeline
-    :param ioppl: new Pipeline config
-    :return: True - ok
-    """
-    if (self._zmConn):
-      pcng = _PipelineCng_C()
-      pcng.userId = ioppl.userId
-      pcng.name = ioppl.name.encode('utf-8')
-      pcng.description = ioppl.description.encode('utf-8')
-      
-      pplid = ctypes.c_uint64(0)
-      
-      pfun = _lib.zmAddPipeline
-      pfun.argtypes = (ctypes.c_void_p, _PipelineCng_C, ctypes.POINTER(ctypes.c_uint64))
-      pfun.restype = ctypes.c_bool
-      if (pfun(self._zmConn, pcng, ctypes.byref(pplid))):
-        ioppl.id = pplid.value
-        return True
-    return False
-  def getPipeline(self, ioppl : Pipeline) -> bool:
-    """
-    Get Pipeline config by ID
-    :param ioppl: Pipeline config
-    :return: True - ok
-    """
-    if (self._zmConn):
-      pcng = _PipelineCng_C()
-
-      pplid = ctypes.c_uint64(ioppl.id)
-      
-      pfun = _lib.zmGetPipeline
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(_PipelineCng_C))
-      pfun.restype = ctypes.c_bool
-      if (pfun(self._zmConn, pplid, ctypes.byref(pcng))):      
-        ioppl.userId = pcng.userId
-        ioppl.name = pcng.name.decode('utf-8')
-        if pcng.description:
-          ioppl.description = pcng.description.decode('utf-8')
-          self._freeResources()
-        return True
-    return False
-  def changePipeline(self, ippl : User) -> bool:
-    """
-    Change Pipeline config
-    :param ippl: new Pipeline config
-    :return: True - ok
-    """
-    if (self._zmConn):
-      pplid = ctypes.c_uint64(ippl.id)
-      pcng = _PipelineCng_C()
-      pcng.userId = ippl.userId
-      pcng.name = ippl.name.encode('utf-8')
-      pcng.description = ippl.description.encode('utf-8')
-      
-      pfun = _lib.zmChangePipeline
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, _PipelineCng_C)
-      pfun.restype = ctypes.c_bool
-      return pfun(self._zmConn, pplid, pcng)
-    return False
-  def delPipeline(self, pplId : int) -> bool:
-    """
-    Delete Pipeline
-    :param pplId: Pipeline id
-    :return: True - ok
-    """
-    if (self._zmConn):
-      pid = ctypes.c_uint64(pplId)
-            
-      pfun = _lib.zmDelPipeline
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
-      pfun.restype = ctypes.c_bool
-      return pfun(self._zmConn, pid)
-    return False
-  def getAllPipelines(self, uId : int) -> List[Pipeline]:
-    """
-    Get all pipelines
-    :param uId: User id
-    :return: list of Pipeline
-    """
-    if (self._zmConn):
-      userId = ctypes.c_uint64(uId)
-
-      pfun = _lib.zmGetAllPipelines
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(ctypes.POINTER(ctypes.c_uint64)))
-      pfun.restype = ctypes.c_uint32
-      dbuffer = ctypes.POINTER(ctypes.c_uint64)()
-      osz = pfun(self._zmConn, userId, ctypes.byref(dbuffer))
-      
-      if dbuffer and (osz > 0):
-        oid = [dbuffer[i] for i in range(osz)]
-        self._freeResources()
-
-        oppl = []
-        for i in range(osz):
-          p = Pipeline(oid[i])
-          self.getPipeline(p)
-          oppl.append(p)
-        return oppl
-    return []
-
+    
   #############################################################################
   ### Task template 
 
@@ -1013,117 +736,6 @@ class Connection:
           ott.append(t)
         return ott
     return []
-
-  #############################################################################
-  ### Task of Pipeline
- 
-  def addPipelineTask(self, iot : PipelineTask) -> bool:
-    """
-    Add new Task
-    :param iot: new Task config
-    :return: True - ok
-    """
-    if (self._zmConn):
-      tcng = _PipelineTaskCng_C()
-      tcng.pplId = iot.pplId
-      tcng.ttId = iot.ttId
-      tcng.gId = 0 # not used yet
-      tcng.name = iot.name.encode('utf-8')
-      tcng.description = iot.description.encode('utf-8')
-
-      tid = ctypes.c_uint64(0)
-      
-      pfun = _lib.zmAddPipelineTask
-      pfun.argtypes = (ctypes.c_void_p, _PipelineTaskCng_C, ctypes.POINTER(ctypes.c_uint64))
-      pfun.restype = ctypes.c_bool
-      if (pfun(self._zmConn, tcng, ctypes.byref(tid))):
-        iot.id = tid.value
-        return True
-    return False
-  def getPipelineTask(self, iot : PipelineTask) -> bool:
-    """
-    Get pipeline task config by ID
-    :param iot: Task config
-    :return: True - ok
-    """
-    if (self._zmConn):
-      tcng = _PipelineTaskCng_C()
-
-      tid = ctypes.c_uint64(iot.id)
-      
-      pfun = _lib.zmGetPipelineTask
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(_PipelineTaskCng_C))
-      pfun.restype = ctypes.c_bool
-      if (pfun(self._zmConn, tid, ctypes.byref(tcng))):      
-        iot.pplId = tcng.pplId
-        iot.ttId = tcng.ttId
-        iot.name = tcng.name.decode('utf-8')
-        if tcng.description:
-          iot.description = tcng.description.decode('utf-8')          
-          self._freeResources()  
-        return True
-    return False
-  def changePipelineTask(self, iot : PipelineTask) -> bool:
-    """
-    Change Task config
-    :param iot: new Task config
-    :return: True - ok
-    """
-    if (self._zmConn):
-      tid = ctypes.c_uint64(iot.id)
-      tcng = _PipelineTaskCng_C()
-      tcng.pplId = iot.pplId
-      tcng.ttId = iot.ttId
-      tcng.gId = 0 # not used yet
-      tcng.name = iot.name.encode('utf-8')
-      tcng.description = iot.description.encode('utf-8')
-      
-      pfun = _lib.zmChangePipelineTask
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, _PipelineTaskCng_C)
-      pfun.restype = ctypes.c_bool
-      return pfun(self._zmConn, tid, tcng)
-    return False
-  def delPipelineTask(self, ptId : int) -> bool:
-    """
-    Delete pipeline task
-    :param tId: Task id
-    :return: True - ok
-    """
-    if (self._zmConn):
-      tid = ctypes.c_uint64(ptId)
-            
-      pfun = _lib.zmDelPipelineTask
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
-      pfun.restype = ctypes.c_bool
-      return pfun(self._zmConn, tid)
-    return False
-  def getAllPipelineTasks(self, pplId : int) -> List[PipelineTask]:
-    """
-    Get all tasks of pipeline
-    :param pplId: Pipeline id
-    :param state: state type
-    :return: list of Task
-    """
-    if (self._zmConn):
-      cpplId = ctypes.c_uint64(pplId)
-
-      pfun = _lib.zmGetAllPipelineTasks
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(ctypes.POINTER(ctypes.c_uint64)))
-      pfun.restype = ctypes.c_uint32
-      dbuffer = ctypes.POINTER(ctypes.c_uint64)()
-      osz = pfun(self._zmConn, cpplId, ctypes.byref(dbuffer))
-            
-      if dbuffer and (osz > 0):
-        oid = [dbuffer[i] for i in range(osz)]
-        self._freeResources()
-      
-        ott = []
-        for i in range(osz):
-          t = PipelineTask(oid[i])
-          self.getPipelineTask(t)
-          ott.append(t)
-        return ott
-    return []
   
   #############################################################################
   ### Task object
@@ -1138,7 +750,7 @@ class Connection:
       tid = ctypes.c_uint64(0)
             
       tcng = _TaskCng_C()
-      tcng.pplTaskId = iot.pplTaskId      
+      tcng.ttlId = iot.ttlId      
       tcng.priority = iot.priority
       tcng.prevTaskId = None # not used yet
       tcng.params = ','.join(iot.params).encode('utf-8')
