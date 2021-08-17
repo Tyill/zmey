@@ -13,19 +13,17 @@ def create_app():
   app.config['SECRET_KEY'] = os.urandom(16)
   app.config['DbConnectStr'] = 'host=localhost port=5432 password=123 dbname=zmeydb connect_timeout=10'
   app.config['PostgreLibPath'] = 'c:/Program Files/PostgreSQL/10/bin/'
-  app.config['ClientLibPath'] = 'c:/cpp/other/zmey/build/Release/'
-  app.config['PyClientPath'] = 'c:/cpp/other/zmey'
-      
-  SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
-  sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, app.config['PyClientPath'])))
+  app.config['CoreLibPath'] = 'c:/cpp/other/zmey/build/Release/'
   
   os.add_dll_directory(app.config['PostgreLibPath'])
-  os.add_dll_directory(app.config['ClientLibPath'])
+  os.add_dll_directory(app.config['CoreLibPath'])
 
   os.makedirs(app.instance_path + '/users', exist_ok = True) 
  
+  from . import core
+  core.init(app.config['DbConnectStr'])
+
   from . import api
-  api.init(app.config['DbConnectStr'])
   app.register_blueprint(api.bp)
 
   from . import auth 

@@ -2,63 +2,22 @@ import os
 from typing import List
 import json
 
-import python.zmClient as zm 
-from python.zmClient import(
-  User, TaskTemplate, Pipeline
-)
-
 from . import auth
+from .core import (
+  zmConn
+)
 from flask import(
   g, Blueprint, request
 )
 
-_zmCommon = None
-_zmTaskWatch = None
-
-def init(zmeyConnStr : str):
-
-  libname = 'libzmClient.so'
-  if os.name == 'nt':
-    libname = 'zmClient.dll'
-      
-  zm.loadLib(libname)
-  
-  global _zmCommon
-  _zmCommon = zm.Connection(zmeyConnStr)
-
-  if not _zmCommon.isOK():
-    raise RuntimeError('Error connection with PostgreSQL: ' + _zmCommon.getLastError())
-  
-  _zmCommon.setErrorCBack(lambda err: print(err))  
-  
-  _zmCommon.createTables()
-   
-  global _zmTaskWatch 
-  _zmTaskWatch = zm.Connection(zmeyConnStr) 
   
 ###############################################################################
 ### Common
 
 def lastError() -> str:
-  _zmCommon.getLastError()
+  zmConn.getLastError()
 
 bp = Blueprint('api', __name__, url_prefix='/api/v1')
-
-###############################################################################
-### User
-
-def addUser(usr : User) -> bool:
-  return _zmCommon.addUser(usr)
-
-def getUser(uname : str, passw : str) -> User:  
-  usr = User(0, uname, passw)
-  return usr if _zmCommon.getUserId(usr) else None
-
-def changeUser(usr : User) -> bool:
-  return _zmCommon.changeUser(usr)
-
-def allUsers() -> List[User]:
-  return _zmCommon.getAllUsers()
 
 ###############################################################################
 ### Scheduler

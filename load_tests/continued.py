@@ -4,7 +4,7 @@ import sys
 import time
 import subprocess
 import psycopg2
-sys.path.append(os.path.expanduser("~") + '/cpp/zmey/python/')
+sys.path.append(os.path.expanduser("~") + '/cpp/zmey/web/server/')
 import zmClient as zm
 
 #### 5 schedr, 5 * 20 workers, 1000000 tasks on one machine

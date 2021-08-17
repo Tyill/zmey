@@ -3,7 +3,7 @@ from markupsafe import escape
 from flask import (
   Blueprint, flash, g, redirect, render_template, request, session, url_for
 )
-from . import api
+from . import user
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -18,10 +18,10 @@ def register():
       error = 'Username is required.'
     elif not password:
       error = 'Password is required.'
-    elif len([usr for usr in api.allUsers() if usr.name == username]):    
+    elif len([usr for usr in user.all() if usr.name == username]):    
       error = 'User {} is already registered.'.format(username)
-    elif not api.addUser(api.User(0, username, password)):      
-      error = api.lastError()
+    elif not user.add(user.User(0, username, password)):      
+      error = user.lastError()
     
     if error is None:
       return redirect(url_for('auth.login'))
@@ -37,10 +37,10 @@ def login():
     password = escape(request.form['password'])
    
     error = None
-    usr = api.getUser(username, password)
+    usr = user.get(username, password)
     if usr is None:
       error = 'Incorrect username or password.'
-    if error is None:
+    else:
       session.clear()
       session['userName'] = username
       session['userId'] = usr.id      
@@ -51,7 +51,7 @@ def login():
   return render_template('auth/login.html')
 
 @bp.before_app_request
-def load_logged_in_user():
+def load():
   g.userName = session.get('userName')
   g.userId = session.get('userId')
     
@@ -75,5 +75,3 @@ def adminRequired(view):
       return redirect(url_for('auth.login'))
     return view(**kwargs)
   return wrapped_view
-
-

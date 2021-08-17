@@ -37,20 +37,25 @@ interface ITaskTemplate{
 };   
 
 export
-interface ITaskParam{
-  enable: boolean;
-  value: string;
-}
-
-export
 interface IPipelineTask{       
   id : number;
-  pplId : number;              ///< pipeline id
-  ttId : number;               ///< task template id    
-  nextTasksId : Array<number>; ///< pipeline task id of next tasks  
+  pplId : number;               ///< pipeline id
+  ttId : number;                ///< task template id    
+  nextTasksId : Array<number>;  ///< pipeline task id of next tasks  
+  nextEventsId : Array<number>; ///< event id of next events
   name : string;
   description : string;  
-  params : Array<ITaskParam>;
+  params : Array<string>;
+};
+
+export
+interface IEvent{       
+  id : number;
+  nextTasksId : Array<number>;  ///< pipeline task id of next tasks  
+  nextEventsId : Array<number>; ///< event id of next events
+  name : string;
+  description : string;  
+  params : Array<string>;
 };
 
 // export
