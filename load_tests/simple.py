@@ -5,20 +5,16 @@ import time
 import subprocess
 import psycopg2
 sys.path.append(os.path.expanduser("~") + '/cpp/zmey/web/server/')
-import zmClient as zm
+import zm_client as zm
 
 #### 1 schedr, 30 workers, 1000 tasks on one machine
 
 # del all tables
 with psycopg2.connect(dbname='zmeydb', user='alm', password='123', host='localhost') as pg:
   csr = pg.cursor()
-  csr.execute("drop table if exists tblUser cascade;" +
-              "drop table if exists tblScheduler cascade;" +
+  csr.execute("drop table if exists tblScheduler cascade;" +
               "drop table if exists tblWorker cascade;" +
-              "drop table if exists tblUTaskTemplate cascade;" +
-              "drop table if exists tblTask cascade;" +
-              "drop table if exists tblUPipeline cascade;" +
-              "drop table if exists tblUPipelineTask cascade;" +
+              "drop table if exists tblTaskTemplate cascade;" +
               "drop table if exists tblTaskState cascade;" +
               "drop table if exists tblTaskTime cascade;" + 
               "drop table if exists tblTaskResult cascade;" +
@@ -27,10 +23,9 @@ with psycopg2.connect(dbname='zmeydb', user='alm', password='123', host='localho
               "drop table if exists tblTaskQueue cascade;" + 
               "drop table if exists tblInternError cascade;" + 
               "drop table if exists tblConnectPnt cascade;" + 
-              "drop table if exists tblUTaskGroup cascade;" + 
-              "DROP FUNCTION IF EXISTS funcStartTask;" +
-              "DROP FUNCTION IF EXISTS funcTasksOfSchedr;" +
-              "DROP FUNCTION IF EXISTS funcNewTasksForSchedr;")
+              "drop function if exists functasksofschedr(integer);" +
+              "drop function if exists funcstarttask(integer,integer,text[],integer[]);" +
+              "drop function if exists funcnewtasksforschedr(integer,integer);")
   csr.close()
 
 zm.loadLib(os.path.expanduser("~") + '/cpp/zmey/build/Release/libzmClient.so')

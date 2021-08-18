@@ -2,13 +2,13 @@ from flask import(
   Flask, Blueprint, render_template
 )
 import os
-import sys
+
 
 def create_app():
   app = Flask(__name__, instance_relative_config=True, 
                         static_url_path='', 
-                        static_folder='',
-                        template_folder='html') 
+                        static_folder='static',
+                        template_folder='html_templates') 
   
   app.config['SECRET_KEY'] = os.urandom(16)
   app.config['DbConnectStr'] = 'host=localhost port=5432 password=123 dbname=zmeydb connect_timeout=10'
@@ -18,8 +18,9 @@ def create_app():
   os.add_dll_directory(app.config['PostgreLibPath'])
   os.add_dll_directory(app.config['CoreLibPath'])
 
-  os.makedirs(app.instance_path + '/users', exist_ok = True) 
- 
+  from . import user
+  user.init(app.instance_path) 
+
   from . import core
   core.init(app.config['DbConnectStr'])
 
@@ -28,9 +29,9 @@ def create_app():
 
   from . import auth 
   app.register_blueprint(auth.bp)
-   
-  from . import user_db
-  user_db.init(app)
+           
+  from . import db
+  db.init(app)
 
   bp = Blueprint('gui', __name__)
   @bp.route('/')

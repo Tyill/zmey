@@ -13,17 +13,17 @@ def register():
     username = escape(request.form['username'])
     password = escape(request.form['password'])
     error = None
-
+       
     if not username:
       error = 'Username is required.'
     elif not password:
       error = 'Password is required.'
-    elif len([usr for usr in user.all() if usr.name == username]):    
-      error = 'User {} is already registered.'.format(username)
-    elif not user.add(user.User(0, username, password)):      
-      error = user.lastError()
-    
-    if error is None:
+    elif len([usr for usr in user.all() if usr and usr.name == username]):       
+      error = 'User {} is already registered.'.format(username)       
+    elif not user.add(username, password):
+      error = 'Internal error'
+
+    if error is None:      
       return redirect(url_for('auth.login'))
 
     flash(error)
@@ -35,8 +35,8 @@ def login():
   if request.method == 'POST':
     username = escape(request.form['username'])
     password = escape(request.form['password'])
-   
     error = None
+   
     usr = user.get(username, password)
     if usr is None:
       error = 'Incorrect username or password.'
@@ -52,8 +52,8 @@ def login():
 
 @bp.before_app_request
 def load():
-  g.userName = session.get('userName')
-  g.userId = session.get('userId')
+  g.userName = session.get('userName', None)
+  g.userId = session.get('userId', None)
     
 @bp.route('/logout')
 def logout():
@@ -71,7 +71,7 @@ def loginRequired(view):
 def adminRequired(view):
   @functools.wraps(view)
   def wrapped_view(**kwargs):
-    if (g.userId is None) or (g.userName != "admin"):
+    if (g.userId is None):
       return redirect(url_for('auth.login'))
     return view(**kwargs)
   return wrapped_view

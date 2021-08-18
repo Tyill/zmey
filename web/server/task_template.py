@@ -1,48 +1,85 @@
 from typing import List
-from .core import zmConn
+from contextlib import closing
 from flask import g
-from . db
 
-class TaskTemplate: 
-  """TaskTemplate config""" 
-  def __init__(self,
-               id : int = 0,
-               averDurationSec : int = 1,
-               maxDurationSec : int = 1,
-               name : str = "",
-               description : str = "",
-               script: str = ""):
-    self.id = id
-    self.averDurationSec = averDurationSec
-    self.maxDurationSec = maxDurationSec
-    self.name = name    
-    self.description = description
-    self.script = script   
+from .core import zmConn
+from . import zm_client as zm 
 
-def add(self, iott : TaskTemplate) -> bool:
-  if zmConn and ('userId' in g):
+class TaskTemplate(zm.TaskTemplate):
+  None
+
+def add(iott : TaskTemplate) -> bool:
+  if zmConn and ('userId' in g) and ('db' in g):
     iott.userId = g.userId
-    return zmConn.addTaskTemplate(iott)
+    if zmConn.addTaskTemplate(iott):
+      try:
+        with closing(g.db.cursor()) as cr:
+          cr.execute(
+            "INSERT INTO tblTaskTemplate (id, name, description, script, averDurationSec, maxDurationSec) VALUES("
+            f"'{iott.id}',"
+            f"'{iott.name}',"
+            f"'{iott.description}',"
+            f"'{iott.script}',"
+            f"'{iott.averDurationSec}',"
+            f"'{iott.maxDurationSec}');"
+          )
+          g.db.commit()
+        return True
+      except Exception as err:
+        print('Local db query failed: %s' % str(err))
   return False
 
-def get(self, iott : TaskTemplate) -> bool:
-  if zmConn and ('userId' in g):
+def change(iott : TaskTemplate) -> bool:
+  if zmConn and ('userId' in g) and ('db' in g):
     iott.userId = g.userId
-    return zmConn.getTaskTemplate(iott)
+    if zmConn.changeTaskTemplate(iott):
+      try:
+        with closing(g.db.cursor()) as cr:
+          cr.execute(
+            "UPDATE tblTaskTemplate SET "
+            f"name = '{iott.name}',"
+            f"description = '{iott.description}',"
+            f"script = '{iott.script}',"
+            f"averDurationSec = '{iott.averDurationSec}',"
+            f"maxDurationSec = '{iott.maxDurationSec}' "
+            f"WHERE id = {iott.id};"  
+          )
+          g.db.commit()
+        return True
+      except Exception as err:
+        print('Local db query failed: %s' % str(err))
   return False
 
-def change(self, iott : TaskTemplate) -> bool:
-  if zmConn and ('userId' in g):
-    iott.userId = g.userId
-    return zmConn.changeTaskTemplate(iott)
+def delete(ttId : int) -> bool:
+  if zmConn and ('db' in g):
+    if zmConn.delTaskTemplate(ttId):
+      try:
+        with closing(g.db.cursor()) as cr:
+          cr.execute(
+            "UPDATE tblTaskTemplate SET "
+            "isDelete = 1 "
+            f"WHERE id = {ttId};" 
+          )
+          g.db.commit()
+        return True
+      except Exception as err:
+        print('Local db query failed: %s' % str(err))
   return False
 
-def delete(self, ttId : int) -> bool:
-  if zmConn and ('userId' in g):
-    return zmConn.delTaskTemplate(ttId)
-  return False
-
-def getAll(self, uId : int) -> List[TaskTemplate]:
-  if zmConn and ('userId' in g):
-    return zmConn.getAllTaskTemplates(g.userId)
-  return False
+def all() -> List[TaskTemplate]:
+  if 'db' in g:
+    try:
+      ttls = []
+      with closing(g.db.cursor()) as cr:
+        cr.execute(
+          "SELECT id, name, description, script, averDurationSec, maxDurationSec "
+          "FROM tblTaskTemplate "
+          "WHERE isDelete = 0;"
+        )
+        rows = cr.fetchall()
+        for row in rows:
+          ttls.append(TaskTemplate(id=row[0], name=row[1], description=row[2], script=row[3], averDurationSec=row[4], maxDurationSec=row[5]))       
+      return ttls  
+    except Exception as err:
+      print('Local db query failed: %s' % str(err))
+  return []

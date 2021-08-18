@@ -1,5 +1,5 @@
 import os
-import zmClient as zm 
+from . import zm_client as zm 
 
 zmConn : zm.Connection = None
 zmTaskWatch : zm.Connection = None

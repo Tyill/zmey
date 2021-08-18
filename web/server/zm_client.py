@@ -101,7 +101,10 @@ class TaskTemplate:
     self.name = name    
     self.description = description
     self.script = script   
-
+  def __repr__(self):
+      return f"TaskTemplate: name {self.name} description {self.description} script {self.script} id {self.id} userId {self.userId} averDurationSec {self.averDurationSec} maxDurationSec {self.maxDurationSec}   "
+  def __str__(self):
+      return self.__repr__()
 class Task:
   """Task config""" 
   def __init__(self,
@@ -127,6 +130,10 @@ class Task:
     self.takeInWorkTime = takeInWorkTime
     self.startTime = startTime
     self.stopTime = stopTime
+    def __repr__(self):
+      return f"Task: id {self.id} ttlId {self.ttlId} state {self.state} stopTime {self.stopTime} startTime {self.startTime} takeInWorkTime {self.takeInWorkTime} createTime {self.createTime} params {self.params} priority {self.priority} progress {self.progress} result {self.result}"
+    def __str__(self):
+      return self.__repr__()
 class InternError: 
   """Internal ERROR""" 
   def __init__(self,
@@ -627,6 +634,7 @@ class Connection:
     :param iott: new tasktempl config
     :return: True - ok
     """
+    
     if (self._zmConn):
       tcng = _TaskTemplCng_C()
       tcng.userId = iott.userId
@@ -637,7 +645,6 @@ class Connection:
       tcng.name = iott.name.encode('utf-8')
       tcng.description = iott.description.encode('utf-8')
       tcng.script = iott.script.encode('utf-8')
-      
       ttid = ctypes.c_uint64(0)
       
       pfun = _lib.zmAddTaskTemplate

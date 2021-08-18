@@ -1,22 +1,14 @@
-import os
-from typing import List
 import json
+from flask import(
+  Blueprint, request
+)
 
 from . import auth
-from .core import (
-  zmConn
+from . import (
+  task_template as tt,
+  pipeline as pp,
 )
-from flask import(
-  g, Blueprint, request
-)
-
-  
-###############################################################################
-### Common
-
-def lastError() -> str:
-  zmConn.getLastError()
-
+ 
 bp = Blueprint('api', __name__, url_prefix='/api/v1')
 
 ###############################################################################
@@ -25,7 +17,7 @@ bp = Blueprint('api', __name__, url_prefix='/api/v1')
 @bp.route('/schedulers')
 @auth.adminRequired
 def allSchedrs():
-  return None#_zmCommon.getAllSchedulers()
+  return None
 
 ###############################################################################
 ### Worker
@@ -33,7 +25,7 @@ def allSchedrs():
 @bp.route('/workers')
 @auth.adminRequired
 def allWorkers():
-  return None#_zmCommon.getAllWorkers(schId)
+  return None
 
 ###############################################################################
 ### Pipeline
@@ -44,12 +36,12 @@ def addPipeline():
   try: 
     jnReq = request.get_json(silent=True)  
 
-    ppl = Pipeline()
+    ppl = pp.Pipeline()
     ppl.name = jnReq['name']
-    ppl.userId = g.userId
     ppl.description = jnReq['description']  
-    return json.dumps(ppl.__dict__) if _zmCommon.addPipeline(ppl) else ('internal error', 500)
-  except Exception:
+    return json.dumps(ppl.__dict__) if pp.add(ppl) else ('internal error', 500)
+  except Exception as err:
+    print(f'/pipelines POST {request.get_json(silent=True)} failed: %s' % str(err))
     return ('bad request', 400)
 
 @bp.route('/pipelines/<int:id>', methods=(['PUT']))
@@ -58,28 +50,29 @@ def changePipeline(id : int):
   try:
     jnReq = request.get_json(silent=True)
   
-    ppl = Pipeline()
+    ppl = pp.Pipeline()
     ppl.id = id
-    ppl.userId = g.userId
     ppl.name = jnReq['name']
     ppl.description = jnReq['description']    
-    return json.dumps(ppl.__dict__) if _zmCommon.changePipeline(ppl) else ('internal error', 500)
-  except Exception:
+    return json.dumps(ppl.__dict__) if pp.change(ppl) else ('internal error', 500)
+  except Exception as err:
+    print(f'/pipelines/{id} PUT {request.get_json(silent=True)} failed: %s' % str(err))
     return ('bad request', 400)
 
 @bp.route('/pipelines/<int:id>', methods=(['DELETE']))
 @auth.loginRequired
 def delPipeline(id : int):
   try:
-    return ('ok', 200) if _zmCommon.delPipeline(id) else ('bad request', 400)  
-  except Exception:
+    return ('ok', 200) if pp.delete(id) else ('bad request', 400)  
+  except Exception as err:
+    print(f'/pipelines/{id} DELETE failed: %s' % str(err))
     return ('bad request', 400)
 
 @bp.route('/pipelines', methods=(['GET']))
 @auth.loginRequired
 def allPipelines():
   ret = []
-  for p in _zmCommon.getAllPipelines(g.userId):
+  for p in pp.all():
     ret.append(p.__dict__)
   return json.dumps(ret)
 
@@ -92,15 +85,15 @@ def addTaskTemplate():
   try: 
     jnReq = request.get_json(silent=True)  
 
-    ttl = TaskTemplate()
+    ttl = tt.TaskTemplate()
     ttl.name = jnReq['name']
-    ttl.userId = g.userId
     ttl.script = jnReq['script']
     ttl.averDurationSec = int(jnReq['averDurationSec'])
     ttl.maxDurationSec = int(jnReq['maxDurationSec'])
     ttl.description = jnReq['description']  
-    return json.dumps(ttl.__dict__) if _zmCommon.addTaskTemplate(ttl) else ('internal error', 500)
-  except Exception:
+    return json.dumps(ttl.__dict__) if tt.add(ttl) else ('internal error', 500)
+  except Exception as err:
+    print(f'/taskTemplates POST {request.get_json(silent=True)} failed: %s' % str(err))
     return ('bad request', 400)
 
 @bp.route('/taskTemplates/<int:id>', methods=(['PUT']))
@@ -109,31 +102,32 @@ def changeTaskTemplate(id : int):
   try:
     jnReq = request.get_json(silent=True)
   
-    ttl = TaskTemplate()
+    ttl = tt.TaskTemplate()
     ttl.id = id
-    ttl.userId = g.userId
     ttl.name = jnReq['name']
     ttl.script = jnReq['script']
     ttl.averDurationSec = jnReq['averDurationSec']
     ttl.maxDurationSec = jnReq['maxDurationSec']
     ttl.description = jnReq['description']    
-    return json.dumps(ttl.__dict__) if _zmCommon.changeTaskTemplate(ttl) else ('internal error', 500)
-  except Exception:
+    return json.dumps(ttl.__dict__) if tt.change(ttl) else ('internal error', 500)
+  except Exception as err:
+    print(f'/taskTemplates/{id} PUT {request.get_json(silent=True)} failed: %s' % str(err))
     return ('bad request', 400)
 
 @bp.route('/taskTemplates/<int:id>', methods=(['DELETE']))
 @auth.loginRequired
 def delTaskTemplate(id : int):  
   try:
-    return ('ok', 200) if _zmCommon.delTaskTemplate(id) else ('bad request', 400)  
-  except Exception:
+    return ('ok', 200) if tt.delete(id) else ('bad request', 400)  
+  except Exception as err:
+    print(f'/taskTemplates/{id} DELETE failed: %s' % str(err))
     return ('bad request', 400)
 
 @bp.route('/taskTemplates', methods=(['GET']))
 @auth.loginRequired
 def allTaskTemplates():  
   ret = []
-  for t in _zmCommon.getAllTaskTemplates(g.userId):
+  for t in tt.all():
     ret.append(t.__dict__)
   return json.dumps(ret)
 
@@ -159,10 +153,10 @@ def delTask():
 @auth.loginRequired
 def allTasks():
   ret = []
-  for p in _zmCommon.getAllPipelines(g.userId):
-    for t in _zmCommon.getAllPipelineTasks(p.id):
-      t.state = t.state.value
-      ret.append(t.__dict__)
+  # for p in _zmCommon.getAllPipelines(g.userId):
+  #   for t in _zmCommon.getAllPipelineTasks(p.id):
+  #     t.state = t.state.value
+  #     ret.append(t.__dict__)
   return json.dumps(ret)
 
 ###############################################################################
