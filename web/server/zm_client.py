@@ -114,8 +114,7 @@ class Task:
                state : StateType = StateType.READY, 
                progress : int = 0,
                result : str = "",
-               priority : int = 1,
-               params : List[str] = [],
+               params : str = "",
                createTime : str = "",
                takeInWorkTime : str = "",
                startTime : str = "",
@@ -125,14 +124,13 @@ class Task:
     self.state = state
     self.progress = progress
     self.result = result
-    self.priority = priority           # [1..3]
-    self.params = params               # CLI params for script: ['param1','param2'..]
+    self.params = params               # CLI params for script
     self.createTime = createTime
     self.takeInWorkTime = takeInWorkTime
     self.startTime = startTime
     self.stopTime = stopTime
     def __repr__(self):
-      return f"Task: id {self.id} ttlId {self.ttlId} state {self.state} stopTime {self.stopTime} startTime {self.startTime} takeInWorkTime {self.takeInWorkTime} createTime {self.createTime} params {self.params} priority {self.priority} progress {self.progress} result {self.result}"
+      return f"Task: id {self.id} ttlId {self.ttlId} state {self.state} stopTime {self.stopTime} startTime {self.startTime} takeInWorkTime {self.takeInWorkTime} createTime {self.createTime} params {self.params} progress {self.progress} result {self.result}"
     def __str__(self):
       return self.__repr__()
 class InternError: 
@@ -171,9 +169,7 @@ class _TaskTemplCng_C(ctypes.Structure):
               ('script', ctypes.c_char_p)]
 class _TaskCng_C(ctypes.Structure):
   _fields_ = [('ttlId', ctypes.c_uint64),
-              ('priority', ctypes.c_uint32),
-              ('params', ctypes.c_char_p),
-              ('prevTaskId', ctypes.c_char_p)]
+              ('params', ctypes.c_char_p)]
 class _TaskState_C(ctypes.Structure):
   _fields_ = [('progress', ctypes.c_uint32),
               ('state', ctypes.c_int32)]
@@ -759,9 +755,7 @@ class Connection:
             
       tcng = _TaskCng_C()
       tcng.ttlId = iot.ttlId      
-      tcng.priority = iot.priority
-      tcng.prevTaskId = None # not used yet
-      tcng.params = ','.join(iot.params).encode('utf-8')
+      tcng.params = iot.params.encode('utf-8')
 
       pfun = _lib.zmStartTask
       pfun.argtypes = (ctypes.c_void_p, _TaskCng_C, ctypes.POINTER(ctypes.c_uint64))

@@ -91,10 +91,7 @@ namespace ZM_Base{
     std::string description;
     std::string script;       // script on bash, python or cmd
   };
-<<<<<<< HEAD
-=======
 
->>>>>>> ver_1_0
   // tblScheduler
   struct Scheduler{
     uint64_t id;              // id tblScheduler

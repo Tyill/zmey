@@ -123,7 +123,7 @@ public:
   bool delTaskTemplate(uint64_t ttId);
   std::vector<uint64_t> getAllTaskTemplates(uint64_t parent);
 
-  bool startTask(uint64_t ttlId, uint32_t priority, const std::string& params, const std::string& prevTasks, uint64_t& tId);
+  bool startTask(uint64_t ttlId, const std::string& params, uint64_t& tId);
   bool cancelTask(uint64_t tId);
   bool taskState(const std::vector<uint64_t>& tId, std::vector<TaskState>&);
   bool taskResult(uint64_t tId, std::string&);

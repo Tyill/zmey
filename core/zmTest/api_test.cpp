@@ -482,7 +482,6 @@ TEST_F(APITest, startTask){
 
   zmTask task{0};
   task.ttlId = ttId; 
-  task.priority = 1;
   uint64_t tId1 = 0;  
   EXPECT_TRUE(zmStartTask(_zc, task, &tId1)); 
 
@@ -505,7 +504,6 @@ TEST_F(APITest, cancelTask){
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
   zmTask task{0};
-  task.priority = 1;
   task.ttlId = ttId; 
   uint64_t tId1 = 0;  
   EXPECT_TRUE(zmStartTask(_zc, task, &tId1));        
@@ -529,7 +527,6 @@ TEST_F(APITest, taskState){
   
   zmTask task{0};
   task.ttlId = ttId; 
-  task.priority = 1;
   uint64_t tId1 = 0;  
   EXPECT_TRUE(zmStartTask(_zc, task, &tId1));  
   
@@ -561,7 +558,6 @@ TEST_F(APITest, taskResult){
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
   zmTask task{0};
-  task.priority = 1;
   task.ttlId = ttId; 
   uint64_t tId1 = 0;  
   EXPECT_TRUE(zmStartTask(_zc, task, &tId1));  
@@ -585,7 +581,6 @@ TEST_F(APITest, TaskTime){
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
   
   zmTask task{0};
-  task.priority = 1;
   task.ttlId = ttId; 
   uint64_t tId1 = 0;  
   EXPECT_TRUE(zmStartTask(_zc, task,  &tId1));  
@@ -609,7 +604,6 @@ TEST_F(APITest, getAllTask){
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
 
   zmTask task{0};
-  task.priority = 1;
   task.ttlId = ttId; 
   uint64_t tId1 = 0;  
   EXPECT_TRUE(zmStartTask(_zc, task, &tId1));  

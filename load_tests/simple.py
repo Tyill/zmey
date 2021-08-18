@@ -18,12 +18,10 @@ with psycopg2.connect(dbname='zmeydb', user='alm', password='123', host='localho
               "drop table if exists tblTaskState cascade;" +
               "drop table if exists tblTaskTime cascade;" + 
               "drop table if exists tblTaskResult cascade;" +
-              "drop table if exists tblPrevTask cascade;" +
               "drop table if exists tblTaskParam cascade;" +
               "drop table if exists tblTaskQueue cascade;" + 
               "drop table if exists tblInternError cascade;" + 
               "drop table if exists tblConnectPnt cascade;" + 
-              "drop function if exists functasksofschedr(integer);" +
               "drop function if exists funcstarttask(integer,integer,text[],integer[]);" +
               "drop function if exists funcnewtasksforschedr(integer,integer);")
   csr.close()

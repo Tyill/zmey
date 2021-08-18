@@ -62,7 +62,6 @@ interface IEvent{
 // interface ITask{               ///< task object
 //   id : number;
 //   pplTaskId : number;          ///< pipeline task id
-//   priority : number;           ///< [1..3] 
 //   params : Array<string>;      ///< CLI params for script
 // };
 

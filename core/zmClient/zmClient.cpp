@@ -460,10 +460,9 @@ uint32_t zmGetAllTaskTemplates(zmConn zo, uint64_t userId, uint64_t** outTId){
 bool zmStartTask(zmConn zo, zmTask cng, uint64_t* tId){
   if (!zo || !tId) return false;
 
-  string prTask = cng.prevTaskId ? cng.prevTaskId : "";
   string params = cng.params ? cng.params : "";
 
-  return static_cast<ZM_DB::DbProvider*>(zo)->startTask(cng.ttlId, cng.priority, params, prTask, *tId);
+  return static_cast<ZM_DB::DbProvider*>(zo)->startTask(cng.ttlId, params, *tId);
 }
 bool zmStopTask(zmConn zo, uint64_t tId){
   if (!zo) return false;

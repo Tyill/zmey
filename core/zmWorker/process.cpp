@@ -70,15 +70,16 @@ Process::Process(Application& app, Executor& exr, const ZM_Base::Task& tsk):
       CHECK(fdRes, "create");
       CHECK(dup2(fdRes, 1), "dup2(fdRes, 1)");// stdout -> fdRes
       CHECK(dup2(1, 2), "dup2(1, 2)");        // stderr -> stdout
-      
-      auto params = !tsk.params.empty() ? ZM_Aux::split(tsk.params, ',') : vector<string>();
      
-      char** argVec = new char*[params.size() + 2];
+      char** argVec = new char*[!tsk.params.empty() ? 3 : 2];
       argVec[0] = (char*)scriptFile.c_str();
-      for(size_t i = 0; i < params.size(); ++i){
-        argVec[i + 1] = (char*)params[i].data();
-      }    
-      argVec[params.size() + 1] = NULL;
+      if (!tsk.params.empty()){
+        argVec[1] = tsk.params.data();
+        argVec[2] = NULL;
+      }
+      else{
+        argVec[1] = NULL;
+      }
       execv(scriptFile.c_str(), argVec);
       perror("execv");
       _exit(127);

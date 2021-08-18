@@ -172,8 +172,7 @@ bool DbProvider::createTables(){
   ss.str("");
   ss << "CREATE TABLE IF NOT EXISTS tblTaskParam("
         "qtask        INT PRIMARY KEY REFERENCES tblTaskQueue,"        
-        "priority     INT NOT NULL DEFAULT 1,"
-        "params       TEXT[] NOT NULL);"; // ['param1', 'param2'..]
+        "params       TEXT NOT NULL);";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
@@ -181,13 +180,7 @@ bool DbProvider::createTables(){
         "qtask        INT PRIMARY KEY REFERENCES tblTaskQueue,"
         "result       TEXT NOT NULL);";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
-
-  ss.str("");
-  ss << "CREATE TABLE IF NOT EXISTS tblPrevTask("
-        "qtask        INT PRIMARY KEY REFERENCES tblTaskQueue,"        
-        "prevTasks    INT[] NOT NULL);";
-  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
-  
+    
   ///////////////////////////////////////////////////////////////////////////
   /// INDEXES  not used yet
 //   ss.str(""); 
@@ -198,7 +191,7 @@ bool DbProvider::createTables(){
   /// FUNCTIONS
   ss.str("");
   ss << "CREATE OR REPLACE FUNCTION "
-        "funcStartTask(ttlId int, priority int,  tParams TEXT[], prvTasks int[]) "
+        "funcStartTask(ttlId int, tParams TEXT) "
         "RETURNS int AS $$ "
         "DECLARE "
         "  qId int := 0;"
@@ -210,19 +203,14 @@ bool DbProvider::createTables(){
         "  INSERT INTO tblTaskTime (qtask) VALUES("
         "    qId);"
 
-        "  INSERT INTO tblTaskParam (qtask, priority, params) VALUES("
+        "  INSERT INTO tblTaskParam (qtask, params) VALUES("
         "    qId,"
-        "    priority,"
         "    tParams);"
 
         "  INSERT INTO tblTaskResult (qtask, result) VALUES("
         "    qId,"
         "    '');"
-       
-        "  INSERT INTO tblPrevTask (qtask, prevTasks) VALUES("
-        "    qId,"
-        "    prvTasks);"
-       
+                     
         "  INSERT INTO tblTaskState (qtask, state) VALUES("
         "    qId,"
         "" << int(ZM_Base::StateType::READY) << ");"
@@ -231,41 +219,7 @@ bool DbProvider::createTables(){
         "END;"
         "$$ LANGUAGE plpgsql;";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
-
-  ss.str("");
-  ss << "CREATE OR REPLACE FUNCTION "
-        "funcTasksOfSchedr(sId int) "
-        "RETURNS TABLE("
-        "  qid int,"
-        "  averDurSec int,"
-        "  maxDurSec int,"
-        "  workerPreset int,"
-        "  script text,"
-        "  params text[],"
-        "  prevTasks int[]) AS $$ "
-        "DECLARE "
-        "  t int;"
-        "BEGIN"
-        "  FOR qid, averDurSec, maxDurSec, workerPreset, script, params, prevTasks IN"
-        "    SELECT tq.id, tt.averDurationSec, tt.maxDurationSec, COALESCE(tt.workerPreset, 0),"
-        "           tt.script, tp.params, pt.prevTasks"
-        "    FROM tblTaskTemplate tt "
-        "    JOIN tblTaskQueue tq ON tq.taskTempl = tt.id "
-        "    JOIN tblTaskState ts ON ts.qtask = tq.id "
-        "    JOIN tblTaskParam tp ON tp.qtask = tq.id "
-        "    JOIN tblPrevTask pt ON pt.qtask = tq.id "
-        "    WHERE tq.schedr = sId AND (ts.state BETWEEN " << (int)ZM_Base::StateType::START << " AND " << (int)ZM_Base::StateType::PAUSE << ")" 
-        "  LOOP"
-        "    FOREACH t IN ARRAY prevTasks"
-        "      LOOP"
-        "        SELECT params || (SELECT result FROM tblTaskResult WHERE qtask = t) INTO params;"
-        "      END LOOP;"               
-        "    RETURN NEXT;"
-        "  END LOOP;"
-        "END;"
-        "$$ LANGUAGE plpgsql;";
-  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
-
+  
   ss.str("");
   ss << "CREATE OR REPLACE FUNCTION "
         "funcNewTasksForSchedr(sId int, maxTaskCnt int) "
@@ -275,36 +229,24 @@ bool DbProvider::createTables(){
         "  maxDurSec int,"
         "  workerPreset int,"
         "  script text,"
-        "  params text[],"
-        "  prevTasks int[]) AS $$ "
+        "  params text) AS $$ "
         "DECLARE "
         "  t int;"
         "BEGIN"
-        "  <<mBegin>> "
-        "  FOR qid, averDurSec, maxDurSec, workerPreset, script, params, prevTasks IN"
+        "  FOR qid, averDurSec, maxDurSec, workerPreset, script, params IN"
         "    SELECT tq.id, tt.averDurationSec, tt.maxDurationSec, COALESCE(tt.workerPreset, 0),"
-        "           tt.script, tp.params, pt.prevTasks"
+        "           tt.script, tp.params"
         "    FROM tblTaskTemplate tt "
         "    JOIN tblTaskQueue tq ON tq.taskTempl = tt.id "
         "    JOIN tblTaskState ts ON ts.qtask = tq.id "
         "    JOIN tblTaskParam tp ON tp.qtask = tq.id "
         "    JOIN tblTaskTime tm ON tm.qtask = tq.id "
-        "    JOIN tblPrevTask pt ON pt.qtask = tq.id "
         "    WHERE ts.state = " << int(ZM_Base::StateType::READY) << ""
         "      AND tq.schedr IS NULL AND tm.takeInWorkTime IS NULL "
         "      AND (tt.schedrPreset IS NULL OR tt.schedrPreset = sId) "
-        "    ORDER BY tp.priority LIMIT maxTaskCnt "
+        "    LIMIT maxTaskCnt "
         "    FOR UPDATE OF tq SKIP LOCKED"
         "  LOOP"
-        "    FOREACH t IN ARRAY prevTasks"
-        "      LOOP"
-        "        PERFORM * FROM tblTaskState"
-        "        WHERE qtask = t AND state = " << int(ZM_Base::StateType::COMPLETED) << ";"
-        "        CONTINUE mBegin WHEN NOT FOUND;"
-
-        "        SELECT params || (SELECT result FROM tblTaskResult WHERE qtask = t) INTO params;"
-        "      END LOOP;"
-        
         "    UPDATE tblTaskQueue SET"
         "      schedr = sId"
         "    WHERE id = qid;"

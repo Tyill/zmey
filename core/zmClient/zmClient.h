@@ -305,9 +305,7 @@ ZMEY_API uint32_t zmGetAllTaskTemplates(zmConn, uint64_t userId, uint64_t** outT
 /// task config
 struct zmTask{
   uint64_t ttlId;          ///< task template id
-  uint32_t priority;       ///< [1..3]
   char* params;            ///< CLI params for script. May be NULL
-  char* prevTaskId;        ///< prev task to be completed: "tId1, tId2..." May be NULL 
 };
 
 /// start task
