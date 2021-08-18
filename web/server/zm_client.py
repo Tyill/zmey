@@ -105,6 +105,7 @@ class TaskTemplate:
       return f"TaskTemplate: name {self.name} description {self.description} script {self.script} id {self.id} userId {self.userId} averDurationSec {self.averDurationSec} maxDurationSec {self.maxDurationSec}   "
   def __str__(self):
       return self.__repr__()
+
 class Task:
   """Task config""" 
   def __init__(self,

@@ -479,7 +479,6 @@ TEST_F(APITest, startTask){
   strcpy(templ.name, "NEW_TASK");
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
-  
   zmTask task{0};
   task.ttlId = ttId; 
   task.priority = 1;
@@ -559,7 +558,7 @@ TEST_F(APITest, taskResult){
   strcpy(templ.name, "NEW_TASK");
   uint64_t ttId = 0;  
   EXPECT_TRUE(zmAddTaskTemplate(_zc, templ, &ttId) && (ttId > 0)); 
- 
+
   zmTask task{0};
   task.priority = 1;
   task.ttlId = ttId; 
