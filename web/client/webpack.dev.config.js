@@ -14,21 +14,22 @@ module.exports = {
   devtool:  '#sourcemap',
   mode: 'development',
   resolve: {
-    extensions: [".ts", ".tsx", '.css', ".js"],
+    extensions: [".ts", ".tsx", ".css", ".less", ".js"],
     modules: ['node_modules']
   },
   module: {
     rules: [
       { test: /\.css$/, loader: 'style-loader!css-loader'},
+      { test: /\.less$/, loader: 'style-loader!css-loader!less-loader'},
       { test: /\.tsx?$/, exclude: /(node_modules)/, use: ['babel-loader'] },
       { test: /\.(woff|woff2|ttf|eot)$/, use: 'file-loader?name=fonts/[name].[ext]!static' }
     ]    
    },
   devServer: {
     hot: true,
-    // proxy: {
-    //   '/': 'http://localhost:5000', 
-    // },   
+    proxy: {
+      '/': 'http://localhost:5000', 
+    },   
   },  
   plugins: [new webpack.HotModuleReplacementPlugin()]   
 }
