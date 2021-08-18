@@ -4,21 +4,17 @@ import sys
 import time
 import subprocess
 import psycopg2
-sys.path.append(os.path.expanduser("~") + '/cpp/zmey/python/')
-import zmClient as zm
+sys.path.append(os.path.expanduser("~") + '/cpp/zmey/web/server/')
+import zm_client as zm
 
 #### 1 schedr, 30 workers, 1000 tasks on one machine
 
 # del all tables
 with psycopg2.connect(dbname='zmeydb', user='alm', password='123', host='localhost') as pg:
   csr = pg.cursor()
-  csr.execute("drop table if exists tblUser cascade;" +
-              "drop table if exists tblScheduler cascade;" +
+  csr.execute("drop table if exists tblScheduler cascade;" +
               "drop table if exists tblWorker cascade;" +
-              "drop table if exists tblUTaskTemplate cascade;" +
-              "drop table if exists tblTask cascade;" +
-              "drop table if exists tblUPipeline cascade;" +
-              "drop table if exists tblUPipelineTask cascade;" +
+              "drop table if exists tblTaskTemplate cascade;" +
               "drop table if exists tblTaskState cascade;" +
               "drop table if exists tblTaskTime cascade;" + 
               "drop table if exists tblTaskResult cascade;" +
@@ -27,10 +23,9 @@ with psycopg2.connect(dbname='zmeydb', user='alm', password='123', host='localho
               "drop table if exists tblTaskQueue cascade;" + 
               "drop table if exists tblInternError cascade;" + 
               "drop table if exists tblConnectPnt cascade;" + 
-              "drop table if exists tblUTaskGroup cascade;" + 
-              "DROP FUNCTION IF EXISTS funcStartTask;" +
-              "DROP FUNCTION IF EXISTS funcTasksOfSchedr;" +
-              "DROP FUNCTION IF EXISTS funcNewTasksForSchedr;")
+              "drop function if exists functasksofschedr(integer);" +
+              "drop function if exists funcstarttask(integer,integer,text[],integer[]);" +
+              "drop function if exists funcnewtasksforschedr(integer,integer);")
   csr.close()
 
 zm.loadLib(os.path.expanduser("~") + '/cpp/zmey/build/Release/libzmClient.so')
@@ -40,19 +35,9 @@ zo.setErrorCBack(lambda err: print(err))
 
 zo.createTables()
 
-# add user
-usr = zm.User(name='alm')
-if (not zo.addUser(usr)):
-  exit(-1)
-  
 # add taskTemplate
-tt = zm.TaskTemplate(name='tt', uId=usr.id, averDurationSec = 1, maxDurationSec = 10, script="#! /bin/sh \n sleep 1; echo res ")
+tt = zm.TaskTemplate(name='tt', userId=0, averDurationSec = 1, maxDurationSec = 10, script="#! /bin/sh \n sleep 1; echo res ")
 if (not zo.addTaskTemplate(tt)):
-  exit(-1)
-  
-# add pipeline
-ppl = zm.Pipeline(name='ppl', uId=usr.id)
-if (not zo.addPipeline(ppl)):
   exit(-1)
 
 # add and start schedulers and workers
@@ -78,18 +63,14 @@ for i in range(sCnt):
                                     '-sa=localhost:' + str(4440 + i),
                                     '-la=localhost:' + str(4450 + i * wCnt + j)]))
 
-# add tasks
-taskCnt = 1000
-print('Add and start', taskCnt, 'tasks') 
-for j in range(taskCnt):
-  pt = zm.PipelineTask(name="pt", pplId=ppl.id, ttId=tt.id)
-  zo.addPipelineTask(pt)
-
 # start tasks
+taskCnt = 1000
+print('Start', taskCnt, 'tasks') 
+
 tstart = time.time()
 tasks = []
 for j in range(taskCnt):
-  t = zm.Task(ptId=pt.id)
+  t = zm.Task(ttlId=tt.id)
   zo.startTask(t)
   tasks.append(t)
 

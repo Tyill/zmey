@@ -68,27 +68,7 @@ namespace ZM_Base{
     CANCEL,
     NOT_RESPONDING,
   };
-  // tblUser
-  struct User{
-    uint64_t id;              // id tblUser
-    std::string name;         // unique name
-    std::string passw;        // optional password
-    std::string description;
-  };
-  // tblUPipeline
-  struct UPipeline{
-    uint64_t id;              // id tblUPipeline
-    uint64_t uId;             // id tblUser
-    std::string name;         // unique name
-    std::string description;
-  };
-  // tblUGroup
-  struct UGroup{
-    uint64_t id;              // id tblUGroup
-    uint64_t pplId;           // id tblUPipeline
-    std::string name;         // unique name
-    std::string description;
-  };
+  
   // task object
   struct Task{
     uint64_t id;              // id tblTaskQueue
@@ -99,9 +79,10 @@ namespace ZM_Base{
     std::string params;
     StateType state;
   };  
-  // tblUTaskTemplate
-  struct UTaskTemplate{
-    uint64_t uId;             // parent id tblUser
+
+  // tblTaskTemplate
+  struct TaskTemplate{
+    uint64_t uId;             // parent id
     uint64_t sId;             // preset schedr id tblScheduler. Default 0 - not set
     uint64_t wId;             // preset worker id tblWorker. Default 0 - not set
     int averDurationSec;      // estimated lead time
@@ -110,16 +91,7 @@ namespace ZM_Base{
     std::string description;
     std::string script;       // script on bash, python or cmd
   };
-  // tblUPipelineTask
-  struct UPipelineTask{
-    uint64_t id;              // id tblUPipelineTask 
-    uint64_t ttId;            // id tblUTaskTemplate
-    uint64_t pplId;           // id tblUPipeline
-    uint64_t gId;             // id tblUGroup
-    int priority;             // [1..3]    
-    std::string name;
-    std::string description;
-  };
+
   // tblScheduler
   struct Scheduler{
     uint64_t id;              // id tblScheduler

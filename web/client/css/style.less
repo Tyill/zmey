@@ -1,0 +1,82 @@
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow:hidden;
+ }
+
+.menuHeader{
+  background-color: rgb(238, 255, 255);
+}
+
+.taskTemplateDialogModal{
+  width: 60vw;
+  max-width: 60vw;
+}
+
+@borderStyle : 1px solid #dbdbdb;
+.border{
+  border: @borderStyle;
+}
+.borderTop{
+  border-top: @borderStyle;
+}
+.borderBottom{
+  border-bottom: @borderStyle;
+}
+.borderRight{
+  border-right: @borderStyle;
+}
+
+.tabPanelPipeline{
+  height: 46px;
+  width: 100vw;
+  height: 46px;
+  border-bottom: @borderStyle;
+}
+
+.tabPipeline{
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  height: 46px;
+  border: @borderStyle; 
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-right-radius: 5px;
+  border-top-left-radius: 5px;
+}
+
+.graphPipelineTask{
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 10px;
+  padding-right: 5px;
+  border: @borderStyle;
+  border-radius: 5px;
+}
+
+.unselectable {
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  visibility: hidden; 
+}
+
+::-webkit-scrollbar-thumb {
+  -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5); 
+  box-shadow: inset 0 0 6px rgba(0,0,0,0.5); 
+  border-radius: 3px;
+}

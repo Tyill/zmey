@@ -6,8 +6,8 @@
   "scripts": {
     "build": "./node_modules/.bin/webpack --config ./client/webpack.prod.config.js",
     "wds": "./node_modules/.bin/webpack-dev-server --config ./client/webpack.dev.config.js",
-    "server": "export FLASK_APP=.&& export FLASK_ENV=development&& flask run",
-    "serverWin": "set FLASK_APP=.&& set FLASK_ENV=development&& flask run"
+    "server": "export FLASK_APP=./server&& export FLASK_ENV=development&& flask run",
+    "serverWin": "set FLASK_APP=./server&& set FLASK_ENV=development&& flask run"
   },
   "repository": {
     "type": "git",
@@ -27,7 +27,12 @@
     ],
     "plugins": [
       "@babel/proposal-class-properties",
-      ["@babel/plugin-transform-typescript", {"allowNamespaces" : true}] 
+      [
+        "@babel/plugin-transform-typescript",
+        {
+          "allowNamespaces": true
+        }
+      ]
     ]
   },
   "browserslist": [
@@ -43,15 +48,18 @@
     "babel-eslint": "^10.0.3",
     "babel-loader": "^8.0.6",
     "bootstrap": "^4.5.0",
-    "css-loader": "^3.2.0", 
+    "css-loader": "^3.2.0",
     "file-loader": "^6.2.0",
+    "less": "^4.1.1",
+    "less-loader": "^5.0.0",
+    "mobx": "^6.3.2",
+    "mobx-react": "^7.2.0",
     "nodemon": "^2.0.4",
     "react": "^16.13.1",
     "react-bootstrap": "^1.3.0",
     "react-dom": "^16.13.1",
+    "react-draggable": "^4.4.3",
     "react-hot-loader": "^4.12.12",
-    "react-redux": "^7.1.1",
-    "redux": "^4.0.4",
     "style-loader": "^1.0.0",
     "webpack": "^4.39.2",
     "webpack-cli": "^3.3.7",
