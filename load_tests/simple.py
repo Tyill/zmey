@@ -63,11 +63,9 @@ for i in range(sCnt):
                                     '-sa=localhost:' + str(4440 + i),
                                     '-la=localhost:' + str(4450 + i * wCnt + j)]))
 
-
 # start tasks
 taskCnt = 1000
 print('Start', taskCnt, 'tasks') 
-
 tstart = time.time()
 tasks = []
 for j in range(taskCnt):

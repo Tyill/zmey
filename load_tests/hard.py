@@ -62,6 +62,7 @@ for i in range(sCnt):
     wkrPrc.append(subprocess.Popen([os.path.expanduser("~") + '/cpp/zmey/build/Release/zmWorker',
                                     '-sa=localhost:' + str(4440 + i),
                                     '-la=localhost:' + str(4450 + i * wCnt + j)]))
+
 # start tasks
 taskCnt = 10000
 print('Start', taskCnt, 'tasks') 
