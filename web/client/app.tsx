@@ -5,8 +5,8 @@ import { ServerAPI } from "./server_api/server_api"
 import { Container, Row } from "react-bootstrap";
 
 import "./css/style.less";
-import { IPipeline, IPipelineTask, ITaskTemplate } from "./types";
-import { Pipelines, TaskTemplates, PipelineTasks} from "./store/store";
+import { IPipeline, IPipelineTask, ITaskTemplate, IEvent } from "./types";
+import { Pipelines, TaskTemplates, PipelineTasks, Events} from "./store/store";
 
 interface IProps {
 };
@@ -53,6 +53,15 @@ class App extends React.Component<IProps, IState>{
       PipelineTasks.setAll(ppt);
     },
     ()=>this.setStatusMess("Server error fill PipelineTasks"));
+
+    ServerAPI.getAllEvents((events : Array<IEvent>)=>{
+      let evs = new Map<Number, IEvent>();
+      for (let ev of events){
+        evs.set(ev.id, ev);
+      }
+      Events.setAll(evs);
+    },
+    ()=>this.setStatusMess("Server error fill Events"));
   }
   
   setStatusMess(mess : string, ok : boolean = true){

@@ -1,6 +1,9 @@
-import { IPipeline, ITaskTemplate, IPipelineTask } from "../types";
+import { IPipeline, ITaskTemplate, IPipelineTask, IEvent } from "../types";
 
 export namespace ServerAPI {
+
+/////////////////////////////////////////////////////////////////////////////////////
+/// TaskTemplate
 
 export
 function addTaskTemplate(newTaskTemplate : ITaskTemplate, onSucces : (respTaskTemplate : ITaskTemplate) => any, onError : () => any ){
@@ -44,6 +47,7 @@ function getAllTaskTemplates(onFillTaskTemplates : (taskTemplates : Array<ITaskT
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
+/// Pipeline
 
 export
 function addPipeline(newPipeline : IPipeline, onSucces : (respPipeline : IPipeline) => any, onError : () => any ){
@@ -87,6 +91,7 @@ function getAllPipelines(onFillPipelines : (pipelines : Array<IPipeline>) => any
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
+/// PipelineTask 
 
 export
 function addPipelineTask(newPipelineTask : IPipelineTask, onSucces : (respPipeline : IPipelineTask) => any, onError : () => any ){
@@ -102,7 +107,7 @@ function addPipelineTask(newPipelineTask : IPipelineTask, onSucces : (respPipeli
 } 
 
 export
-function changePipelineTask(newPipelineTask : IPipeline, onSucces : (respPipeline : IPipelineTask) => any, onError : () => any ){
+function changePipelineTask(newPipelineTask : IPipelineTask, onSucces : (respPipeline : IPipelineTask) => any, onError : () => any ){
   fetch('api/v1/pipelineTasks/' + newPipelineTask.id, {
     method: 'PUT',
     headers: {
@@ -128,4 +133,49 @@ function getAllPipelineTasks(onFillTasks : (tasks : Array<IPipelineTask>) => any
   .then(onFillTasks)
   .catch(onError); 
 }
+
+/////////////////////////////////////////////////////////////////////////////////////
+/// Event 
+
+export
+function addEvent(newEvent : IEvent, onSucces : (resp : IEvent) => any, onError : () => any ){
+  fetch('api/v1/events', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8'
+    },
+    body: JSON.stringify(newEvent)})
+  .then(response => response.json())    
+  .then(onSucces)
+  .catch(onError);    
+} 
+
+export
+function changeEvent(newEvent : IEvent, onSucces : (resp : IPipelineTask) => any, onError : () => any ){
+  fetch('api/v1/events/' + newEvent.id, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8'
+    },
+    body: JSON.stringify(newEvent)})
+  .then(response => response.json())    
+  .then(onSucces)
+  .catch(onError);    
+} 
+
+export
+function delEvent(event : IEvent, onSucces : () => any, onError : () => any ){
+  fetch('api/v1/events/' + event.id, { method: 'DELETE'})
+  .then((resp : Response)=> resp.ok ? onSucces() : onError())
+  .catch(onError); 
+}
+
+export
+function getAllEvents(onFillEvents : (events : Array<IEvent>) => any, onError : () => any){
+  fetch('api/v1/events')
+  .then(response => response.json())    
+  .then(onFillEvents)
+  .catch(onError); 
+}
+
 }

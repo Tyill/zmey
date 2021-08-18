@@ -3,10 +3,12 @@ from flask import(
   Blueprint, request
 )
 
-from . import auth
 from . import (
+  auth,
   task_template as tt,
   pipeline as pp,
+  pipeline_task as pt,
+  event as ev,
 )
  
 bp = Blueprint('api', __name__, url_prefix='/api/v1')
@@ -136,28 +138,112 @@ def allTaskTemplates():
 
 @bp.route('/pipelineTasks', methods=(['POST']))
 @auth.loginRequired
-def addTask():
-  return None#_zmCommon.addTask(tsk)
+def addPipelineTask():
+  try: 
+    jnReq = request.get_json(silent=True)  
 
-@bp.route('/pipelineTasks', methods=(['UPDATE']))
-@auth.loginRequired
-def changeTask():
-  return None
+    plt = pt.PipelineTask()
+    plt.name = jnReq['name']
+    plt.pplId = int(jnReq['pplId'])
+    plt.ttId = int(jnReq['ttId'])
+    plt.nextTasksId = jnReq['nextTasksId']
+    plt.nextEventsId = jnReq['nextEventsId']  
+    plt.description = jnReq['description']  
+    return json.dumps(plt.__dict__) if pt.add(plt) else ('internal error', 500)
+  except Exception as err:
+    print(f'/pipelineTasks POST {request.get_json(silent=True)} failed: %s' % str(err))
+    return ('bad request', 400)
 
-@bp.route('/pipelineTasks', methods=(['DELETE']))
+@bp.route('/pipelineTasks/<int:id>', methods=(['UPDATE']))
 @auth.loginRequired
-def delTask():
-  return None
+def changePipelineTask(id : int):
+  try:
+    jnReq = request.get_json(silent=True)
+  
+    plt = pt.PipelineTask()
+    plt.id = id
+    plt.name = jnReq['name']
+    plt.pplId = int(jnReq['pplId'])
+    plt.ttId = int(jnReq['ttId'])
+    plt.nextTasksId = jnReq['nextTasksId']
+    plt.nextEventsId = jnReq['nextEventsId']  
+    plt.description = jnReq['description']  
+    return json.dumps(plt.__dict__) if pt.change(plt) else ('internal error', 500)
+  except Exception as err:
+    print(f'/pipelineTasks/{id} PUT {request.get_json(silent=True)} failed: %s' % str(err))
+    return ('bad request', 400)
+
+@bp.route('/pipelineTasks/<int:id>', methods=(['DELETE']))
+@auth.loginRequired
+def delPipelineTask(id : int):
+  try:
+    return ('ok', 200) if pt.delete(id) else ('bad request', 400)  
+  except Exception as err:
+    print(f'/pipelineTasks/{id} DELETE failed: %s' % str(err))
+    return ('bad request', 400)
 
 @bp.route('/pipelineTasks', methods=(['GET']))
 @auth.loginRequired
-def allTasks():
+def allPipelineTasks():
   ret = []
-  # for p in _zmCommon.getAllPipelines(g.userId):
-  #   for t in _zmCommon.getAllPipelineTasks(p.id):
-  #     t.state = t.state.value
-  #     ret.append(t.__dict__)
+  for t in pt.all():
+    ret.append(t.__dict__)
   return json.dumps(ret)
+
+###############################################################################
+### Events
+
+@bp.route('/events', methods=(['POST']))
+@auth.loginRequired
+def addEvent():
+  try: 
+    jnReq = request.get_json(silent=True)  
+
+    evt = ev.Event()
+    evt.name = jnReq['name']
+    evt.nextTasksId = jnReq['nextTasksId']
+    evt.nextEventsId = jnReq['nextEventsId']  
+    evt.description = jnReq['description']  
+    return json.dumps(evt.__dict__) if ev.add(evt) else ('internal error', 500)
+  except Exception as err:
+    print(f'/events POST {request.get_json(silent=True)} failed: %s' % str(err))
+    return ('bad request', 400)
+
+@bp.route('/events/<int:id>', methods=(['UPDATE']))
+@auth.loginRequired
+def changeEvent(id : int):
+  try:
+    jnReq = request.get_json(silent=True)
+  
+    evt = ev.Event()
+    evt.id = id
+    evt.name = jnReq['name']
+    evt.nextTasksId = jnReq['nextTasksId']
+    evt.nextEventsId = jnReq['nextEventsId']  
+    evt.description = jnReq['description']  
+    return json.dumps(evt.__dict__) if ev.change(evt) else ('internal error', 500)
+  except Exception as err:
+    print(f'/changeEvent/{id} PUT {request.get_json(silent=True)} failed: %s' % str(err))
+    return ('bad request', 400)
+
+@bp.route('/events/<int:id>', methods=(['DELETE']))
+@auth.loginRequired
+def delEvent(id : int):
+  try:
+    return ('ok', 200) if ev.delete(id) else ('bad request', 400)  
+  except Exception as err:
+    print(f'/events/{id} DELETE failed: %s' % str(err))
+    return ('bad request', 400)
+
+@bp.route('/events', methods=(['GET']))
+@auth.loginRequired
+def allEvents():
+  ret = []
+  for e in ev.all():
+    ret.append(e.__dict__)
+  return json.dumps(ret)
+
+
 
 ###############################################################################
 ### Task object

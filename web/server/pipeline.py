@@ -11,6 +11,10 @@ class Pipeline:
     self.id = id     
     self.name = name    
     self.description = description 
+  def __repr__(self):
+      return f"Pipeline: id {self.id} name {self.name} description {self.description}"
+  def __str__(self):
+    return self.__repr__()
 
 def add(ppl : Pipeline) -> bool:
   if 'db' in g:

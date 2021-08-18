@@ -1,5 +1,8 @@
-import { IPipeline, ITaskTemplate, IPipelineTask } from "../types"
+import { IPipeline, ITaskTemplate, IPipelineTask, IEvent } from "../types"
 import { makeObservable, observable, action } from "mobx"
+
+///////////////////////////////////////////////////////////////
+/// Pipelines
 
 class PipelinesStoreClass {
   m_pipelines : Map<Number, IPipeline>;  
@@ -43,6 +46,7 @@ export
 let Pipelines = new PipelinesStoreClass();
 
 ///////////////////////////////////////////////////////////////
+/// TaskTemplates
 
 class TaskTemplatesStoreClass {
   m_taskTemplates : Map<Number, ITaskTemplate>;  
@@ -87,6 +91,7 @@ export
 let TaskTemplates = new TaskTemplatesStoreClass();
 
 ///////////////////////////////////////////////////////////////
+/// PipelineTasks
 
 class PipelineTasksStoreClass {
   m_pipelineTasks : Map<Number, IPipelineTask>;  
@@ -137,3 +142,47 @@ class PipelineTasksStoreClass {
 }
 export
 let PipelineTasks = new PipelineTasksStoreClass();
+
+///////////////////////////////////////////////////////////////
+/// Events
+
+class EventsStoreClass {
+  m_events : Map<Number, IEvent>;  
+  constructor() {
+      makeObservable(this, {
+        m_events: observable,
+        setAll: action,
+        add: action,
+        del: action,
+        upd: action,
+      });
+      this.m_events = new Map<Number, IEvent>();
+  }
+  getAll() : Map<Number, IEvent>{
+    return this.m_events;
+  }
+  get(id : Number) : IEvent {
+    return this.m_events.has(id) ? this.m_events.get(id) : null;
+  }
+  getByName(name : string) : IEvent {
+    for (const ev of this.m_events){
+      if (ev[1].name == name) return ev[1];
+    }
+    return null;
+  }
+  setAll(ev : Map<Number, IEvent>){
+    this.m_events = ev;
+  }
+  add(ev : IEvent){
+    this.m_events.set(ev.id, ev);
+  }
+  del(id : Number){
+    this.m_events.delete(id);
+  }
+  upd(ev : IEvent){
+    if (this.m_events.has(ev.id))
+      this.m_events.set(ev.id, ev);
+  }
+}
+export
+let Events = new EventsStoreClass();
