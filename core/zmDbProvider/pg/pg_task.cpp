@@ -32,7 +32,7 @@ bool DbProvider::startTask(uint64_t ttlId, const std::string& inparams, uint64_t
   lock_guard<mutex> lk(m_impl->m_mtx);  
   
   stringstream ss;
-  ss << "SELECT * FROM funcStartTask(" << ttlId << "," << inparams << ");";
+  ss << "SELECT * FROM funcStartTask(" << ttlId << ",'" << inparams << "');";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){

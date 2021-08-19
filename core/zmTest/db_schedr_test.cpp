@@ -107,24 +107,17 @@ TEST_F(DBSchedrTest, getTaskOfSchedr){
   EXPECT_TRUE(_pDb->addTaskTemplate(templ, ttId) && (ttId > 0)) << _pDb->getLastError(); 
 
   uint64_t tId1 = 0;  
-  EXPECT_TRUE(_pDb->startTask(ttId, 1, "param11,param12,param13", "", tId1)) << _pDb->getLastError();        
+  EXPECT_TRUE(_pDb->startTask(ttId, "param11,param12,param13", tId1)) << _pDb->getLastError();        
 
   uint64_t tId2 = 0;  
-  EXPECT_TRUE(_pDb->startTask(ttId, 1, "param21,param22,param23", to_string(tId1), tId2 )) << _pDb->getLastError();        
+  EXPECT_TRUE(_pDb->startTask(ttId, "param21,param22,param23", tId2 )) << _pDb->getLastError();        
 
   vector<ZM_Base::Task> tasks;
   EXPECT_TRUE(_pDb->getNewTasksForSchedr(sId, 10, tasks) && 
-              (tasks.size() == 1) &&
+              (tasks.size() == 2) &&
               (tasks[0].params == "param11,param12,param13") &&
               (tasks[0].id == tId1) && 
               (tasks[0].wId == 0)) << _pDb->getLastError();
-
-  tasks.clear();
-  EXPECT_TRUE(_pDb->getTasksOfSchedr(sId, tasks) && 
-             (tasks.size() == 1) &&
-             (tasks[0].params == "param11,param12,param13") &&
-             (tasks[0].wId == 0) &&
-             (tasks[0].id == tId1)) << _pDb->getLastError(); 
 
   vector<ZM_DB::MessSchedr> mess;
   mess.push_back(ZM_DB::MessSchedr{ZM_Base::MessType::TASK_START, wId, tasks[0].id, "result"});
@@ -134,17 +127,7 @@ TEST_F(DBSchedrTest, getTaskOfSchedr){
   mess.push_back(ZM_DB::MessSchedr{ZM_Base::MessType::TASK_COMPLETED, wId, tasks[0].id, "result1"});
   EXPECT_TRUE(_pDb->sendAllMessFromSchedr(sId, mess)) << _pDb->getLastError();
 
-  tasks.clear();
-  EXPECT_TRUE(_pDb->getNewTasksForSchedr(sId, 10, tasks) && 
-              (tasks.size() == 1) && 
-              (tasks[0].params == "param21,param22,param23,result1") &&
-              (tasks[0].id == tId2)) << _pDb->getLastError(); 
-
-  tasks.clear();
-  EXPECT_TRUE(_pDb->getTasksOfSchedr(sId, tasks) && 
-             (tasks.size() == 1) &&
-             (tasks[0].params == "param21,param22,param23,result1") &&
-             (tasks[0].id == tId2)) << _pDb->getLastError();          
+          
 }
 TEST_F(DBSchedrTest, getWorkerOfSchedr){
   ZM_Base::Scheduler schedr{0};
@@ -195,14 +178,14 @@ TEST_F(DBSchedrTest, getNewTasksForSchedr){
   EXPECT_TRUE(_pDb->addTaskTemplate(templ, ttId) && (ttId > 0)) << _pDb->getLastError(); 
  
   uint64_t tId1 = 0;  
-  EXPECT_TRUE(_pDb->startTask(ttId, 1, "param11,param12,param13", "", tId1)) << _pDb->getLastError();        
+  EXPECT_TRUE(_pDb->startTask(ttId, "param11,param12,param13", tId1)) << _pDb->getLastError();        
 
   uint64_t tId2 = 0;  
-  EXPECT_TRUE(_pDb->startTask(ttId, 1, "param21,param22,param23", to_string(tId1), tId2)) << _pDb->getLastError();        
+  EXPECT_TRUE(_pDb->startTask(ttId, "param21,param22,param23", tId2)) << _pDb->getLastError();        
 
   vector<ZM_Base::Task> tasks;
   EXPECT_TRUE(_pDb->getNewTasksForSchedr(sId, 10, tasks) && 
-              (tasks.size() == 1) &&
+              (tasks.size() == 2) &&
               (tasks[0].params == "param11,param12,param13") &&
               (tasks[0].id == tId1)) << _pDb->getLastError();
 
@@ -213,12 +196,7 @@ TEST_F(DBSchedrTest, getNewTasksForSchedr){
   mess.clear();
   mess.push_back(ZM_DB::MessSchedr{ZM_Base::MessType::TASK_COMPLETED, wId, tasks[0].id, "result1"});
   EXPECT_TRUE(_pDb->sendAllMessFromSchedr(sId, mess)) << _pDb->getLastError();
-
-  tasks.clear();
-  EXPECT_TRUE(_pDb->getNewTasksForSchedr(sId, 10, tasks) && 
-              (tasks.size() == 1) && 
-              (tasks[0].params == "param21,param22,param23,result1") &&
-              (tasks[0].id == tId2)) << _pDb->getLastError();    
+  
 }
 TEST_F(DBSchedrTest, getWorkerByTask){
   ZM_Base::Scheduler schedr{0};
@@ -248,10 +226,10 @@ TEST_F(DBSchedrTest, getWorkerByTask){
   EXPECT_TRUE(_pDb->addTaskTemplate(templ, ttId) && (ttId > 0)) << _pDb->getLastError(); 
   
   uint64_t tId1 = 0;  
-  EXPECT_TRUE(_pDb->startTask(ttId, 1, "param11,param12,param13", "", tId1)) << _pDb->getLastError();        
+  EXPECT_TRUE(_pDb->startTask(ttId, "param11,param12,param13", tId1)) << _pDb->getLastError();        
 
   uint64_t tId2 = 0;  
-  EXPECT_TRUE(_pDb->startTask(ttId, 1, "param21,param22,param23", "", tId2)) << _pDb->getLastError();        
+  EXPECT_TRUE(_pDb->startTask(ttId, "param21,param22,param23", tId2)) << _pDb->getLastError();        
 
   vector<ZM_Base::Task> tasks;
   EXPECT_TRUE(_pDb->getNewTasksForSchedr(sId, 10, tasks) && 

@@ -74,7 +74,7 @@ Process::Process(Application& app, Executor& exr, const ZM_Base::Task& tsk):
       char** argVec = new char*[!tsk.params.empty() ? 3 : 2];
       argVec[0] = (char*)scriptFile.c_str();
       if (!tsk.params.empty()){
-        argVec[1] = tsk.params.data();
+        argVec[1] = (char*)tsk.params.data();
         argVec[2] = NULL;
       }
       else{

@@ -68,7 +68,7 @@ bool DbProvider::getTasksOfSchedr(uint64_t sId, std::vector<ZM_Base::Task>& out)
         "JOIN tblTaskQueue tq ON tq.taskTempl = tt.id "
         "JOIN tblTaskState ts ON ts.qtask = tq.id "
         "JOIN tblTaskParam tp ON tp.qtask = tq.id "
-        "WHERE tq.schedr = " << sId << " AND (ts.state BETWEEN " << (int)ZM_Base::StateType::START << " AND " << (int)ZM_Base::StateType::PAUSE << ")" 
+        "WHERE tq.schedr = " << sId << " AND (ts.state BETWEEN " << (int)ZM_Base::StateType::START << " AND " << (int)ZM_Base::StateType::PAUSE << ")";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){

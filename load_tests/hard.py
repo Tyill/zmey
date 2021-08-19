@@ -5,7 +5,7 @@ import time
 import subprocess
 import psycopg2
 sys.path.append(os.path.expanduser("~") + '/cpp/zmey/web/server/')
-import zmClient as zm
+import zm_client as zm
 
 #### 5 schedr, 5 * 20 workers, 10000 tasks on one machine
 
@@ -22,7 +22,7 @@ with psycopg2.connect(dbname='zmeydb', user='alm', password='123', host='localho
               "drop table if exists tblTaskQueue cascade;" + 
               "drop table if exists tblInternError cascade;" + 
               "drop table if exists tblConnectPnt cascade;" + 
-              "drop function if exists funcstarttask(integer,integer,text[],integer[]);" +
+              "drop function if exists funcstarttask(integer,text);" +
               "drop function if exists funcnewtasksforschedr(integer,integer);")
   csr.close()
 

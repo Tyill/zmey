@@ -22,7 +22,7 @@ with psycopg2.connect(dbname='zmeydb', user='alm', password='123', host='localho
               "drop table if exists tblTaskQueue cascade;" + 
               "drop table if exists tblInternError cascade;" + 
               "drop table if exists tblConnectPnt cascade;" + 
-              "drop function if exists funcstarttask(integer,integer,text[],integer[]);" +
+              "drop function if exists funcstarttask(integer,text);" +
               "drop function if exists funcnewtasksforschedr(integer,integer);")
   csr.close()
 
