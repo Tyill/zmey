@@ -2,8 +2,8 @@ import React from "react";
 import { Col, Button, Modal, Form, Table} from "react-bootstrap";
  
 import { IPipelineTask } from "../types";
-import { PipelineTasks, TaskTemplates} from "../store/store";
-import { ServerAPI} from "../server_api/server_api"
+import { PipelineTasks, TaskTemplates, Pipelines} from "../store/store";
+import * as ServerAPI from "../server_api/server_api"
 
 import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -48,8 +48,7 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
     if (this.m_hasAdded) return;
 
     let error = "",
-        name = this.m_refObj["name"].value,
-        description = this.m_refObj["description"].value;
+        name = this.m_refObj["name"].value;
     if (!name)
       error = "Name is empty"; 
     else if (this.m_isNewPipelineTask && PipelineTasks.getByName(name))
@@ -61,11 +60,20 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
       this.setStatusMess(error);
       return;
     }
-    
+   
     let newPipelineTask = {
       id : this.props.selPipelineTask.id,
-      name,           
-      description
+      pplId : this.m_refObj["pipeline"].value,
+      ttId: this.m_refObj["taskTemplate"].value,
+      isEnabled : 1,
+      isVisible : 1,
+      positionX : 0,
+      positionY : 0,
+      nextTasksId: this.props.selPipelineTask.nextTasksId || [],
+      nextEventsId: this.props.selPipelineTask.nextEventsId || [],
+      params : this.m_refObj["params"].value,
+      name : this.m_refObj["name"].value,           
+      description : this.m_refObj["description"].value,
     } as IPipelineTask;
      
     if (this.m_isNewPipelineTask){
@@ -103,48 +111,20 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
 
     const task = this.props.selPipelineTask;
     
-    let taskTemplates = [];
-    TaskTemplates.getAll().forEach(t=>{
-      if (t.description.length){
-        taskTemplates.push(<option id={t.id.toString()} key={t.id.toString()}>
-                            {t.name}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;{t.description}
-                          </option>);
-      }else{
-        taskTemplates.push(<option id={t.id.toString()} key={t.id.toString()}>
-                            {t.name}
-                          </option>);
-      }
+    let pipelines = [];
+    Pipelines.getAll().forEach(p=>{
+      pipelines.push(<option id={p.id.toString()} key={p.id.toString()} value={p.id}>
+                        {p.name}
+                     </option>);
     });
 
-    let params = [];
-  <Table striped bordered hover>
-  <thead>
-    <tr>
-      <th>Enable</th>
-      <th>Parameter</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>1</td>
-      <td>Mark</td>
-      <td>Otto</td>
-      <td>@mdo</td>
-    </tr>
-    <tr>
-      <td>2</td>
-      <td>Jacob</td>
-      <td>Thornton</td>
-      <td>@fat</td>
-    </tr>
-    <tr>
-      <td>3</td>
-      <td colSpan="2">Larry the Bird</td>
-      <td>@twitter</td>
-    </tr>
-  </tbody>
-</Table>
-
+    let taskTemplates = [];
+    TaskTemplates.getAll().forEach(t=>{
+      taskTemplates.push(<option id={t.id.toString()} key={t.id.toString()} value={t.id}>
+                          {t.name}
+                        </option>);
+    });
+   
     return (
       <Modal show={this.props.show} onHide={()=>this.props.onHide(task)} >
         <Modal.Header closeButton>
@@ -163,11 +143,20 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
               </Form.Group>
             </Form.Row>
             <Form.Row>
-              <Form.Group as={Col} controlId="taskTemplate">
+              <Form.Group as={Col} style={{maxWidth:"200px"}}>
+                <Form.Label>Pipeline</Form.Label>
+                <Form.Control as="select" custom defaultValue={task.pplId} ref={(input) => {this.m_refObj["pipeline"] = input }}>
+                  {pipelines}
+                </Form.Control>
+                <p/>
                 <Form.Label>Task Template</Form.Label>
-                <Form.Control as="select" custom ref={(input) => {this.m_refObj["taskTemplate"] = input }}>
+                <Form.Control as="select" custom defaultValue={task.ttId} ref={(input) => {this.m_refObj["taskTemplate"] = input }}>
                   {taskTemplates}
                 </Form.Control>
+              </Form.Group>
+              <Form.Group as={Col} controlId="params">
+                <Form.Label>Parameters</Form.Label>
+                <Form.Control as="textarea" ref={(input) => {this.m_refObj["params"] = input }} placeholder="" defaultValue={task.params} rows={5} />
               </Form.Group>
             </Form.Row>
             <Form.Row style={{height:"20px"}}> 
@@ -176,7 +165,7 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
           </Form>          
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" type="close" onClick={()=> this.props.onHide(this.props.selPipelineTask)}>Close</Button>
+          <Button variant="secondary" type="close" onClick={()=> this.props.onHide(task)}>Close</Button>
           <Button variant="primary" type="submit" onClick={this.hSubmit}> {this.m_isNewPipelineTask ? "Create" : "Save changes"}</Button>
         </Modal.Footer>        
       </Modal>

@@ -3,7 +3,7 @@ import { Col, Button, Modal, Form} from "react-bootstrap";
  
 import { IPipeline } from "../types";
 import { Pipelines} from "../store/store";
-import {ServerAPI} from "../server_api/server_api"
+import * as ServerAPI from "../server_api/server_api"
 
 import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -64,6 +64,7 @@ class PipelineDialogModal extends React.Component<IProps, IState>{
     
     let newPipeline : IPipeline = {
       id : this.props.selPipeline.id,
+      isVisible : this.props.selPipeline.id ? this.props.selPipeline.isVisible : 0,
       name,           
       description
     }

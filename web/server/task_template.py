@@ -9,7 +9,7 @@ class TaskTemplate(zm.TaskTemplate):
   None
 
 def add(iott : TaskTemplate) -> bool:
-  if zmConn and ('userId' in g) and ('db' in g):
+  if zmConn and g.userId and ('db' in g):
     iott.userId = g.userId
     if zmConn.addTaskTemplate(iott):
       try:
@@ -30,7 +30,7 @@ def add(iott : TaskTemplate) -> bool:
   return False
 
 def change(iott : TaskTemplate) -> bool:
-  if zmConn and ('userId' in g) and ('db' in g):
+  if zmConn and g.userId and ('db' in g):
     iott.userId = g.userId
     if zmConn.changeTaskTemplate(iott):
       try:

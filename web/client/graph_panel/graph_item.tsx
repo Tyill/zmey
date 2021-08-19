@@ -1,12 +1,11 @@
 import React from "react";
 import Draggable from 'react-draggable';
+import {CloseButton} from "react-bootstrap";
 
 interface IProps { 
   title : string;
-  labelDelete : string;
-  labelEdit : string;
-  hEdit : () => any;
-  hDelete : () => any;
+  id : number;
+  hHide : (id : number) => any;
 };
 interface IState { 
   isShowBtn : boolean; 
@@ -19,30 +18,25 @@ class GraphItem extends React.Component<IProps, IState>{
     this.state  = { isShowBtn : false };   
   }   
   render(){  
-
-    let iconStyle={ } as React.CSSProperties;
+    
+    let closeBtnStyle = { 
+      paddingLeft: "5px",
+      border : "none",
+    } as React.CSSProperties;    
     if (!this.state.isShowBtn){
-      iconStyle.visibility = "hidden"; 
+      closeBtnStyle.visibility = "hidden"; 
     }
 
     return (
-      <Draggable bounds="parent">
+      <Draggable bounds="parent" onStop={(e)=>console.log(e)}>
       <div className="graphPipelineTask unselectable" 
             onMouseEnter={(e)=>this.setState({isShowBtn : true})}
             onMouseLeave={(e)=>this.setState({isShowBtn : false})}>
         {this.props.title}
-        &nbsp;&nbsp;
-        <a className="icon-edit" 
-            title= {this.props.labelEdit}
-            style={iconStyle}
-            onClick={this.props.hEdit}>
-        </a> 
-        &nbsp;   
-        <a className = "icon-delete"
-            title={this.props.labelDelete}
-            style={iconStyle}
-            onClick={this.props.hDelete}>
-        </a>  
+        <CloseButton style={closeBtnStyle} 
+                     title="Hide"
+                     onClick={(e)=>{this.props.hHide(this.props.id);
+                                    e.stopPropagation();}}/>        
       </div>
       </Draggable>
     )

@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import CentralWidget from "./central_widget/central_widget";
-import { ServerAPI } from "./server_api/server_api"
+import * as ServerAPI from "./server_api/server_api"
 import { Container, Row } from "react-bootstrap";
 
 import "./css/style.less";
@@ -28,7 +28,7 @@ class App extends React.Component<IProps, IState>{
   
   componentDidMount() {    
     ServerAPI.getAllPipelines((pipelines : Array<IPipeline>)=>{      
-      let ppl = new Map<Number, IPipeline>();
+      let ppl = new Map<number, IPipeline>();
       for (let p of pipelines){
         ppl.set(p.id, p);
       }
@@ -37,7 +37,7 @@ class App extends React.Component<IProps, IState>{
     ()=>this.setStatusMess("Server error fill Pipelines"));
 
     ServerAPI.getAllTaskTemplates((taskTemplates : Array<ITaskTemplate>)=>{
-      let ttl = new Map<Number, ITaskTemplate>();
+      let ttl = new Map<number, ITaskTemplate>();
       for (let t of taskTemplates){
         ttl.set(t.id, t);
       }
@@ -46,7 +46,7 @@ class App extends React.Component<IProps, IState>{
     ()=>this.setStatusMess("Server error fill TaskTeplates"));
 
     ServerAPI.getAllPipelineTasks((pipelineTasks : Array<IPipelineTask>)=>{
-      let ppt = new Map<Number, IPipelineTask>();
+      let ppt = new Map<number, IPipelineTask>();
       for (let pt of pipelineTasks){
         ppt.set(pt.id, pt);
       }
@@ -55,7 +55,7 @@ class App extends React.Component<IProps, IState>{
     ()=>this.setStatusMess("Server error fill PipelineTasks"));
 
     ServerAPI.getAllEvents((events : Array<IEvent>)=>{
-      let evs = new Map<Number, IEvent>();
+      let evs = new Map<number, IEvent>();
       for (let ev of events){
         evs.set(ev.id, ev);
       }

@@ -9,16 +9,24 @@ class PipelineTask:
                id : int = 0,
                pplId : int = 0,
                ttId : int = 0,
+               isEnabled : int = 1,
+               isVisible : int = 0,
+               positionX : int = 0,
+               positionY : int = 0,
                nextTasksId : List[int] = 0,
                nextEventsId : List[int] = 0,
-               params : List[str] = [],
+               params : str = [],
                name = "",
                description = ""):
     self.id = id
-    self.pplId = pplId                 # Pipeline id    
+    self.pplId = pplId                 # Pipeline id
+    self.isEnabled = isEnabled
+    self.isVisible = isVisible
+    self.positionX = positionX
+    self.positionY = positionY
+    self.ttId = ttId                   # TaskTemplate id
     self.nextTasksId = nextTasksId     # Next pipeline tasks id
     self.nextEventsId = nextEventsId   # Next events id
-    self.ttId = ttId                   # TaskTemplate id
     self.params = params               # Task params
     self.name = name    
     self.description = description
@@ -30,14 +38,23 @@ class PipelineTask:
 def add(pt : PipelineTask) -> bool:
   if 'db' in g:
     try:
+
+      nextTasksId = ','.join(pt.nextTasksId)
+      nextEventsId = ','.join(pt.nextEventsId)
+
       with closing(g.db.cursor()) as cr:
         cr.execute(
-          "INSERT INTO tblPipelineTask (pplId, ttId, params, nextTasksId, nextEventsId, name, description) VALUES("
+          "INSERT INTO tblPipelineTask (pplId, ttId, params, isEnabled, isVisible, positionX, positionY,"
+          "nextTasksId, nextEventsId, name, description) VALUES("
           f"'{pt.pplId}',"
           f"'{pt.ttId}',"
           f"'{pt.params}',"
-          f"'{pt.nextTasksId}',"
-          f"'{pt.nextEventsId}',"
+          f"'{pt.isEnabled}',"
+          f"'{pt.isVisible}',"
+          f"'{pt.positionX}',"
+          f"'{pt.positionY}',"
+          f"'{nextTasksId}',"
+          f"'{nextEventsId}',"
           f"'{pt.name}',"
           f"'{pt.description}');"
         )
@@ -51,14 +68,21 @@ def add(pt : PipelineTask) -> bool:
 def change(pt : PipelineTask) -> bool:
   if 'db' in g:
     try:
+      nextTasksId = ','.join(pt.nextTasksId)
+      nextEventsId = ','.join(pt.nextEventsId)
+      
       with closing(g.db.cursor()) as cr:
         cr.execute(
           "UPDATE tblPipelineTask SET "
           f"pplId = '{pt.pplId}',"
           f"ttId = '{pt.ttId}',"
+          f"isEnabled = '{pt.isEnabled}',"
+          f"isVisible = '{pt.isVisible}',"
+          f"positionX = '{pt.positionX}',"
+          f"positionY = '{pt.positionY}',"
           f"params = '{pt.params}',"
-          f"nextTasksId = '{pt.nextTasksId}',"
-          f"nextEventsId = '{pt.nextEventsId}',"
+          f"nextTasksId = '{nextTasksId}',"
+          f"nextEventsId = '{nextEventsId}',"
           f"name = '{pt.name}',"
           f"description = '{pt.description}' "
           f"WHERE id = {pt.id};"  
@@ -90,14 +114,18 @@ def all() -> List[PipelineTask]:
       pts = []
       with closing(g.db.cursor()) as cr:
         cr.execute(
-          "SELECT id, pplId, ttId, params, nextTasksId, nextEventsId, name, description "
+          "SELECT id, pplId, ttId, params, isEnabled, isVisible, positionX, positionY,"
+          "nextTasksId, nextEventsId, name, description "
           "FROM tblPipelineTask "
           "WHERE isDelete = 0;"
         )
         rows = cr.fetchall()
         for row in rows:
+          nextTasksId = row[8].split(',')
+          nextEventsId = row[9].split(',')
           pts.append(PipelineTask(id=row[0], pplId=row[1], ttId=row[2], params=row[3],
-                                   nextTasksId=row[4], nextEventsId=row[5], name=row[6], description=row[7]))       
+                                  isEnabled=row[4], isVisible=row[5], positionX=row[6], positionY=row[7],
+                                  nextTasksId=nextTasksId, nextEventsId=nextEventsId, name=row[10], description=row[11]))       
       return pts  
     except Exception as err:
       print('Local db query failed: %s' % str(err))

@@ -7,7 +7,7 @@ interface IProps {
   id : number;
   isSelect : boolean;
   hSelect : (id : number) => any;
-  hDelete : (id : number) => any;
+  hHide : (id : number) => any;
 };
 interface IState { 
   isShowBtn : boolean; 
@@ -47,7 +47,7 @@ class TabItem extends React.Component<IProps, IState>{
         {this.props.title}
         <CloseButton style={closeBtnStyle} 
                      title="Close"
-                     onClick={(e)=>{this.props.hDelete(this.props.id);
+                     onClick={(e)=>{this.props.hHide(this.props.id);
                                     e.stopPropagation();}}/>
       </div>
     )

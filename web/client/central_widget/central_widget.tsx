@@ -13,7 +13,7 @@ import GraphPanel from "../graph_panel/graph_panel";
 
 import { IPipeline, IPipelineTask, ITaskTemplate } from "../types";
 import { Pipelines, TaskTemplates, PipelineTasks} from "../store/store";
-import { ServerAPI } from "../server_api/server_api";
+import * as ServerAPI from "../server_api/server_api";
 
 import "../css/style.less";
 import "../css/fontello.css";
@@ -33,10 +33,7 @@ interface IState {
   isShowPipelineConfig : boolean;
   isShowPipelineTaskConfig : boolean;
   isShowAckDeleteDialog : boolean;
-  allTabsPipelineId : Array<number>;
-  selTabPipelineId : number; 
-  allTasksOfPipeline : Array<number>;
-  selTasksOfPipeline : Array<number>;
+  selTabPipelineId : number;
 };
 
 export default
@@ -52,15 +49,13 @@ class CentralWidget extends React.Component<IProps, IState>{
 
     this.delTaskTemplate = this.delTaskTemplate.bind(this);
     this.delPipeline = this.delPipeline.bind(this);
+    this.delPipelineTask = this.delPipelineTask.bind(this);
     
     this.state  = { isShowTaskTemplateConfig : false,
                     isShowPipelineConfig : false,
                     isShowPipelineTaskConfig : false,
                     isShowAckDeleteDialog : false,
-                    allTabsPipelineId : [],
-                    selTabPipelineId : 0,   
-                    allTasksOfPipeline : [],
-                    selTasksOfPipeline : [],                 
+                    selTabPipelineId : 0,                
                   };   
   }    
 
@@ -77,12 +72,8 @@ class CentralWidget extends React.Component<IProps, IState>{
   delPipeline(){
     ServerAPI.delPipeline(this.m_selPipeline,
       ()=>{  
-        this.setState((prev, props)=>{
-          const ppls = prev.allTabsPipelineId.filter(v => v != this.m_selPipeline.id);
-          return {isShowAckDeleteDialog : false, allTabsPipelineId : ppls };
-        });
-        Pipelines.del(this.m_selPipeline.id);
-                        
+        this.setState({isShowAckDeleteDialog : false});
+        Pipelines.del(this.m_selPipeline.id);                        
         this.props.setStatusMess(`Pipeline '${this.m_selPipeline.name}' is delete`, StateEnum.Ok);
       },
       ()=>this.props.setStatusMess("Server error delete of Pipeline", StateEnum.Error))
@@ -91,14 +82,9 @@ class CentralWidget extends React.Component<IProps, IState>{
   delPipelineTask(){
     ServerAPI.delPipelineTask(this.m_selPipelineTask,
       ()=>{  
-        this.setState((prev, props)=>{
-          const allTasks = prev.allTasksOfPipeline.filter(v => v != this.m_selPipelineTask.id);
-          const selTasks = prev.selTasksOfPipeline.filter(v => v != this.m_selPipelineTask.id);
-          return {isShowAckDeleteDialog : false, allTasksOfPipeline : allTasks, selTasksOfPipeline : selTasks };
-        });
         PipelineTasks.del(this.m_selPipelineTask.id);
-                        
         this.props.setStatusMess(`Pipeline Task '${this.m_selPipelineTask.name}' is delete`, StateEnum.Ok);
+        this.setState({isShowAckDeleteDialog : false});  
       },
       ()=>this.props.setStatusMess("Server error delete of Pipeline Task", StateEnum.Error))
   }
@@ -107,21 +93,18 @@ class CentralWidget extends React.Component<IProps, IState>{
    
     let PipelineTabs = observer(() => {
       let pipelines = [];
-      for (let id of this.state.allTabsPipelineId){     
+      for (let id of Pipelines.getVisibleId()){     
         pipelines.push(<TabItem key={id} id={id}
                                 isSelect={this.state.selTabPipelineId == id}
                                 title={Pipelines.get(id).name}
                                 hSelect={(id:number) => this.setState({selTabPipelineId : id})}
-                                hDelete={(id:number)=>{
-                                  let ppls = this.state.allTabsPipelineId.filter(v=>{
-                                    return v != id;
-                                  });
-                                  this.setState((prev, props)=>{                                    
-                                    return {allTabsPipelineId : ppls};
-                                  }, ()=>{
-                                    if (this.state.selTabPipelineId == id) 
-                                      this.setState({selTabPipelineId : (ppls.length ? ppls[0] : 0)});
-                                  });
+                                hHide={(id:number)=>{
+                                  Pipelines.setVisible(id, false);
+                                  ServerAPI.changePipeline(Pipelines.get(id),()=>0,()=>0);
+                                  if (this.state.selTabPipelineId == id){ 
+                                    const ppls = Pipelines.getVisibleId();
+                                    this.setState({selTabPipelineId : (ppls.length ? ppls[0] : 0)});
+                                  }
                                 }}
                                 >
                         </TabItem>);
@@ -173,15 +156,13 @@ class CentralWidget extends React.Component<IProps, IState>{
 
                                   this.setState({isShowAckDeleteDialog : true});
                                 }}
-                                hDClickItem={(id : number)=>{     
-                                  if (!this.state.allTabsPipelineId.find((v)=>{
-                                    return v == id;
-                                  })){     
-                                    let twoStep = ()=>this.setState({selTabPipelineId : id});                      
+                                hDClickItem={(id : number)=>{ 
+                                  if (!Pipelines.get(id).isVisible){
+                                    Pipelines.setVisible(id, true);
+                                    ServerAPI.changePipeline(Pipelines.get(id),()=>0,()=>0);
                                     this.setState((prev, props)=>{
-                                      const ppls = [...prev.allTabsPipelineId, id];
-                                      return {allTabsPipelineId : ppls};
-                                    }, twoStep);
+                                      return {selTabPipelineId : id};
+                                    });
                                   }
                                 }}>
                           </ListItem>);
@@ -202,22 +183,16 @@ class CentralWidget extends React.Component<IProps, IState>{
                               }}
                               hDelete={()=>{
                                 this.m_selPipelineTask = PipelineTasks.get(v.id);
-                                this.m_ackDeleteDialog.description= this.m_selPipelineTask.description;
+                                this.m_ackDeleteDialog.description = this.m_selPipelineTask.description;
                                 this.m_ackDeleteDialog.title = `Delete '${this.m_selPipelineTask.name}' Pipeline Task?`;
                                 this.m_ackDeleteDialog.onYes = this.delPipelineTask; 
 
                                 this.setState({isShowAckDeleteDialog : true});
                               }}
                               hDClickItem={(id : number)=>{     
-                                // if (!this.state.allTabsPipelineId.find((v)=>{
-                                //   return v == id;
-                                // })){     
-                                //   let twoStep = ()=>this.setState({selTabPipelineId : id});                      
-                                //   this.setState((prev, props)=>{
-                                //     const ppls = [...prev.allTabsPipelineId, id];
-                                //     return {allTabsPipelineId : ppls};
-                                //   }, twoStep);
-                                // }
+                                this.m_selPipelineTask = PipelineTasks.get(v.id);
+                                this.m_selPipelineTask.isVisible = 1;
+                                PipelineTasks.upd(this.m_selPipelineTask);
                               }}>
                           </ListItem>);
       }
@@ -253,7 +228,7 @@ class CentralWidget extends React.Component<IProps, IState>{
                 <PipelineTabs />
               </Row>
               <Row noGutters={true} className="h-100" style={{ position:"relative", overflow:"auto"}}>
-                <GraphPanel pplId={0}/>
+                <GraphPanel pplId={this.state.selTabPipelineId}/>
               </Row>
             </Col>
             <Col className="col-2 m-0 p-0 borderRight">   
@@ -269,21 +244,21 @@ class CentralWidget extends React.Component<IProps, IState>{
         <TaskTemplateDialogModal selTaskTemplate={this.m_selTaskTemplate} 
                                  show={this.state.isShowTaskTemplateConfig} 
                                  onHide={(selTaskTemplate : ITaskTemplate)=>{
-                                   this.m_selTaskTemplate = selTaskTemplate;
+                                   this.m_selTaskTemplate = TaskTemplates.copy(selTaskTemplate);
                                    this.setState({isShowTaskTemplateConfig : false});
                                  }}/>
         
         <PipelineDialogModal selPipeline={this.m_selPipeline} 
                              show={this.state.isShowPipelineConfig} 
                              onHide={(selPipeline : IPipeline)=>{
-                               this.m_selPipeline = selPipeline;
+                               this.m_selPipeline = Pipelines.copy(selPipeline);
                                this.setState({isShowPipelineConfig : false});
                              }}/>
 
         <PipelineTaskDialogModal selPipelineTask={this.m_selPipelineTask} 
                                  show={this.state.isShowPipelineTaskConfig} 
                                  onHide={(selPipelineTask : IPipelineTask)=>{
-                                   this.m_selPipelineTask = selPipelineTask;
+                                   this.m_selPipelineTask = PipelineTasks.copy(selPipelineTask);
                                    this.setState({isShowPipelineTaskConfig : false});
                                  }}/>
        

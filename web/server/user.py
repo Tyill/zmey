@@ -2,9 +2,12 @@ from typing import List
 import os
 import uuid
 import hashlib
+import threading
 from flask import(
   current_app as app
 )
+
+lock = threading.Lock()
 
 class User: 
   """User config""" 
@@ -31,8 +34,10 @@ def addp(id, name, passw, path) -> bool:
   hash = calcHash(passw, salt)
   if id < 0:
     id = len(all())
+  lock.acquire()  
   with open(path + '/users/users.ini', 'a') as file:
     file.write(f'{id}:{name}:{hash}:{salt}\n')
+  lock.release() 
   return True
 
 def add(name, passw) -> bool:

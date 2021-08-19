@@ -2,7 +2,7 @@ import React from "react";
 import { Col, Button, Modal, Form} from "react-bootstrap";
  
 import { ITaskTemplate } from "../types";
-import {ServerAPI} from "../server_api/server_api"
+import * as ServerAPI from "../server_api/server_api"
 import { TaskTemplates} from "../store/store";
 
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -115,7 +115,7 @@ class TaskTemplateDialogModal extends React.Component<IProps, IState>{
         <Modal.Header closeButton>
           <Modal.Title> {this.m_isNewTask ? "Create of Task Template" : "Edit of Task Template"}</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+        <Modal.Body style={{height: "80vh", overflow:"auto"}}>
           <Form>
             <Form.Row >
               <Form.Group as={Col} style={{maxWidth:"200px"}}  controlId="name">
