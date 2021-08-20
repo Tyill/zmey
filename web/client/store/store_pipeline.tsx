@@ -11,6 +11,7 @@ class PipelinesStoreClass {
         m_pipelines: observable,
         setAll: action,
         setVisible: action,
+        setSelected: action,
         add: action,
         del: action,
         upd: action,
@@ -23,26 +24,44 @@ class PipelinesStoreClass {
   getAll() : Map<number, IPipeline>{
     return this.m_pipelines;
   }
-  getVisibleId() : Array<number>{
-    let ppls = [];
-    this.m_pipelines.forEach((p)=>{
-      if (p.isVisible) ppls.push(p.id);
-    });
-    return ppls;
-  }
   get(id : number) : IPipeline {
     return this.m_pipelines.has(id) ? this.copy(this.m_pipelines.get(id)) : null;
   }
   getByName(name : string) : IPipeline {
-    this.m_pipelines.forEach((v)=>{
+    for (let v of this.m_pipelines.values()){
       if (v.name == name) return this.copy(v);
-    })
+    }
     return null;
   }
-  setVisible(id : number, visible : boolean){
+  getSelected() : Array<IPipeline>{
+    let ret = [] as Array<IPipeline>;
+    this.m_pipelines.forEach(p => {
+      if (p.isSelected){        
+        ret.push(this.copy(p));
+      }
+    })
+    return ret;
+  }  
+  setSelected(id : number, on : boolean){
     if (this.m_pipelines.has(id)){
       let ppl = this.m_pipelines.get(id);
-      ppl.isVisible = visible ? 1 : 0;
+      ppl.isSelected = on;
+      this.m_pipelines.set(ppl.id, ppl);    
+    }
+  }
+  getVisible() : Array<IPipeline>{
+    let ret = [] as Array<IPipeline>;
+    this.m_pipelines.forEach(p => {
+      if (p.isVisible){        
+        ret.push(this.copy(p));
+      }
+    })
+    return ret;
+  }
+  setVisible(id : number, on : boolean){
+    if (this.m_pipelines.has(id)){
+      let ppl = this.m_pipelines.get(id);
+      ppl.isVisible = on;
       this.m_pipelines.set(ppl.id, ppl);
     }
   }

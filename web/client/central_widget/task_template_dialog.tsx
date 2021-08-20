@@ -10,7 +10,7 @@ import "../css/style.less";
 
 interface IProps {
   show : boolean;
-  onHide : (selTaskTemplate : ITaskTemplate) => any;
+  onHide : () => any;
   selTaskTemplate : ITaskTemplate;
 };
 
@@ -81,7 +81,7 @@ class TaskTemplateDialogModal extends React.Component<IProps, IState>{
       ServerAPI.addTaskTemplate(newTaskTemplate, 
         (respTaskTemplate)=>{
           TaskTemplates.add(respTaskTemplate);      
-          this.setStatusMess("Success create of Task Template", 1, ()=>{this.props.onHide(respTaskTemplate); this.m_hasAdded = false;});          
+          this.setStatusMess("Success create of Task Template", 1, ()=>{this.props.onHide(); this.m_hasAdded = false;});          
         },
         ()=>{this.setStatusMess("Server error create of Task Template"); this.m_hasAdded = false}
       );       
@@ -111,7 +111,7 @@ class TaskTemplateDialogModal extends React.Component<IProps, IState>{
     let ttask = this.props.selTaskTemplate;
 
     return (
-      <Modal dialogClassName="taskTemplateDialogModal" show={this.props.show} onHide={()=>this.props.onHide(ttask)}  >
+      <Modal dialogClassName="taskTemplateDialogModal" show={this.props.show} onHide={()=>this.props.onHide()}  >
         <Modal.Header closeButton>
           <Modal.Title> {this.m_isNewTask ? "Create of Task Template" : "Edit of Task Template"}</Modal.Title>
         </Modal.Header>
@@ -145,7 +145,7 @@ class TaskTemplateDialogModal extends React.Component<IProps, IState>{
           </Form>          
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" type="close" onClick={()=> this.props.onHide(this.props.selTaskTemplate)}>Close</Button>
+          <Button variant="secondary" type="close" onClick={()=> this.props.onHide()}>Close</Button>
           <Button variant="primary" type="submit" onClick={this.hSubmit}> {this.m_isNewTask ? "Create" : "Save changes"}</Button>
         </Modal.Footer>        
       </Modal>

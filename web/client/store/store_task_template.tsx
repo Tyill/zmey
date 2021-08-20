@@ -26,9 +26,9 @@ class TaskTemplatesStoreClass {
     return this.m_taskTemplates.has(id) ? this.copy(this.m_taskTemplates.get(id)) : null;
   }
   getByName(name : string) : ITaskTemplate {
-    this.m_taskTemplates.forEach((v)=>{
+    for (let v of this.m_taskTemplates.values()){
       if (v.name == name) return this.copy(v);
-    })
+    }
     return null;
   }
   setAll(ttl : Map<number, ITaskTemplate>){

@@ -10,6 +10,8 @@ class PipelineTasksStoreClass {
       makeObservable(this, {
         m_pipelineTasks: observable,
         setAll: action,
+        setPosition: action,
+        setVisible: action,
         add: action,
         del: action,
         upd: action,
@@ -38,12 +40,34 @@ class PipelineTasksStoreClass {
     return ret;
   }
   getByName(name : string) : IPipelineTask {
-    this.m_pipelineTasks.forEach(pt => {
-      if (pt.name == name){        
-        return this.copy(pt);
+    for (let v of this.m_pipelineTasks.values()){
+      if (v.name == name) return this.copy(v);
+    }
+    return null;
+  }
+  getVisible(pplId) : Array<IPipelineTask>{
+    let ret = [] as Array<IPipelineTask>;
+    this.m_pipelineTasks.forEach(tt => {
+      if ((tt.pplId == pplId) && tt.isVisible){        
+        ret.push(this.copy(tt));
       }
     })
-    return null;
+    return ret;
+  }
+  setVisible(id : number, visible : boolean){
+    if (this.m_pipelineTasks.has(id)){
+      let ppt = this.m_pipelineTasks.get(id);
+      ppt.isVisible = visible;
+      this.m_pipelineTasks.set(ppt.id, ppt);
+    }
+  }
+  setPosition(ptId: number, posX : number, posY : number){
+    if (this.m_pipelineTasks.has(ptId)){
+      let ppt = this.m_pipelineTasks.get(ptId);
+      ppt.positionX = posX;
+      ppt.positionY = posY;
+      this.m_pipelineTasks.set(ppt.id, ppt);
+    }
   }
   setAll(ppt : Map<number, IPipelineTask>){
     this.m_pipelineTasks = ppt;

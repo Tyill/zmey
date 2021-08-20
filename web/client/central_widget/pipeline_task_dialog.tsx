@@ -9,7 +9,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 
 interface IProps {
   show : boolean;
-  onHide : (selPipelineTask : IPipelineTask) => any;
+  onHide : () => any;
   selPipelineTask : IPipelineTask;
 };
 
@@ -46,7 +46,7 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
   hSubmit(event) {
     
     if (this.m_hasAdded) return;
-
+    
     let error = "",
         name = this.m_refObj["name"].value;
     if (!name)
@@ -62,13 +62,13 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
     }
    
     let newPipelineTask = {
-      id : this.props.selPipelineTask.id,
+      id : this.props.selPipelineTask.id || 0,
       pplId : this.m_refObj["pipeline"].value,
       ttId: this.m_refObj["taskTemplate"].value,
-      isEnabled : 1,
-      isVisible : 1,
-      positionX : 0,
-      positionY : 0,
+      isEnabled : this.props.selPipelineTask.isEnabled || true,
+      isVisible : this.props.selPipelineTask.isVisible || true,
+      positionX : this.props.selPipelineTask.positionX || 0,
+      positionY : this.props.selPipelineTask.positionY || 0,
       nextTasksId: this.props.selPipelineTask.nextTasksId || [],
       nextEventsId: this.props.selPipelineTask.nextEventsId || [],
       params : this.m_refObj["params"].value,
@@ -82,7 +82,7 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
         (respPipeline)=>{
           PipelineTasks.add(respPipeline);      
           this.setStatusMess("Success create of Pipeline", 1,
-           ()=>{this.props.onHide(respPipeline); this.m_hasAdded = false;});
+           ()=>{this.props.onHide(); this.m_hasAdded = false;});
         },
         ()=>{this.setStatusMess("Server error create of Pipeline"); this.m_hasAdded = false;}
       )         
@@ -126,7 +126,7 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
     });
    
     return (
-      <Modal show={this.props.show} onHide={()=>this.props.onHide(task)} >
+      <Modal show={this.props.show} onHide={()=>this.props.onHide()} >
         <Modal.Header closeButton>
           <Modal.Title> {this.m_isNewPipelineTask ? "Create of Pipeline Task" : "Edit of Pipeline Task"}</Modal.Title>
         </Modal.Header>
@@ -165,7 +165,7 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
           </Form>          
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" type="close" onClick={()=> this.props.onHide(task)}>Close</Button>
+          <Button variant="secondary" type="close" onClick={()=> this.props.onHide()}>Close</Button>
           <Button variant="primary" type="submit" onClick={this.hSubmit}> {this.m_isNewPipelineTask ? "Create" : "Save changes"}</Button>
         </Modal.Footer>        
       </Modal>

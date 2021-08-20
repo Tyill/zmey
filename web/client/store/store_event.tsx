@@ -29,9 +29,9 @@ class EventsStoreClass {
     return this.m_events.has(id) ? this.copy(this.m_events.get(id)) : null;
   }
   getByName(name : string) : IEvent {
-    this.m_events.forEach((v)=>{
+    for (let v of this.m_events.values()){
       if (v.name == name) return this.copy(v);
-    })
+    }
     return null;
   }
   setAll(ev : Map<number, IEvent>){

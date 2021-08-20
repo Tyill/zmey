@@ -17,6 +17,7 @@ def addPipeline():
 
     ppl = pp.Pipeline()
     ppl.isVisible = int(jnReq['isVisible'])
+    ppl.isSelected = int(jnReq['isSelected'])
     ppl.name = jnReq['name']
     ppl.description = jnReq['description']  
     return json.dumps(ppl.__dict__) if pp.add(ppl) else ('internal error', 500)
@@ -33,6 +34,7 @@ def changePipeline(id : int):
     ppl = pp.Pipeline()
     ppl.id = id
     ppl.isVisible = int(jnReq['isVisible'])
+    ppl.isSelected= int(jnReq['isSelected'])
     ppl.name = jnReq['name']
     ppl.description = jnReq['description']    
     return json.dumps(ppl.__dict__) if pp.change(ppl) else ('internal error', 500)

@@ -22,7 +22,8 @@ interface IUser {
 export
 interface IPipeline{
   id : number;
-  isVisible : number;
+  isVisible : boolean;
+  isSelected : boolean;
   name : string;
   description : string;
 };
@@ -42,8 +43,8 @@ interface IPipelineTask{
   id : number;
   pplId : number;               ///< pipeline id
   ttId : number;                ///< task template id    
-  isVisible : number;
-  isEnabled : number;
+  isVisible : boolean;
+  isEnabled : boolean;
   positionX : number;
   positionY : number;
   nextTasksId : Array<number>;  ///< pipeline task id of next tasks  
@@ -56,8 +57,8 @@ interface IPipelineTask{
 export
 interface IEvent{       
   id : number;
-  isVisible : number;
-  isEnabled : number;
+  isVisible : boolean;
+  isEnabled : boolean;
   positionX : number;
   positionY : number;
   nextTasksId : Array<number>;  ///< pipeline task id of next tasks  

@@ -34,6 +34,7 @@ def initUserDb(db):
         id          INTEGER PRIMARY KEY AUTOINCREMENT, \
         isVisible   INT NOT NULL DEFAULT 0 CHECK (isVisible BETWEEN 0 AND 1), \
         isDelete    INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1), \
+        isSelected  INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1), \
         name        TEXT NOT NULL,\
         description TEXT NOT NULL);"
     )
