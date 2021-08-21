@@ -49,14 +49,45 @@ body,
   border-top-left-radius: 5px;
 }
 
-.graphPipelineTask{
+.graphPplTaskContainer{
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 0px;
+  margin: 0px;
+}
+
+.graphPplTask{
   display: inline-flex;
   flex-direction: row;
   align-items: center;
   padding: 10px;
-  padding-right: 5px;
   border: @borderStyle;
   border-radius: 5px;
+}
+
+.graphPplTaskSocketOutput{
+  width: 15px;
+  height: 15px;
+  border-left: 2px solid #99d3f5;
+}
+.graphPplTaskSocketOutput:hover{
+  border: 2px dashed #99d3f5;
+}
+
+.graphPplTaskSocketInput{
+  width: 15px;
+  height: 15px;
+  border-right: 2px solid #99d3f5;
+}
+.graphPplTaskSocketInput:hover{
+  border: 2px dashed #99d3f5;
+}
+
+.graphPanel{
+  width:10000px;
+  height:10000px;
+  position:absolute;
 }
 
 .unselectable {

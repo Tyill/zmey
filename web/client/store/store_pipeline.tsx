@@ -36,7 +36,7 @@ class PipelinesStoreClass {
   getSelected() : Array<IPipeline>{
     let ret = [] as Array<IPipeline>;
     this.m_pipelines.forEach(p => {
-      if (p.isSelected){        
+      if (p.setts.isSelected){        
         ret.push(this.copy(p));
       }
     })
@@ -45,14 +45,14 @@ class PipelinesStoreClass {
   setSelected(id : number, on : boolean){
     if (this.m_pipelines.has(id)){
       let ppl = this.m_pipelines.get(id);
-      ppl.isSelected = on;
+      ppl.setts.isSelected = on;
       this.m_pipelines.set(ppl.id, ppl);    
     }
   }
   getVisible() : Array<IPipeline>{
     let ret = [] as Array<IPipeline>;
     this.m_pipelines.forEach(p => {
-      if (p.isVisible){        
+      if (p.setts.isVisible){        
         ret.push(this.copy(p));
       }
     })
@@ -61,7 +61,7 @@ class PipelinesStoreClass {
   setVisible(id : number, on : boolean){
     if (this.m_pipelines.has(id)){
       let ppl = this.m_pipelines.get(id);
-      ppl.isVisible = on;
+      ppl.setts.isVisible = on;
       this.m_pipelines.set(ppl.id, ppl);
     }
   }

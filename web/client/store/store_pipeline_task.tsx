@@ -48,7 +48,7 @@ class PipelineTasksStoreClass {
   getVisible(pplId) : Array<IPipelineTask>{
     let ret = [] as Array<IPipelineTask>;
     this.m_pipelineTasks.forEach(tt => {
-      if ((tt.pplId == pplId) && tt.isVisible){        
+      if ((tt.pplId == pplId) && tt.setts.isVisible){        
         ret.push(this.copy(tt));
       }
     })
@@ -57,15 +57,15 @@ class PipelineTasksStoreClass {
   setVisible(id : number, visible : boolean){
     if (this.m_pipelineTasks.has(id)){
       let ppt = this.m_pipelineTasks.get(id);
-      ppt.isVisible = visible;
+      ppt.setts.isVisible = visible;
       this.m_pipelineTasks.set(ppt.id, ppt);
     }
   }
   setPosition(ptId: number, posX : number, posY : number){
     if (this.m_pipelineTasks.has(ptId)){
       let ppt = this.m_pipelineTasks.get(ptId);
-      ppt.positionX = posX;
-      ppt.positionY = posY;
+      ppt.setts.positionX = posX;
+      ppt.setts.positionY = posY;
       this.m_pipelineTasks.set(ppt.id, ppt);
     }
   }

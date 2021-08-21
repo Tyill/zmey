@@ -6,17 +6,15 @@ class Pipeline:
   """Pipeline config""" 
   def __init__(self,
                id : int = 0,
-               isVisible : int = 0,
-               isSelected : int = 0,
                name : str = "",
-               description : str = ""):
+               description : str = "",
+               setts = "{}"):
     self.id = id  
-    self.isVisible = isVisible 
-    self.isSelected = isSelected
     self.name = name    
     self.description = description 
+    self.setts = setts 
   def __repr__(self):
-      return f"Pipeline: id {self.id} name {self.name} description {self.description}"
+      return f"Pipeline: id {self.id} name {self.name} description {self.description} setts {self.setts}"
   def __str__(self):
     return self.__repr__()
 
@@ -25,11 +23,10 @@ def add(ppl : Pipeline) -> bool:
     try:
       with closing(g.db.cursor()) as cr:
         cr.execute(
-          "INSERT INTO tblPipeline (isVisible, isSelected, name, description) VALUES("
-          f"'{ppl.isVisible}',"
-          f"'{ppl.isSelected}',"
-          f"'{ppl.name}',"
-          f"'{ppl.description}');"
+          "INSERT INTO tblPipeline (name, description, setts) VALUES("
+          f'"{ppl.name}",'
+          f'"{ppl.description}",'
+          f'"{ppl.setts}");'
         )
         ppl.id = cr.lastrowid
         g.db.commit()
@@ -44,11 +41,10 @@ def change(ppl : Pipeline) -> bool:
       with closing(g.db.cursor()) as cr:
         cr.execute(
           "UPDATE tblPipeline SET "
-          f"isVisible = '{ppl.isVisible}',"
-           f"isSelected = '{ppl.isSelected}',"
-          f"name = '{ppl.name}',"
-          f"description = '{ppl.description}' "
-          f"WHERE id = {ppl.id};"  
+          f'name = "{ppl.name}",'
+          f'description = "{ppl.description}",'
+          f'setts = "{ppl.setts}" '
+          f'WHERE id = {ppl.id};'  
         )
         g.db.commit()
       return True
@@ -77,13 +73,13 @@ def all() -> List[Pipeline]:
       ppls = []
       with closing(g.db.cursor()) as cr:
         cr.execute(
-          "SELECT id, name, description, isVisible, isSelected "
+          "SELECT id, name, description, setts "
           "FROM tblPipeline "
           "WHERE isDelete = 0;"
         )
         rows = cr.fetchall()
         for row in rows:
-          ppls.append(Pipeline(id=row[0], name=row[1], description=row[2], isVisible=row[3], isSelected=row[4]))       
+          ppls.append(Pipeline(id=row[0], name=row[1], description=row[2], setts=row[3]))       
       return ppls  
     except Exception as err:
       print('Local db query failed: %s' % str(err))

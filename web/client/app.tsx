@@ -31,7 +31,8 @@ class App extends React.Component<IProps, IState>{
       let ppl = new Map<number, IPipeline>();
       for (let p of pipelines){
         ppl.set(p.id, p);
-      }
+      }      
+      console.log(ppl);
       Pipelines.setAll(ppl);
     },
     ()=>this.setStatusMess("Server error fill Pipelines"));

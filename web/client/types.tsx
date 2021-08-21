@@ -21,11 +21,13 @@ interface IUser {
 
 export
 interface IPipeline{
-  id : number;
-  isVisible : boolean;
-  isSelected : boolean;
+  id : number;  
   name : string;
   description : string;
+  setts : {
+    isVisible : boolean;
+    isSelected : boolean;
+  } | string;
 };
 
 export
@@ -43,29 +45,41 @@ interface IPipelineTask{
   id : number;
   pplId : number;               ///< pipeline id
   ttId : number;                ///< task template id    
-  isVisible : boolean;
   isEnabled : boolean;
-  positionX : number;
-  positionY : number;
   nextTasksId : Array<number>;  ///< pipeline task id of next tasks  
   nextEventsId : Array<number>; ///< event id of next events
   params : string;
   name : string;
   description : string;
+  setts : {
+    isVisible : boolean;
+    positionX : number;
+    positionY : number;
+    socketInputPositionX : number;
+    socketInputPositionY : number;
+    socketOutputPositionX : number;
+    socketOutputPositionY : number;
+  }
 };
 
 export
 interface IEvent{       
   id : number;
-  isVisible : boolean;
   isEnabled : boolean;
-  positionX : number;
-  positionY : number;
   nextTasksId : Array<number>;  ///< pipeline task id of next tasks  
   nextEventsId : Array<number>; ///< event id of next events
   params : string;
   name : string;
   description : string;
+  setts : {
+    isVisible : boolean;
+    positionX : number;
+    positionY : number;
+    socketInputPositionX : number;
+    socketInputPositionY : number;
+    socketOutputPositionX : number;
+    socketOutputPositionY : number;
+  } 
 };
 
 // export

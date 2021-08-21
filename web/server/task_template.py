@@ -16,12 +16,12 @@ def add(iott : TaskTemplate) -> bool:
         with closing(g.db.cursor()) as cr:
           cr.execute(
             "INSERT INTO tblTaskTemplate (id, name, description, script, averDurationSec, maxDurationSec) VALUES("
-            f"'{iott.id}',"
-            f"'{iott.name}',"
-            f"'{iott.description}',"
-            f"'{iott.script}',"
-            f"'{iott.averDurationSec}',"
-            f"'{iott.maxDurationSec}');"
+            f'"{iott.id}",'
+            f'"{iott.name}",'
+            f'"{iott.description}",'
+            f'"{iott.script}",'
+            f'"{iott.averDurationSec}",'
+            f'"{iott.maxDurationSec}");'
           )
           g.db.commit()
         return True
@@ -37,12 +37,12 @@ def change(iott : TaskTemplate) -> bool:
         with closing(g.db.cursor()) as cr:
           cr.execute(
             "UPDATE tblTaskTemplate SET "
-            f"name = '{iott.name}',"
-            f"description = '{iott.description}',"
-            f"script = '{iott.script}',"
-            f"averDurationSec = '{iott.averDurationSec}',"
-            f"maxDurationSec = '{iott.maxDurationSec}' "
-            f"WHERE id = {iott.id};"  
+            f'name = "{iott.name}",'
+            f'description = "{iott.description}",'
+            f'script = "{iott.script}",'
+            f'averDurationSec = "{iott.averDurationSec}",'
+            f'maxDurationSec = "{iott.maxDurationSec}" '
+            f'WHERE id = {iott.id};'  
           )
           g.db.commit()
         return True

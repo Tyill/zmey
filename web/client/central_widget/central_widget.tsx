@@ -9,7 +9,7 @@ import AckDeleteModal, {IAckDeleteDialog} from "../common/ack_delete_modal";
 import ListItem from "../common/list_item";
 import ListHeader from "../common/list_header";
 import TabItem from "../common/tab_item";
-import GraphPanel from "../graph_panel/graph_panel";
+import GraphPanel from "../graph/graph_panel";
 
 import { IPipeline, IPipelineTask, ITaskTemplate } from "../types";
 import { Pipelines, TaskTemplates, PipelineTasks} from "../store/store";
@@ -71,7 +71,7 @@ class CentralWidget extends React.Component<IProps, IState>{
   }
 
   delPipeline(){    
-    this.hidePipeline(this.m_selPipelineTask.id);
+    this.hidePipeline(this.m_selPipeline.id);
 
     ServerAPI.delPipeline(this.m_selPipeline,
       ()=>{  
@@ -93,12 +93,12 @@ class CentralWidget extends React.Component<IProps, IState>{
   }
  
   selectPipeline(id : number){
-    if (!Pipelines.get(id).isVisible){
+    if (!Pipelines.get(id).setts.isVisible){
       Pipelines.setVisible(id, true);                                    
     }
     for (let p of Pipelines.getSelected()){
       if (p.id != id){
-        p.isSelected = false;
+        p.setts.isSelected = false;
         Pipelines.upd(p);
         ServerAPI.changePipeline(p,()=>0,()=>0);
       }
@@ -131,7 +131,7 @@ class CentralWidget extends React.Component<IProps, IState>{
       let pipelines = [];
       for (let p of Pipelines.getVisible()){     
         pipelines.push(<TabItem key={p.id} id={p.id}
-                                isSelect={ p.isSelected }
+                                isSelect={ p.setts.isSelected }
                                 title={p.name}
                                 hSelect={this.selectPipeline} 
                                 hHide={this.hidePipeline}
@@ -212,7 +212,7 @@ class CentralWidget extends React.Component<IProps, IState>{
                               }}
                               hDClickItem={(id : number)=>{     
                                 this.m_selPipelineTask = PipelineTasks.get(t.id);
-                                this.m_selPipelineTask.isVisible = true;
+                                this.m_selPipelineTask.setts.isVisible = true;
                                 PipelineTasks.upd(this.m_selPipelineTask);
                                 ServerAPI.changePipelineTask(this.m_selPipelineTask,()=>0,()=>0);
                               }}>

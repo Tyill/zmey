@@ -31,12 +31,11 @@ def initUserDb(db):
 
     cr.execute(
       "CREATE TABLE IF NOT EXISTS tblPipeline ( \
-        id          INTEGER PRIMARY KEY AUTOINCREMENT, \
-        isVisible   INT NOT NULL DEFAULT 0 CHECK (isVisible BETWEEN 0 AND 1), \
-        isDelete    INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1), \
-        isSelected  INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1), \
-        name        TEXT NOT NULL,\
-        description TEXT NOT NULL);"
+        id            INTEGER PRIMARY KEY AUTOINCREMENT, \
+        isDelete      INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1), \
+        name          TEXT NOT NULL, \
+        description   TEXT NOT NULL, \
+        setts TEXT NOT NULL);"
     )
     cr.execute(
       "CREATE TABLE IF NOT EXISTS tblTaskTemplate ( \
@@ -51,32 +50,28 @@ def initUserDb(db):
     cr.execute(
       "CREATE TABLE IF NOT EXISTS tblPipelineTask( \
         id INTEGER PRIMARY KEY AUTOINCREMENT, \
-        pplId       INT NOT NULL REFERENCES tblPipeline, \
-        ttId        INT NOT NULL REFERENCES tblTaskTemplate, \
-        isEnabled   INT NOT NULL DEFAULT 1 CHECK (isVisible BETWEEN 0 AND 1), \
-        isVisible   INT NOT NULL DEFAULT 0 CHECK (isVisible BETWEEN 0 AND 1), \
-        isDelete    INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1), \
-        positionX   INT NOT NULL DEFAULT 0, \
-        positionY   INT NOT NULL DEFAULT 0, \
-        params      TEXT NOT NULL, \
+        pplId         INT NOT NULL REFERENCES tblPipeline, \
+        ttId          INT NOT NULL REFERENCES tblTaskTemplate, \
+        isEnabled     INT NOT NULL DEFAULT 1 CHECK (isEnabled BETWEEN 0 AND 1), \
+        isDelete      INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1), \
+        params        TEXT NOT NULL, \
         nextTasksId   TEXT NOT NULL, \
         nextEventsId  TEXT NOT NULL, \
-        name        TEXT NOT NULL CHECK (name <> ''), \
-        description TEXT NOT NULL);"   
+        name          TEXT NOT NULL CHECK (name <> ''), \
+        description   TEXT NOT NULL, \
+        setts TEXT NOT NULL);"   
     )
     cr.execute(
       "CREATE TABLE IF NOT EXISTS tblEvent( \
         id INTEGER PRIMARY KEY AUTOINCREMENT, \
-        isEnabled   INT NOT NULL DEFAULT 1 CHECK (isVisible BETWEEN 0 AND 1), \
-        isVisible   INT NOT NULL DEFAULT 0 CHECK (isVisible BETWEEN 0 AND 1), \
-        isDelete    INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1), \
-        positionX   INT NOT NULL DEFAULT 0, \
-        positionY   INT NOT NULL DEFAULT 0, \
-        params      TEXT NOT NULL, \
+        isEnabled     INT NOT NULL DEFAULT 1 CHECK (isEnabled BETWEEN 0 AND 1), \
+        isDelete      INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1), \
+        params        TEXT NOT NULL, \
         nextTasksId   TEXT NOT NULL, \
         nextEventsId  TEXT NOT NULL, \
-        name        TEXT NOT NULL CHECK (name <> ''), \
-        description TEXT NOT NULL);"  
+        name          TEXT NOT NULL CHECK (name <> ''), \
+        description   TEXT NOT NULL, \
+        setts TEXT NOT NULL);"  
     )
     
 def closeUserDb(e = None):

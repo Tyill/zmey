@@ -18,10 +18,8 @@ def addPipelineTask():
     plt.name = jnReq['name']
     plt.pplId = int(jnReq['pplId'])
     plt.ttId = int(jnReq['ttId'])
-    plt.isVisible = int(jnReq['isVisible'])
     plt.isEnabled = int(jnReq['isEnabled'])
-    plt.positionX = int(jnReq['positionX'])
-    plt.positionY = int(jnReq['positionY'])
+    plt.setts = jnReq['setts']
     plt.nextTasksId = jnReq['nextTasksId']
     plt.nextEventsId = jnReq['nextEventsId']  
     plt.params = jnReq['params'] 
@@ -42,10 +40,8 @@ def changePipelineTask(id : int):
     plt.name = jnReq['name']
     plt.pplId = int(jnReq['pplId'])
     plt.ttId = int(jnReq['ttId'])
-    plt.isVisible = int(jnReq['isVisible'])
     plt.isEnabled = int(jnReq['isEnabled'])
-    plt.positionX = int(jnReq['positionX'])
-    plt.positionY = int(jnReq['positionY'])
+    plt.setts = jnReq['setts']
     plt.nextTasksId = jnReq['nextTasksId']
     plt.nextEventsId = jnReq['nextEventsId']  
     plt.params = jnReq['params']  

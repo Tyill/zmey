@@ -16,14 +16,12 @@ def addEvent():
 
     evt = ev.Event()
     evt.name = jnReq['name']
-    evt.isVisible = int(jnReq['isVisible'])
     evt.isEnabled = int(jnReq['isEnabled'])
-    evt.positionX = int(jnReq['positionX'])
-    evt.positionY = int(jnReq['positionY'])
     evt.nextTasksId = jnReq['nextTasksId']
     evt.nextEventsId = jnReq['nextEventsId']  
     evt.params = jnReq['params'] 
     evt.description = jnReq['description']  
+    evt.setts = jnReq['setts']
     return json.dumps(evt.__dict__) if ev.add(evt) else ('internal error', 500)
   except Exception as err:
     print(f'/events POST {request.get_json(silent=True)} failed: %s' % str(err))
@@ -38,14 +36,12 @@ def changeEvent(id : int):
     evt = ev.Event()
     evt.id = id
     evt.name = jnReq['name']
-    evt.isVisible = int(jnReq['isVisible'])
     evt.isEnabled = int(jnReq['isEnabled'])
-    evt.positionX = int(jnReq['positionX'])
-    evt.positionY = int(jnReq['positionY'])
     evt.nextTasksId = jnReq['nextTasksId']
     evt.nextEventsId = jnReq['nextEventsId']  
     evt.params = jnReq['params'] 
     evt.description = jnReq['description']  
+    evt.setts = jnReq['setts']
     return json.dumps(evt.__dict__) if ev.change(evt) else ('internal error', 500)
   except Exception as err:
     print(f'/changeEvent/{id} PUT {request.get_json(silent=True)} failed: %s' % str(err))

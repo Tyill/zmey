@@ -10,20 +10,16 @@ class PipelineTask:
                pplId : int = 0,
                ttId : int = 0,
                isEnabled : int = 1,
-               isVisible : int = 0,
-               positionX : int = 0,
-               positionY : int = 0,
                nextTasksId : List[int] = 0,
                nextEventsId : List[int] = 0,
                params : str = [],
                name = "",
-               description = ""):
+               description = "",
+               setts = "{}"):
     self.id = id
     self.pplId = pplId                 # Pipeline id
     self.isEnabled = isEnabled
-    self.isVisible = isVisible
-    self.positionX = positionX
-    self.positionY = positionY
+    self.setts = setts
     self.ttId = ttId                   # TaskTemplate id
     self.nextTasksId = nextTasksId     # Next pipeline tasks id
     self.nextEventsId = nextEventsId   # Next events id
@@ -31,7 +27,9 @@ class PipelineTask:
     self.name = name    
     self.description = description
   def __repr__(self):
-      return f"PipelineTask: id {self.id} pplId {self.pplId} ttId {self.ttId} params {self.params} nextTasksId {self.nextTasksId} nextEventsId {self.nextEventsId} name {self.name} description {self.description}"
+      return f"PipelineTask: id {self.id} pplId {self.pplId} ttId {self.ttId} params {self.params} \
+               isEnabled {self.isEnabled} pplId nextTasksId {self.nextTasksId} nextEventsId {self.nextEventsId} \
+               name {self.name} description {self.description} setts {self.setts}"
   def __str__(self):
     return self.__repr__()
 
@@ -44,19 +42,17 @@ def add(pt : PipelineTask) -> bool:
 
       with closing(g.db.cursor()) as cr:
         cr.execute(
-          "INSERT INTO tblPipelineTask (pplId, ttId, params, isEnabled, isVisible, positionX, positionY,"
+          "INSERT INTO tblPipelineTask (pplId, ttId, params, isEnabled, setts,"
           "nextTasksId, nextEventsId, name, description) VALUES("
-          f"'{pt.pplId}',"
-          f"'{pt.ttId}',"
-          f"'{pt.params}',"
-          f"'{pt.isEnabled}',"
-          f"'{pt.isVisible}',"
-          f"'{pt.positionX}',"
-          f"'{pt.positionY}',"
-          f"'{nextTasksId}',"
-          f"'{nextEventsId}',"
-          f"'{pt.name}',"
-          f"'{pt.description}');"
+          f'"{pt.pplId}",'
+          f'"{pt.ttId}",'
+          f'"{pt.params}",'
+          f'"{pt.isEnabled}",'
+          f'"{pt.setts}",'
+          f'"{nextTasksId}",'
+          f'"{nextEventsId}",'
+          f'"{pt.name}",'
+          f'"{pt.description}");'
         )
         pt.id = cr.lastrowid
         g.db.commit()
@@ -74,18 +70,16 @@ def change(pt : PipelineTask) -> bool:
       with closing(g.db.cursor()) as cr:
         cr.execute(
           "UPDATE tblPipelineTask SET "
-          f"pplId = '{pt.pplId}',"
-          f"ttId = '{pt.ttId}',"
-          f"isEnabled = '{pt.isEnabled}',"
-          f"isVisible = '{pt.isVisible}',"
-          f"positionX = '{pt.positionX}',"
-          f"positionY = '{pt.positionY}',"
-          f"params = '{pt.params}',"
-          f"nextTasksId = '{nextTasksId}',"
-          f"nextEventsId = '{nextEventsId}',"
-          f"name = '{pt.name}',"
-          f"description = '{pt.description}' "
-          f"WHERE id = {pt.id};"  
+          f'pplId = "{pt.pplId}",'
+          f'ttId = "{pt.ttId}",'
+          f'isEnabled = "{pt.isEnabled}",'
+          f'setts = "{pt.setts}",'
+          f'params = "{pt.params}",'
+          f'nextTasksId = "{nextTasksId}",'
+          f'nextEventsId = "{nextEventsId}",'
+          f'name = "{pt.name}",'
+          f'description = "{pt.description}" '
+          f'WHERE id = {pt.id};' 
         )
         g.db.commit()
       return True
@@ -114,18 +108,18 @@ def all() -> List[PipelineTask]:
       pts = []
       with closing(g.db.cursor()) as cr:
         cr.execute(
-          "SELECT id, pplId, ttId, params, isEnabled, isVisible, positionX, positionY,"
+          "SELECT id, pplId, ttId, params, isEnabled, setts,"
           "nextTasksId, nextEventsId, name, description "
           "FROM tblPipelineTask "
           "WHERE isDelete = 0;"
         )
         rows = cr.fetchall()
         for row in rows:
-          nextTasksId = row[8].split(',')
-          nextEventsId = row[9].split(',')
+          nextTasksId = row[6].split(',')
+          nextEventsId = row[7].split(',')
           pts.append(PipelineTask(id=row[0], pplId=row[1], ttId=row[2], params=row[3],
-                                  isEnabled=row[4], isVisible=row[5], positionX=row[6], positionY=row[7],
-                                  nextTasksId=nextTasksId, nextEventsId=nextEventsId, name=row[10], description=row[11]))       
+                                  isEnabled=row[4], setts=row[5],
+                                  nextTasksId=nextTasksId, nextEventsId=nextEventsId, name=row[8], description=row[9]))       
       return pts  
     except Exception as err:
       print('Local db query failed: %s' % str(err))

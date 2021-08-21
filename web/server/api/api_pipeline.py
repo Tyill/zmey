@@ -16,10 +16,9 @@ def addPipeline():
     jnReq = request.get_json(silent=True)  
 
     ppl = pp.Pipeline()
-    ppl.isVisible = int(jnReq['isVisible'])
-    ppl.isSelected = int(jnReq['isSelected'])
     ppl.name = jnReq['name']
     ppl.description = jnReq['description']  
+    ppl.setts = jnReq['setts']
     return json.dumps(ppl.__dict__) if pp.add(ppl) else ('internal error', 500)
   except Exception as err:
     print(f'/pipelines POST {request.get_json(silent=True)} failed: %s' % str(err))
@@ -33,10 +32,9 @@ def changePipeline(id : int):
   
     ppl = pp.Pipeline()
     ppl.id = id
-    ppl.isVisible = int(jnReq['isVisible'])
-    ppl.isSelected= int(jnReq['isSelected'])
     ppl.name = jnReq['name']
     ppl.description = jnReq['description']    
+    ppl.setts = jnReq['setts']
     return json.dumps(ppl.__dict__) if pp.change(ppl) else ('internal error', 500)
   except Exception as err:
     print(f'/pipelines/{id} PUT {request.get_json(silent=True)} failed: %s' % str(err))
@@ -57,4 +55,4 @@ def allPipelines():
   ret = []
   for p in pp.all():
     ret.append(p.__dict__)
-  return json.dumps(ret)
+  return json.dumps(ret).replace("'", '"') 
