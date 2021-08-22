@@ -18,7 +18,7 @@ function addTaskTemplate(newTaskTemplate : ITaskTemplate, onSucces : (respTaskTe
 }
 
 export
-function changeTaskTemplate(taskTemplate : ITaskTemplate, onSucces : (respTaskTemplate : ITaskTemplate) => any, onError : () => any ){
+function changeTaskTemplate(taskTemplate : ITaskTemplate, onSucces : (respTaskTemplate : ITaskTemplate) => any = ()=>0, onError : () => any = ()=>0){
   fetch('api/v1/taskTemplates/' + taskTemplate.id, {
     method: 'PUT',
     headers: {

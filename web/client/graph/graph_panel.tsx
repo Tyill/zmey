@@ -1,6 +1,6 @@
 import React from "react";
 import GraphTask from "./graph_task"
-import { observer } from "mobx-react-lite"
+import { observer} from "mobx-react-lite"
 
 import { IPoint, IRect } from "../types";
 import { PipelineTasks, Pipelines} from "../store/store";
@@ -13,26 +13,25 @@ enum SocketType{
 }
 
 interface IProps { 
-  pplId : number;
 };
 interface IState { 
-  socketCaptured : {id : number, type : SocketType};
+  socketCaptured : {id : number, type : SocketType};  
 };
 
 export default
 class GraphPanel extends React.Component<IProps, IState>{  
   
   private m_canvasRef : HTMLCanvasElement;
-  private m_viewRef : HTMLDivElement;
   private m_mouseStartMem : {x : number, y : number};
   private m_firstLoad : boolean;
+  private m_selectedPplId : number;
 
   constructor(props : IProps){
     super(props);  
     this.m_canvasRef = null;  
-    this.m_viewRef = null;
     this.m_mouseStartMem = {x : 0, y : 0};
     this.m_firstLoad = false;
+    this.m_selectedPplId = 0;
 
     this.state = {socketCaptured : {id : 0, type : SocketType.Input}};
 
@@ -46,8 +45,49 @@ class GraphPanel extends React.Component<IProps, IState>{
   }
 
   hMouseUp(e){
-    this.setState({socketCaptured : {id : 0, type : SocketType.Input}});
-    this.m_canvasRef.style.zIndex = "0";
+    
+    if (this.state.socketCaptured.id){
+
+      let brect = this.m_canvasRef.getBoundingClientRect();  
+      const mpos = { x : e.clientX - brect.left,
+                     y : e.clientY - brect.top};    
+     
+      let isPntIntoRect = function (pnt : IPoint, rect : IRect) {
+        return rect.x <= pnt.x && pnt.x <= rect.x + rect.w &&
+              rect.y <= pnt.y && pnt.y <= rect.y + rect.h;
+      }
+     
+      let task = PipelineTasks.get(this.state.socketCaptured.id);
+      for (const pt of PipelineTasks.getByPPlId(this.m_selectedPplId).values()){
+        if ((this.state.socketCaptured.type == SocketType.Output) && 
+             isPntIntoRect(mpos, pt.setts.socketInRect) && !task.nextTasksId.find(v=>v==pt.id)){
+          task.nextTasksId.push(pt.id);
+          PipelineTasks.upd(task);
+          ServerAPI.changePipelineTask(task);
+         
+          let nextTask = PipelineTasks.get(pt.id);
+          nextTask.prevTasksId.push(task.id);
+          PipelineTasks.upd(nextTask);
+          ServerAPI.changePipelineTask(nextTask);          
+        }
+        else 
+        if ((this.state.socketCaptured.type == SocketType.Input) &&
+             isPntIntoRect(mpos, pt.setts.socketOutRect) && !task.prevTasksId.find(v=>v==pt.id)){
+          task.prevTasksId.push(pt.id);
+          PipelineTasks.upd(task);
+          ServerAPI.changePipelineTask(task);
+
+          let prevTask = PipelineTasks.get(pt.id);
+          prevTask.nextTasksId.push(task.id);
+          PipelineTasks.upd(prevTask);
+          ServerAPI.changePipelineTask(prevTask);
+        }
+      }
+
+      this.drawAll(this.getCanvasContext());
+
+      this.setState({socketCaptured : {id : 0, type : SocketType.Input}});
+    }
   }
 
   hMouseDown(e: React.MouseEvent<HTMLElement>){
@@ -67,37 +107,16 @@ class GraphPanel extends React.Component<IProps, IState>{
       this.drawLine(ctx, this.m_mouseStartMem, mpos);
 
       this.drawAll(ctx);
-          
-      let isPntIntoRect = function (pnt : IPoint, rect : IRect) {
-          return rect.x <= pnt.x && pnt.x <= rect.x + rect.w &&
-                 rect.y <= pnt.y && pnt.y <= rect.y + rect.h;
-      }
-
-      let task = PipelineTasks.get(this.state.socketCaptured.id);
-      for (const pt of PipelineTasks.getAll().values()){
-        if (isPntIntoRect(mpos, pt.setts.socketInRect) && !task.nextTasksId.find(v=>v==pt.id)){
-          task.nextTasksId.push(pt.id);
-          PipelineTasks.upd(task);
-          ServerAPI.changePipelineTask(task, ()=>0, ()=>0);
-
-          let nextTask = PipelineTasks.get(pt.id);
-          nextTask.prevTasksId.push(task.id);
-          PipelineTasks.upd(nextTask);
-          ServerAPI.changePipelineTask(nextTask, ()=>0, ()=>0);          
-        }
-      }
     }
   }
 
   hTaskMove(id : number){
-   
-    let ctx = this.getCanvasContext();
-
-    this.drawAll(ctx);
+       
+    this.drawAll(this.getCanvasContext());
   }
 
   drawAll(ctx : CanvasRenderingContext2D){
-    for (const t of PipelineTasks.getAll().values()){
+    for (const t of PipelineTasks.getByPPlId(this.m_selectedPplId)){  
       for (const nt of t.nextTasksId){        
         this.drawLine(ctx, t.setts.socketOutPoint, PipelineTasks.get(nt).setts.socketInPoint);
       }
@@ -105,14 +124,10 @@ class GraphPanel extends React.Component<IProps, IState>{
   } 
 
   getCanvasContext(){
-    const view = {left : this.m_viewRef.scrollLeft,
-                  top : this.m_viewRef.scrollTop,
-                  width : this.m_viewRef.offsetWidth,
-                  height: this.m_viewRef.offsetHeight}
-
+    
     var ctx = this.m_canvasRef.getContext("2d");
 
-    ctx.clearRect(view.left, view.top, view.width, view.height);
+    ctx.clearRect(0, 0, this.m_canvasRef.clientWidth, this.m_canvasRef.clientHeight);
 
     ctx.strokeStyle = "green";
     ctx.lineWidth = 1;
@@ -132,18 +147,25 @@ class GraphPanel extends React.Component<IProps, IState>{
   }
 
   render(){  
-
+   
     const Tasks = observer(() => {
-      if (!this.m_firstLoad && this.m_viewRef && PipelineTasks.getAll().size){
+      let selPipelines = Pipelines.getSelected();
+      if (selPipelines.length && (selPipelines[0].id != this.m_selectedPplId)){
+        this.m_selectedPplId = selPipelines[0].id;
+        this.drawAll(this.getCanvasContext());
+      } 
+      else if (!selPipelines.length && (this.m_selectedPplId != 0)){
+        this.m_selectedPplId = 0;
+        this.drawAll(this.getCanvasContext());
+      } 
+      
+      if (!this.m_firstLoad && this.m_canvasRef && PipelineTasks.getByPPlId(this.m_selectedPplId).length){
         this.m_firstLoad = true;
-        let ctx = this.getCanvasContext();
-        this.drawAll(ctx);
+        this.drawAll(this.getCanvasContext());
       }
 
       let tasks = [];
-      let selPipelines = Pipelines.getSelected();
-      let selPplId = selPipelines.length ? selPipelines[0].id : 0;
-      for (let t of PipelineTasks.getByPPlId(selPplId)){ 
+      for (let t of PipelineTasks.getByPPlId(this.m_selectedPplId)){ 
         if (t.setts.isVisible){    
           tasks.push(<GraphTask title={t.name} id={t.id} key={t.id}
                                 moveEnabled={this.state.socketCaptured.id != t.id} 
@@ -151,30 +173,30 @@ class GraphPanel extends React.Component<IProps, IState>{
                                 hSocketInputСaptured={(id, mpos)=>{
                                   this.m_mouseStartMem = mpos;
                                   this.setState({socketCaptured : {id, type : SocketType.Input}});
-                                  this.m_canvasRef.style.zIndex = "1000";
                                 }} 
                                 hSocketOutputСaptured={(id, mpos)=>{
                                   this.m_mouseStartMem = mpos;
                                   this.setState({socketCaptured : {id, type : SocketType.Output}});
-                                  this.m_canvasRef.style.zIndex = "1000";
                                 }} 
                                 hHide={(id)=>{
-                                  t.setts.isVisible = false;
-                                  PipelineTasks.upd(t);
-                                  ServerAPI.changePipelineTask(t,()=>0,()=>0);
+                                  let task = PipelineTasks.get(t.id);
+                                  task.setts.isVisible = false;
+                                  PipelineTasks.upd(task);
+                                  ServerAPI.changePipelineTask(task);
                                 }}/>);
         }
       }
 
-      return <div className="graphPanel">
+      return <div className="graphPanel" 
+                  onMouseMove = { this.hMouseMove }
+                  onMouseUp = { this.hMouseUp }
+                  onMouseDown = { this.hMouseDown }>
                {tasks}
              </div>           
     });
-    return <div style={{ width:"100vw", position:"relative", overflow:"auto"}} ref={ el => this.m_viewRef = el} >   
-             <canvas className="graphPanel" height="2048px" width="4096px" ref={ el => this.m_canvasRef = el }
-                     onMouseMove = { this.hMouseMove }
-                     onMouseUp = { this.hMouseUp }
-                     onMouseDown = { this.hMouseDown }></canvas>
+    return <div>   
+             <canvas className="graphPanel" height="2048px" width="4096px" 
+                     ref={ el => this.m_canvasRef = el }/>
              <Tasks/>
            </div>
   }

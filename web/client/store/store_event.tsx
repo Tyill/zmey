@@ -41,10 +41,14 @@ class EventsStoreClass {
     this.m_events = ev;
   }
   add(ev : IEvent){
-    this.m_events.set(ev.id, ev);
+    if (!this.m_events.has(ev.id)){
+      this.m_events.set(ev.id, ev);
+    }
   }
   del(id : number){
-    this.m_events.delete(id);
+    if (this.m_events.has(id)){
+      this.m_events.delete(id);
+    }
   }
   upd(ev : IEvent){
     if (this.m_events.has(ev.id))

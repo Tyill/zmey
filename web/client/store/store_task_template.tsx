@@ -35,10 +35,14 @@ class TaskTemplatesStoreClass {
     this.m_taskTemplates = ttl;
   }
   add(ttl : ITaskTemplate){
-    this.m_taskTemplates.set(ttl.id, ttl);
+    if (!this.m_taskTemplates.has(ttl.id)){
+      this.m_taskTemplates.set(ttl.id, ttl);
+    }
   }
   del(id : number){
-    this.m_taskTemplates.delete(id);
+    if (this.m_taskTemplates.has(id)){
+      this.m_taskTemplates.delete(id);
+    }
   }
   upd(ttl : ITaskTemplate){
     if (this.m_taskTemplates.has(ttl.id)){

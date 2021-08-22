@@ -71,7 +71,7 @@ class GraphTask extends React.Component<IProps, IState>{
   render(){  
         
     let task = PipelineTasks.get(this.props.id);
-
+   
     return (
 
       <Draggable disabled={!this.props.moveEnabled} bounds="parent" 
@@ -90,8 +90,8 @@ class GraphTask extends React.Component<IProps, IState>{
                   this.props.hMove(this.props.id);
                  }}
                  onStop={(e, data)=>{
-                   PipelineTasks.setPosition(this.props.id, data.x, data.y);
-                   ServerAPI.changePipelineTask(PipelineTasks.get(this.props.id), ()=>0, ()=>0);
+                   PipelineTasks.setPosition(this.props.id, data.x, data.y);                   
+                   ServerAPI.changePipelineTask(PipelineTasks.get(this.props.id));
                  }}>
         <div className="graphPplTaskContainer">           
           <div className="graphPplTaskSocketInput unselectable" ref={el => this.m_socketInput = el}
@@ -105,7 +105,7 @@ class GraphTask extends React.Component<IProps, IState>{
           <div className="graphPplTaskSocketOutput unselectable" ref={el => this.m_socketOutput = el}
                onMouseDown={(e)=>{
                  const point = this.getSocketPoint(SocketType.Output, task.setts.positionX, task.setts.positionY);
-                 this.props.hSocketInputСaptured(this.props.id, {...point});
+                 this.props.hSocketOutputСaptured(this.props.id, {...point});
                }}/>
         </div>
       </Draggable>

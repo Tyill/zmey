@@ -17,7 +17,7 @@ function addPipelineTask(newPipelineTask : IPipelineTask, onSucces : (respPipeli
 } 
 
 export
-function changePipelineTask(newPipelineTask : IPipelineTask, onSucces : (respPipeline : IPipelineTask) => any, onError : () => any ){
+function changePipelineTask(newPipelineTask : IPipelineTask, onSucces : (respPipeline : IPipelineTask) => any = ()=>0, onError : () => any = ()=>0 ){
   fetch('api/v1/pipelineTasks/' + newPipelineTask.id, {
     method: 'PUT',
     headers: {

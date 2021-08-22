@@ -84,8 +84,11 @@ class CentralWidget extends React.Component<IProps, IState>{
 
   delPipelineTask(){    
     ServerAPI.delPipelineTask(this.m_selPipelineTask,
-      ()=>{  
+      ()=>{          
+        PipelineTasks.delAllConnections(this.m_selPipelineTask.id);
+
         PipelineTasks.del(this.m_selPipelineTask.id);
+        
         this.props.setStatusMess(`Pipeline Task '${this.m_selPipelineTask.name}' is delete`, StateEnum.Ok);
         this.setState({isShowAckDeleteDialog : false});  
       },
@@ -98,13 +101,14 @@ class CentralWidget extends React.Component<IProps, IState>{
     }
     for (let p of Pipelines.getSelected()){
       if (p.id != id){
-        p.setts.isSelected = false;
-        Pipelines.upd(p);
-        ServerAPI.changePipeline(p,()=>0,()=>0);
+        let ppl = Pipelines.get(p.id);
+        ppl.setts.isSelected = false;
+        Pipelines.upd(ppl);
+        ServerAPI.changePipeline(ppl);
       }
     }
     Pipelines.setSelected(id, true);
-    ServerAPI.changePipeline(Pipelines.get(id),()=>0,()=>0);
+    ServerAPI.changePipeline(Pipelines.get(id));
   }
 
   hidePipeline(id : number){
@@ -113,11 +117,11 @@ class CentralWidget extends React.Component<IProps, IState>{
       const vppls = Pipelines.getVisible();
       if (vppls.length){
         Pipelines.setSelected(vppls[0].id, true)
-        ServerAPI.changePipeline(Pipelines.get(vppls[0].id),()=>0,()=>0);
+        ServerAPI.changePipeline(vppls[0]);
       }
     }
     Pipelines.setSelected(id, false);
-    ServerAPI.changePipeline(Pipelines.get(id),()=>0,()=>0);
+    ServerAPI.changePipeline(Pipelines.get(id));
   }
 
   getSelectedPipelineId(){
@@ -214,7 +218,7 @@ class CentralWidget extends React.Component<IProps, IState>{
                                 this.m_selPipelineTask = PipelineTasks.get(t.id);
                                 this.m_selPipelineTask.setts.isVisible = true;
                                 PipelineTasks.upd(this.m_selPipelineTask);
-                                ServerAPI.changePipelineTask(this.m_selPipelineTask,()=>0,()=>0);
+                                ServerAPI.changePipelineTask(this.m_selPipelineTask);
                               }}>
                           </ListItem>);
       }
@@ -252,7 +256,7 @@ class CentralWidget extends React.Component<IProps, IState>{
                 <PipelineTabs />
               </Row>
               <Row noGutters={true} className="h-100" style={{ position:"relative", overflow:"auto"}}>
-                <GraphPanel pplId={this.getSelectedPipelineId()}/>
+                <GraphPanel/>
               </Row>
             </Col>
             <Col className="col-2 m-0 p-0 borderRight">   

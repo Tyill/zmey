@@ -39,7 +39,7 @@ class PipelinesStoreClass {
     let ret = [] as Array<IPipeline>;
     this.m_pipelines.forEach(p => {
       if (p.setts.isSelected){        
-        ret.push(this.copy(p));
+        ret.push(p);
       }
     })
     return ret;
@@ -55,7 +55,7 @@ class PipelinesStoreClass {
     let ret = [] as Array<IPipeline>;
     this.m_pipelines.forEach(p => {
       if (p.setts.isVisible){        
-        ret.push(this.copy(p));
+        ret.push(p);
       }
     })
     return ret;
@@ -71,10 +71,14 @@ class PipelinesStoreClass {
     this.m_pipelines = ppl;
   }
   add(ppl : IPipeline){
-    this.m_pipelines.set(ppl.id, ppl);
+    if (!this.m_pipelines.has(ppl.id)){
+      this.m_pipelines.set(ppl.id, ppl);
+    }
   }
   del(id : number){
-    this.m_pipelines.delete(id);
+    if (this.m_pipelines.has(id)){
+      this.m_pipelines.delete(id);
+    }
   }
   upd(ppl : IPipeline){
     if (this.m_pipelines.has(ppl.id))

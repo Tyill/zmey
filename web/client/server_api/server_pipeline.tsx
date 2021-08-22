@@ -17,7 +17,7 @@ function addPipeline(newPipeline : IPipeline, onSucces : (respPipeline : IPipeli
 } 
 
 export
-function changePipeline(newPipeline : IPipeline, onSucces : (respPipeline : IPipeline) => any, onError : () => any ){
+function changePipeline(newPipeline : IPipeline, onSucces : (respPipeline : IPipeline) => any = ()=>0, onError : () => any = ()=>0){
   fetch('api/v1/pipelines/' + newPipeline.id, {
     method: 'PUT',
     headers: {

@@ -1,5 +1,6 @@
 import { IPipelineTask, IRect, IPoint } from "../types"
 import { makeObservable, observable, action } from "mobx"
+import * as ServerAPI from "../server_api/server_api";
 
 ///////////////////////////////////////////////////////////////
 /// PipelineTasks
@@ -16,6 +17,7 @@ class PipelineTasksStoreClass {
         add: action,
         del: action,
         upd: action,
+        delAllConnections: action,
       });
       this.m_pipelineTasks = new Map<number, IPipelineTask>();
   }
@@ -42,7 +44,7 @@ class PipelineTasksStoreClass {
     let ret = [] as Array<IPipelineTask>;
     this.m_pipelineTasks.forEach(tt => {
       if (tt.pplId == pplId){        
-        ret.push(this.copy(tt));
+        ret.push(tt);
       }
     })
     return ret;
@@ -57,7 +59,7 @@ class PipelineTasksStoreClass {
     let ret = [] as Array<IPipelineTask>;
     this.m_pipelineTasks.forEach(tt => {
       if ((tt.pplId == pplId) && tt.setts.isVisible){        
-        ret.push(this.copy(tt));
+        ret.push(tt);
       }
     })
     return ret;
@@ -71,7 +73,7 @@ class PipelineTasksStoreClass {
   }
   setPosition(ptId: number, posX : number, posY : number){
     if (this.m_pipelineTasks.has(ptId)){
-      let ppt = this.m_pipelineTasks.get(ptId);
+      let ppt = this.copy(this.m_pipelineTasks.get(ptId));
       ppt.setts.positionX = posX;
       ppt.setts.positionY = posY;
       this.m_pipelineTasks.set(ppt.id, ppt);
@@ -91,10 +93,35 @@ class PipelineTasksStoreClass {
     this.m_pipelineTasks = ppt;
   }
   add(ppt : IPipelineTask){
-    this.m_pipelineTasks.set(ppt.id, ppt);
+    if (!this.m_pipelineTasks.has(ppt.id)){
+      this.m_pipelineTasks.set(ppt.id, ppt);
+    }
   }
   del(id : number){
-    this.m_pipelineTasks.delete(id);
+    if (this.m_pipelineTasks.has(id)){
+      this.m_pipelineTasks.delete(id);
+    }
+  }
+  delAllConnections(id : number){
+    if (this.m_pipelineTasks.has(id)){
+      let ppt = this.m_pipelineTasks.get(id);
+      ppt.nextTasksId.forEach(nid=>{
+        let nextTask = this.m_pipelineTasks.get(nid);
+        nextTask.prevTasksId.splice(nextTask.prevTasksId.findIndex(v=>v==id), 1);
+        this.m_pipelineTasks.set(nid, nextTask);
+        ServerAPI.changePipelineTask(nextTask);
+      });
+      ppt.nextTasksId = [];
+      ppt.prevTasksId.forEach(pid=>{
+        let prevTask = this.m_pipelineTasks.get(pid);
+        prevTask.nextTasksId.splice(prevTask.nextTasksId.findIndex(v=>v==id), 1);
+        this.m_pipelineTasks.set(pid, prevTask);
+        ServerAPI.changePipelineTask(prevTask);
+      });   
+      ppt.prevTasksId = [];
+      this.m_pipelineTasks.set(id, ppt);
+      ServerAPI.changePipelineTask(ppt);
+    }
   }
   upd(ppt : IPipelineTask){
     if (this.m_pipelineTasks.has(ppt.id))

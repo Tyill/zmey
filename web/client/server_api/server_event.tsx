@@ -17,7 +17,7 @@ function addEvent(newEvent : IEvent, onSucces : (resp : IEvent) => any, onError 
 } 
 
 export
-function changeEvent(newEvent : IEvent, onSucces : (resp : IEvent) => any, onError : () => any ){
+function changeEvent(newEvent : IEvent, onSucces : (resp : IEvent) => any = ()=>0, onError : () => any = ()=>0 ){
   fetch('api/v1/events/' + newEvent.id, {
     method: 'PUT',
     headers: {
