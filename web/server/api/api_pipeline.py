@@ -55,4 +55,4 @@ def allPipelines():
   ret = []
   for p in pp.all():
     ret.append(p.__dict__)
-  return json.dumps(ret).replace("'", '"') 
+  return json.dumps(ret) 

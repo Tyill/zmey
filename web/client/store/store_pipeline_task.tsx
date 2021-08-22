@@ -1,4 +1,4 @@
-import { IPipelineTask } from "../types"
+import { IPipelineTask, IRect, IPoint } from "../types"
 import { makeObservable, observable, action } from "mobx"
 
 ///////////////////////////////////////////////////////////////
@@ -11,6 +11,7 @@ class PipelineTasksStoreClass {
         m_pipelineTasks: observable,
         setAll: action,
         setPosition: action,
+        setSockets: action,
         setVisible: action,
         add: action,
         del: action,
@@ -20,8 +21,15 @@ class PipelineTasksStoreClass {
   }
   copy(pt : IPipelineTask) : IPipelineTask {
     let ret = Object.assign({}, pt);
+    ret.setts = {...pt.setts};
+    ret.setts.socketInPoint = {...pt.setts.socketInPoint};
+    ret.setts.socketInRect = {...pt.setts.socketInRect};
+    ret.setts.socketOutPoint = {...pt.setts.socketOutPoint};
+    ret.setts.socketOutRect = {...pt.setts.socketOutRect};
     ret.nextTasksId = [...pt.nextTasksId];
+    ret.prevTasksId = [...pt.prevTasksId];
     ret.nextEventsId = [...pt.nextEventsId]; 
+    ret.prevEventsId = [...pt.prevEventsId]; 
     return ret;   
   }
   getAll() : Map<number, IPipelineTask>{
@@ -66,6 +74,16 @@ class PipelineTasksStoreClass {
       let ppt = this.m_pipelineTasks.get(ptId);
       ppt.setts.positionX = posX;
       ppt.setts.positionY = posY;
+      this.m_pipelineTasks.set(ppt.id, ppt);
+    }
+  }
+  setSockets(ptId: number, inputSocket : {point:IPoint, rect:IRect}, outputSocket : {point:IPoint, rect:IRect}){
+    if (this.m_pipelineTasks.has(ptId)){
+      let ppt = this.m_pipelineTasks.get(ptId);
+      ppt.setts.socketInPoint = inputSocket.point;
+      ppt.setts.socketInRect = inputSocket.rect;
+      ppt.setts.socketOutPoint = outputSocket.point;
+      ppt.setts.socketOutRect = outputSocket.rect;
       this.m_pipelineTasks.set(ppt.id, ppt);
     }
   }

@@ -19,6 +19,8 @@ def addEvent():
     evt.isEnabled = int(jnReq['isEnabled'])
     evt.nextTasksId = jnReq['nextTasksId']
     evt.nextEventsId = jnReq['nextEventsId']  
+    evt.prevTasksId = jnReq['prevTasksId']
+    evt.prevEventsId = jnReq['prevEventsId']  
     evt.params = jnReq['params'] 
     evt.description = jnReq['description']  
     evt.setts = jnReq['setts']
@@ -39,6 +41,8 @@ def changeEvent(id : int):
     evt.isEnabled = int(jnReq['isEnabled'])
     evt.nextTasksId = jnReq['nextTasksId']
     evt.nextEventsId = jnReq['nextEventsId']  
+    evt.prevTasksId = jnReq['prevTasksId']
+    evt.prevEventsId = jnReq['prevEventsId']  
     evt.params = jnReq['params'] 
     evt.description = jnReq['description']  
     evt.setts = jnReq['setts']

@@ -18,8 +18,10 @@ class PipelinesStoreClass {
       });
       this.m_pipelines = new Map<number, IPipeline>();
   }
-  copy(evt : IPipeline) : IPipeline {
-    return Object.assign({}, evt);   
+  copy(p : IPipeline) : IPipeline {
+    let ret = Object.assign({}, p);
+    ret.setts = {...p.setts};
+    return ret;   
   }
   getAll() : Map<number, IPipeline>{
     return this.m_pipelines;

@@ -27,7 +27,7 @@ interface IPipeline{
   setts : {
     isVisible : boolean;
     isSelected : boolean;
-  } | string;
+  };
 };
 
 export
@@ -41,13 +41,29 @@ interface ITaskTemplate{
 };   
 
 export
+interface IPoint{
+  x: number;
+  y: number;
+}
+
+export
+interface IRect{
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+export
 interface IPipelineTask{       
   id : number;
   pplId : number;               ///< pipeline id
   ttId : number;                ///< task template id    
   isEnabled : boolean;
   nextTasksId : Array<number>;  ///< pipeline task id of next tasks  
+  prevTasksId : Array<number>;  ///< pipeline task id of prev tasks  
   nextEventsId : Array<number>; ///< event id of next events
+  prevEventsId : Array<number>; ///< event id of prev events
   params : string;
   name : string;
   description : string;
@@ -55,11 +71,11 @@ interface IPipelineTask{
     isVisible : boolean;
     positionX : number;
     positionY : number;
-    socketInputPositionX : number;
-    socketInputPositionY : number;
-    socketOutputPositionX : number;
-    socketOutputPositionY : number;
-  }
+    socketInRect : IRect;
+    socketInPoint : IPoint;
+    socketOutRect : IRect;
+    socketOutPoint : IPoint;
+  };
 };
 
 export
@@ -67,7 +83,9 @@ interface IEvent{
   id : number;
   isEnabled : boolean;
   nextTasksId : Array<number>;  ///< pipeline task id of next tasks  
+  prevTasksId : Array<number>;  ///< pipeline task id of prev tasks  
   nextEventsId : Array<number>; ///< event id of next events
+  prevEventsId : Array<number>; ///< event id of prev events
   params : string;
   name : string;
   description : string;
@@ -79,7 +97,7 @@ interface IEvent{
     socketInputPositionY : number;
     socketOutputPositionX : number;
     socketOutputPositionY : number;
-  } 
+  };
 };
 
 // export

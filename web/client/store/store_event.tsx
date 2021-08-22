@@ -18,8 +18,11 @@ class EventsStoreClass {
   }
   copy(evt : IEvent) : IEvent {
     let ret = Object.assign({}, evt);
+    ret.setts = {...ret.setts};
     ret.nextTasksId = [...evt.nextTasksId];
+    ret.prevTasksId = [...evt.prevTasksId];
     ret.nextEventsId = [...evt.nextEventsId]; 
+    ret.prevEventsId = [...evt.prevEventsId]; 
     return ret;   
   }
   getAll() : Map<number, IEvent>{

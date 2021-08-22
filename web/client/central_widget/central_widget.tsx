@@ -252,7 +252,7 @@ class CentralWidget extends React.Component<IProps, IState>{
                 <PipelineTabs />
               </Row>
               <Row noGutters={true} className="h-100" style={{ position:"relative", overflow:"auto"}}>
-                <GraphPanel/>
+                <GraphPanel pplId={this.getSelectedPipelineId()}/>
               </Row>
             </Col>
             <Col className="col-2 m-0 p-0 borderRight">   

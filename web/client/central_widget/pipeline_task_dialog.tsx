@@ -73,6 +73,8 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
       },
       nextTasksId: this.props.selPipelineTask.nextTasksId || [],
       nextEventsId: this.props.selPipelineTask.nextEventsId || [],
+      prevTasksId: this.props.selPipelineTask.prevTasksId || [],
+      prevEventsId: this.props.selPipelineTask.prevEventsId || [],
       params : this.m_refObj["params"].value,
       name : this.m_refObj["name"].value,           
       description : this.m_refObj["description"].value,

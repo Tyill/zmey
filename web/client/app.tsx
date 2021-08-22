@@ -23,17 +23,26 @@ class App extends React.Component<IProps, IState>{
   constructor(props : IProps){
     super(props);
 
+    this.objFromJS = this.objFromJS.bind(this);
+
     this.state = { isStatusOk : true, statusMess:""}
   }
   
+  objFromJS(s : string){
+    s = s.replace(/'/g, '"');
+    s = s.replace(/True/g, 'true');
+    s = s.replace(/False/g, 'false');
+    return JSON.parse(s);
+  }
+
   componentDidMount() {    
-    ServerAPI.getAllPipelines((pipelines : Array<IPipeline>)=>{      
+    ServerAPI.getAllPipelines((pipelines : Array<IPipeline>)=>{  
       let ppl = new Map<number, IPipeline>();
       for (let p of pipelines){
+        p.setts = this.objFromJS(p.setts as unknown as string);
         ppl.set(p.id, p);
       }      
-      console.log(ppl);
-      Pipelines.setAll(ppl);
+      Pipelines.setAll(ppl);   
     },
     ()=>this.setStatusMess("Server error fill Pipelines"));
 
@@ -49,6 +58,7 @@ class App extends React.Component<IProps, IState>{
     ServerAPI.getAllPipelineTasks((pipelineTasks : Array<IPipelineTask>)=>{
       let ppt = new Map<number, IPipelineTask>();
       for (let pt of pipelineTasks){
+        pt.setts = this.objFromJS(pt.setts as unknown as string);
         ppt.set(pt.id, pt);
       }
       PipelineTasks.setAll(ppt);
@@ -58,6 +68,7 @@ class App extends React.Component<IProps, IState>{
     ServerAPI.getAllEvents((events : Array<IEvent>)=>{
       let evs = new Map<number, IEvent>();
       for (let ev of events){
+        ev.setts = this.objFromJS(ev.setts as unknown as string);
         evs.set(ev.id, ev);
       }
       Events.setAll(evs);

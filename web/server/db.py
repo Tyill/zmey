@@ -57,6 +57,8 @@ def initUserDb(db):
         params        TEXT NOT NULL, \
         nextTasksId   TEXT NOT NULL, \
         nextEventsId  TEXT NOT NULL, \
+        prevTasksId   TEXT NOT NULL, \
+        prevEventsId  TEXT NOT NULL, \
         name          TEXT NOT NULL CHECK (name <> ''), \
         description   TEXT NOT NULL, \
         setts TEXT NOT NULL);"   
@@ -69,6 +71,8 @@ def initUserDb(db):
         params        TEXT NOT NULL, \
         nextTasksId   TEXT NOT NULL, \
         nextEventsId  TEXT NOT NULL, \
+        prevTasksId   TEXT NOT NULL, \
+        prevEventsId  TEXT NOT NULL, \
         name          TEXT NOT NULL CHECK (name <> ''), \
         description   TEXT NOT NULL, \
         setts TEXT NOT NULL);"  
