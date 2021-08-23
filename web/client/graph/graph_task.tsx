@@ -1,5 +1,6 @@
 import React from "react";
-import Draggable, {ControlPosition} from 'react-draggable';
+import { Button, ButtonGroup, DropdownButton, Dropdown} from "react-bootstrap";
+import Draggable from 'react-draggable';
 import { PipelineTasks } from "../store/store_pipeline_task";
 import * as ServerAPI from "../server_api/server_api";
 import {SocketType} from "./graph_panel";
@@ -15,6 +16,7 @@ interface IProps {
   hSocketOutputСaptured : (id : number, mpos : IPoint) => any;
 };
 interface IState { 
+  isContextMenuVisible : boolean;
 };
 
 export default
@@ -28,8 +30,9 @@ class GraphTask extends React.Component<IProps, IState>{
 
     this.getSocketPoint = this.getSocketPoint.bind(this);
     this.getSocketRect = this.getSocketRect.bind(this);
+    this.showContextMenu = this.showContextMenu.bind(this);
 
-    this.state  = {  };   
+    this.state  = { isContextMenuVisible : false };   
   }   
 
   getSocketPoint(type : SocketType, cpX : number, cpY : number) : IPoint{
@@ -68,13 +71,17 @@ class GraphTask extends React.Component<IProps, IState>{
     return rect;
   }
 
+  showContextMenu(){
+    this.setState({isContextMenuVisible : true});
+  }
+
   render(){  
         
     let task = PipelineTasks.get(this.props.id);
-   
-    return (
 
-      <Draggable disabled={!this.props.moveEnabled} bounds="parent" 
+    
+    return (
+      <Draggable disabled={!this.props.moveEnabled} bounds="parent"
                  position={{x:task.setts.positionX,y:task.setts.positionY}}
                  onDrag={(e, data)=>{
                   let point = this.getSocketPoint(SocketType.Input, data.x, data.y);
@@ -93,22 +100,47 @@ class GraphTask extends React.Component<IProps, IState>{
                    PipelineTasks.setPosition(this.props.id, data.x, data.y);                   
                    ServerAPI.changePipelineTask(PipelineTasks.get(this.props.id));
                  }}>
-        <div className="graphPplTaskContainer">           
-          <div className="graphPplTaskSocketInput unselectable" ref={el => this.m_socketInput = el}
-               onMouseDown={(e)=>{
-                 const point = this.getSocketPoint(SocketType.Input, task.setts.positionX, task.setts.positionY);
-                 this.props.hSocketInputСaptured(this.props.id, {...point});
-               }}/>
-          <div className="graphPplTask unselectable">
-            {this.props.title}
-          </div>
-          <div className="graphPplTaskSocketOutput unselectable" ref={el => this.m_socketOutput = el}
-               onMouseDown={(e)=>{
-                 const point = this.getSocketPoint(SocketType.Output, task.setts.positionX, task.setts.positionY);
-                 this.props.hSocketOutputСaptured(this.props.id, {...point});
-               }}/>
-        </div>
+          <div className="graphPplTaskContainer">           
+            <div className="graphPplTaskSocketInput unselectable" ref={el => this.m_socketInput = el}
+                onMouseDown={(e)=>{
+                  const point = this.getSocketPoint(SocketType.Input, task.setts.positionX, task.setts.positionY);
+                  this.props.hSocketInputСaptured(this.props.id, {...point});
+                }}/>
+            <div className="graphPplTask unselectable"
+                 onContextMenu = { (e) => e.preventDefault() }
+                 onMouseDown={(e : React.MouseEvent)=>{
+                   if (e.button == 2)
+                     this.showContextMenu();
+                 }}>
+              {this.props.title}
+            </div>
+            <div style={{display: this.state.isContextMenuVisible ? "inline": "none", position:"absolute"}} >
+              <ButtonGroup vertical>
+                <Button variant="light" style={{textAlign: "left"}}>Start task</Button>
+                <Button variant="light" style={{textAlign: "left"}}>Start task sequence</Button>
+                <DropdownButton variant="light"  as={ButtonGroup} drop="right" title="Delete next connection &ensp;&ensp;&ensp;">
+                  {task.nextTasksId.map((v, i)=>{
+                    return <Dropdown.Item eventKey={v.toString()} key={v}>{PipelineTasks.get(v).name}</Dropdown.Item>
+                  })}
+                </DropdownButton>
+                <DropdownButton variant="light"  as={ButtonGroup} drop="right" title="Delete previous connection">
+                  {task.prevTasksId.map((v, i)=>{
+                    return <Dropdown.Item eventKey={v.toString()} key={v}>{PipelineTasks.get(v).name}</Dropdown.Item>
+                  })}
+                </DropdownButton>
+                <Button variant="light" style={{textAlign: "left"}}>Copy task to clipboard</Button>
+                <Button variant="light" style={{textAlign: "left"}}>Delete task from map</Button>
+              </ButtonGroup>
+            </div>
+            <div className="graphPplTaskSocketOutput unselectable" ref={el => this.m_socketOutput = el}
+                 onMouseDown={(e)=>{
+                  const point = this.getSocketPoint(SocketType.Output, task.setts.positionX, task.setts.positionY);
+                  this.props.hSocketOutputСaptured(this.props.id, {...point});
+                }}/>
+          </div>       
       </Draggable>
+
+      
     )
   }
 }

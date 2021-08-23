@@ -1,5 +1,5 @@
 import React from "react";
-import { Col, Button, Modal, Form, Table} from "react-bootstrap";
+import { Col, Button, Modal, Form} from "react-bootstrap";
  
 import { IPipelineTask } from "../types";
 import { PipelineTasks, TaskTemplates, Pipelines} from "../store/store";
@@ -47,13 +47,15 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
     
     if (this.m_hasAdded) return;
     
+    const pplId = this.m_refObj["pipeline"].value;
+
     let error = "",
         name = this.m_refObj["name"].value;
     if (!name)
       error = "Name is empty"; 
-    else if (this.m_isNewPipelineTask && PipelineTasks.getByName(name))
+    else if (this.m_isNewPipelineTask && PipelineTasks.getByName(pplId, name))
       error = `This name '${name}' already exists`;
-    else if (!this.m_isNewPipelineTask && (this.props.selPipelineTask.name != name) && PipelineTasks.getByName(name))
+    else if (!this.m_isNewPipelineTask && (this.props.selPipelineTask.name != name) && PipelineTasks.getByName(pplId, name))
       error = `This name '${name}' already exists`;
        
     if (error){
@@ -71,10 +73,10 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
         positionX : 0,
         positionY : 0,
       },
-      nextTasksId: this.props.selPipelineTask.nextTasksId || [],
-      nextEventsId: this.props.selPipelineTask.nextEventsId || [],
-      prevTasksId: this.props.selPipelineTask.prevTasksId || [],
-      prevEventsId: this.props.selPipelineTask.prevEventsId || [],
+      nextTasksId: !this.m_isNewPipelineTask ? this.props.selPipelineTask.nextTasksId : [],
+      nextEventsId: !this.m_isNewPipelineTask ? this.props.selPipelineTask.nextEventsId : [],
+      prevTasksId: !this.m_isNewPipelineTask ? this.props.selPipelineTask.prevTasksId : [],
+      prevEventsId: !this.m_isNewPipelineTask ? this.props.selPipelineTask.prevEventsId : [],
       params : this.m_refObj["params"].value,
       name : this.m_refObj["name"].value,           
       description : this.m_refObj["description"].value,

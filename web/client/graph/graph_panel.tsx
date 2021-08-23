@@ -23,15 +23,15 @@ class GraphPanel extends React.Component<IProps, IState>{
   
   private m_canvasRef : HTMLCanvasElement;
   private m_mouseStartMem : {x : number, y : number};
-  private m_firstLoad : boolean;
   private m_selectedPplId : number;
+  private m_taskCountMem : number;
 
   constructor(props : IProps){
     super(props);  
     this.m_canvasRef = null;  
     this.m_mouseStartMem = {x : 0, y : 0};
-    this.m_firstLoad = false;
     this.m_selectedPplId = 0;
+    this.m_taskCountMem = 0;
 
     this.state = {socketCaptured : {id : 0, type : SocketType.Input}};
 
@@ -149,6 +149,7 @@ class GraphPanel extends React.Component<IProps, IState>{
   render(){  
    
     const Tasks = observer(() => {
+      
       let selPipelines = Pipelines.getSelected();
       if (selPipelines.length && (selPipelines[0].id != this.m_selectedPplId)){
         this.m_selectedPplId = selPipelines[0].id;
@@ -158,9 +159,9 @@ class GraphPanel extends React.Component<IProps, IState>{
         this.m_selectedPplId = 0;
         this.drawAll(this.getCanvasContext());
       } 
-      
-      if (!this.m_firstLoad && this.m_canvasRef && PipelineTasks.getByPPlId(this.m_selectedPplId).length){
-        this.m_firstLoad = true;
+    
+      if (this.m_taskCountMem != PipelineTasks.getByPPlId(this.m_selectedPplId).length){
+        this.m_taskCountMem = PipelineTasks.getByPPlId(this.m_selectedPplId).length;
         this.drawAll(this.getCanvasContext());
       }
 

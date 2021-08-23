@@ -49,9 +49,9 @@ class PipelineTasksStoreClass {
     })
     return ret;
   }
-  getByName(name : string) : IPipelineTask {
+  getByName(pplId : number, name : string) : IPipelineTask {
     for (let v of this.m_pipelineTasks.values()){
-      if (v.name == name) return this.copy(v);
+      if ((v.pplId == pplId) && (v.name == name)) return this.copy(v);
     }
     return null;
   }
