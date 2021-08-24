@@ -1,9 +1,9 @@
 import React from "react";
-import { Button, ButtonGroup, DropdownButton, Dropdown} from "react-bootstrap";
 import Draggable from 'react-draggable';
 import { PipelineTasks } from "../store/store_pipeline_task";
 import * as ServerAPI from "../server_api/server_api";
 import {SocketType} from "./graph_panel";
+import TaskContextMenu from "./graph_task_context_menu";
 import {IPoint, IRect} from "../types"
 
 interface IProps { 
@@ -15,8 +15,7 @@ interface IProps {
   hSocketInputСaptured : (id : number, mpos : IPoint) => any;
   hSocketOutputСaptured : (id : number, mpos : IPoint) => any;
 };
-interface IState { 
-  isContextMenuVisible : boolean;
+interface IState {
 };
 
 export default
@@ -32,7 +31,7 @@ class GraphTask extends React.Component<IProps, IState>{
     this.getSocketRect = this.getSocketRect.bind(this);
     this.showContextMenu = this.showContextMenu.bind(this);
 
-    this.state  = { isContextMenuVisible : false };   
+    this.state  = { };   
   }   
 
   getSocketPoint(type : SocketType, cpX : number, cpY : number) : IPoint{
@@ -72,13 +71,24 @@ class GraphTask extends React.Component<IProps, IState>{
   }
 
   showContextMenu(){
-    this.setState({isContextMenuVisible : true});
+    
+    let task = PipelineTasks.get(this.props.id);
+   
+    PipelineTasks.getByPPlId(task.pplId).forEach(v=>{
+      if (v.setts.isContextMenuVisible){
+        let t = PipelineTasks.get(v.id);
+        t.setts.isContextMenuVisible = false;
+        PipelineTasks.upd(t);
+      }
+    });
+
+    task.setts.isContextMenuVisible = true;
+    PipelineTasks.upd(task);
   }
 
   render(){  
         
     let task = PipelineTasks.get(this.props.id);
-
     
     return (
       <Draggable disabled={!this.props.moveEnabled} bounds="parent"
@@ -109,29 +119,14 @@ class GraphTask extends React.Component<IProps, IState>{
             <div className="graphPplTask unselectable"
                  onContextMenu = { (e) => e.preventDefault() }
                  onMouseDown={(e : React.MouseEvent)=>{
-                   if (e.button == 2)
+                   if (e.button == 2){
                      this.showContextMenu();
+                     e.stopPropagation();
+                   }
                  }}>
               {this.props.title}
             </div>
-            <div style={{display: this.state.isContextMenuVisible ? "inline": "none", position:"absolute"}} >
-              <ButtonGroup vertical>
-                <Button variant="light" style={{textAlign: "left"}}>Start task</Button>
-                <Button variant="light" style={{textAlign: "left"}}>Start task sequence</Button>
-                <DropdownButton variant="light"  as={ButtonGroup} drop="right" title="Delete next connection &ensp;&ensp;&ensp;">
-                  {task.nextTasksId.map((v, i)=>{
-                    return <Dropdown.Item eventKey={v.toString()} key={v}>{PipelineTasks.get(v).name}</Dropdown.Item>
-                  })}
-                </DropdownButton>
-                <DropdownButton variant="light"  as={ButtonGroup} drop="right" title="Delete previous connection">
-                  {task.prevTasksId.map((v, i)=>{
-                    return <Dropdown.Item eventKey={v.toString()} key={v}>{PipelineTasks.get(v).name}</Dropdown.Item>
-                  })}
-                </DropdownButton>
-                <Button variant="light" style={{textAlign: "left"}}>Copy task to clipboard</Button>
-                <Button variant="light" style={{textAlign: "left"}}>Delete task from map</Button>
-              </ButtonGroup>
-            </div>
+            <TaskContextMenu id = {this.props.id} />
             <div className="graphPplTaskSocketOutput unselectable" ref={el => this.m_socketOutput = el}
                  onMouseDown={(e)=>{
                   const point = this.getSocketPoint(SocketType.Output, task.setts.positionX, task.setts.positionY);

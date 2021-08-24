@@ -69,6 +69,7 @@ interface IPipelineTask{
   description : string;
   setts : {
     isVisible : boolean;
+    isContextMenuVisible : boolean;
     positionX : number;
     positionY : number;
     socketInRect : IRect;
@@ -100,26 +101,15 @@ interface IEvent{
   };
 };
 
-// export
-// interface ITask{               ///< task object
-//   id : number;
-//   pplTaskId : number;          ///< pipeline task id
-//   params : Array<string>;      ///< CLI params for script
-// };
-
-// export
-// interface ITaskState{
-//   id : number;                 ///< task id
-//   state : StateType;  
-//   progress : number;  
-//   result : string;
-// };
-
-// export
-// interface ITaskTime{
-//   id : number;                 ///< task id
-//   createTime : string;
-//   takeInWorkTime : string;
-//   startTime : string;
-//   stopTime : string;
-// };
+export
+interface ITask{
+  id : number;
+  pplTaskId : number;
+  state : StateType;
+  progress : number;
+  result : string;
+  createTime : string;
+  takeInWorkTime : string;
+  startTime : string;
+  stopTime : string;
+};

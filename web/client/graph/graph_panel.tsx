@@ -23,14 +23,14 @@ class GraphPanel extends React.Component<IProps, IState>{
   
   private m_canvasRef : HTMLCanvasElement;
   private m_mouseStartMem : {x : number, y : number};
-  private m_selectedPplId : number;
+  private m_pplId : number;
   private m_taskCountMem : number;
 
   constructor(props : IProps){
     super(props);  
     this.m_canvasRef = null;  
     this.m_mouseStartMem = {x : 0, y : 0};
-    this.m_selectedPplId = 0;
+    this.m_pplId = 0;
     this.m_taskCountMem = 0;
 
     this.state = {socketCaptured : {id : 0, type : SocketType.Input}};
@@ -58,7 +58,7 @@ class GraphPanel extends React.Component<IProps, IState>{
       }
      
       let task = PipelineTasks.get(this.state.socketCaptured.id);
-      for (const pt of PipelineTasks.getByPPlId(this.m_selectedPplId).values()){
+      for (const pt of PipelineTasks.getByPPlId(this.m_pplId).values()){
         if ((this.state.socketCaptured.type == SocketType.Output) && 
              isPntIntoRect(mpos, pt.setts.socketInRect) && !task.nextTasksId.find(v=>v==pt.id)){
           task.nextTasksId.push(pt.id);
@@ -91,7 +91,14 @@ class GraphPanel extends React.Component<IProps, IState>{
   }
 
   hMouseDown(e: React.MouseEvent<HTMLElement>){
-            
+   
+    PipelineTasks.getByPPlId(this.m_pplId).forEach(v=>{
+      if (v.setts.isContextMenuVisible){
+        let t = PipelineTasks.get(v.id);
+        t.setts.isContextMenuVisible = false;
+        PipelineTasks.upd(t);
+      }
+    });   
   }
 
   hMouseMove(e : React.MouseEvent<HTMLElement>){
@@ -116,7 +123,7 @@ class GraphPanel extends React.Component<IProps, IState>{
   }
 
   drawAll(ctx : CanvasRenderingContext2D){
-    for (const t of PipelineTasks.getByPPlId(this.m_selectedPplId)){  
+    for (const t of PipelineTasks.getByPPlId(this.m_pplId)){  
       for (const nt of t.nextTasksId){        
         this.drawLine(ctx, t.setts.socketOutPoint, PipelineTasks.get(nt).setts.socketInPoint);
       }
@@ -151,22 +158,22 @@ class GraphPanel extends React.Component<IProps, IState>{
     const Tasks = observer(() => {
       
       let selPipelines = Pipelines.getSelected();
-      if (selPipelines.length && (selPipelines[0].id != this.m_selectedPplId)){
-        this.m_selectedPplId = selPipelines[0].id;
+      if (selPipelines.length && (selPipelines[0].id != this.m_pplId)){
+        this.m_pplId = selPipelines[0].id;
         this.drawAll(this.getCanvasContext());
       } 
-      else if (!selPipelines.length && (this.m_selectedPplId != 0)){
-        this.m_selectedPplId = 0;
+      else if (!selPipelines.length && (this.m_pplId != 0)){
+        this.m_pplId = 0;
         this.drawAll(this.getCanvasContext());
       } 
     
-      if (this.m_taskCountMem != PipelineTasks.getByPPlId(this.m_selectedPplId).length){
-        this.m_taskCountMem = PipelineTasks.getByPPlId(this.m_selectedPplId).length;
+      if (this.m_taskCountMem != PipelineTasks.getByPPlId(this.m_pplId).length){
+        this.m_taskCountMem = PipelineTasks.getByPPlId(this.m_pplId).length;
         this.drawAll(this.getCanvasContext());
       }
 
       let tasks = [];
-      for (let t of PipelineTasks.getByPPlId(this.m_selectedPplId)){ 
+      for (let t of PipelineTasks.getByPPlId(this.m_pplId)){ 
         if (t.setts.isVisible){    
           tasks.push(<GraphTask title={t.name} id={t.id} key={t.id}
                                 moveEnabled={this.state.socketCaptured.id != t.id} 
