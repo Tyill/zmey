@@ -9,7 +9,7 @@ from .api import bp
 ###############################################################################
 ### Task object
 
-@bp.route('/tasks', methods=(['GET']))
+@bp.route('/tasks', methods=(['POST']))
 @auth.loginRequired
 def startTask():
   # if _zmCommon.startTask(tId):
@@ -17,8 +17,3 @@ def startTask():
   #   return True
   # return False
   return None
-
-@bp.route('/stopTask')
-@auth.loginRequired
-def stopTask():
-  return None#_zmCommon.stopTask(tId)

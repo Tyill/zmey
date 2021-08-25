@@ -12,6 +12,7 @@ class PipelineTasksStoreClass {
         m_pipelineTasks: observable,
         setAll: action,
         setPosition: action,
+        setSize: action,
         setSockets: action,
         setVisible: action,
         add: action,
@@ -76,6 +77,14 @@ class PipelineTasksStoreClass {
       let ppt = this.copy(this.m_pipelineTasks.get(ptId));
       ppt.setts.positionX = posX;
       ppt.setts.positionY = posY;
+      this.m_pipelineTasks.set(ppt.id, ppt);
+    }
+  }
+  setSize(ptId: number, width : number, height : number){
+    if (this.m_pipelineTasks.has(ptId)){
+      let ppt = this.copy(this.m_pipelineTasks.get(ptId));
+      ppt.setts.width = width;
+      ppt.setts.height = height;
       this.m_pipelineTasks.set(ppt.id, ppt);
     }
   }

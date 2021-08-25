@@ -3,7 +3,6 @@ import Draggable from 'react-draggable';
 import { PipelineTasks } from "../store/store_pipeline_task";
 import * as ServerAPI from "../server_api/server_api";
 import {SocketType} from "./graph_panel";
-import TaskContextMenu from "./graph_task_context_menu";
 import {IPoint, IRect} from "../types"
 
 interface IProps { 
@@ -12,6 +11,7 @@ interface IProps {
   moveEnabled: boolean;
   hHide : (id : number) => any;
   hMove : (id : number) => any;
+  hShowContextMenu : (id : number) => any;
   hSocketInputСaptured : (id : number, mpos : IPoint) => any;
   hSocketOutputСaptured : (id : number, mpos : IPoint) => any;
 };
@@ -29,10 +29,22 @@ class GraphTask extends React.Component<IProps, IState>{
 
     this.getSocketPoint = this.getSocketPoint.bind(this);
     this.getSocketRect = this.getSocketRect.bind(this);
-    this.showContextMenu = this.showContextMenu.bind(this);
-
+    this.setTaskSockets = this.setTaskSockets.bind(this);
+   
     this.state  = { };   
   }   
+
+  componentDidMount() {    
+
+    let task = PipelineTasks.get(this.props.id);
+
+    this.setTaskSockets({x: task.setts.positionX, y: task.setts.positionY});
+
+    const width = this.m_socketInput.parentElement.offsetWidth,
+          height = this.m_socketInput.parentElement.offsetHeight;
+
+    PipelineTasks.setSize(this.props.id, width, height);
+  }
 
   getSocketPoint(type : SocketType, cpX : number, cpY : number) : IPoint{
     let point = {x : 0, y : 0};
@@ -70,20 +82,16 @@ class GraphTask extends React.Component<IProps, IState>{
     return rect;
   }
 
-  showContextMenu(){
-    
-    let task = PipelineTasks.get(this.props.id);
-   
-    PipelineTasks.getByPPlId(task.pplId).forEach(v=>{
-      if (v.setts.isContextMenuVisible){
-        let t = PipelineTasks.get(v.id);
-        t.setts.isContextMenuVisible = false;
-        PipelineTasks.upd(t);
-      }
-    });
+  setTaskSockets(pos : IPoint){
+    let point = this.getSocketPoint(SocketType.Input, pos.x, pos.y);
+    let rect = this.getSocketRect(SocketType.Input, pos.x, pos.y);
+    let inputSocket = {point, rect};
 
-    task.setts.isContextMenuVisible = true;
-    PipelineTasks.upd(task);
+    point = this.getSocketPoint(SocketType.Output, pos.x, pos.y);
+    rect = this.getSocketRect(SocketType.Output, pos.x, pos.y);
+    let outputSocket = {point, rect};
+    
+    PipelineTasks.setSockets(this.props.id, inputSocket, outputSocket);
   }
 
   render(){  
@@ -94,16 +102,7 @@ class GraphTask extends React.Component<IProps, IState>{
       <Draggable disabled={!this.props.moveEnabled} bounds="parent"
                  position={{x:task.setts.positionX,y:task.setts.positionY}}
                  onDrag={(e, data)=>{
-                  let point = this.getSocketPoint(SocketType.Input, data.x, data.y);
-                  let rect = this.getSocketRect(SocketType.Input, data.x, data.y);
-                  let inputSocket = {point, rect};
-
-                  point = this.getSocketPoint(SocketType.Output, data.x, data.y);
-                  rect = this.getSocketRect(SocketType.Output, data.x, data.y);
-                  let outputSocket = {point, rect};
-                 
-                  PipelineTasks.setSockets(this.props.id, inputSocket, outputSocket);
-                  
+                  this.setTaskSockets(data);                  
                   this.props.hMove(this.props.id);
                  }}
                  onStop={(e, data)=>{
@@ -120,13 +119,12 @@ class GraphTask extends React.Component<IProps, IState>{
                  onContextMenu = { (e) => e.preventDefault() }
                  onMouseDown={(e : React.MouseEvent)=>{
                    if (e.button == 2){
-                     this.showContextMenu();
+                     this.props.hShowContextMenu(this.props.id);
                      e.stopPropagation();
                    }
                  }}>
               {this.props.title}
-            </div>
-            <TaskContextMenu id = {this.props.id} />
+            </div>            
             <div className="graphPplTaskSocketOutput unselectable" ref={el => this.m_socketOutput = el}
                  onMouseDown={(e)=>{
                   const point = this.getSocketPoint(SocketType.Output, task.setts.positionX, task.setts.positionY);

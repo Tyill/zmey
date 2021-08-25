@@ -11,7 +11,7 @@ import ListHeader from "../common/list_header";
 import TabItem from "../common/tab_item";
 import GraphPanel from "../graph/graph_panel";
 
-import { IPipeline, IPipelineTask, ITaskTemplate } from "../types";
+import { IPipeline, IPipelineTask, ITaskTemplate, MessType } from "../types";
 import { Pipelines, TaskTemplates, PipelineTasks} from "../store/store";
 import * as ServerAPI from "../server_api/server_api";
 
@@ -19,10 +19,6 @@ import "../css/style.less";
 import "../css/fontello.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 
-enum StateEnum{
-  Error,
-  Ok,
-}
 
 interface IProps {
   setStatusMess : (mess : string, State)=>void;
@@ -64,10 +60,10 @@ class CentralWidget extends React.Component<IProps, IState>{
     ServerAPI.delTaskTemplate(this.m_selTaskTemplate,
       ()=>{
         TaskTemplates.del(this.m_selTaskTemplate.id); 
-        this.props.setStatusMess(`Task Template '${this.m_selTaskTemplate.name}' is delete`, StateEnum.Ok);
+        this.props.setStatusMess(`Task Template '${this.m_selTaskTemplate.name}' is delete`, MessType.Ok);
         this.setState({isShowAckDeleteDialog : false});
       },
-      ()=>this.props.setStatusMess("Server error delete of Task Template", StateEnum.Error))
+      ()=>this.props.setStatusMess("Server error delete of Task Template", MessType.Error))
   }
 
   delPipeline(){    
@@ -77,9 +73,9 @@ class CentralWidget extends React.Component<IProps, IState>{
       ()=>{  
         this.setState({isShowAckDeleteDialog : false});
         Pipelines.del(this.m_selPipeline.id);                        
-        this.props.setStatusMess(`Pipeline '${this.m_selPipeline.name}' is delete`, StateEnum.Ok);
+        this.props.setStatusMess(`Pipeline '${this.m_selPipeline.name}' is delete`, MessType.Ok);
       },
-      ()=>this.props.setStatusMess("Server error delete of Pipeline", StateEnum.Error))
+      ()=>this.props.setStatusMess("Server error delete of Pipeline", MessType.Error))
   }
 
   delPipelineTask(){    
@@ -89,10 +85,10 @@ class CentralWidget extends React.Component<IProps, IState>{
 
         PipelineTasks.del(this.m_selPipelineTask.id);
         
-        this.props.setStatusMess(`Pipeline Task '${this.m_selPipelineTask.name}' is delete`, StateEnum.Ok);
+        this.props.setStatusMess(`Pipeline Task '${this.m_selPipelineTask.name}' is delete`, MessType.Ok);
         this.setState({isShowAckDeleteDialog : false});  
       },
-      ()=>this.props.setStatusMess("Server error delete of Pipeline Task", StateEnum.Error))
+      ()=>this.props.setStatusMess("Server error delete of Pipeline Task", MessType.Error))
   }
  
   selectPipeline(id : number){
@@ -256,7 +252,7 @@ class CentralWidget extends React.Component<IProps, IState>{
                 <PipelineTabs />
               </Row>
               <Row noGutters={true} className="h-100" style={{ position:"relative", overflow:"auto"}}>
-                <GraphPanel/>
+                <GraphPanel hStatusMess={this.props.setStatusMess}/>
               </Row>
             </Col>
             <Col className="col-2 m-0 p-0 borderRight">   

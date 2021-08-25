@@ -55,6 +55,12 @@ interface IRect{
 }
 
 export
+enum MessType{
+  Error,
+  Ok,
+}
+
+export
 interface IPipelineTask{       
   id : number;
   pplId : number;               ///< pipeline id
@@ -69,9 +75,10 @@ interface IPipelineTask{
   description : string;
   setts : {
     isVisible : boolean;
-    isContextMenuVisible : boolean;
     positionX : number;
     positionY : number;
+    width : number;
+    height : number;
     socketInRect : IRect;
     socketInPoint : IPoint;
     socketOutRect : IRect;

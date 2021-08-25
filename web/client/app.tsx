@@ -5,14 +5,14 @@ import * as ServerAPI from "./server_api/server_api"
 import { Container, Row } from "react-bootstrap";
 
 import "./css/style.less";
-import { IPipeline, IPipelineTask, ITaskTemplate, IEvent } from "./types";
+import { IPipeline, IPipelineTask, ITaskTemplate, IEvent, MessType } from "./types";
 import { Pipelines, TaskTemplates, PipelineTasks, Events} from "./store/store";
 
 interface IProps {
 };
 
 interface IState {
-  isStatusOk : boolean;
+  statusMessType : MessType;
   statusMess : string; 
 };
 
@@ -25,7 +25,8 @@ class App extends React.Component<IProps, IState>{
 
     this.objFromJS = this.objFromJS.bind(this);
 
-    this.state = { isStatusOk : true, statusMess:""}
+    this.state = { statusMess: "",
+                   statusMessType: MessType.Ok}
   }
   
   objFromJS(s : string){
@@ -76,11 +77,11 @@ class App extends React.Component<IProps, IState>{
     ()=>this.setStatusMess("Server error fill Events"));
   }
   
-  setStatusMess(mess : string, ok : boolean = true){
-    this.setState({statusMess : mess, isStatusOk : ok});    
+  setStatusMess(mess : string, statusMessType : MessType = MessType.Ok){
+    this.setState({statusMess : mess, statusMessType});    
     if (this.m_tout) clearTimeout(this.m_tout);
     this.m_tout = setTimeout(() => { 
-      this.setState({statusMess : "", isStatusOk : true});
+      this.setState({statusMess : "", statusMessType : MessType.Ok});
     }, 3000)
   }
 
@@ -91,7 +92,7 @@ class App extends React.Component<IProps, IState>{
           <CentralWidget setStatusMess={(mess:string)=>this.setStatusMess(mess)}/>
         </Row>
         <Row noGutters={true} className="borderTop"
-             style={{ color: this.state.isStatusOk ? "black" : "red",
+             style={{ color: this.state.statusMessType == MessType.Ok ? "black" : "red",
                       width:"100vw", height: 30, paddingLeft:5}} >        
             {this.state.statusMess}         
         </Row>

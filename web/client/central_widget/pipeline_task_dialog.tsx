@@ -48,6 +48,7 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
     if (this.m_hasAdded) return;
     
     const pplId = this.m_refObj["pipeline"].value;
+    const ttlId = this.m_refObj["taskTemplate"].value;
 
     let error = "",
         name = this.m_refObj["name"].value;
@@ -57,6 +58,10 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
       error = `This name '${name}' already exists`;
     else if (!this.m_isNewPipelineTask && (this.props.selPipelineTask.name != name) && PipelineTasks.getByName(pplId, name))
       error = `This name '${name}' already exists`;
+    else if (!pplId)
+      error = `Not select Pipeline`;
+    else if (!ttlId)
+      error = `Not select TaskTemplate`;
        
     if (error){
       this.setStatusMess(error);
@@ -72,6 +77,8 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
         isVisible : true,
         positionX : 0,
         positionY : 0,
+        width : 0,
+        height : 0,
       },
       nextTasksId: !this.m_isNewPipelineTask ? this.props.selPipelineTask.nextTasksId : [],
       nextEventsId: !this.m_isNewPipelineTask ? this.props.selPipelineTask.nextEventsId : [],

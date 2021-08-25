@@ -2,7 +2,8 @@ import React from "react";
 import GraphTask from "./graph_task"
 import { observer} from "mobx-react-lite"
 
-import { IPoint, IRect } from "../types";
+import { IPoint, IRect, MessType} from "../types";
+import TaskContextMenu from "./graph_task_context_menu";
 import { PipelineTasks, Pipelines} from "../store/store";
 import * as ServerAPI from "../server_api/server_api";
 
@@ -13,9 +14,11 @@ enum SocketType{
 }
 
 interface IProps { 
+  hStatusMess : (string, MessType)=>void;
 };
 interface IState { 
-  socketCaptured : {id : number, type : SocketType};  
+  socketCaptured : {id : number, type : SocketType};
+  contextMenuTaskId : number;  
 };
 
 export default
@@ -33,7 +36,8 @@ class GraphPanel extends React.Component<IProps, IState>{
     this.m_pplId = 0;
     this.m_taskCountMem = 0;
 
-    this.state = {socketCaptured : {id : 0, type : SocketType.Input}};
+    this.state = {socketCaptured : {id : 0, type : SocketType.Input},
+                  contextMenuTaskId : 0};
 
     this.getCanvasContext = this.getCanvasContext.bind(this);
     this.drawLine = this.drawLine.bind(this);
@@ -42,6 +46,7 @@ class GraphPanel extends React.Component<IProps, IState>{
     this.hMouseUp = this.hMouseUp.bind(this);
     this.hMouseDown = this.hMouseDown.bind(this);
     this.hMouseMove = this.hMouseMove.bind(this);
+    this.hShowContextMenu = this.hShowContextMenu.bind(this);
   }
 
   hMouseUp(e){
@@ -92,13 +97,8 @@ class GraphPanel extends React.Component<IProps, IState>{
 
   hMouseDown(e: React.MouseEvent<HTMLElement>){
    
-    PipelineTasks.getByPPlId(this.m_pplId).forEach(v=>{
-      if (v.setts.isContextMenuVisible){
-        let t = PipelineTasks.get(v.id);
-        t.setts.isContextMenuVisible = false;
-        PipelineTasks.upd(t);
-      }
-    });   
+    if (this.state.contextMenuTaskId != 0) 
+      this.setState({contextMenuTaskId : 0});
   }
 
   hMouseMove(e : React.MouseEvent<HTMLElement>){
@@ -118,8 +118,13 @@ class GraphPanel extends React.Component<IProps, IState>{
   }
 
   hTaskMove(id : number){
-       
+
     this.drawAll(this.getCanvasContext());
+  }
+
+  hShowContextMenu(id : number){
+
+    this.setState({contextMenuTaskId : id});
   }
 
   drawAll(ctx : CanvasRenderingContext2D){
@@ -174,10 +179,11 @@ class GraphPanel extends React.Component<IProps, IState>{
 
       let tasks = [];
       for (let t of PipelineTasks.getByPPlId(this.m_pplId)){ 
-        if (t.setts.isVisible){    
+        if (t.setts.isVisible){  
           tasks.push(<GraphTask title={t.name} id={t.id} key={t.id}
                                 moveEnabled={this.state.socketCaptured.id != t.id} 
                                 hMove={this.hTaskMove}
+                                hShowContextMenu={this.hShowContextMenu}
                                 hSocketInputСaptured={(id, mpos)=>{
                                   this.m_mouseStartMem = mpos;
                                   this.setState({socketCaptured : {id, type : SocketType.Input}});
@@ -206,6 +212,7 @@ class GraphPanel extends React.Component<IProps, IState>{
              <canvas className="graphPanel" height="2048px" width="4096px" 
                      ref={ el => this.m_canvasRef = el }/>
              <Tasks/>
+             <TaskContextMenu id = {this.state.contextMenuTaskId} hStatusMess={this.props.hStatusMess} />
            </div>
   }
 }
