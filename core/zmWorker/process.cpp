@@ -27,6 +27,8 @@
 #include "executor.h"
 #include "zmCommon/aux_func.h"
 
+#ifdef __linux__ 
+
 #include <utility>
 #include <unistd.h>
 #include <signal.h>
@@ -140,3 +142,54 @@ void Process::stop(){
     m_executor.addErrMess(mstr);
   }
 }
+
+#else if _WIN32
+
+Process::Process(Application& app, Executor& exr, const ZM_Base::Task& tsk):
+  m_app(app),
+  m_executor(exr),
+  m_task(tsk){
+
+  
+ 
+  m_timerProgress.updateCycTime();
+  m_timerDuration.updateCycTime();
+  m_task.state = ZM_Base::StateType::RUNNING;  
+}
+
+ZM_Base::Task Process::getTask() const{
+  return m_task;
+}
+int64_t Process::getPid() const{
+  return m_pid;
+}
+int Process::getProgress(){
+  if (!m_isPause){
+    m_cdeltaTimeProgress += m_timerProgress.getDeltaTimeMS();
+  }
+  m_timerProgress.updateCycTime();
+  int dt = (int)m_cdeltaTimeProgress / 1000;
+  return std::min(100, dt * 100 / std::max(1, m_task.averDurationSec));
+}
+bool Process::checkMaxRunTime(){
+  if (!m_isPause){
+    m_cdeltaTimeDuration += m_timerDuration.getDeltaTimeMS();
+  }
+  m_timerDuration.updateCycTime();
+  return int(m_cdeltaTimeDuration / 1000) > m_task.maxDurationSec;
+}
+void Process::setTaskState(ZM_Base::StateType st){
+  m_task.state = st;
+  m_isPause = (st == ZM_Base::StateType::PAUSE);
+}
+void Process::pause(){
+  
+}
+void Process::contin(){
+  
+}
+void Process::stop(){
+  
+}
+
+#endif

@@ -47,6 +47,7 @@ public:
   struct NotifyTaskStateCBack{
     ZM_Base::StateType state;
     ChangeTaskStateCBack cback;
+    uint64_t userId;
     UData ud;
   };
 

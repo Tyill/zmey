@@ -28,6 +28,7 @@ class TaskContextMenu extends React.Component<IProps, IState>{
 
     let task = {
       pplTaskId : this.props.id,
+      ttlId : PipelineTasks.get(this.props.id).ttId,
     } as ITask;
 
     let pplTask = PipelineTasks.get(this.props.id);
@@ -49,7 +50,7 @@ class TaskContextMenu extends React.Component<IProps, IState>{
       task ? 
       <ButtonGroup vertical style={{display: this.props.id != 0 ? "inline": "none", width: "min-content", position:"absolute", 
                                     left: left.toString() + "px", top: top + "px"}}>
-        <Button variant="light" style={{textAlign: "left"}}>Start task</Button>
+        <Button variant="light" style={{textAlign: "left"}} onClick={this.startTask}>Start task</Button>
                          
         <DropdownButton variant="light" as={ButtonGroup} 
                         drop="right"

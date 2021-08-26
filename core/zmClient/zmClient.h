@@ -375,7 +375,7 @@ struct zmTaskTime{
 ZMEY_API bool zmTimeOfTask(zmConn, uint64_t tId, zmTaskTime* outTTime);
 
 /// task state callback
-typedef void(*zmChangeTaskStateCBack)(uint64_t tId, zmStateType prevState, zmStateType newState, zmUData);
+typedef void(*zmChangeTaskStateCBack)(uint64_t tId, uint64_t userId, zmStateType prevState, zmStateType newState, zmUData);
 
 /// set change task state callback
 /// @param[in] zmConn - object connect
@@ -383,7 +383,7 @@ typedef void(*zmChangeTaskStateCBack)(uint64_t tId, zmStateType prevState, zmSta
 /// @param[in] cback
 /// @param[in] userData
 /// @return true - ok
-ZMEY_API bool zmSetChangeTaskStateCBack(zmConn, uint64_t tId, zmChangeTaskStateCBack cback, zmUData);
+ZMEY_API bool zmSetChangeTaskStateCBack(zmConn, uint64_t tId, uint64_t userId, zmChangeTaskStateCBack cback, zmUData);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Internal errors

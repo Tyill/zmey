@@ -28,12 +28,12 @@ using namespace std;
 
 namespace ZM_DB{
 
-bool DbProvider::setChangeTaskStateCBack(uint64_t tId, ChangeTaskStateCBack cback, UData ud){
+bool DbProvider::setChangeTaskStateCBack(uint64_t tId, uint64_t userId, ChangeTaskStateCBack cback, UData ud){
   if (!cback)
     return false;
   {
     lock_guard<mutex> lk(m_impl->m_mtxNotifyTask);  
-    m_impl->m_notifyTaskStateCBack[tId] = {ZM_Base::StateType::UNDEFINED, cback, ud };
+    m_impl->m_notifyTaskStateCBack[tId] = {ZM_Base::StateType::UNDEFINED, cback, userId, ud };
     if (m_impl->m_notifyTaskStateCBack.size() == 1)
       m_impl->m_cvNotifyTask.notify_one();
   }  
@@ -56,10 +56,9 @@ bool DbProvider::setChangeTaskStateCBack(uint64_t tId, ChangeTaskStateCBack cbac
                     return s.empty() ? to_string(v.first) : s + "," + to_string(v.first);
                   });       
         stringstream ss;
-        ss << "SELECT qt.id, ts.state "
+        ss << "SELECT qtask, state "
               "FROM tblTaskState ts "
-              "JOIN tblTaskQueue qt ON qt.id = ts.qtask "
-              "WHERE qt.id IN (" << stId << ");"; 
+              "WHERE qtask IN (" << stId << ");"; 
         
         vector<pair<uint64_t, ZM_Base::StateType>> notifyRes;
         { 
@@ -83,7 +82,7 @@ bool DbProvider::setChangeTaskStateCBack(uint64_t tId, ChangeTaskStateCBack cbac
             uint64_t tId = t.first;
             ZM_Base::StateType prevState = notifyTasks[tId].state,
                                newState = t.second;
-            notifyTasks[tId].cback(tId, prevState, newState, notifyTasks[tId].ud);
+            notifyTasks[tId].cback(tId, notifyTasks[tId].userId, prevState, newState, notifyTasks[tId].ud);
           }
           { 
             lock_guard<mutex> lk(m_impl->m_mtxNotifyTask);  
@@ -98,6 +97,7 @@ bool DbProvider::setChangeTaskStateCBack(uint64_t tId, ChangeTaskStateCBack cbac
             }    
           }
         }
+        ZM_Aux::sleepMs(10);
       }      
     });
   }

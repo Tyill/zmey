@@ -576,10 +576,10 @@ bool zmTimeOfTask(zmConn zo, uint64_t tId, zmTaskTime* outTTime){
   return false;
 }
 
-bool zmSetChangeTaskStateCBack(zmConn zo, uint64_t tId, zmChangeTaskStateCBack cback, void* userData){
+bool zmSetChangeTaskStateCBack(zmConn zo, uint64_t tId, uint64_t userId, zmChangeTaskStateCBack cback, void* userData){
   if (!zo) return false; 
 
-  return static_cast<ZM_DB::DbProvider*>(zo)->setChangeTaskStateCBack(tId, (ZM_DB::ChangeTaskStateCBack)cback, userData);
+  return static_cast<ZM_DB::DbProvider*>(zo)->setChangeTaskStateCBack(tId, userId, (ZM_DB::ChangeTaskStateCBack)cback, userData);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

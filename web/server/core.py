@@ -24,3 +24,8 @@ def init(dbConnStr : str):
    
   global zmTaskWatch 
   zmTaskWatch = zm.Connection(dbConnStr) 
+    
+  zmTaskWatch.setChangeTaskStateCBack(taskChangeCBack)
+
+def taskChangeCBack(tId : int, uId: int, prevState: int, newState: int):
+  print(tId, uId, prevState, newState)

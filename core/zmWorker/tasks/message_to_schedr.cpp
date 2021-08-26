@@ -30,7 +30,7 @@ using namespace std;
 
 void Executor::messageToSchedr(const std::string& schedrConnPnt)
 {  
-  m_worker.activeTask = m_newTasks.size() + m_procs.size();
+  m_worker.activeTask = (int)m_newTasks.size() + (int)m_procs.size();
   MessForSchedr mess; 
   bool isSendOk = true;
   while(isSendOk && m_listMessForSchedr.tryPop(mess)){
@@ -42,7 +42,7 @@ void Executor::messageToSchedr(const std::string& schedrConnPnt)
           {"load",       to_string(m_worker.load)},        
           {"taskResult", mess.taskResult}
     };
-    isSendOk = ZM_Tcp::asyncSendData(schedrConnPnt,  ZM_Aux::serialn(data));
+    isSendOk = ZM_Tcp::asyncSendData(schedrConnPnt, ZM_Aux::serialn(data));
   }
 }
 

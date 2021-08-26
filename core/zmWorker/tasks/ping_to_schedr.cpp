@@ -29,7 +29,7 @@
 using namespace std;
 
 void Executor::pingToSchedr(const std::string& schedrConnPnt){
-  m_worker.activeTask = m_newTasks.size() + m_procs.size();
+  m_worker.activeTask = (int)m_newTasks.size() + (int)m_procs.size();
   map<string, string> data{
     {"command", to_string((int)ZM_Base::MessType::PING_WORKER)},
     {"connectPnt", m_worker.connectPnt},

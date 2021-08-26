@@ -77,30 +77,20 @@ def initUserDb(db):
         description   TEXT NOT NULL, \
         setts TEXT NOT NULL);"  
     )
-
-        #  state : StateType = StateType.READY, 
-        #        progress : int = 0,
-        #        result : str = "",
-        #        params : str = "",
-        #        createTime : str = "",
-        #        takeInWorkTime : str = "",
-        #        startTime : str = "",
-        #        stopTime : str = ""):
-
     cr.execute(
-      "CREATE TABLE IF NOT EXISTS tblTask( \
+      'CREATE TABLE IF NOT EXISTS tblTask( \
         id INTEGER PRIMARY KEY AUTOINCREMENT, \
         pplTaskId      INT NOT NULL REFERENCES tblPipelineTask, \
         ttlId          INT NOT NULL REFERENCES tblTaskTemplate, \
-        state          INT NOT NULL,  \
-        progress       INT NOT NULL,  \
+        state          INT NOT NULL DEFAULT 0,  \
+        progress       INT NOT NULL DEFAULT 0,  \
         script         TEXT NOT NULL, \
         params         TEXT NOT NULL, \
-        result         TEXT NOT NULL, \
-        createTime     TEXT NOT NULL, \
-        takeInWorkTime TEXT NOT NULL, \
-        startTime      TEXT NOT NULL, \
-        stopTime       TEXT NOT NULL);"  
+        result         TEXT NOT NULL DEFAULT "", \
+        createTime     TEXT NOT NULL DEFAULT "", \
+        takeInWorkTime TEXT NOT NULL DEFAULT "", \
+        startTime      TEXT NOT NULL DEFAULT "", \
+        stopTime       TEXT NOT NULL DEFAULT "");'  
     )
     
 def closeUserDb(e = None):

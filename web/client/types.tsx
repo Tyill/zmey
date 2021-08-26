@@ -112,7 +112,8 @@ export
 interface ITask{
   id : number;
   pplTaskId : number;
-  state : StateType;
+  ttlId : number;
+  state : StateType | number;
   progress : number;
   result : string;
   createTime : string;

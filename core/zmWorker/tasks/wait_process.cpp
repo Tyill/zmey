@@ -22,6 +22,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+
+#include "zmWorker/executor.h"
+
+#ifdef __linux__ 
+
 #include <unistd.h>
 #include <sys/wait.h>
 #include <sys/types.h>
@@ -32,7 +37,6 @@
 #include <list>
 #include <algorithm>
 
-#include "zmWorker/executor.h"
 
 using namespace std;
 
@@ -129,3 +133,21 @@ void Executor::waitProcess()
     }
   }
 }
+
+#else if _WIN32
+
+void Executor::waitProcess()
+{
+  for (auto& p : m_procs){
+
+    ZM_Base::MessType mt = ZM_Base::MessType::TASK_COMPLETED;
+    ZM_Base::StateType st = ZM_Base::StateType::COMPLETED;
+    p.setTaskState(st);
+
+    m_listMessForSchedr.push(MessForSchedr{p.getTask().id,
+                                           mt,
+                                           "result"});
+  }
+}
+
+#endif

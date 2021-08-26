@@ -34,6 +34,10 @@ class Process{
 public:
   Process(Application&, Executor&, const ZM_Base::Task&);
 
+#ifdef _WIN32 
+  typedef int64_t pid_t;
+#endif 
+
   ZM_Base::Task getTask() const;
   pid_t getPid() const;
   int getProgress();
