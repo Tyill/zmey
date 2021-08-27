@@ -24,6 +24,8 @@
 //
 #include "pg_impl.h"
 
+#include <chrono>
+
 using namespace std;
 
 namespace ZM_DB{
@@ -40,16 +42,13 @@ bool DbProvider::setChangeTaskStateCBack(uint64_t tId, uint64_t userId, ChangeTa
   if (!m_impl->m_thrEndTask.joinable()){
     m_impl->m_thrEndTask = thread([this](){
       while (!m_impl->m_fClose){
-        if (m_impl->m_notifyTaskStateCBack.empty()){
+        std::map<uint64_t, DbProvider::Impl::NotifyTaskStateCBack> notifyTasks;
+        {
           std::unique_lock<std::mutex> lk(m_impl->m_mtxNotifyTask);
           if (m_impl->m_notifyTaskStateCBack.empty())
             m_impl->m_cvNotifyTask.wait(lk); 
-        }
-        std::map<uint64_t, DbProvider::Impl::NotifyTaskStateCBack> notifyTasks;
-        {
-          lock_guard<mutex> lk(m_impl->m_mtxNotifyTask); 
           notifyTasks = m_impl->m_notifyTaskStateCBack;
-        } 
+        }
         string stId;
         stId = accumulate(notifyTasks.begin(), notifyTasks.end(), stId,
                   [](string& s, pair<uint64_t, DbProvider::Impl::NotifyTaskStateCBack> v){
@@ -60,6 +59,8 @@ bool DbProvider::setChangeTaskStateCBack(uint64_t tId, uint64_t userId, ChangeTa
               "FROM tblTaskState ts "
               "WHERE qtask IN (" << stId << ");"; 
         
+        auto t_start = std::chrono::high_resolution_clock::now();
+
         vector<pair<uint64_t, ZM_Base::StateType>> notifyRes;
         { 
           lock_guard<mutex> lk(m_impl->m_mtx);
@@ -97,7 +98,11 @@ bool DbProvider::setChangeTaskStateCBack(uint64_t tId, uint64_t userId, ChangeTa
             }    
           }
         }
-        ZM_Aux::sleepMs(10);
+        auto t_end = std::chrono::high_resolution_clock::now();
+        int deltaTimeMs = (int)std::chrono::duration<double, std::milli>(t_end - t_start).count();
+        int maxElapseTimeMS = 10;
+        if ((maxElapseTimeMS - deltaTimeMs) > 0)
+          ZM_Aux::sleepMs(maxElapseTimeMS - deltaTimeMs);
       }      
     });
   }

@@ -38,3 +38,21 @@ def start(iot : Task) -> bool:
       except Exception as err:
         print('Local db query failed: %s' % str(err))
   return False
+
+def changeState(db, t : Task) -> bool:
+  try:
+    with closing(db.cursor()) as cr:
+      cr.execute(
+        "UPDATE tblTask SET "
+        f'result = "{t.result}",'
+        f'createTime = "{t.createTime}",'
+        f'takeInWorkTime = "{t.takeInWorkTime}",'
+        f'startTime = "{t.startTime}",'
+        f'stopTime = "{t.stopTime}" '
+        f'WHERE id = {t.id};'  
+      )
+      db.commit()
+    return True
+  except Exception as err:
+    print('Local db query failed: %s' % str(err))
+  return False

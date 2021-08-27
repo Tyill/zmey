@@ -96,4 +96,20 @@ def initUserDb(db):
 def closeUserDb(e = None):
   db = g.pop('db', None)
   if db is not None:
-      db.close()
+    db.close()
+
+def createDb(userName : str):
+  dbPath = current_app.instance_path + '/users/{}.db'.format(userName)
+  if os.path.exists(dbPath):
+    db = sqlite3.connect(
+      dbPath,
+      detect_types=sqlite3.PARSE_DECLTYPES,
+      check_same_thread = False
+    )    
+    db.row_factory = sqlite3.Row
+    return db
+  return None
+
+def closeDb(db):
+  if db is not None:
+    db.close()

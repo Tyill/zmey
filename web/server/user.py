@@ -7,7 +7,9 @@ from flask import(
   current_app as app
 )
 
-lock = threading.Lock()
+m_lock = threading.Lock()
+
+m_instance_path = ""
 
 class User: 
   """User config""" 
@@ -22,6 +24,8 @@ class User:
     return self.__repr__()
 
 def init(instance_path):
+  global m_instance_path
+  m_instance_path = instance_path
   if not os.path.exists(instance_path + '/users/users.ini'):
     os.makedirs(instance_path + '/users', exist_ok = True) 
     addp(0, 'admin', 'password', instance_path)
@@ -34,10 +38,10 @@ def addp(id, name, passw, path) -> bool:
   hash = calcHash(passw, salt)
   if id < 0:
     id = len(all())
-  lock.acquire()  
+  m_lock.acquire()  
   with open(path + '/users/users.ini', 'a') as file:
     file.write(f'{id}:{name}:{hash}:{salt}\n')
-  lock.release() 
+  m_lock.release() 
   return True
 
 def add(name, passw) -> bool:
@@ -49,6 +53,14 @@ def get(uname, passw) -> User:
       id, name, hash, salt = l[:-1].split(':')
       if (name == uname) and (calcHash(passw, salt) == hash): 
         return User(int(id), name) 
+  return None
+
+def getById(uid) -> User:
+  with open(m_instance_path + '/users/users.ini', 'r') as file:
+    for l in file.readlines():
+      id, name, _, _ = l[:-1].split(':')
+      if (uid == id): 
+        return User(uid, name)
   return None
 
 def all() -> List[User]:  
