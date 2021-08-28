@@ -5,9 +5,13 @@ from flask import(
   g, current_app
 )
 
+m_instance_path = ""
+
 def init(app):
   app.before_request(userDb)
   app.teardown_appcontext(closeUserDb)
+  global m_instance_path
+  m_instance_path = app.instance_path
 
 def userDb():
   if ('db' not in g) and g.userName:
@@ -99,7 +103,7 @@ def closeUserDb(e = None):
     db.close()
 
 def createDb(userName : str):
-  dbPath = current_app.instance_path + '/users/{}.db'.format(userName)
+  dbPath = m_instance_path + '/users/{}.db'.format(userName)
   if os.path.exists(dbPath):
     db = sqlite3.connect(
       dbPath,

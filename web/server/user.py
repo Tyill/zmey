@@ -55,11 +55,11 @@ def get(uname, passw) -> User:
         return User(int(id), name) 
   return None
 
-def getById(uid) -> User:
+def getById(uid : int) -> User:
   with open(m_instance_path + '/users/users.ini', 'r') as file:
     for l in file.readlines():
       id, name, _, _ = l[:-1].split(':')
-      if (uid == id): 
+      if (uid == int(id)): 
         return User(uid, name)
   return None
 

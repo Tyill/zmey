@@ -26,7 +26,7 @@ def add(iott : TaskTemplate) -> bool:
           g.db.commit()
         return True
       except Exception as err:
-        print('Local db query failed: %s' % str(err))
+        print("{0} local db query failed: {1}".format("TaskTemplate.add", str(err)))
   return False
 
 def change(iott : TaskTemplate) -> bool:
@@ -47,7 +47,7 @@ def change(iott : TaskTemplate) -> bool:
           g.db.commit()
         return True
       except Exception as err:
-        print('Local db query failed: %s' % str(err))
+        print("{0} local db query failed: {1}".format("TaskTemplate.change", str(err)))
   return False
 
 def delete(ttId : int) -> bool:
@@ -63,7 +63,7 @@ def delete(ttId : int) -> bool:
           g.db.commit()
         return True
       except Exception as err:
-        print('Local db query failed: %s' % str(err))
+        print("{0} local db query failed: {1}".format("TaskTemplate.delete", str(err)))
   return False
 
 def all() -> List[TaskTemplate]:
@@ -81,5 +81,5 @@ def all() -> List[TaskTemplate]:
           ttls.append(TaskTemplate(id=row[0], name=row[1], description=row[2], script=row[3], averDurationSec=row[4], maxDurationSec=row[5]))       
       return ttls  
     except Exception as err:
-      print('Local db query failed: %s' % str(err))
+      print("{0} local db query failed: {1}".format("TaskTemplate.all", str(err)))
   return []

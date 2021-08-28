@@ -33,15 +33,21 @@ def taskChangeCBack(tId : int, uId: int, prevState: int, newState: int):
   t = zm.Task(tId)
   zmTaskWatch.taskTime(t)
 
-  if (newState == zm.StateType.COMPLETED) or (newState == zm.StateType.ERROR):
+  tstate = zm.StateType(newState)
+  if (tstate == zm.StateType.COMPLETED) or \
+     (tstate == zm.StateType.ERROR) or \
+     (tstate == zm.StateType.STOP):
     zmTaskWatch.taskResult(t)
   
   usr = user.getById(uId)
-
+  
   dbo = db.createDb(usr.name)
    
   from . import task
   if dbo:
     task.changeState(dbo, t)
+    db.closeDb(dbo)
   else:
     print('taskChangeCBack: not found user db: %s' % usr.name)
+  
+  

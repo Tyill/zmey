@@ -60,7 +60,7 @@ def add(ev : Event) -> bool:
         g.db.commit()
       return True
     except Exception as err:
-      print('Local db query failed: %s' % str(err))
+      print("{0} local db query failed: {1}".format("Event.add", str(err)))
   return False
 
 def change(ev : Event) -> bool:
@@ -88,7 +88,7 @@ def change(ev : Event) -> bool:
         g.db.commit()
       return True
     except Exception as err:
-      print('Local db query failed: %s' % str(err))
+      print("{0} local db query failed: {1}".format("Event.change", str(err)))
   return False
 
 def delete(evId) -> bool:
@@ -103,7 +103,7 @@ def delete(evId) -> bool:
         g.db.commit()
       return True
     except Exception as err:
-      print('Local db query failed: %s' % str(err))
+      print("{0} local db query failed: {1}".format("Event.delete", str(err)))
   return False
 
 def all() -> List[Event]:
@@ -130,5 +130,5 @@ def all() -> List[Event]:
                            name=row[8], description=row[9]))       
       return evs  
     except Exception as err:
-      print('Local db query failed: %s' % str(err))
+      print("{0} local db query failed: {1}".format("Task.Event.all", str(err)))
   return []

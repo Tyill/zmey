@@ -48,7 +48,7 @@ def changePipelineTask(id : int):
     plt.nextEventsId = jnReq['nextEventsId']  
     plt.prevTasksId = jnReq['prevTasksId']
     plt.prevEventsId = jnReq['prevEventsId']  
-    plt.params = jnReq['params']  
+    plt.params = jnReq['params']
     plt.description = jnReq['description']  
     return json.dumps(plt.__dict__) if pt.change(plt) else ('internal error', 500)
   except Exception as err:

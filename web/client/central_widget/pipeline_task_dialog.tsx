@@ -88,7 +88,7 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
       name : this.m_refObj["name"].value,           
       description : this.m_refObj["description"].value,
     } as IPipelineTask;
-     
+    
     if (this.m_isNewPipelineTask){
       this.m_hasAdded = true;
       ServerAPI.addPipelineTask(newPipelineTask, 

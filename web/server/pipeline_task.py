@@ -14,7 +14,7 @@ class PipelineTask:
                nextEventsId : List[int] = 0,
                prevTasksId : List[int] = 0,
                prevEventsId : List[int] = 0,
-               params : str = [],
+               params = "",
                name = "",
                description = "",
                setts = "{}"):
@@ -67,7 +67,7 @@ def add(pt : PipelineTask) -> bool:
         g.db.commit()
       return True
     except Exception as err:
-      print('Local db query failed: %s' % str(err))
+      print("{0} local db query failed: {1}".format("PipelineTask.add", str(err)))
   return False
 
 def change(pt : PipelineTask) -> bool:
@@ -77,7 +77,7 @@ def change(pt : PipelineTask) -> bool:
       nextEventsId = ','.join([str(v) for v in pt.nextEventsId])
       prevTasksId = ','.join([str(v) for v in pt.prevTasksId])
       prevEventsId = ','.join([str(v) for v in pt.prevEventsId])
-
+      print("db ",pt.params)
       with closing(g.db.cursor()) as cr:
         cr.execute(
           "UPDATE tblPipelineTask SET "
@@ -97,7 +97,7 @@ def change(pt : PipelineTask) -> bool:
         g.db.commit()
       return True
     except Exception as err:
-      print('Local db query failed: %s' % str(err))
+      print("{0} local db query failed: {1}".format("PipelineTask.change", str(err)))
   return False
 
 def delete(ptId) -> bool:
@@ -112,7 +112,7 @@ def delete(ptId) -> bool:
         g.db.commit()
       return True
     except Exception as err:
-      print('Local db query failed: %s' % str(err))
+      print("{0} local db query failed: {1}".format("PipelineTask.delete", str(err)))
   return False
 
 def all() -> List[PipelineTask]:
@@ -139,5 +139,5 @@ def all() -> List[PipelineTask]:
                                   name=row[10], description=row[11]))       
       return pts  
     except Exception as err:
-      print('Local db query failed: %s' % str(err))
+      print("{0} local db query failed: {1}".format("PipelineTask.all", str(err)))
   return []

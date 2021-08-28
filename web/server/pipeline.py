@@ -32,7 +32,7 @@ def add(ppl : Pipeline) -> bool:
         g.db.commit()
       return True
     except Exception as err:
-      print('Local db query failed: %s' % str(err))
+      print("{0} local db query failed: {1}".format("Pipeline.add", str(err)))
   return False
 
 def change(ppl : Pipeline) -> bool:
@@ -49,7 +49,7 @@ def change(ppl : Pipeline) -> bool:
         g.db.commit()
       return True
     except Exception as err:
-      print('Local db query failed: %s' % str(err))
+      print("{0} local db query failed: {1}".format("Pipeline.change", str(err)))
   return False
 
 def delete(pplId) -> bool:
@@ -64,7 +64,7 @@ def delete(pplId) -> bool:
         g.db.commit()
       return True
     except Exception as err:
-      print('Local db query failed: %s' % str(err))
+      print("{0} local db query failed: {1}".format("Pipeline.delete", str(err)))
   return False
 
 def all() -> List[Pipeline]:
@@ -82,5 +82,5 @@ def all() -> List[Pipeline]:
           ppls.append(Pipeline(id=row[0], name=row[1], description=row[2], setts=row[3]))       
       return ppls  
     except Exception as err:
-      print('Local db query failed: %s' % str(err))
+      print("{0} local db query failed: {1}".format("Pipeline.all", str(err)))
   return []
