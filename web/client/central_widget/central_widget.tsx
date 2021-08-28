@@ -10,6 +10,7 @@ import ListItem from "../common/list_item";
 import ListHeader from "../common/list_header";
 import TabItem from "../common/tab_item";
 import GraphPanel from "../graph/graph_panel";
+import TaskStatusWidget from "../task_status_widget/task_status_widget";
 
 import { IPipeline, IPipelineTask, ITaskTemplate, MessType } from "../types";
 import { Pipelines, TaskTemplates, PipelineTasks} from "../store/store";
@@ -131,7 +132,7 @@ class CentralWidget extends React.Component<IProps, IState>{
       let pipelines = [];
       for (let p of Pipelines.getVisible()){     
         pipelines.push(<TabItem key={p.id} id={p.id}
-                                isSelect={ p.setts.isSelected }
+                                isSelected={ p.setts.isSelected }
                                 title={p.name}
                                 hSelect={this.selectPipeline} 
                                 hHide={this.hidePipeline}
@@ -253,6 +254,11 @@ class CentralWidget extends React.Component<IProps, IState>{
               </Row>
               <Row noGutters={true} className="h-100" style={{ position:"relative", overflow:"auto"}}>
                 <GraphPanel hStatusMess={this.props.setStatusMess}/>
+              </Row>
+              <Row noGutters={true} className="borderTop" style={{ minHeight: "20vh"}}>
+                <Col className="col">
+                  <TaskStatusWidget/>
+                </Col>
               </Row>
             </Col>
             <Col className="col-2 m-0 p-0 borderRight">   

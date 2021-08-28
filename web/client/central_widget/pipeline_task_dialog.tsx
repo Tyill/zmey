@@ -75,6 +75,7 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
       isEnabled : this.props.selPipelineTask.isEnabled || true,
       setts : this.props.selPipelineTask.setts || {
         isVisible : true,
+        isSelected : false,
         positionX : 0,
         positionY : 0,
         width : 0,

@@ -5,7 +5,7 @@ interface IProps {
   title : string;
   key : number; 
   id : number;
-  isSelect : boolean;
+  isSelected : boolean;
   hSelect : (id : number) => any;
   hHide : (id : number) => any;
 };
@@ -24,7 +24,7 @@ class TabItem extends React.Component<IProps, IState>{
     let titleStyle={
       color : "gray"
     } as React.CSSProperties;
-    if (this.props.isSelect){
+    if (this.props.isSelected){
       titleStyle.color = "black";
       titleStyle.borderBottom = "1px solid white"; 
     }

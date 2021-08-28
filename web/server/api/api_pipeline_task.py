@@ -3,6 +3,7 @@ from flask import request
 
 from .. import auth 
 from .. import pipeline_task as pt
+from .. import task as pt
 from .api import bp 
 
 ###############################################################################
@@ -71,3 +72,18 @@ def allPipelineTasks():
   for t in pt.all():
     ret.append(t.__dict__)
   return json.dumps(ret)
+
+@bp.route('/pipelineTasks/<int:id>', methods=(['GET']))
+@auth.loginRequired
+def changePipelineTask(id : int):
+  try:
+    jnReq = request.get_json(silent=True)
+  
+    plt = pt.PipelineTask()
+    plt.id = id    
+    plt.ttId = int(jnReq['ttId'])
+   
+    return json.dumps(t.getState(plt).__dict__)
+  except Exception as err:
+    print(f'/pipelineTasks/{id} GET {request.get_json(silent=True)} failed: %s' % str(err))
+    return ('bad request', 400)

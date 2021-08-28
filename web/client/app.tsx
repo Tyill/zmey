@@ -5,8 +5,8 @@ import * as ServerAPI from "./server_api/server_api"
 import { Container, Row } from "react-bootstrap";
 
 import "./css/style.less";
-import { IPipeline, IPipelineTask, ITaskTemplate, IEvent, MessType } from "./types";
-import { Pipelines, TaskTemplates, PipelineTasks, Events} from "./store/store";
+import { IPipeline, IPipelineTask, ITaskTemplate, IEvent, ITask, MessType } from "./types";
+import { Pipelines, TaskTemplates, PipelineTasks, Events, Tasks} from "./store/store";
 
 interface IProps {
 };
@@ -75,6 +75,22 @@ class App extends React.Component<IProps, IState>{
       Events.setAll(evs);
     },
     ()=>this.setStatusMess("Server error fill Events"));
+
+    setInterval(()=>{
+      let task = null;
+      for (let t of PipelineTasks.getAll().values()){
+        if (t.setts.isSelected){
+          task = PipelineTasks.get(t.id);
+          break;
+        }
+      }   
+      if (task){
+        ServerAPI.getPipelineTaskState(task, (states : Array<ITask>)=>{
+          Tasks.setAll(states);
+        },      
+        ()=>this.setStatusMess("Server error of task state"))
+      }
+    }, 1000);
   }
   
   setStatusMess(mess : string, statusMessType : MessType = MessType.Ok){

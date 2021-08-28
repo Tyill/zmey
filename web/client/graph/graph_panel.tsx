@@ -43,6 +43,7 @@ class GraphPanel extends React.Component<IProps, IState>{
     this.drawLine = this.drawLine.bind(this);
     this.drawAll = this.drawAll.bind(this);
     this.hTaskMove = this.hTaskMove.bind(this);
+    this.hTaskSelect = this.hTaskSelect.bind(this);
     this.hMouseUp = this.hMouseUp.bind(this);
     this.hMouseDown = this.hMouseDown.bind(this);
     this.hMouseMove = this.hMouseMove.bind(this);
@@ -122,6 +123,22 @@ class GraphPanel extends React.Component<IProps, IState>{
     this.drawAll(this.getCanvasContext());
   }
 
+  hTaskSelect(id : number){
+
+    for (let t of PipelineTasks.getAll().values()){
+      if (t.setts.isSelected && (t.id != id)){
+        let task = PipelineTasks.get(t.id);
+        task.setts.isSelected = false;
+        PipelineTasks.upd(task);
+      }
+    }
+    let task = PipelineTasks.get(id);
+    if (!task.setts.isSelected){
+      task.setts.isSelected = true;
+      PipelineTasks.upd(task);
+    }
+  }
+
   hShowContextMenu(id : number){
 
     this.setState({contextMenuTaskId : id});
@@ -182,7 +199,9 @@ class GraphPanel extends React.Component<IProps, IState>{
         if (t.setts.isVisible){  
           tasks.push(<GraphTask title={t.name} id={t.id} key={t.id}
                                 moveEnabled={this.state.socketCaptured.id != t.id} 
+                                isSelected={t.setts.isSelected}
                                 hMove={this.hTaskMove}
+                                hSelect={this.hTaskSelect}
                                 hShowContextMenu={this.hShowContextMenu}
                                 hSocketInputСaptured={(id, mpos)=>{
                                   this.m_mouseStartMem = mpos;

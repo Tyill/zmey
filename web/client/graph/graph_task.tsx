@@ -9,13 +9,16 @@ interface IProps {
   title : string;
   id : number;
   moveEnabled: boolean;
+  isSelected: boolean;
   hHide : (id : number) => any;
   hMove : (id : number) => any;
+  hSelect : (id : number) => any;
   hShowContextMenu : (id : number) => any;
   hSocketInputСaptured : (id : number, mpos : IPoint) => any;
   hSocketOutputСaptured : (id : number, mpos : IPoint) => any;
 };
 interface IState {
+
 };
 
 export default
@@ -97,6 +100,13 @@ class GraphTask extends React.Component<IProps, IState>{
   render(){  
         
     let task = PipelineTasks.get(this.props.id);
+
+    let bodyStyle={
+      backgroundColor : "white"
+    } as React.CSSProperties;
+    if (this.props.isSelected){
+      bodyStyle.backgroundColor = "#f6fdb4";
+    }
     
     return (
       <Draggable disabled={!this.props.moveEnabled} bounds="parent"
@@ -115,13 +125,14 @@ class GraphTask extends React.Component<IProps, IState>{
                   const point = this.getSocketPoint(SocketType.Input, task.setts.positionX, task.setts.positionY);
                   this.props.hSocketInputСaptured(this.props.id, {...point});
                 }}/>
-            <div className="graphPplTask unselectable"
+            <div className="graphPplTask unselectable" style={bodyStyle}
                  onContextMenu = { (e) => e.preventDefault() }
                  onMouseDown={(e : React.MouseEvent)=>{
                    if (e.button == 2){
                      this.props.hShowContextMenu(this.props.id);
                      e.stopPropagation();
                    }
+                   this.props.hSelect(this.props.id);
                  }}>
               {this.props.title}
             </div>            

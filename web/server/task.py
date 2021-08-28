@@ -1,5 +1,6 @@
 from typing import List
 from contextlib import closing
+from web.server.pipeline_task import PipelineTask
 from flask import g
 
 from .core import zmConn, zmTaskWatch
@@ -52,6 +53,24 @@ def changeState(db, t : Task) -> bool:
         f'WHERE id = {t.id};'  
       )
       db.commit()
+    return True
+  except Exception as err:
+    print("{0} local db query failed: {1}".format("Task.changeState", str(err)))
+  return False
+
+def getState(db, t : PipelineTask) -> List[Task]:
+  try:
+    # with closing(db.cursor()) as cr:
+    #   cr.execute(
+    #     "SELECT tblTask SET "
+    #     f"result = '{t.result}',"
+    #     f'createTime = "{t.createTime}",'
+    #     f'takeInWorkTime = "{t.takeInWorkTime}",'
+    #     f'startTime = "{t.startTime}",'
+    #     f'stopTime = "{t.stopTime}" '
+    #     f'WHERE id = {t.id};'  
+    #   )
+    #   db.commit()
     return True
   except Exception as err:
     print("{0} local db query failed: {1}".format("Task.changeState", str(err)))
