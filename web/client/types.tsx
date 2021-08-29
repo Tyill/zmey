@@ -14,6 +14,22 @@ enum StateType{
 };
 
 export
+function stateToString(state : StateType){
+  switch (state){
+    case StateType.UNDEFINED: return 'UNDEFINED';
+    case StateType.READY: return 'READY';
+    case StateType.START: return 'START';
+    case StateType.RUNNING: return 'RUNNING';
+    case StateType.PAUSE: return 'PAUSE';
+    case StateType.STOP: return 'STOP';   
+    case StateType.COMPLETED: return 'COMPLETED';
+    case StateType.ERROR: return 'ERROR';
+    case StateType.CANCEL: return 'CANCEL';
+    case StateType.NOT_RESPONDING: return 'NOT_RESPONDING';
+  }
+}
+
+export
 interface IUser {
   name: string;  
   description: string;
@@ -67,9 +83,7 @@ interface IPipelineTask{
   ttId : number;                ///< task template id    
   isEnabled : boolean;
   nextTasksId : Array<number>;  ///< pipeline task id of next tasks  
-  prevTasksId : Array<number>;  ///< pipeline task id of prev tasks  
-  nextEventsId : Array<number>; ///< event id of next events
-  prevEventsId : Array<number>; ///< event id of prev events
+  prevTasksId : Array<number>;  ///< pipeline task id of prev tasks 
   params : string;
   name : string;
   description : string;
@@ -91,28 +105,16 @@ export
 interface IEvent{       
   id : number;
   isEnabled : boolean;
-  nextTasksId : Array<number>;  ///< pipeline task id of next tasks  
-  prevTasksId : Array<number>;  ///< pipeline task id of prev tasks  
-  nextEventsId : Array<number>; ///< event id of next events
-  prevEventsId : Array<number>; ///< event id of prev events
-  params : string;
+  nextTasksId : Array<number>;  ///< pipeline task id of next tasks
   name : string;
-  description : string;
-  setts : {
-    isVisible : boolean;
-    positionX : number;
-    positionY : number;
-    socketInputPositionX : number;
-    socketInputPositionY : number;
-    socketOutputPositionX : number;
-    socketOutputPositionY : number;
-  };
+  description : string;  
 };
 
 export
 interface ITask{
   id : number;
   pplTaskId : number;
+  prevPplTaskId : number;
   ttlId : number;
   state : StateType | number;
   progress : number;

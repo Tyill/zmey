@@ -5,6 +5,7 @@ import { observer } from "mobx-react-lite"
 import TaskTemplateDialogModal from "./task_template_dialog";
 import PipelineDialogModal from "./pipeline_dialog";
 import PipelineTaskDialogModal from "./pipeline_task_dialog";
+import EventDialogModal from "./event_dialog";
 import AckDeleteModal, {IAckDeleteDialog} from "../common/ack_delete_modal";
 import ListItem from "../common/list_item";
 import ListHeader from "../common/list_header";
@@ -12,8 +13,8 @@ import TabItem from "../common/tab_item";
 import GraphPanel from "../graph/graph_panel";
 import TaskStatusWidget from "../task_status_widget/task_status_widget";
 
-import { IPipeline, IPipelineTask, ITaskTemplate, MessType } from "../types";
-import { Pipelines, TaskTemplates, PipelineTasks} from "../store/store";
+import { IPipeline, IPipelineTask, ITaskTemplate, IEvent, MessType } from "../types";
+import { Pipelines, TaskTemplates, PipelineTasks, Events} from "../store/store";
 import * as ServerAPI from "../server_api/server_api";
 
 import "../css/style.less";
@@ -29,6 +30,7 @@ interface IState {
   isShowTaskTemplateConfig : boolean;
   isShowPipelineConfig : boolean;
   isShowPipelineTaskConfig : boolean;
+  isShowEventConfig : boolean;
   isShowAckDeleteDialog : boolean;
 };
 
@@ -38,6 +40,7 @@ class CentralWidget extends React.Component<IProps, IState>{
   private m_selTaskTemplate : ITaskTemplate = {} as ITaskTemplate;
   private m_selPipeline : IPipeline = {} as IPipeline;
   private m_selPipelineTask : IPipelineTask = {} as IPipelineTask;
+  private m_selEvent : IEvent = {} as IEvent;
   private m_ackDeleteDialog : IAckDeleteDialog = {} as IAckDeleteDialog;
   
   constructor(props : IProps){
@@ -46,6 +49,7 @@ class CentralWidget extends React.Component<IProps, IState>{
     this.delTaskTemplate = this.delTaskTemplate.bind(this);
     this.delPipeline = this.delPipeline.bind(this);
     this.delPipelineTask = this.delPipelineTask.bind(this);
+    this.delEvent = this.delEvent.bind(this);
     this.selectPipeline = this.selectPipeline.bind(this);
     this.hidePipeline = this.hidePipeline.bind(this);
     this.getSelectedPipelineId = this.getSelectedPipelineId.bind(this);
@@ -53,6 +57,7 @@ class CentralWidget extends React.Component<IProps, IState>{
     this.state  = { isShowTaskTemplateConfig : false,
                     isShowPipelineConfig : false,
                     isShowPipelineTaskConfig : false,
+                    isShowEventConfig : false,
                     isShowAckDeleteDialog : false,    
                   };   
   }    
@@ -90,6 +95,17 @@ class CentralWidget extends React.Component<IProps, IState>{
         this.setState({isShowAckDeleteDialog : false});  
       },
       ()=>this.props.setStatusMess("Server error delete of Pipeline Task", MessType.Error))
+  }
+
+  delEvent(){    
+    ServerAPI.delEvent(this.m_selEvent,
+      ()=>{     
+        Events.del(this.m_selEvent.id);
+        
+        this.props.setStatusMess(`Event '${this.m_selEvent.name}' is delete`, MessType.Ok);
+        this.setState({isShowAckDeleteDialog : false});  
+      },
+      ()=>this.props.setStatusMess("Server error delete of Event", MessType.Error))
   }
  
   selectPipeline(id : number){
@@ -197,8 +213,9 @@ class CentralWidget extends React.Component<IProps, IState>{
     let PipelineTaskList = observer(() => {
       let tasks = [];      
       for (let t of PipelineTasks.getByPPlId(this.getSelectedPipelineId())){
-        tasks.push(<ListItem key={t.id} id={t.id} title={t.name} tooltip={t.description}
-                              labelEdit={"Edit Pipeline Task"} labelDelete={"Delete Pipeline Task"}                                                   
+        tasks.push(<ListItem  key={t.id} id={t.id} title={t.name} tooltip={t.description}
+                              labelEdit={"Edit Pipeline Task"}
+                              labelDelete={"Delete Pipeline Task"}    
                               hEdit={()=>{
                                 this.m_selPipelineTask = PipelineTasks.get(t.id);
                                 this.setState({isShowPipelineTaskConfig : true});
@@ -211,16 +228,49 @@ class CentralWidget extends React.Component<IProps, IState>{
 
                                 this.setState({isShowAckDeleteDialog : true});
                               }}
-                              hDClickItem={(id : number)=>{     
+                              hDClickItem={()=>{     
                                 this.m_selPipelineTask = PipelineTasks.get(t.id);
-                                this.m_selPipelineTask.setts.isVisible = true;
-                                PipelineTasks.upd(this.m_selPipelineTask);
+                                PipelineTasks.setSelected(t.id, true);
+                                PipelineTasks.setVisible(t.id, true);
                                 ServerAPI.changePipelineTask(this.m_selPipelineTask);
+
+                                for (let st of PipelineTasks.getAll().values()){
+                                  if (st.setts.isSelected && (st.id != t.id)){
+                                    PipelineTasks.setSelected(st.id, false);
+                                    ServerAPI.changePipelineTask(st);
+                                  }
+                                }                                
                               }}>
                           </ListItem>);
       }
       return <ListGroup className="list-group-flush borderBottom" style={{ maxHeight: "35vh", overflowY:"auto"}} >
                {tasks}
+             </ListGroup>
+    });
+
+    let EventList = observer(() => {
+      let events = [];      
+      for (let ev of Events.getAll().values()){
+        events.push(<ListItem key={ev.id} id={ev.id} title={ev.name} tooltip={ev.description}
+                              labelEdit={"Edit Event"}
+                              labelDelete={"Delete Event"}    
+                              hEdit={()=>{
+                                this.m_selEvent = Events.get(ev.id);
+                                this.setState({isShowEventConfig : true});
+                              }}
+                              hDelete={()=>{
+                                this.m_selEvent = Events.get(ev.id);
+                                this.m_ackDeleteDialog.description = this.m_selEvent.description;
+                                this.m_ackDeleteDialog.title = `Delete '${this.m_selEvent.name}' Event?`;
+                                this.m_ackDeleteDialog.onYes = this.delEvent; 
+
+                                this.setState({isShowAckDeleteDialog : true});
+                              }}
+                              hDClickItem={()=>0}>
+                          </ListItem>);
+      }
+      return <ListGroup className="list-group-flush borderBottom" style={{ maxHeight: "35vh", overflowY:"auto"}} >
+               {events}
              </ListGroup>
     });
    
@@ -253,7 +303,11 @@ class CentralWidget extends React.Component<IProps, IState>{
                 <PipelineTabs />
               </Row>
               <Row noGutters={true} className="h-100" style={{ position:"relative", overflow:"auto"}}>
-                <GraphPanel hStatusMess={this.props.setStatusMess}/>
+                <GraphPanel hStatusMess={this.props.setStatusMess}
+                            hShowTaskDialog={(id)=>{
+                              this.m_selPipelineTask = PipelineTasks.get(id);
+                              this.setState({isShowPipelineTaskConfig : true});
+                            }}/>
               </Row>
               <Row noGutters={true} className="borderTop" style={{ minHeight: "20vh"}}>
                 <Col className="col">
@@ -267,6 +321,12 @@ class CentralWidget extends React.Component<IProps, IState>{
                           hNew={()=>{ this.m_selTaskTemplate.id = 0;
                                       this.setState({isShowTaskTemplateConfig : true}); }}/>               
               <TaskTemplateList/>
+
+              <ListHeader title={"Events"}
+                          labelNew={"New Event"}
+                          hNew={()=>{ this.m_selEvent.id = 0;
+                                      this.setState({isShowEventConfig : true}); }}/>               
+              <EventList/> 
             </Col>            
           </Row>
         </Container> 
@@ -285,6 +345,10 @@ class CentralWidget extends React.Component<IProps, IState>{
         <PipelineTaskDialogModal selPipelineTask={this.m_selPipelineTask} 
                                  show={this.state.isShowPipelineTaskConfig} 
                                  onHide={()=>this.setState({isShowPipelineTaskConfig : false})}/>
+       
+        <EventDialogModal selEvent={this.m_selEvent} 
+                          show={this.state.isShowEventConfig} 
+                          onHide={()=>this.setState({isShowEventConfig : false})}/>
        
         <AckDeleteModal description={this.m_ackDeleteDialog.description}
                         title={this.m_ackDeleteDialog.title} 

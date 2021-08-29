@@ -113,7 +113,7 @@ class TaskTemplateDialogModal extends React.Component<IProps, IState>{
     return (
       <Modal dialogClassName="taskTemplateDialogModal" show={this.props.show} onHide={()=>this.props.onHide()}  >
         <Modal.Header closeButton>
-          <Modal.Title> {this.m_isNewTask ? "Create of Task Template" : "Edit of Task Template"}</Modal.Title>
+          <Modal.Title> {this.m_isNewTask ? "Create of Task Template" : `${ttask.id}# Edit of Task Template`}</Modal.Title>
         </Modal.Header>
         <Modal.Body style={{height: "80vh", overflow:"auto"}}>
           <Form>

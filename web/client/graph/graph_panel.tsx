@@ -15,6 +15,7 @@ enum SocketType{
 
 interface IProps { 
   hStatusMess : (string, MessType)=>void;
+  hShowTaskDialog : (id : number)=>void;
 };
 interface IState { 
   socketCaptured : {id : number, type : SocketType};
@@ -127,15 +128,14 @@ class GraphPanel extends React.Component<IProps, IState>{
 
     for (let t of PipelineTasks.getAll().values()){
       if (t.setts.isSelected && (t.id != id)){
-        let task = PipelineTasks.get(t.id);
-        task.setts.isSelected = false;
-        PipelineTasks.upd(task);
+        PipelineTasks.setSelected(t.id, false);
+        ServerAPI.changePipelineTask(t);
       }
     }
     let task = PipelineTasks.get(id);
     if (!task.setts.isSelected){
-      task.setts.isSelected = true;
-      PipelineTasks.upd(task);
+      PipelineTasks.setSelected(id, true);
+      ServerAPI.changePipelineTask(task);
     }
   }
 
@@ -203,6 +203,7 @@ class GraphPanel extends React.Component<IProps, IState>{
                                 hMove={this.hTaskMove}
                                 hSelect={this.hTaskSelect}
                                 hShowContextMenu={this.hShowContextMenu}
+                                hShowTaskDialog={this.props.hShowTaskDialog}
                                 hSocketInputСaptured={(id, mpos)=>{
                                   this.m_mouseStartMem = mpos;
                                   this.setState({socketCaptured : {id, type : SocketType.Input}});
@@ -212,10 +213,8 @@ class GraphPanel extends React.Component<IProps, IState>{
                                   this.setState({socketCaptured : {id, type : SocketType.Output}});
                                 }} 
                                 hHide={(id)=>{
-                                  let task = PipelineTasks.get(t.id);
-                                  task.setts.isVisible = false;
-                                  PipelineTasks.upd(task);
-                                  ServerAPI.changePipelineTask(task);
+                                  PipelineTasks.setVisible(t.id, false);
+                                  ServerAPI.changePipelineTask(PipelineTasks.get(t.id));
                                 }}/>);
         }
       }
@@ -231,7 +230,12 @@ class GraphPanel extends React.Component<IProps, IState>{
              <canvas className="graphPanel" height="2048px" width="4096px" 
                      ref={ el => this.m_canvasRef = el }/>
              <Tasks/>
-             <TaskContextMenu id = {this.state.contextMenuTaskId} hStatusMess={this.props.hStatusMess} />
+             <TaskContextMenu id = {this.state.contextMenuTaskId}
+                              hHide={()=>{
+                                this.setState({contextMenuTaskId:0});
+                                this.drawAll(this.getCanvasContext());
+                              }} 
+                              hStatusMess={this.props.hStatusMess} />
            </div>
   }
 }

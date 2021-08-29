@@ -1,5 +1,6 @@
-import { IEvent } from "../types"
+import { IEvent, IRect, IPoint } from "../types"
 import { makeObservable, observable, action } from "mobx"
+import * as ServerAPI from "../server_api/server_api";
 
 ///////////////////////////////////////////////////////////////
 /// Events
@@ -9,20 +10,16 @@ class EventsStoreClass {
   constructor() {
       makeObservable(this, {
         m_events: observable,
-        setAll: action,
+        setAll: action,       
         add: action,
         del: action,
         upd: action,
       });
       this.m_events = new Map<number, IEvent>();
   }
-  copy(evt : IEvent) : IEvent {
-    let ret = Object.assign({}, evt);
-    ret.setts = {...ret.setts};
-    ret.nextTasksId = [...evt.nextTasksId];
-    ret.prevTasksId = [...evt.prevTasksId];
-    ret.nextEventsId = [...evt.nextEventsId]; 
-    ret.prevEventsId = [...evt.prevEventsId]; 
+  copy(ev : IEvent) : IEvent {
+    let ret = Object.assign({}, ev);   
+    ret.nextTasksId = [...ev.nextTasksId];   
     return ret;   
   }
   getAll() : Map<number, IEvent>{
@@ -36,7 +33,7 @@ class EventsStoreClass {
       if (v.name == name) return this.copy(v);
     }
     return null;
-  }
+  } 
   setAll(ev : Map<number, IEvent>){
     this.m_events = ev;
   }

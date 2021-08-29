@@ -8,6 +8,7 @@ import * as ServerAPI from "../server_api/server_api";
 
 interface IProps { 
   id : number;
+  hHide : ()=>void;
   hStatusMess : (mess : string, mtype : MessType)=>void;
 };
 interface IState { 
@@ -20,6 +21,9 @@ class TaskContextMenu extends React.Component<IProps, IState>{
     super(props);    
    
     this.startTask = this.startTask.bind(this);
+    this.deleteNextConnect = this.deleteNextConnect.bind(this);
+    this.deletePrevConnect = this.deletePrevConnect.bind(this);
+    this.deleteTaskFromMap = this.deleteTaskFromMap.bind(this);
 
     this.state  = { };   
   } 
@@ -28,15 +32,88 @@ class TaskContextMenu extends React.Component<IProps, IState>{
 
     let task = {
       pplTaskId : this.props.id,
+      prevPplTaskId : this.props.id,
       ttlId : PipelineTasks.get(this.props.id).ttId,
     } as ITask;
 
-    let pplTask = PipelineTasks.get(this.props.id);
+    let pplTask = PipelineTasks.get(this.props.id);    
 
     ServerAPI.startTask(task, 
       (resp)=>this.props.hStatusMess(`Success start of Task ${pplTask.name}`, MessType.Ok),
       ()=>{ this.props.hStatusMess(`Server error start of Task ${pplTask.name}`, MessType.Error); }
     );
+    this.props.hHide();
+  }
+
+  deleteNextConnect(id: number){
+
+    let ppt = PipelineTasks.get(this.props.id);
+    let inxNext = ppt.nextTasksId.findIndex(nid=>{
+      return nid == id;
+    })
+    let nextTask = PipelineTasks.get(ppt.nextTasksId[inxNext]);
+    
+    ppt.nextTasksId.splice(inxNext, 1);
+    PipelineTasks.upd(ppt);
+    ServerAPI.changePipelineTask(ppt);
+    
+    if (nextTask.id != this.props.id){
+      let inxPrev = nextTask.prevTasksId.findIndex(pid=>{
+        return pid == this.props.id;
+      })
+      nextTask.prevTasksId.splice(inxPrev, 1);
+      PipelineTasks.upd(nextTask);
+      ServerAPI.changePipelineTask(nextTask);
+    }
+    else{
+      let inxPrev = ppt.prevTasksId.findIndex(pid=>{
+        return pid == this.props.id;
+      })
+      ppt.prevTasksId.splice(inxPrev, 1);
+      PipelineTasks.upd(ppt);
+      ServerAPI.changePipelineTask(ppt);
+    }
+    this.props.hHide();
+  }
+
+  deletePrevConnect(id : number){
+
+    let ppt = PipelineTasks.get(this.props.id);
+    let inxPrev = ppt.prevTasksId.findIndex(nid=>{
+      return nid == id;
+    })
+    let prevTask = PipelineTasks.get(ppt.prevTasksId[inxPrev]);
+    
+    ppt.prevTasksId.splice(inxPrev, 1);
+    PipelineTasks.upd(ppt);
+    ServerAPI.changePipelineTask(ppt);
+    
+    if (prevTask.id != this.props.id){
+      let inxNext = prevTask.nextTasksId.findIndex(pid=>{
+        return pid == this.props.id;
+      })
+      prevTask.nextTasksId.splice(inxNext, 1);
+      PipelineTasks.upd(prevTask);
+      ServerAPI.changePipelineTask(prevTask);
+    }
+    else{
+      let inxNext = ppt.nextTasksId.findIndex(pid=>{
+        return pid == this.props.id;
+      })
+      ppt.nextTasksId.splice(inxNext, 1);
+      PipelineTasks.upd(ppt);
+      ServerAPI.changePipelineTask(ppt);
+    }
+    this.props.hHide();
+  }
+
+  deleteTaskFromMap(){
+
+    PipelineTasks.delAllConnections(this.props.id);
+    PipelineTasks.setVisible(this.props.id, false);
+    ServerAPI.changePipelineTask(PipelineTasks.get(this.props.id));
+   
+    this.props.hHide();
   }
   
   render(){  
@@ -57,7 +134,11 @@ class TaskContextMenu extends React.Component<IProps, IState>{
                         title="Delete next connection &ensp;&ensp;&ensp;"
                         onMouseDown={(e) => e.stopPropagation()}>
           {task.nextTasksId.map((v, i)=>{
-            return <Dropdown.Item eventKey={v.toString()} key={v}>{PipelineTasks.get(v).name}</Dropdown.Item>
+            return <Dropdown.Item eventKey={v.toString()} 
+                                  key={v}
+                                  onClick={()=>this.deleteNextConnect(v)}>
+                      {PipelineTasks.get(v).name}
+                    </Dropdown.Item>
           })}
         </DropdownButton>
         <DropdownButton variant="light" as={ButtonGroup} 
@@ -65,11 +146,16 @@ class TaskContextMenu extends React.Component<IProps, IState>{
                         title="Delete previous connection"
                         onMouseDown={(e) => e.stopPropagation()}>
           {task.prevTasksId.map((v, i)=>{
-            return <Dropdown.Item eventKey={v.toString()} key={v}>{PipelineTasks.get(v).name}</Dropdown.Item>
+            return <Dropdown.Item eventKey={v.toString()} 
+                                  key={v}
+                                  onClick={()=>this.deletePrevConnect(v)}>
+                      {PipelineTasks.get(v).name}
+                    </Dropdown.Item>
           })}
         </DropdownButton>
-        <Button variant="light" style={{textAlign: "left"}}>Copy task to clipboard</Button>
-        <Button variant="light" style={{textAlign: "left"}}>Delete task from map</Button>
+        {/* <Button variant="light" style={{textAlign: "left"}}>Copy task to clipboard</Button> */}
+        <Button variant="light" style={{textAlign: "left"}}
+                onClick={this.deleteTaskFromMap}>Delete task from map</Button>
       </ButtonGroup>  
       : ""
     )

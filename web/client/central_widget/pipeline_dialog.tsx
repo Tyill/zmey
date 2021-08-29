@@ -115,7 +115,7 @@ class PipelineDialogModal extends React.Component<IProps, IState>{
     return (
       <Modal show={this.props.show} onHide={()=>this.props.onHide()} >
         <Modal.Header closeButton>
-          <Modal.Title> {this.m_isNewPipeline ? "Create of Pipeline" : "Edit of Task Pipeline"}</Modal.Title>
+          <Modal.Title> {this.m_isNewPipeline ? "Create of Pipeline" : `${ppl.id}# Edit of Task Pipeline`}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>

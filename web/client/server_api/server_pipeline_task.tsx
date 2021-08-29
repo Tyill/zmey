@@ -43,16 +43,3 @@ function getAllPipelineTasks(onFillTasks : (tasks : Array<IPipelineTask>) => any
   .then(onFillTasks)
   .catch(onError); 
 }
-
-export
-function getPipelineTaskState(pipelineTask : IPipelineTask, onSucces : (resp : Array<ITask>) => any, onError : () => any ){
-  fetch('api/v1/pipelineTasks/' + pipelineTask.id, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json;charset=utf-8'
-    },
-    body: JSON.stringify(pipelineTask)})
-  .then(response => response.json())    
-  .then(onSucces)
-  .catch(onError);    
-} 

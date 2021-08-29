@@ -4,6 +4,7 @@ from contextlib import closing
 from flask import(
   g, current_app
 )
+from . import zm_client as zm
 
 m_instance_path = ""
 
@@ -32,7 +33,24 @@ def userDb():
 def initUserDb(db):
   with closing(db.cursor()) as cr:
     cr.execute('PRAGMA journal_mode=wal')
-
+  
+    cr.execute(
+      "CREATE TABLE IF NOT EXISTS tblState ( \
+        id   INTEGER PRIMARY KEY AUTOINCREMENT, \
+        kind TEXT NOT NULL CHECK (kind <> ''));"
+    )    
+    cr.execute(f"INSERT INTO tblState(id, kind) VALUES ('{zm.StateType.UNDEFINED.value}', 'undefined');")
+    cr.execute(f"INSERT INTO tblState(id, kind) VALUES ('{zm.StateType.READY.value}', 'ready');")
+    cr.execute(f"INSERT INTO tblState(id, kind) VALUES ('{zm.StateType.START.value}', 'start');")
+    cr.execute(f"INSERT INTO tblState(id, kind) VALUES ('{zm.StateType.RUNNING.value}', 'running');")
+    cr.execute(f"INSERT INTO tblState(id, kind) VALUES ('{zm.StateType.PAUSE.value}', 'pause');")
+    cr.execute(f"INSERT INTO tblState(id, kind) VALUES ('{zm.StateType.STOP.value}', 'stop');")
+    cr.execute(f"INSERT INTO tblState(id, kind) VALUES ('{zm.StateType.COMPLETED.value}', 'completed');")
+    cr.execute(f"INSERT INTO tblState(id, kind) VALUES ('{zm.StateType.ERROR.value}', 'error');")
+    cr.execute(f"INSERT INTO tblState(id, kind) VALUES ('{zm.StateType.CANCEL.value}', 'cancel');")
+    cr.execute(f"INSERT INTO tblState(id, kind) VALUES ('{zm.StateType.NOT_RESPONDING.value}', 'notResponding');")
+    db.commit()
+    
     cr.execute(
       "CREATE TABLE IF NOT EXISTS tblPipeline ( \
         id            INTEGER PRIMARY KEY AUTOINCREMENT, \
@@ -60,33 +78,32 @@ def initUserDb(db):
         isDelete      INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1), \
         params        TEXT NOT NULL, \
         nextTasksId   TEXT NOT NULL, \
-        nextEventsId  TEXT NOT NULL, \
         prevTasksId   TEXT NOT NULL, \
-        prevEventsId  TEXT NOT NULL, \
         name          TEXT NOT NULL CHECK (name <> ''), \
         description   TEXT NOT NULL, \
         setts TEXT NOT NULL);"   
     )
     cr.execute(
+      "CREATE INDEX inxPipelineTaskPplId ON tblPipelineTask(PplId);"
+    )
+  
+    cr.execute(
       "CREATE TABLE IF NOT EXISTS tblEvent( \
         id INTEGER PRIMARY KEY AUTOINCREMENT, \
         isEnabled     INT NOT NULL DEFAULT 1 CHECK (isEnabled BETWEEN 0 AND 1), \
         isDelete      INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1), \
-        params        TEXT NOT NULL, \
         nextTasksId   TEXT NOT NULL, \
-        nextEventsId  TEXT NOT NULL, \
-        prevTasksId   TEXT NOT NULL, \
-        prevEventsId  TEXT NOT NULL, \
         name          TEXT NOT NULL CHECK (name <> ''), \
         description   TEXT NOT NULL, \
-        setts TEXT NOT NULL);"  
+        startTime     TEXT NOT NULL DEFAULT '');"
     )
     cr.execute(
       'CREATE TABLE IF NOT EXISTS tblTask( \
         id INTEGER PRIMARY KEY AUTOINCREMENT, \
         pplTaskId      INT NOT NULL REFERENCES tblPipelineTask, \
+        prevPplTaskId  INT NOT NULL REFERENCES tblPipelineTask, \
         ttlId          INT NOT NULL REFERENCES tblTaskTemplate, \
-        state          INT NOT NULL DEFAULT 0,  \
+        state          INT NOT NULL REFERENCES tblState,  \
         progress       INT NOT NULL DEFAULT 0,  \
         script         TEXT NOT NULL, \
         params         TEXT NOT NULL, \
@@ -96,6 +113,9 @@ def initUserDb(db):
         startTime      TEXT NOT NULL DEFAULT "", \
         stopTime       TEXT NOT NULL DEFAULT "");'  
     )
+    cr.execute(
+      "CREATE INDEX inxTaskPplTaskId ON tblTask(pplTaskId);"
+    )    
     
 def closeUserDb(e = None):
   db = g.pop('db', None)

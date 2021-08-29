@@ -15,3 +15,12 @@ function startTask(newTask : ITask, onSucces : (resp : ITask) => any, onError : 
   .then(onSucces)
   .catch(onError);    
 } 
+
+export
+function getTaskState(pplTaskId : number, onSucces : (resp : Array<ITask>) => any, onError : () => any ){
+  fetch('api/v1/tasks/' + pplTaskId, {
+    method: 'GET'})
+  .then(response => response.json())    
+  .then(onSucces)
+  .catch(onError);    
+} 

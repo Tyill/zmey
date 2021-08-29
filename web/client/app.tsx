@@ -18,7 +18,8 @@ interface IState {
 
 class App extends React.Component<IProps, IState>{
   
-  private m_tout : number = 0;
+  private m_toutStatusMess : number = 0;
+  private m_toutTaskUpdate : number = 0;
   
   constructor(props : IProps){
     super(props);
@@ -27,6 +28,8 @@ class App extends React.Component<IProps, IState>{
 
     this.state = { statusMess: "",
                    statusMessType: MessType.Ok}
+
+    this.updateTaskState = this.updateTaskState.bind(this);
   }
   
   objFromJS(s : string){
@@ -45,7 +48,7 @@ class App extends React.Component<IProps, IState>{
       }      
       Pipelines.setAll(ppl);   
     },
-    ()=>this.setStatusMess("Server error fill Pipelines"));
+    ()=>this.setStatusMess("Server error fill Pipelines", MessType.Error));
 
     ServerAPI.getAllTaskTemplates((taskTemplates : Array<ITaskTemplate>)=>{
       let ttl = new Map<number, ITaskTemplate>();
@@ -54,7 +57,7 @@ class App extends React.Component<IProps, IState>{
       }
       TaskTemplates.setAll(ttl);
     },
-    ()=>this.setStatusMess("Server error fill TaskTeplates"));
+    ()=>this.setStatusMess("Server error fill TaskTeplates", MessType.Error));
 
     ServerAPI.getAllPipelineTasks((pipelineTasks : Array<IPipelineTask>)=>{
       let ppt = new Map<number, IPipelineTask>();
@@ -64,39 +67,49 @@ class App extends React.Component<IProps, IState>{
       }
       PipelineTasks.setAll(ppt);
     },
-    ()=>this.setStatusMess("Server error fill PipelineTasks"));
+    ()=>this.setStatusMess("Server error fill PipelineTasks", MessType.Error));
 
     ServerAPI.getAllEvents((events : Array<IEvent>)=>{
       let evs = new Map<number, IEvent>();
       for (let ev of events){
-        ev.setts = this.objFromJS(ev.setts as unknown as string);
         evs.set(ev.id, ev);
       }
       Events.setAll(evs);
     },
-    ()=>this.setStatusMess("Server error fill Events"));
+    ()=>this.setStatusMess("Server error fill Events", MessType.Error));
 
-    setInterval(()=>{
-      let task = null;
-      for (let t of PipelineTasks.getAll().values()){
-        if (t.setts.isSelected){
-          task = PipelineTasks.get(t.id);
-          break;
-        }
-      }   
-      if (task){
-        ServerAPI.getPipelineTaskState(task, (states : Array<ITask>)=>{
-          Tasks.setAll(states);
-        },      
-        ()=>this.setStatusMess("Server error of task state"))
+    this.updateTaskState();
+  }
+
+  updateTaskState(){
+    if (this.m_toutTaskUpdate) 
+      clearTimeout(this.m_toutTaskUpdate);
+
+    let pplTaskId = 0;
+    for (let t of PipelineTasks.getAll().values()){
+      if (t.setts.isSelected){
+        pplTaskId = t.id;
+        break;
       }
-    }, 1000);
+    }   
+    if (pplTaskId){
+      ServerAPI.getTaskState(pplTaskId, (states : Array<ITask>)=>{
+        Tasks.setAll(states); 
+        this.m_toutTaskUpdate = setTimeout(this.updateTaskState, 1000);
+      },      
+      ()=>{
+        this.setStatusMess("Server error of task state", MessType.Error);
+        this.m_toutTaskUpdate = setTimeout(this.updateTaskState, 1000);
+      })
+    }else{
+      this.m_toutTaskUpdate = setTimeout(this.updateTaskState, 1000);
+    }    
   }
   
   setStatusMess(mess : string, statusMessType : MessType = MessType.Ok){
     this.setState({statusMess : mess, statusMessType});    
-    if (this.m_tout) clearTimeout(this.m_tout);
-    this.m_tout = setTimeout(() => { 
+    if (this.m_toutStatusMess) clearTimeout(this.m_toutStatusMess);
+    this.m_toutStatusMess = setTimeout(() => { 
       this.setState({statusMess : "", statusMessType : MessType.Ok});
     }, 3000)
   }

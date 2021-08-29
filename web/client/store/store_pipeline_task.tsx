@@ -31,8 +31,6 @@ class PipelineTasksStoreClass {
     ret.setts.socketOutRect = {...pt.setts.socketOutRect};
     ret.nextTasksId = [...pt.nextTasksId];
     ret.prevTasksId = [...pt.prevTasksId];
-    ret.nextEventsId = [...pt.nextEventsId]; 
-    ret.prevEventsId = [...pt.prevEventsId]; 
     return ret;   
   }
   getAll() : Map<number, IPipelineTask>{
@@ -68,8 +66,19 @@ class PipelineTasksStoreClass {
   setVisible(id : number, visible : boolean){
     if (this.m_pipelineTasks.has(id)){
       let ppt = this.m_pipelineTasks.get(id);
-      ppt.setts.isVisible = visible;
-      this.m_pipelineTasks.set(ppt.id, ppt);
+      if (ppt.setts.isVisible != visible){
+        ppt.setts.isVisible = visible;
+        this.m_pipelineTasks.set(ppt.id, ppt);
+      }
+    }
+  }
+  setSelected(id : number, selected : boolean){
+    if (this.m_pipelineTasks.has(id)){
+      let ppt = this.m_pipelineTasks.get(id);
+      if (ppt.setts.isSelected != selected){
+        ppt.setts.isSelected = selected;
+        this.m_pipelineTasks.set(ppt.id, ppt);
+      }
     }
   }
   setPosition(ptId: number, posX : number, posY : number){

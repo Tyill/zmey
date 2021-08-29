@@ -14,6 +14,7 @@ interface IProps {
   hMove : (id : number) => any;
   hSelect : (id : number) => any;
   hShowContextMenu : (id : number) => any;
+  hShowTaskDialog : (id : number) => any;
   hSocketInputСaptured : (id : number, mpos : IPoint) => any;
   hSocketOutputСaptured : (id : number, mpos : IPoint) => any;
 };
@@ -133,6 +134,9 @@ class GraphTask extends React.Component<IProps, IState>{
                      e.stopPropagation();
                    }
                    this.props.hSelect(this.props.id);
+                 }}
+                 onDoubleClick={(e : React.MouseEvent)=>{
+                   this.props.hShowTaskDialog(this.props.id);
                  }}>
               {this.props.title}
             </div>            

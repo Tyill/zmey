@@ -21,7 +21,7 @@ export default
 class PipelineTaskDialogModal extends React.Component<IProps, IState>{
    
   private m_refObj : object;
-  private m_tout : number = 0;
+  private m_toutMess : number = 0;
   private m_isNewPipelineTask : boolean;
   private m_hasAdded : boolean;
 
@@ -33,7 +33,7 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
     };    
     this.hSubmit = this.hSubmit.bind(this); 
     this.m_refObj = {};
-    this.m_tout = 0;
+    this.m_toutMess = 0;
     this.m_isNewPipelineTask = this.props.selPipelineTask.id == 0;
     this.m_hasAdded = false;
   }
@@ -48,7 +48,7 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
     if (this.m_hasAdded) return;
     
     const pplId = this.m_refObj["pipeline"].value;
-    const ttlId = this.m_refObj["taskTemplate"].value;
+    const ttId = this.m_refObj["taskTemplate"].value;
 
     let error = "",
         name = this.m_refObj["name"].value;
@@ -60,7 +60,7 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
       error = `This name '${name}' already exists`;
     else if (!pplId)
       error = `Not select Pipeline`;
-    else if (!ttlId)
+    else if (!ttId)
       error = `Not select TaskTemplate`;
        
     if (error){
@@ -70,8 +70,8 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
    
     let newPipelineTask = {
       id : this.props.selPipelineTask.id || 0,
-      pplId : this.m_refObj["pipeline"].value,
-      ttId: this.m_refObj["taskTemplate"].value,
+      pplId,
+      ttId,
       isEnabled : this.props.selPipelineTask.isEnabled || true,
       setts : this.props.selPipelineTask.setts || {
         isVisible : true,
@@ -82,9 +82,7 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
         height : 0,
       },
       nextTasksId: !this.m_isNewPipelineTask ? this.props.selPipelineTask.nextTasksId : [],
-      nextEventsId: !this.m_isNewPipelineTask ? this.props.selPipelineTask.nextEventsId : [],
       prevTasksId: !this.m_isNewPipelineTask ? this.props.selPipelineTask.prevTasksId : [],
-      prevEventsId: !this.m_isNewPipelineTask ? this.props.selPipelineTask.prevEventsId : [],
       params : this.m_refObj["params"].value,
       name : this.m_refObj["name"].value,           
       description : this.m_refObj["description"].value,
@@ -102,6 +100,11 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
       )         
     }
     else{
+      if (pplId != this.props.selPipelineTask.pplId){
+        PipelineTasks.delAllConnections(this.props.selPipelineTask.id);
+        newPipelineTask.nextTasksId = [];
+        newPipelineTask.prevTasksId = [];
+      }
       ServerAPI.changePipelineTask(newPipelineTask, 
         (respPipelineTask)=>{
           PipelineTasks.upd(respPipelineTask); 
@@ -114,8 +117,8 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
 
   setStatusMess(mess : string, delaySec : number = 3, cback : ()=>void = null){
     this.setState({statusMess : mess});    
-    if (this.m_tout) clearTimeout(this.m_tout);
-    this.m_tout = setTimeout(() => { 
+    if (this.m_toutMess) clearTimeout(this.m_toutMess);
+    this.m_toutMess = setTimeout(() => { 
       this.setState({statusMess : ""});
       if (cback) cback();
     }, delaySec * 1000)
@@ -142,7 +145,7 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
     return (
       <Modal show={this.props.show} onHide={()=>this.props.onHide()} >
         <Modal.Header closeButton>
-          <Modal.Title> {this.m_isNewPipelineTask ? "Create of Pipeline Task" : "Edit of Pipeline Task"}</Modal.Title>
+          <Modal.Title> {this.m_isNewPipelineTask ? "Create of Pipeline Task" : `${task.id}# Edit of Pipeline Task`}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
