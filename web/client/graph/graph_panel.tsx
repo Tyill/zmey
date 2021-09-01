@@ -69,6 +69,8 @@ class GraphPanel extends React.Component<IProps, IState>{
         if ((this.state.socketCaptured.type == SocketType.Output) && 
              isPntIntoRect(mpos, pt.setts.socketInRect) && !task.nextTasksId.find(v=>v==pt.id)){
           task.nextTasksId.push(pt.id);
+          task.isStartNext.push(1);
+          task.isSendResultToNext.push(1);
           PipelineTasks.upd(task);
           ServerAPI.changePipelineTask(task);
          
@@ -86,6 +88,8 @@ class GraphPanel extends React.Component<IProps, IState>{
 
           let prevTask = PipelineTasks.get(pt.id);
           prevTask.nextTasksId.push(task.id);
+          prevTask.isStartNext.push(1);
+          prevTask.isSendResultToNext.push(1);
           PipelineTasks.upd(prevTask);
           ServerAPI.changePipelineTask(prevTask);
         }
@@ -146,9 +150,10 @@ class GraphPanel extends React.Component<IProps, IState>{
 
   drawAll(ctx : CanvasRenderingContext2D){
     for (const t of PipelineTasks.getByPPlId(this.m_pplId)){  
-      for (const nt of t.nextTasksId){        
+      t.nextTasksId.forEach((nt, ix)=>{  
+        ctx.strokeStyle = t.isStartNext[ix] ? "green" : "gray";
         this.drawLine(ctx, t.setts.socketOutPoint, PipelineTasks.get(nt).setts.socketInPoint);
-      }
+      });
     }
   } 
 
@@ -180,8 +185,9 @@ class GraphPanel extends React.Component<IProps, IState>{
     const Tasks = observer(() => {
       
       let selPipelines = Pipelines.getSelected();
-      if (selPipelines.length && (selPipelines[0].id != this.m_pplId)){
+      if (selPipelines.length && ((selPipelines[0].id != this.m_pplId) || selPipelines[0].setts.hasChangeTask)){
         this.m_pplId = selPipelines[0].id;
+        Pipelines.setChangeTask(selPipelines[0].id, false);
         this.drawAll(this.getCanvasContext());
       } 
       else if (!selPipelines.length && (this.m_pplId != 0)){

@@ -12,10 +12,12 @@ class PipelineTask:
                isEnabled : int = 1,
                nextTasksId : List[int] = 0,
                prevTasksId : List[int] = 0,
-               params = "",
-               name = "",
-               description = "",
-               setts = "{}"):
+               isStartNext : List[int] = 0,
+               isSendResultToNext : List[int] = 0,
+               params : str = "",
+               name : str = "",
+               description : str = "",
+               setts : str = "{}"):
     self.id = id
     self.pplId = pplId                 # Pipeline id
     self.isEnabled = isEnabled
@@ -23,6 +25,8 @@ class PipelineTask:
     self.ttId = ttId                   # TaskTemplate id
     self.nextTasksId = nextTasksId     # Next pipeline tasks id
     self.prevTasksId = prevTasksId     # Prev pipeline tasks id
+    self.isStartNext = isStartNext     # Is start next task?
+    self.isSendResultToNext = isSendResultToNext # Is send result to next task?
     self.params = params               # Task params
     self.name = name    
     self.description = description
@@ -39,11 +43,13 @@ def add(pt : PipelineTask) -> bool:
 
       nextTasksId = ','.join([str(v) for v in pt.nextTasksId])
       prevTasksId = ','.join([str(v) for v in pt.prevTasksId])
+      isStartNext = ','.join([str(v) for v in pt.isStartNext])
+      isSendResultToNext = ','.join([str(v) for v in pt.isSendResultToNext])
 
       with closing(g.db.cursor()) as cr:
         cr.execute(
           "INSERT INTO tblPipelineTask (pplId, ttId, params, isEnabled, setts,"
-          "nextTasksId, prevTasksId, name, description) VALUES("
+          "nextTasksId, prevTasksId, isStartNext, isSendResultToNext, name, description) VALUES("
           f'"{pt.pplId}",'
           f'"{pt.ttId}",'
           f'"{pt.params}",'
@@ -51,6 +57,8 @@ def add(pt : PipelineTask) -> bool:
           f'"{pt.setts}",'
           f'"{nextTasksId}",'
           f'"{prevTasksId}",'
+          f'"{isStartNext}",'
+          f'"{isSendResultToNext}",'
           f'"{pt.name}",'
           f'"{pt.description}");'
         )
@@ -78,20 +86,20 @@ def get(db, id : int) -> PipelineTask:
     print("{0} local db query failed: {1}".format("PipelineTask.get", str(err)))
   return None
 
-def getNextTasks(db, id : int) -> PipelineTask:
+def getNextTasks(db, id : int) -> List[List[int]]:
   try:
-    task = None
     with closing(db.cursor()) as cr:
       cr.execute(
-        "SELECT nextTasksId "
+        "SELECT nextTasksId, isStartNext, isSendResultToNext "
         "FROM tblPipelineTask "
         f"WHERE id = {id};"      
       )
       rows = cr.fetchall()
       for row in rows:
-        nextTasksId = [int(v) for v in row[0].split(',') if len(v)]    
-        task = PipelineTask(id=id, nextTasksId=nextTasksId) 
-    return task
+        nextTasksId = [int(v) for v in row[0].split(',') if len(v)] 
+        isStartNext = [int(v) for v in row[1].split(',') if len(v)] 
+        isSendResultToNext = [int(v) for v in row[2].split(',') if len(v)] 
+        return [nextTasksId, isStartNext, isSendResultToNext]
   except Exception as err:
     print("{0} local db query failed: {1}".format("PipelineTask.getNextTasks", str(err)))
   return None
@@ -101,6 +109,8 @@ def change(pt : PipelineTask) -> bool:
     try:
       nextTasksId = ','.join([str(v) for v in pt.nextTasksId])
       prevTasksId = ','.join([str(v) for v in pt.prevTasksId])
+      isStartNext = ','.join([str(v) for v in pt.isStartNext])
+      isSendResultToNext = ','.join([str(v) for v in pt.isSendResultToNext])
       with closing(g.db.cursor()) as cr:
         cr.execute(
           "UPDATE tblPipelineTask SET "
@@ -111,6 +121,8 @@ def change(pt : PipelineTask) -> bool:
           f'params = "{pt.params}",'
           f'nextTasksId = "{nextTasksId}",'
           f'prevTasksId = "{prevTasksId}",'
+          f'isStartNext = "{isStartNext}",'
+          f'isSendResultToNext = "{isSendResultToNext}",'
           f'name = "{pt.name}",'
           f'description = "{pt.description}" '
           f'WHERE id = {pt.id};' 
@@ -143,7 +155,7 @@ def all() -> List[PipelineTask]:
       with closing(g.db.cursor()) as cr:
         cr.execute(
           "SELECT id, pplId, ttId, params, isEnabled, setts,"
-          "nextTasksId, prevTasksId, name, description "
+          "nextTasksId, prevTasksId, isStartNext, isSendResultToNext, name, description "
           "FROM tblPipelineTask "
           "WHERE isDelete = 0;"
         )
@@ -151,10 +163,13 @@ def all() -> List[PipelineTask]:
         for row in rows:
           nextTasksId = [int(v) for v in row[6].split(',') if len(v)]         
           prevTasksId = [int(v) for v in row[7].split(',') if len(v)]
+          isStartNext = [int(v) for v in row[8].split(',') if len(v)]
+          isSendResultToNext = [int(v) for v in row[9].split(',') if len(v)]
           pts.append(PipelineTask(id=row[0], pplId=row[1], ttId=row[2], params=row[3],
                                   isEnabled=row[4], setts=row[5],
                                   nextTasksId=nextTasksId, prevTasksId=prevTasksId,
-                                  name=row[8], description=row[9]))       
+                                  isStartNext=isStartNext, isSendResultToNext=isSendResultToNext,
+                                  name=row[10], description=row[11]))       
       return pts  
     except Exception as err:
       print("{0} local db query failed: {1}".format("PipelineTask.all", str(err)))

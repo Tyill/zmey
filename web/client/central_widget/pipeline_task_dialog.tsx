@@ -49,6 +49,7 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
     
     const pplId = this.m_refObj["pipeline"].value;
     const ttId = this.m_refObj["taskTemplate"].value;
+    let selTask = this.props.selPipelineTask;
 
     let error = "",
         name = this.m_refObj["name"].value;
@@ -56,7 +57,7 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
       error = "Name is empty"; 
     else if (this.m_isNewPipelineTask && PipelineTasks.getByName(pplId, name))
       error = `This name '${name}' already exists`;
-    else if (!this.m_isNewPipelineTask && (this.props.selPipelineTask.name != name) && PipelineTasks.getByName(pplId, name))
+    else if (!this.m_isNewPipelineTask && (selTask.name != name) && PipelineTasks.getByName(pplId, name))
       error = `This name '${name}' already exists`;
     else if (!pplId)
       error = `Not select Pipeline`;
@@ -67,13 +68,20 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
       this.setStatusMess(error);
       return;
     }
-   
+       
+    if (!this.m_isNewPipelineTask && selTask.nextTasksId && selTask.nextTasksId.length){
+      selTask.nextTasksId.forEach((id, ix)=>{
+        selTask.isStartNext[ix] = this.m_refObj["isStartNext" + id].checked ? 1 : 0;
+        selTask.isSendResultToNext[ix] = this.m_refObj["isSendResultToNext" + id].checked ? 1 : 0;
+      });
+    }
+
     let newPipelineTask = {
-      id : this.props.selPipelineTask.id || 0,
+      id : selTask.id || 0,
       pplId,
       ttId,
-      isEnabled : this.props.selPipelineTask.isEnabled || true,
-      setts : this.props.selPipelineTask.setts || {
+      isEnabled : selTask.isEnabled || true,
+      setts : selTask.setts || {
         isVisible : true,
         isSelected : false,
         positionX : 0,
@@ -81,8 +89,10 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
         width : 0,
         height : 0,
       },
-      nextTasksId: !this.m_isNewPipelineTask ? this.props.selPipelineTask.nextTasksId : [],
-      prevTasksId: !this.m_isNewPipelineTask ? this.props.selPipelineTask.prevTasksId : [],
+      nextTasksId: !this.m_isNewPipelineTask ? selTask.nextTasksId : [],
+      prevTasksId: !this.m_isNewPipelineTask ? selTask.prevTasksId : [],
+      isStartNext: !this.m_isNewPipelineTask ? selTask.isStartNext : [],
+      isSendResultToNext: !this.m_isNewPipelineTask ? selTask.isSendResultToNext : [],
       params : this.m_refObj["params"].value,
       name : this.m_refObj["name"].value,           
       description : this.m_refObj["description"].value,
@@ -96,21 +106,26 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
           this.setStatusMess("Success create of Pipeline", 1,
            ()=>{this.props.onHide(); this.m_hasAdded = false;});
         },
-        ()=>{this.setStatusMess("Server error create of Pipeline"); this.m_hasAdded = false;}
+        ()=>{this.setStatusMess("Server error create of Pipeline Task"); this.m_hasAdded = false;}
       )         
     }
     else{
-      if (pplId != this.props.selPipelineTask.pplId){
-        PipelineTasks.delAllConnections(this.props.selPipelineTask.id);
+      if (pplId != selTask.pplId){
+        PipelineTasks.delAllConnections(selTask.id);
         newPipelineTask.nextTasksId = [];
         newPipelineTask.prevTasksId = [];
       }
       ServerAPI.changePipelineTask(newPipelineTask, 
         (respPipelineTask)=>{
-          PipelineTasks.upd(respPipelineTask); 
+          PipelineTasks.upd(respPipelineTask);           
           this.setStatusMess("Success change of Pipeline");
+
+          let selPipelines = Pipelines.getSelected();
+          if (selPipelines.length){
+            Pipelines.setChangeTask(selPipelines[0].id, true);
+          }           
         },
-        () =>this.setStatusMess("Server error change of Pipeline")
+        () =>this.setStatusMess("Server error change of Pipeline Task")
       )
     }      
   }
@@ -141,6 +156,30 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
                           {t.name}
                         </option>);
     });
+
+    let nextTask = [];
+    if (task.nextTasksId && task.nextTasksId.length){
+      task.nextTasksId.forEach((id, ix)=>{
+        const nt = PipelineTasks.get(id);
+        console.log("isStartNext", task.isStartNext) ;
+          nextTask.push(   
+            <div className="d-flex flex-row mb-2 p-0 border borderRadius" key={id} style={{ maxWidth:"200px"}} >
+              <p className="m-2 mr-auto p-0 ">{nt.name}</p>
+              <input className="m-2 p-0 align-self-center" 
+                     ref={(input) => {this.m_refObj["isStartNext" + id] = input }}
+                     type="checkbox"
+                     title="Start of next task"
+                     defaultChecked={task.isStartNext[ix] == 1} />
+              <input className="m-2 p-0 align-self-center" 
+                     ref={(input) => {this.m_refObj["isSendResultToNext" + id] = input }} 
+                     type="checkbox"                     
+                     title="Send result to next task"
+                     defaultChecked={task.isSendResultToNext[ix] == 1} />
+            </div>
+          )
+        })
+    }
+   
    
     return (
       <Modal show={this.props.show} onHide={()=>this.props.onHide()} >
@@ -176,6 +215,16 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
                 <Form.Control as="textarea" ref={(input) => {this.m_refObj["params"] = input }} placeholder="" defaultValue={task.params} rows={5} />
               </Form.Group>
             </Form.Row>
+            {task.nextTasksId && task.nextTasksId.length ?
+            <Form.Row >
+              <Form.Group as={Col}>
+                <Form.Label>Next tasks</Form.Label>   
+                <div style={{ maxHeight:"150px", overflow:"auto"}}>
+                {nextTask}
+                </div>            
+              </Form.Group>              
+            </Form.Row>
+            : ""}
             <Form.Row style={{height:"20px"}}> 
               <Form.Label style={{marginLeft:"5px"}}>{this.state.statusMess}</Form.Label>   
             </Form.Row>  

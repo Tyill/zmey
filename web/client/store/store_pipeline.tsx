@@ -67,6 +67,13 @@ class PipelinesStoreClass {
       this.m_pipelines.set(ppl.id, ppl);
     }
   }
+  setChangeTask(id : number, on : boolean){
+    if (this.m_pipelines.has(id)){
+      let ppl = this.m_pipelines.get(id);
+      ppl.setts.hasChangeTask = on;
+      this.m_pipelines.set(ppl.id, ppl);
+    }
+  }
   setAll(ppl : Map<number, IPipeline>){
     this.m_pipelines = ppl;
   }

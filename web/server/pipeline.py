@@ -8,7 +8,7 @@ class Pipeline:
                id : int = 0,
                name : str = "",
                description : str = "",
-               setts = "{}"):
+               setts : str = "{}"):
     self.id = id  
     self.name = name    
     self.description = description 

@@ -79,6 +79,8 @@ def initUserDb(db):
         params        TEXT NOT NULL, \
         nextTasksId   TEXT NOT NULL, \
         prevTasksId   TEXT NOT NULL, \
+        isStartNext   TEXT NOT NULL, \
+        isSendResultToNext TEXT NOT NULL, \
         name          TEXT NOT NULL CHECK (name <> ''), \
         description   TEXT NOT NULL, \
         setts TEXT NOT NULL);"   
@@ -100,18 +102,19 @@ def initUserDb(db):
     cr.execute(
       'CREATE TABLE IF NOT EXISTS tblTask( \
         id INTEGER PRIMARY KEY AUTOINCREMENT, \
-        pplTaskId      INT NOT NULL REFERENCES tblPipelineTask, \
-        prevPplTaskId  INT NOT NULL REFERENCES tblPipelineTask, \
-        ttlId          INT NOT NULL REFERENCES tblTaskTemplate, \
-        state          INT NOT NULL REFERENCES tblState,  \
-        progress       INT NOT NULL DEFAULT 0,  \
-        script         TEXT NOT NULL, \
-        params         TEXT NOT NULL, \
-        result         TEXT NOT NULL DEFAULT "", \
-        createTime     TEXT NOT NULL DEFAULT "", \
-        takeInWorkTime TEXT NOT NULL DEFAULT "", \
-        startTime      TEXT NOT NULL DEFAULT "", \
-        stopTime       TEXT NOT NULL DEFAULT "");'  
+        pplTaskId       INT NOT NULL REFERENCES tblPipelineTask, \
+        starterPplTaskId INT REFERENCES tblPipelineTask, \
+        starterEventId   INT REFERENCES tblEvent, \
+        ttlId           INT NOT NULL REFERENCES tblTaskTemplate, \
+        state           INT NOT NULL REFERENCES tblState,  \
+        progress        INT NOT NULL DEFAULT 0,  \
+        script          TEXT NOT NULL, \
+        params          TEXT NOT NULL, \
+        result          TEXT NOT NULL DEFAULT "", \
+        createTime      TEXT NOT NULL DEFAULT "", \
+        takeInWorkTime  TEXT NOT NULL DEFAULT "", \
+        startTime       TEXT NOT NULL DEFAULT "", \
+        stopTime        TEXT NOT NULL DEFAULT "");'  
     )
     cr.execute(
       "CREATE INDEX inxTaskPplTaskId ON tblTask(pplTaskId);"

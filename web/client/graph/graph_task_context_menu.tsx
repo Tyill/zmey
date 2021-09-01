@@ -32,7 +32,7 @@ class TaskContextMenu extends React.Component<IProps, IState>{
 
     let task = {
       pplTaskId : this.props.id,
-      prevPplTaskId : this.props.id,
+      starterPplTaskId : this.props.id,
       ttlId : PipelineTasks.get(this.props.id).ttId,
     } as ITask;
 
@@ -54,6 +54,8 @@ class TaskContextMenu extends React.Component<IProps, IState>{
     let nextTask = PipelineTasks.get(ppt.nextTasksId[inxNext]);
     
     ppt.nextTasksId.splice(inxNext, 1);
+    ppt.isStartNext.splice(inxNext, 1);
+    ppt.isSendResultToNext.splice(inxNext, 1);
     PipelineTasks.upd(ppt);
     ServerAPI.changePipelineTask(ppt);
     
@@ -93,6 +95,8 @@ class TaskContextMenu extends React.Component<IProps, IState>{
         return pid == this.props.id;
       })
       prevTask.nextTasksId.splice(inxNext, 1);
+      prevTask.isStartNext.splice(inxNext, 1);
+      prevTask.isSendResultToNext.splice(inxNext, 1);
       PipelineTasks.upd(prevTask);
       ServerAPI.changePipelineTask(prevTask);
     }
@@ -101,6 +105,8 @@ class TaskContextMenu extends React.Component<IProps, IState>{
         return pid == this.props.id;
       })
       ppt.nextTasksId.splice(inxNext, 1);
+      ppt.isStartNext.splice(inxNext, 1);
+      ppt.isSendResultToNext.splice(inxNext, 1);
       PipelineTasks.upd(ppt);
       ServerAPI.changePipelineTask(ppt);
     }

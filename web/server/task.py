@@ -9,13 +9,15 @@ class Task(zm.Task):
   """Task config""" 
   def __init__(self,
                pplTaskId :  int = 0,
-               prevPplTaskId :  int = 0,
+               starterPplTaskId :  int = None,
+               starterEventId :  int = None,
                ttlId :  int = 0):
     zm.Task.__init__(self, ttlId=ttlId)
     self.pplTaskId = pplTaskId
-    self.prevPplTaskId = prevPplTaskId
+    self.starterPplTaskId = starterPplTaskId
+    self.starterEventId = starterEventId
   def __repr__(self):
-      return f"Task: id {self.id} pplTaskId {self.pplTaskId} prevPplTaskId {self.prevPplTaskId} ttlId {self.ttlId} "
+      return f"Task: id {self.id} pplTaskId {self.pplTaskId} starterPplTaskId {self.starterPplTaskId} starterEventId {self.starterEventId} ttlId {self.ttlId} "
   def __str__(self):
     return self.__repr__()
 
@@ -24,11 +26,12 @@ def start(db, userId, iot : Task) -> bool:
     try:
       with closing(db.cursor()) as cr:
         cr.execute(
-          "INSERT INTO tblTask (id, state, pplTaskId, prevPplTaskId, ttlId, script, params) VALUES("
+          "INSERT INTO tblTask (id, state, pplTaskId, starterPplTaskId, starterEventId, ttlId, script, params) VALUES("
           f'"{iot.id}",'
           f'"{zm.StateType.READY.value}",'
           f'"{iot.pplTaskId}",'
-          f'"{iot.prevPplTaskId}",'
+          f'"{iot.starterPplTaskId}",'
+          f'"{iot.starterEventId}",'
           f'"{iot.ttlId}",'
           f'(SELECT script FROM tblTaskTemplate WHERE id = {iot.ttlId}),'
           f'"{iot.params}");'
@@ -87,7 +90,7 @@ def getState(pplTaskId : int) -> List[Task]:
       ret = []
       with closing(g.db.cursor()) as cr:
         cr.execute(
-          "SELECT id, prevPplTaskId, state, startTime, stopTime, result "
+          "SELECT id, starterPplTaskId, starterEventId, state, startTime, stopTime, result "
           "FROM tblTask "
           f"WHERE pplTaskId = {pplTaskId} ORDER BY id DESC LIMIT 1000;"
         )
@@ -95,11 +98,12 @@ def getState(pplTaskId : int) -> List[Task]:
         for row in rows:
           task = Task(pplTaskId=pplTaskId)
           task.id = row[0]
-          task.prevPplTaskId = row[1]
-          task.state = row[2]
-          task.startTime = row[3]
-          task.stopTime = row[4]
-          task.result = row[5]
+          task.starterPplTaskId = row[1]
+          task.starterEventId = row[2]
+          task.state = row[3]
+          task.startTime = row[4]
+          task.stopTime = row[5]
+          task.result = row[6]
           ret.append(task) 
       return ret
     except Exception as err:

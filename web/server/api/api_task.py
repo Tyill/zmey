@@ -17,7 +17,8 @@ def startTask():
 
     task = t.Task()
     task.pplTaskId = int(jnReq['pplTaskId'])
-    task.prevPplTaskId = int(jnReq['prevPplTaskId'])
+    task.starterPplTaskId = int(jnReq['starterPplTaskId'])
+    task.starterEventId = int(jnReq['starterEventId'])
     task.ttlId = int(jnReq['ttlId'])
 
     return json.dumps(task.__dict__) if t.start(g.db, g.userId, task) else ('internal error', 500)

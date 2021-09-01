@@ -197,7 +197,7 @@ class CentralWidget extends React.Component<IProps, IState>{
                                 hDelete={()=>{
                                   this.m_selPipeline = Pipelines.get(p.id);
                                   this.m_ackDeleteDialog.description= this.m_selPipeline.description;
-                                  this.m_ackDeleteDialog.title = `Delete '${this.m_selPipeline.name}' Pipeline?`;
+                                  this.m_ackDeleteDialog.title = `Delete '${this.m_selPipeline.name}' Pipeline and all his tasks?`;
                                   this.m_ackDeleteDialog.onYes = this.delPipeline; 
 
                                   this.setState({isShowAckDeleteDialog : true});

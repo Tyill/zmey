@@ -9,8 +9,8 @@ class Event:
                id : int = 0,
                isEnabled : int = 1,
                nextTasksId : List[int] = 0,
-               name = "",
-               description = ""):
+               name : str = "",
+               description : str = ""):
     self.id = id
     self.isEnabled = isEnabled
     self.nextTasksId = nextTasksId     # Next pipeline tasks id

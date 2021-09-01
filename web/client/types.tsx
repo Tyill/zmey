@@ -43,6 +43,7 @@ interface IPipeline{
   setts : {
     isVisible : boolean;
     isSelected : boolean;
+    hasChangeTask : boolean;
   };
 };
 
@@ -79,11 +80,13 @@ enum MessType{
 export
 interface IPipelineTask{       
   id : number;
-  pplId : number;               ///< pipeline id
-  ttId : number;                ///< task template id    
-  isEnabled : boolean;
-  nextTasksId : Array<number>;  ///< pipeline task id of next tasks  
-  prevTasksId : Array<number>;  ///< pipeline task id of prev tasks 
+  pplId : number;                     ///< pipeline id
+  ttId : number;                      ///< task template id    
+  isEnabled : boolean;      
+  nextTasksId : Array<number>;        ///< pipeline task id of next tasks  
+  prevTasksId : Array<number>;        ///< pipeline task id of prev tasks 
+  isStartNext : Array<number>;        ///< is start next task?
+  isSendResultToNext : Array<number>; ///< is send result to next task?
   params : string;
   name : string;
   description : string;
@@ -114,7 +117,8 @@ export
 interface ITask{
   id : number;
   pplTaskId : number;
-  prevPplTaskId : number;
+  starterPplTaskId : number;
+  starterEventId : number;
   ttlId : number;
   state : StateType | number;
   progress : number;

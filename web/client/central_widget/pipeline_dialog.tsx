@@ -68,6 +68,7 @@ class PipelineDialogModal extends React.Component<IProps, IState>{
       setts : this.props.selPipeline.setts || {
         isVisible : true,
         isSelected : true,
+        hasChangeTask : false,
       },
       name,           
       description

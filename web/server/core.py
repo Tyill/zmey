@@ -54,17 +54,20 @@ def taskChangeCBack(tId : int, uId : int, prevState: int, newState: int):
     if tstate == zm.StateType.COMPLETED:    
       from . import pipeline_task as pt
       t = task.get(dbo, tId)
-      pplNextTasks = pt.getNextTasks(dbo, t.pplTaskId)
+      nextTasks = pt.getNextTasks(dbo, t.pplTaskId)
 
-      for pplTId in pplNextTasks.nextTasksId:
-        pplTask = pt.get(dbo, pplTId)
-        if pplTask.isEnabled:
-          newTask = task.Task(pplTId, t.pplTaskId, pplTask.ttId)
-          newTask.params = pplTask.params
-          task.start(dbo, uId, newTask)
-      for evtId in pplNextTasks.nextEventsId:
-        None
-
+      if nextTasks:
+        for nextTaskId, isStartNext, isSendResultToNext in nextTasks:
+          if not isStartNext:
+            continue
+          nextTask = pt.get(dbo, nextTaskId)
+          if nextTask.isEnabled:
+            newTask = task.Task(nextTaskId, starterPplTaskId=t.pplTaskId, ttlId=nextTask.ttId)
+            newTask.params = nextTask.params
+            if isSendResultToNext:
+              newTask.params += zmt.result 
+            task.start(dbo, uId, newTask)
+     
     db.closeDb(dbo)
   except Exception as err:
     print("taskChangeCBack failed: {0}".format(str(err)))

@@ -32,7 +32,7 @@ class TaskStatusWidget extends React.Component<IProps, IState>{
       for (let t of Tasks.getAll()){  
         
         let prevPplTask = PipelineTasks.get(t.prevPplTaskId); 
-        
+     
         let offsTime = new Date().getTimezoneOffset(),
             startTime = new Date(t.startTime),
             stopTime = new Date(t.stopTime);
@@ -43,8 +43,8 @@ class TaskStatusWidget extends React.Component<IProps, IState>{
           <td style={bodyStyle}>{t.id}</td>
           <td style={bodyStyle}>{prevPplTask.name}</td>
           <td style={bodyStyle}>{stateToString(t.state)}</td>
-          <td style={bodyStyle}>{dateFormat(startTime, "yyyy-mm-dd hh:ii:ss.ms")}</td>
-          <td style={bodyStyle}>{dateFormat(stopTime, "yyyy-mm-dd hh:ii:ss.ms")}</td>
+          <td style={bodyStyle}>{t.startTime ? dateFormat(startTime, "yyyy-mm-dd hh:ii:ss.ms") : ""}</td>
+          <td style={bodyStyle}>{t.stopTime ? dateFormat(stopTime, "yyyy-mm-dd hh:ii:ss.ms") : ""}</td>
           <td style={bodyStyle}>{t.result}</td>
         </tr>)
       }
