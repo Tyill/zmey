@@ -14,7 +14,7 @@ interface IProps {
 };
 
 interface IState {
-  listOfTasks : Array<IPplTaskId>,
+  tasksForStart : Array<IPplTaskId>,
   selPplId : number,
   statusMess : string; 
 }; 
@@ -31,27 +31,29 @@ class EventDialogModal extends React.Component<IProps, IState>{
     super(props);
     
     this.state = { 
-      listOfTasks : props.selEvent.tasksForStart || [],
+      tasksForStart : props.selEvent.tasksForStart || [],
       selPplId : 0,
       statusMess : "" 
     };    
     this.hSubmit = this.hSubmit.bind(this); 
     this.appendTaskToList = this.appendTaskToList.bind(this);
     this.setStatusMess = this.setStatusMess.bind(this);
-   
+    this.hShow = this.hShow.bind(this); 
+
     this.m_refObj = {};
     this.m_toutMess = 0;
     this.m_isNewEvent = this.props.selEvent.id == 0;
     this.m_hasAdded = false;
   }
 
-  componentDidMount(){
-    
-  }
-
   shouldComponentUpdate(nextProps, nextState) {
     this.m_isNewEvent = nextProps.selEvent.id == 0;
     return true;
+  }
+
+  hShow(){
+    if (this.props.selEvent.tasksForStart)
+      this.setState({tasksForStart : this.props.selEvent.tasksForStart});
   }
 
   hSubmit(event) {
@@ -75,9 +77,9 @@ class EventDialogModal extends React.Component<IProps, IState>{
     let newEvent = {
       id : !this.m_isNewEvent ? this.props.selEvent.id : 0,
       isEnabled : !this.m_isNewEvent ? this.props.selEvent.isEnabled : true,     
-      tasksForStart: !this.m_isNewEvent ? this.props.selEvent.tasksForStart : [],
-      timeStartEverySec: !this.m_isNewEvent ? this.props.selEvent.timeStartEverySec : 0,
-      timeStartOnceOfDay: !this.m_isNewEvent ? this.props.selEvent.timeStartOnceOfDay : [],
+      tasksForStart: this.state.tasksForStart,
+      timeStartEverySec: this.m_refObj["startTimeEvery"].value ? parseInt(this.m_refObj["startTimeEvery"].value, 10) : 0,
+      timeStartOnceOfDay: this.m_refObj["startTimeOnce"].value ? this.m_refObj["startTimeOnce"].value : "",
       name : this.m_refObj["name"].value,           
       description : this.m_refObj["description"].value,
     } as IEvent;
@@ -120,9 +122,9 @@ class EventDialogModal extends React.Component<IProps, IState>{
 
     if (pplId && taskId){
       this.setState((prev, props)=>{
-        let listOfTasks = [...prev.listOfTasks];
-        listOfTasks.push({pplId, taskId});
-        return {listOfTasks};
+        let tasksForStart = [...prev.tasksForStart];
+        tasksForStart.push({pplId, taskId});
+        return {tasksForStart};
       })
     }
   }
@@ -158,8 +160,8 @@ class EventDialogModal extends React.Component<IProps, IState>{
     }
 
     let tasksForStart = [];
-    if (this.state.listOfTasks){
-      this.state.listOfTasks.forEach(v=>{
+    if (this.state.tasksForStart){
+      this.state.tasksForStart.forEach(v=>{
         if (Pipelines.get(v.pplId)){
           tasksForStart.push(<div className="border borderRadius" id={ v.pplId.toString() + v.taskId.toString()} 
                                             key={v.pplId.toString() + v.taskId.toString()}
@@ -171,7 +173,7 @@ class EventDialogModal extends React.Component<IProps, IState>{
     }
            
     return (
-      <Modal show={this.props.show} onHide={()=>this.props.onHide()} >
+      <Modal show={this.props.show} onShow={this.hShow} onHide={()=>this.props.onHide()} >
         <Modal.Header closeButton>
           <Modal.Title> {this.m_isNewEvent ? "Create of Event" : `${evt.id}# Edit of Event`}</Modal.Title>
         </Modal.Header>
@@ -190,7 +192,7 @@ class EventDialogModal extends React.Component<IProps, IState>{
             <Form.Row>
               <Form.Group as={Col} style={{maxWidth:"200px"}} controlId="startTimeEvery"> 
                 <Form.Label>Start time every seconds</Form.Label>
-                <Form.Control type="text" ref={(input) => {this.m_refObj["startTimeEvery"] = input }} placeholder="0" defaultValue={evt.timeStartEverySec} />
+                <Form.Control type="number" min="0" ref={(input) => {this.m_refObj["startTimeEvery"] = input }} placeholder="0" defaultValue={evt.timeStartEverySec} />
               </Form.Group>
               <Form.Group as={Col} controlId="startTimeOnce">
                 <Form.Label>Start time once a day</Form.Label>

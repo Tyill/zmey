@@ -17,9 +17,11 @@ class EventsStoreClass {
       });
       this.m_events = new Map<number, IEvent>();
   }
+  
   copy(ev : IEvent) : IEvent {
     let ret = Object.assign({}, ev);   
-    ret.nextTasksId = [...ev.nextTasksId];   
+    ret.timeStartOnceOfDay = [...ev.timeStartOnceOfDay];
+    ret.tasksForStart = [...ev.tasksForStart]; 
     return ret;   
   }
   getAll() : Map<number, IEvent>{

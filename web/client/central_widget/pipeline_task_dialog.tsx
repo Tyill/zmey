@@ -103,7 +103,7 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
       ServerAPI.addPipelineTask(newPipelineTask, 
         (respPipeline)=>{
           PipelineTasks.add(respPipeline);      
-          this.setStatusMess("Success create of Pipeline", 1,
+          this.setStatusMess("Success create of Pipeline Task", 1,
            ()=>{this.props.onHide(); this.m_hasAdded = false;});
         },
         ()=>{this.setStatusMess("Server error create of Pipeline Task"); this.m_hasAdded = false;}
