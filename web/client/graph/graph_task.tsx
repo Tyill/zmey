@@ -126,7 +126,7 @@ class GraphTask extends React.Component<IProps, IState>{
                   const point = this.getSocketPoint(SocketType.Input, task.setts.positionX, task.setts.positionY);
                   this.props.hSocketInputСaptured(this.props.id, {...point});
                 }}/>
-            <div className="graphPplTask unselectable" style={bodyStyle}
+            <div className="graphPplTask unselectable" title={task.description} style={bodyStyle}
                  onContextMenu = { (e) => e.preventDefault() }
                  onMouseDown={(e : React.MouseEvent)=>{
                    if (e.button == 2){

@@ -3,6 +3,7 @@ import {CloseButton} from "react-bootstrap";
 
 interface IProps { 
   title : string;
+  tooltip : string;
   key : number; 
   id : number;
   isSelected : boolean;
@@ -39,6 +40,7 @@ class TabItem extends React.Component<IProps, IState>{
 
     return (
       <div id={this.props.id.toString()} 
+          title={this.props.tooltip} 
           className="tabPipeline unselectable" style={titleStyle}
           onMouseEnter={(e)=>this.setState({isShowBtn : true})}
           onMouseLeave={(e)=>this.setState({isShowBtn : false})}

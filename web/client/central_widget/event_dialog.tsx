@@ -1,8 +1,8 @@
 import React from "react";
-import { Col, Button, Modal, Form} from "react-bootstrap";
+import { Col, Button, Modal, Form, ListGroup} from "react-bootstrap";
  
-import { IEvent } from "../types";
-import { Events} from "../store/store";
+import { IEvent, IPplTaskId } from "../types";
+import { Events, Pipelines, PipelineTasks } from "../store/store";
 import * as ServerAPI from "../server_api/server_api"
 
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -14,6 +14,8 @@ interface IProps {
 };
 
 interface IState {
+  listOfTasks : Array<IPplTaskId>,
+  selPplId : number,
   statusMess : string; 
 }; 
 
@@ -29,13 +31,22 @@ class EventDialogModal extends React.Component<IProps, IState>{
     super(props);
     
     this.state = { 
+      listOfTasks : props.selEvent.tasksForStart || [],
+      selPplId : 0,
       statusMess : "" 
     };    
     this.hSubmit = this.hSubmit.bind(this); 
+    this.appendTaskToList = this.appendTaskToList.bind(this);
+    this.setStatusMess = this.setStatusMess.bind(this);
+   
     this.m_refObj = {};
     this.m_toutMess = 0;
     this.m_isNewEvent = this.props.selEvent.id == 0;
     this.m_hasAdded = false;
+  }
+
+  componentDidMount(){
+    
   }
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -62,10 +73,11 @@ class EventDialogModal extends React.Component<IProps, IState>{
     }
    
     let newEvent = {
-      id : this.props.selEvent.id || 0,
-      isEnabled : this.props.selEvent.isEnabled || true,     
-      nextTasksId: !this.m_isNewEvent ? this.props.selEvent.nextTasksId : [],
-      params : this.m_refObj["params"].value,
+      id : !this.m_isNewEvent ? this.props.selEvent.id : 0,
+      isEnabled : !this.m_isNewEvent ? this.props.selEvent.isEnabled : true,     
+      tasksForStart: !this.m_isNewEvent ? this.props.selEvent.tasksForStart : [],
+      timeStartEverySec: !this.m_isNewEvent ? this.props.selEvent.timeStartEverySec : 0,
+      timeStartOnceOfDay: !this.m_isNewEvent ? this.props.selEvent.timeStartOnceOfDay : [],
       name : this.m_refObj["name"].value,           
       description : this.m_refObj["description"].value,
     } as IEvent;
@@ -101,9 +113,62 @@ class EventDialogModal extends React.Component<IProps, IState>{
     }, delaySec * 1000)
   }
 
+  appendTaskToList(){
+    
+    const pplId = parseInt(this.m_refObj["pipeline"].value, 10);
+    const taskId = parseInt(this.m_refObj["pipelineTask"].value, 10);
+
+    if (pplId && taskId){
+      this.setState((prev, props)=>{
+        let listOfTasks = [...prev.listOfTasks];
+        listOfTasks.push({pplId, taskId});
+        return {listOfTasks};
+      })
+    }
+  }
+
   render(){  
 
     const evt = this.props.selEvent;
+    
+    let pipelines = [];
+    Pipelines.getAll().forEach(p=>{
+      pipelines.push(<option id={p.id.toString()} key={p.id.toString()} value={p.id}>
+                      {p.name}
+                     </option>);
+    });
+
+    let selPplId = this.state.selPplId   
+    if ((selPplId == 0) && pipelines.length){
+      selPplId = Pipelines.getAll().keys().next().value;
+    }    
+      
+    let pplTasks = [];
+    PipelineTasks.getByPPlId(selPplId).forEach(t=>{
+      pplTasks.push(<option id={t.id.toString()} key={t.id.toString()} value={t.id}>
+                      {t.name}
+                    </option>);
+    });
+
+    let timeStartOnceOfDay = "";
+    if (evt.timeStartOnceOfDay){
+      evt.timeStartOnceOfDay.forEach(v=>{
+        timeStartOnceOfDay += v + ";";
+      });
+    }
+
+    let tasksForStart = [];
+    if (this.state.listOfTasks){
+      this.state.listOfTasks.forEach(v=>{
+        if (Pipelines.get(v.pplId)){
+          tasksForStart.push(<div className="border borderRadius" id={ v.pplId.toString() + v.taskId.toString()} 
+                                            key={v.pplId.toString() + v.taskId.toString()}
+                                            style={{ margin :"0px", padding:"5px"}}>
+                              {Pipelines.get(v.pplId).name + " : " + PipelineTasks.get(v.taskId).name }
+                            </div>
+        )}
+      });
+    }
            
     return (
       <Modal show={this.props.show} onHide={()=>this.props.onHide()} >
@@ -123,10 +188,36 @@ class EventDialogModal extends React.Component<IProps, IState>{
               </Form.Group>
             </Form.Row>
             <Form.Row>
-              <Form.Group as={Col} controlId="params">
-                <Form.Label>Parameters</Form.Label>
-                <Form.Control as="textarea" ref={(input) => {this.m_refObj["params"] = input }} placeholder="" defaultValue={evt.params} rows={5} />
+              <Form.Group as={Col} style={{maxWidth:"200px"}} controlId="startTimeEvery"> 
+                <Form.Label>Start time every seconds</Form.Label>
+                <Form.Control type="text" ref={(input) => {this.m_refObj["startTimeEvery"] = input }} placeholder="0" defaultValue={evt.timeStartEverySec} />
               </Form.Group>
+              <Form.Group as={Col} controlId="startTimeOnce">
+                <Form.Label>Start time once a day</Form.Label>
+                <Form.Control type="text" ref={(input) => {this.m_refObj["startTimeOnce"] = input }} placeholder="12:15:00; 14:25:35;..." defaultValue={timeStartOnceOfDay}/>
+              </Form.Group>                
+            </Form.Row>
+            <Form.Row>
+              <Form.Group as={Col} style={{maxWidth:"200px"}}>
+                <Form.Label>Pipeline</Form.Label>
+                <Form.Control as="select" custom  ref={(input) => {this.m_refObj["pipeline"] = input }}
+                              onChange={(e)=>this.setState({selPplId : parseInt(e.currentTarget.value, 10)})}>
+                  {pipelines}
+                </Form.Control>
+                <p/>
+                <Form.Label>Pipeline Task</Form.Label>
+                <Form.Control as="select" custom  ref={(input) => {this.m_refObj["pipelineTask"] = input }}>
+                  {pplTasks}
+                </Form.Control>
+                <p/>
+                <Button variant="success" onClick={this.appendTaskToList}> {"Append Task"}</Button>
+              </Form.Group>
+              <Form.Group as={Col} controlId="params">                
+                <Form.Label>List of Tasks for start</Form.Label>
+                <ListGroup>
+                  {tasksForStart}
+                </ListGroup>
+             </Form.Group>
             </Form.Row>
             <Form.Row style={{height:"20px"}}> 
               <Form.Label style={{marginLeft:"5px"}}>{this.state.statusMess}</Form.Label>   

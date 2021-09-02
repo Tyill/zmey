@@ -43,6 +43,7 @@ class TaskStatusWidget extends React.Component<IProps, IState>{
           <td style={bodyStyle}>{t.id}</td>
           <td style={bodyStyle}>{prevPplTask.name}</td>
           <td style={bodyStyle}>{stateToString(t.state)}</td>
+          <td style={bodyStyle}>{stateToString(t.state)}</td>
           <td style={bodyStyle}>{t.startTime ? dateFormat(startTime, "yyyy-mm-dd hh:ii:ss.ms") : ""}</td>
           <td style={bodyStyle}>{t.stopTime ? dateFormat(stopTime, "yyyy-mm-dd hh:ii:ss.ms") : ""}</td>
           <td style={bodyStyle}>{t.result}</td>
@@ -65,6 +66,7 @@ class TaskStatusWidget extends React.Component<IProps, IState>{
                       <th style={headStyle}>Id</th>
                       <th style={headStyle}>Start from</th>
                       <th style={headStyle}>State</th>
+                      <th style={headStyle}>Progress</th>
                       <th style={headStyle}>Begin time</th>
                       <th style={headStyle}>End time</th>
                       <th style={headStyle}>Result</th>                 

@@ -40,7 +40,7 @@ class TaskContextMenu extends React.Component<IProps, IState>{
 
     ServerAPI.startTask(task, 
       (resp)=>this.props.hStatusMess(`Success start of Task ${pplTask.name}`, MessType.Ok),
-      ()=>{ this.props.hStatusMess(`Server error start of Task ${pplTask.name}`, MessType.Error); }
+      ()=>this.props.hStatusMess(`Server error start of Task ${pplTask.name}`, MessType.Error)
     );
     this.props.hHide();
   }

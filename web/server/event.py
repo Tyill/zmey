@@ -1,7 +1,6 @@
-from typing import List
+from typing import List, Dict
 from contextlib import closing
 from flask import g
-
 
 class Event: 
   """Event config""" 
@@ -9,30 +8,40 @@ class Event:
                id : int = 0,
                isEnabled : int = 1,
                nextTasksId : List[int] = 0,
+               timeStartOnceOfDay : List[str] = 0,
+               timeStartEverySec : int = 0,
+               tasksForStart : List[Dict[int, int]] = 0,
                name : str = "",
                description : str = ""):
     self.id = id
     self.isEnabled = isEnabled
+    self.timeStartOnceOfDay = timeStartOnceOfDay
+    self.timeStartEverySec = timeStartEverySec
+    self.tasksForStart = tasksForStart
     self.nextTasksId = nextTasksId     # Next pipeline tasks id
     self.name = name    
     self.description = description
   def __repr__(self):
       return f"Event: id {self.id} isEnabled {self.isEnabled} \
-               nextTasksId {self.nextTasksId} name {self.name} description {self.description}"
+               timeStartOnceOfDay {self.timeStartOnceOfDay} timeStartEverySec {self.timeStartEverySec} tasksForStart {self.tasksForStart} \
+               name {self.name} description {self.description}"
   def __str__(self):
     return self.__repr__()
 
 def add(ev : Event) -> bool:
   if 'db' in g:
     try:
-      nextTasksId = ','.join([str(v) for v in ev.nextTasksId])
+      tasksForStart = ','.join([str(v.pplId) + " " + str(v.taskId) for v in ev.tasksForStart])
+      timeStartOnceOfDay = ','.join([v for v in ev.timeStartOnceOfDay])
 
       with closing(g.db.cursor()) as cr:
         cr.execute(
-          "INSERT INTO tblEvent (isEnabled, "
-          "nextTasksId, name, description) VALUES("
+          "INSERT INTO tblEvent (isEnabled, timeStartOnceOfDay, timeStartEverySec,"
+          "tasksForStart, name, description) VALUES("
           f'"{ev.isEnabled}",'
-          f'"{nextTasksId}",'
+          f'"{timeStartOnceOfDay}",'
+          f'"{ev.timeStartEverySec}",'
+          f'"{tasksForStart}",'
           f'"{ev.name}",'
           f'"{ev.description}");'
         )
@@ -46,13 +55,16 @@ def add(ev : Event) -> bool:
 def change(ev : Event) -> bool:
   if 'db' in g:
     try:
-      nextTasksId = ','.join([str(v) for v in ev.nextTasksId])
-
+      tasksForStart = ','.join([str(v.pplId) + " " + str(v.taskId) for v in ev.tasksForStart])
+      timeStartOnceOfDay = ','.join([v for v in ev.timeStartOnceOfDay])
+      
       with closing(g.db.cursor()) as cr:
         cr.execute(
           "UPDATE tblEvent SET "
           f'isEnabled = "{ev.isEnabled}",'
-          f'nextTasksId = "{nextTasksId}",'
+          f'timeStartOnceOfDay = "{timeStartOnceOfDay}",'
+          f'timeStartEverySec = "{ev.timeStartEverySec}",'
+          f'tasksForStart = "{tasksForStart}",'
           f'name = "{ev.name}",'
           f'description = "{ev.description}" '
           f'WHERE id = {ev.id};'  
@@ -84,17 +96,22 @@ def all() -> List[Event]:
       evs = []
       with closing(g.db.cursor()) as cr:
         cr.execute(
-          "SELECT id, isEnabled, nextTasksId, name, description "
+          "SELECT id, isEnabled, timeStartEverySec, timeStartOnceOfDay, tasksForStart,"
+          "name, description "
           "FROM tblEvent "
           "WHERE isDelete = 0;"
         )
         rows = cr.fetchall()
         for row in rows:
-          nextTasksId = [int(v) for v in row[2].split(',') if len(v)]
+          timeStartOnceOfDay = [{"pplId" : v.split(' ')[0], "taskId" : v.split(' ')[1]} for v in row[3].split(',') if len(v)]
+          tasksForStart = [v for v in row[4].split(',') if len(v)]
+          
           evs.append(Event(id=row[0],
                            isEnabled=row[1],
-                           nextTasksId=nextTasksId,
-                           name=row[3], description=row[4]))       
+                           timeStartEverySec=row[2],
+                           timeStartOnceOfDay=timeStartOnceOfDay,                           
+                           tasksForStart=tasksForStart,
+                           name=row[5], description=row[6]))       
       return evs  
     except Exception as err:
       print("{0} local db query failed: {1}".format("Task.Event.all", str(err)))

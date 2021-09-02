@@ -69,7 +69,7 @@ class TaskTemplateDialogModal extends React.Component<IProps, IState>{
     }
     
     let newTaskTemplate : ITaskTemplate = {
-      id : this.props.selTaskTemplate.id,
+      id : !this.m_isNewTask ? this.props.selTaskTemplate.id : 0,
       name,           
       script,
       averDurationSec, 

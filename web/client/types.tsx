@@ -104,11 +104,19 @@ interface IPipelineTask{
   };
 };
 
+export 
+interface IPplTaskId{
+  pplId : number;
+  taskId : number;
+}
+
 export
 interface IEvent{       
   id : number;
   isEnabled : boolean;
-  nextTasksId : Array<number>;  ///< pipeline task id of next tasks
+  timeStartOnceOfDay : Array<string>;
+  timeStartEverySec : number;
+  tasksForStart : Array<IPplTaskId>;
   name : string;
   description : string;  
 };

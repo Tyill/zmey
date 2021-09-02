@@ -64,8 +64,8 @@ class PipelineDialogModal extends React.Component<IProps, IState>{
     }
     
     let newPipeline : IPipeline = {
-      id : this.props.selPipeline.id || 0,
-      setts : this.props.selPipeline.setts || {
+      id : !this.m_isNewPipeline ? this.props.selPipeline.id : 0,
+      setts : !this.m_isNewPipeline ? this.props.selPipeline.setts : {
         isVisible : true,
         isSelected : true,
         hasChangeTask : false,

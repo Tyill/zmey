@@ -15,6 +15,7 @@ class PipelineTasksStoreClass {
         setSize: action,
         setSockets: action,
         setVisible: action,
+        setSelected: action,
         add: action,
         del: action,
         upd: action,

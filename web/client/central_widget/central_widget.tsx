@@ -150,6 +150,7 @@ class CentralWidget extends React.Component<IProps, IState>{
         pipelines.push(<TabItem key={p.id} id={p.id}
                                 isSelected={ p.setts.isSelected }
                                 title={p.name}
+                                tooltip={p.description}
                                 hSelect={this.selectPipeline} 
                                 hHide={this.hidePipeline}
                                 >

@@ -94,7 +94,9 @@ def initUserDb(db):
         id INTEGER PRIMARY KEY AUTOINCREMENT, \
         isEnabled     INT NOT NULL DEFAULT 1 CHECK (isEnabled BETWEEN 0 AND 1), \
         isDelete      INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1), \
-        nextTasksId   TEXT NOT NULL, \
+        timeStartEverySec  INT NOT NULL, \
+        timeStartOnceOfDay TEXT NOT NULL, \
+        tasksForStart TEXT NOT NULL, \
         name          TEXT NOT NULL CHECK (name <> ''), \
         description   TEXT NOT NULL, \
         startTime     TEXT NOT NULL DEFAULT '');"

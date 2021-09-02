@@ -12,6 +12,7 @@ class PipelinesStoreClass {
         setAll: action,
         setVisible: action,
         setSelected: action,
+        setChangeTask : action,
         add: action,
         del: action,
         upd: action,
