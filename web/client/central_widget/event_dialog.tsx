@@ -37,6 +37,7 @@ class EventDialogModal extends React.Component<IProps, IState>{
     };    
     this.hSubmit = this.hSubmit.bind(this); 
     this.appendTaskToList = this.appendTaskToList.bind(this);
+    this.deleteTaskFromList = this.deleteTaskFromList.bind(this);
     this.setStatusMess = this.setStatusMess.bind(this);
     this.hShow = this.hShow.bind(this); 
 
@@ -79,7 +80,7 @@ class EventDialogModal extends React.Component<IProps, IState>{
       isEnabled : !this.m_isNewEvent ? this.props.selEvent.isEnabled : true,     
       tasksForStart: this.state.tasksForStart,
       timeStartEverySec: this.m_refObj["startTimeEvery"].value ? parseInt(this.m_refObj["startTimeEvery"].value, 10) : 0,
-      timeStartOnceOfDay: this.m_refObj["startTimeOnce"].value ? this.m_refObj["startTimeOnce"].value : "",
+      timeStartOnceOfDay: this.m_refObj["startTimeOnce"].value ? this.m_refObj["startTimeOnce"].value.split(';') : [],
       name : this.m_refObj["name"].value,           
       description : this.m_refObj["description"].value,
     } as IEvent;
@@ -121,12 +122,31 @@ class EventDialogModal extends React.Component<IProps, IState>{
     const taskId = parseInt(this.m_refObj["pipelineTask"].value, 10);
 
     if (pplId && taskId){
-      this.setState((prev, props)=>{
-        let tasksForStart = [...prev.tasksForStart];
-        tasksForStart.push({pplId, taskId});
-        return {tasksForStart};
-      })
+
+      if (this.state.tasksForStart.findIndex(v=>{
+        return (v.pplId == pplId) &&  (v.taskId == taskId);
+      }) == -1){
+        this.setState((prev, props)=>{
+          let tasksForStart = [...prev.tasksForStart];
+          tasksForStart.push({pplId, taskId});
+          return {tasksForStart};
+        })
+      }
     }
+  }
+
+  deleteTaskFromList(pplId : number, taskId : number){
+
+    this.setState((prev, props)=>{
+      let tasksForStart = [...prev.tasksForStart];
+      
+      const inx = tasksForStart.findIndex(v=>{
+        return (v.pplId == pplId) &&  (v.taskId == taskId);
+      })
+      tasksForStart.splice(inx, 1);
+      
+      return {tasksForStart};
+    })
   }
 
   render(){  
@@ -164,9 +184,16 @@ class EventDialogModal extends React.Component<IProps, IState>{
       this.state.tasksForStart.forEach(v=>{
         if (Pipelines.get(v.pplId)){
           tasksForStart.push(<div className="border borderRadius" id={ v.pplId.toString() + v.taskId.toString()} 
-                                            key={v.pplId.toString() + v.taskId.toString()}
-                                            style={{ margin :"0px", padding:"5px"}}>
+                                  key={v.pplId.toString() + v.taskId.toString()}
+                                  style={{ margin :"0px", padding:"5px"}}>
                               {Pipelines.get(v.pplId).name + " : " + PipelineTasks.get(v.taskId).name }
+                              <span>
+                                <a className = "icon-delete"
+                                   title="Delete Task"
+                                   style={{float: "right", marginLeft: "20px" }} 
+                                   onClick={()=>this.deleteTaskFromList(v.pplId, v.taskId)}>
+                                </a>
+                              </span>          
                             </div>
         )}
       });
@@ -196,7 +223,7 @@ class EventDialogModal extends React.Component<IProps, IState>{
               </Form.Group>
               <Form.Group as={Col} controlId="startTimeOnce">
                 <Form.Label>Start time once a day</Form.Label>
-                <Form.Control type="text" ref={(input) => {this.m_refObj["startTimeOnce"] = input }} placeholder="12:15:00; 14:25:35;..." defaultValue={timeStartOnceOfDay}/>
+                <Form.Control type="text" ref={(input) => {this.m_refObj["startTimeOnce"] = input }} placeholder="12:15; 14:25;..." defaultValue={timeStartOnceOfDay}/>
               </Form.Group>                
             </Form.Row>
             <Form.Row>
@@ -216,7 +243,7 @@ class EventDialogModal extends React.Component<IProps, IState>{
               </Form.Group>
               <Form.Group as={Col} controlId="params">                
                 <Form.Label>List of Tasks for start</Form.Label>
-                <ListGroup>
+                <ListGroup style={{maxHeight:"180px", overflow: "auto"}}>
                   {tasksForStart}
                 </ListGroup>
              </Form.Group>

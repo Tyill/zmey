@@ -21,7 +21,6 @@ def addEvent():
     evt.timeStartOnceOfDay = jnReq['timeStartOnceOfDay']
     evt.tasksForStart = jnReq['tasksForStart']
     
-    print('tasksForStart', evt.tasksForStart[0])
     evt.description = jnReq['description']
     return json.dumps(evt.__dict__) if ev.add(evt) else ('internal error', 500)
   except Exception as err:
@@ -33,7 +32,7 @@ def addEvent():
 def changeEvent(id : int):
   try:
     jnReq = request.get_json(silent=True)
-  
+    
     evt = ev.Event()
     evt.id = id
     evt.name = jnReq['name']

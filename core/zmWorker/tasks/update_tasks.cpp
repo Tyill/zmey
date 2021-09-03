@@ -44,7 +44,7 @@ void Executor::updateListTasks()
   for (auto ip = m_procs.begin(); ip != m_procs.end();){
     ZM_Base::StateType TaskState = ip->getTask().state;
     if ((TaskState == ZM_Base::StateType::COMPLETED) ||
-        (TaskState == ZM_Base::StateType::ERROR)){
+        (TaskState == ZM_Base::StateType::ERRORT)){
       ip = m_procs.erase(ip);
     }else{
       ++ip;

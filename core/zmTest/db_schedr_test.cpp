@@ -63,7 +63,7 @@ TEST_F(DBSchedrTest, getSchedrByCP){
   uint64_t sId = 0;  
   EXPECT_TRUE(_pDb->addSchedr(schedr, sId) && (sId > 0)) << _pDb->getLastError(); 
 
-  schedr.state = ZM_Base::StateType::ERROR;
+  schedr.state = ZM_Base::StateType::ERRORT;
   schedr.capacityTask = 1;   
   schedr.id = 0;
   EXPECT_TRUE(_pDb->getSchedr(schedr.connectPnt, schedr) && (schedr.id == sId) &&
@@ -71,10 +71,10 @@ TEST_F(DBSchedrTest, getSchedrByCP){
                                               (schedr.connectPnt == "localhost:4444") &&
                                               (schedr.capacityTask == 105)) << _pDb->getLastError(); 
 
-  schedr.state = ZM_Base::StateType::ERROR;
+  schedr.state = ZM_Base::StateType::ERRORT;
   schedr.connectPnt = ""; 
   schedr.capacityTask = 1;
-  EXPECT_TRUE(!_pDb->getSchedr(schedr.connectPnt, schedr) && (schedr.state == ZM_Base::StateType::ERROR) &&
+  EXPECT_TRUE(!_pDb->getSchedr(schedr.connectPnt, schedr) && (schedr.state == ZM_Base::StateType::ERRORT) &&
                                               (schedr.connectPnt == "") &&
                                               (schedr.capacityTask == 1)) << _pDb->getLastError();                                                      
 }

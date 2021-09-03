@@ -893,7 +893,7 @@ class Connection:
       c_tid = ctypes.c_uint64(tId)
       c_uid = ctypes.c_uint64(uId)
     
-      taskStateCBackType = ctypes.CFUNCTYPE(None, ctypes.c_uint64, ctypes.c_uint64, ctypes.c_int32, ctypes.c_int32, ctypes.c_void_p)
+      taskStateCBackType = ctypes.CFUNCTYPE(None, ctypes.c_uint64, ctypes.c_uint64, ctypes.c_int32, ctypes.c_int32, ctypes.c_int32, ctypes.c_void_p)
       
       pfun = _lib.zmSetChangeTaskStateCBack
       pfun.restype = ctypes.c_bool
@@ -904,13 +904,13 @@ class Connection:
   def setChangeTaskStateCBack(self, ucb):
     """
     Set change Task state callback
-    :param ucb: def func(tId : uint64, uId : uint64, prevState : StateType, newState : StateType)
+    :param ucb: def func(tId : uint64, uId : uint64, progress : int, prevState : StateType, newState : StateType)
     """
     if (self._zmConn):   
-      def c_ucb(tId: ctypes.c_uint64, uId: ctypes.c_uint64, prevState: ctypes.c_int32, newState: ctypes.c_int32, udata: ctypes.c_void_p):
-        ucb(tId, uId, prevState, newState)
+      def c_ucb(tId: ctypes.c_uint64, uId: ctypes.c_uint64, progress: ctypes.c_int32, prevState: ctypes.c_int32, newState: ctypes.c_int32, udata: ctypes.c_void_p):
+        ucb(tId, uId, progress, prevState, newState)
       
-      taskStateCBackType = ctypes.CFUNCTYPE(None, ctypes.c_uint64, ctypes.c_uint64, ctypes.c_int32, ctypes.c_int32, ctypes.c_void_p)
+      taskStateCBackType = ctypes.CFUNCTYPE(None, ctypes.c_uint64, ctypes.c_uint64, ctypes.c_int32, ctypes.c_int32, ctypes.c_int32, ctypes.c_void_p)
       self._changeTaskStateCBack = taskStateCBackType(c_ucb)
       return True
     return False

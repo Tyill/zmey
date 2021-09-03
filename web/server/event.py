@@ -10,7 +10,7 @@ class Event:
                nextTasksId : List[int] = 0,
                timeStartOnceOfDay : List[str] = 0,
                timeStartEverySec : int = 0,
-               tasksForStart : List[Dict[int, int]] = 0,
+               tasksForStart : List[Dict] = 0,
                name : str = "",
                description : str = ""):
     self.id = id
@@ -31,19 +31,19 @@ class Event:
 def add(ev : Event) -> bool:
   if 'db' in g:
     try:
-      tasksForStart = ','.join([str(v.pplId) + " " + str(v.taskId) for v in ev.tasksForStart])
-      timeStartOnceOfDay = ','.join([v for v in ev.timeStartOnceOfDay])
+      tasksForStart = ','.join([str(v['pplId']) + " " + str(v['taskId']) for v in ev.tasksForStart if len(v)])
+      timeStartOnceOfDay = ','.join([v for v in ev.timeStartOnceOfDay if len(v)])
 
       with closing(g.db.cursor()) as cr:
         cr.execute(
           "INSERT INTO tblEvent (isEnabled, timeStartOnceOfDay, timeStartEverySec,"
           "tasksForStart, name, description) VALUES("
-          f'"{ev.isEnabled}",'
-          f'"{timeStartOnceOfDay}",'
-          f'"{ev.timeStartEverySec}",'
-          f'"{tasksForStart}",'
-          f'"{ev.name}",'
-          f'"{ev.description}");'
+          f"'{ev.isEnabled}',"
+          f"'{timeStartOnceOfDay}',"
+          f"'{ev.timeStartEverySec}',"
+          f"'{tasksForStart}',"
+          f"'{ev.name}',"
+          f"'{ev.description}');"
         )
         ev.id = cr.lastrowid
         g.db.commit()
@@ -55,19 +55,19 @@ def add(ev : Event) -> bool:
 def change(ev : Event) -> bool:
   if 'db' in g:
     try:
-      tasksForStart = ','.join([str(v.pplId) + " " + str(v.taskId) for v in ev.tasksForStart])
-      timeStartOnceOfDay = ','.join([v for v in ev.timeStartOnceOfDay])
+      tasksForStart = ','.join([str(v['pplId']) + " " + str(v['taskId']) for v in ev.tasksForStart if len(v)])
+      timeStartOnceOfDay = ','.join([v for v in ev.timeStartOnceOfDay if len(v)])
       
       with closing(g.db.cursor()) as cr:
         cr.execute(
           "UPDATE tblEvent SET "
-          f'isEnabled = "{ev.isEnabled}",'
-          f'timeStartOnceOfDay = "{timeStartOnceOfDay}",'
-          f'timeStartEverySec = "{ev.timeStartEverySec}",'
-          f'tasksForStart = "{tasksForStart}",'
-          f'name = "{ev.name}",'
-          f'description = "{ev.description}" '
-          f'WHERE id = {ev.id};'  
+          f"isEnabled = '{ev.isEnabled}',"
+          f"timeStartOnceOfDay = '{timeStartOnceOfDay}',"
+          f"timeStartEverySec = '{ev.timeStartEverySec}',"
+          f"tasksForStart = '{tasksForStart}',"
+          f"name = '{ev.name}',"
+          f"description = '{ev.description}' "
+          f"WHERE id = {ev.id};"
         )
         g.db.commit()
       return True
@@ -103,8 +103,8 @@ def all() -> List[Event]:
         )
         rows = cr.fetchall()
         for row in rows:
-          timeStartOnceOfDay = [{"pplId" : v.split(' ')[0], "taskId" : v.split(' ')[1]} for v in row[3].split(',') if len(v)]
-          tasksForStart = [v for v in row[4].split(',') if len(v)]
+          timeStartOnceOfDay = [v for v in row[3].split(',') if len(v)]
+          tasksForStart = [{"pplId" : int(v.split(' ')[0]), "taskId" : int(v.split(' ')[1])} for v in row[4].split(',') if len(v)]
           
           evs.append(Event(id=row[0],
                            isEnabled=row[1],
@@ -114,5 +114,5 @@ def all() -> List[Event]:
                            name=row[5], description=row[6]))       
       return evs  
     except Exception as err:
-      print("{0} local db query failed: {1}".format("Task.Event.all", str(err)))
+      print("{0} local db query failed: {1}".format("Event.all", str(err)))
   return []

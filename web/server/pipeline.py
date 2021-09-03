@@ -21,12 +21,14 @@ class Pipeline:
 def add(ppl : Pipeline) -> bool:
   if 'db' in g:
     try:
+      setts = ppl.setts.replace("'", '"')
+
       with closing(g.db.cursor()) as cr:
         cr.execute(
           "INSERT INTO tblPipeline (name, description, setts) VALUES("
-          f'"{ppl.name}",'
-          f'"{ppl.description}",'
-          f'"{ppl.setts}");'
+          f"'{ppl.name}',"
+          f"'{ppl.description}',"
+          f"'{setts}');"
         )
         ppl.id = cr.lastrowid
         g.db.commit()
@@ -38,13 +40,15 @@ def add(ppl : Pipeline) -> bool:
 def change(ppl : Pipeline) -> bool:
   if 'db' in g:
     try:
+      setts = ppl.setts.replace("'", '"')
+
       with closing(g.db.cursor()) as cr:
         cr.execute(
           "UPDATE tblPipeline SET "
-          f'name = "{ppl.name}",'
-          f'description = "{ppl.description}",'
-          f'setts = "{ppl.setts}" '
-          f'WHERE id = {ppl.id};'  
+          f"name = '{ppl.name}',"
+          f"description = '{ppl.description}',"
+          f"setts = '{setts}' "
+          f"WHERE id = {ppl.id};" 
         )
         g.db.commit()
       return True

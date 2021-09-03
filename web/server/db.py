@@ -98,8 +98,7 @@ def initUserDb(db):
         timeStartOnceOfDay TEXT NOT NULL, \
         tasksForStart TEXT NOT NULL, \
         name          TEXT NOT NULL CHECK (name <> ''), \
-        description   TEXT NOT NULL, \
-        startTime     TEXT NOT NULL DEFAULT '');"
+        description   TEXT NOT NULL);"
     )
     cr.execute(
       'CREATE TABLE IF NOT EXISTS tblTask( \

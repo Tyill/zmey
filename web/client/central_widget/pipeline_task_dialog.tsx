@@ -162,7 +162,7 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
       task.nextTasksId.forEach((id, ix)=>{
         const nt = PipelineTasks.get(id);
         nextTask.push(   
-          <div className="d-flex flex-row mb-2 p-0 border borderRadius" key={id} style={{ maxWidth:"200px"}} >
+          <div className="d-flex flex-row mb-2 p-0 border borderRadius" key={id} style={{ maxWidth:"190px"}} >
             <p className="m-2 mr-auto p-0 ">{nt.name}</p>
             <input className="m-2 p-0 align-self-center" 
                     ref={(input) => {this.m_refObj["isStartNext" + id] = input }}

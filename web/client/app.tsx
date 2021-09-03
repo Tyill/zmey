@@ -78,7 +78,7 @@ class App extends React.Component<IProps, IState>{
     },
     ()=>this.setStatusMess("Server error fill Events", MessType.Error));
 
-   // this.updateTaskState();
+    this.updateTaskState();
   }
 
   updateTaskState(){

@@ -145,22 +145,114 @@ void Process::stop(){
 
 #else if _WIN32
 
+#include <fstream>
+#include <algorithm>
+#include <system_error>
+
+#include <windows.h>
+
+std::string getLastErrorStr(){
+    DWORD errorMessageID = ::GetLastError();
+    if (errorMessageID == 0) {
+        return std::string(); 
+    } else {
+        return std::system_category().message(errorMessageID);
+    }
+}
+
 Process::Process(Application& app, Executor& exr, const ZM_Base::Task& tsk):
   m_app(app),
   m_executor(exr),
   m_task(tsk){
-
   
+  SECURITY_ATTRIBUTES sa;
+  sa.nLength = sizeof(sa);
+  sa.lpSecurityDescriptor = NULL;
+  sa.bInheritHandle = TRUE;
+
+  HANDLE hOutFile = CreateFileA((std::to_string(tsk.id) + ".result").c_str(),
+      FILE_WRITE_DATA,
+      FILE_SHARE_WRITE | FILE_SHARE_READ,
+      &sa,
+      CREATE_ALWAYS,
+      FILE_ATTRIBUTE_NORMAL,
+      NULL);
+
+  if (hOutFile == INVALID_HANDLE_VALUE){
+    m_pid = -1;
+    std::string mstr = "worker::Process CreateFileA " + std::to_string(tsk.id) + ".result error: " + getLastErrorStr();
+    m_app.statusMess(mstr);
+    m_executor.addErrMess(mstr);
+    return;
+  }
+
+  PROCESS_INFORMATION pi;
+  ZeroMemory(&pi, sizeof(PROCESS_INFORMATION));
+
+  STARTUPINFOA si;
+  ZeroMemory(&si, sizeof(STARTUPINFOA));
+
+  DWORD flags = CREATE_NO_WINDOW;
+  
+  si.cb = sizeof(STARTUPINFO);
+  si.dwFlags |= STARTF_USESTDHANDLES;
+  si.hStdInput = NULL;
+  si.hStdError = hOutFile;
+  si.hStdOutput = hOutFile;
+      
+  std::string cmd;
+  size_t shebPos = tsk.script.find("#!");
+  size_t endline = tsk.script.find('\n');
+  if ((shebPos != size_t(-1)) && (endline != size_t(-1))) {
+      cmd = tsk.script.substr(shebPos + 2, endline - shebPos - 2);
+
+      std::string fScript = std::to_string(tsk.id) + ".bat";
+      std::ofstream ofs(fScript, std::ofstream::out);
+      ofs << tsk.script.substr(endline + 1).c_str();
+      ofs.close();
+
+      cmd += " " + fScript + " " + tsk.params;
+  }
+  else {
+    m_pid = -1;
+    std::string mstr = "worker::Process shebang of script error";
+    m_app.statusMess(mstr);
+    m_executor.addErrMess(mstr);
+    return;
+  }
+  BOOL ret = CreateProcessA(NULL, (char*)cmd.c_str(), NULL, NULL, TRUE, flags, NULL, NULL, &si, &pi);
  
+  if (ret){
+    m_hProcess = pi.hProcess;
+    m_hThread = pi.hThread;
+  }
+  else{
+    m_pid = -1;
+    std::string mstr = "worker::Process CreateProcessA " + cmd + " error: " + getLastErrorStr();
+    m_app.statusMess(mstr);
+    m_executor.addErrMess(mstr);
+    return;
+  }
   m_timerProgress.updateCycTime();
   m_timerDuration.updateCycTime();
   m_task.state = ZM_Base::StateType::RUNNING;  
 }
 
+HANDLE Process::getHandle() const{
+  return m_hProcess;
+}
+
+void Process::closeHandle(){
+  if (m_hProcess && m_hThread){
+    CloseHandle(m_hProcess);
+    CloseHandle(m_hThread);
+  }
+}
+
 ZM_Base::Task Process::getTask() const{
   return m_task;
 }
-int64_t Process::getPid() const{
+pid_t Process::getPid() const{
   return m_pid;
 }
 int Process::getProgress(){
@@ -169,7 +261,7 @@ int Process::getProgress(){
   }
   m_timerProgress.updateCycTime();
   int dt = (int)m_cdeltaTimeProgress / 1000;
-  return std::min(100, dt * 100 / std::max(1, m_task.averDurationSec));
+  return std::min<int>(100, dt * 100 / std::max<int>(1, m_task.averDurationSec));
 }
 bool Process::checkMaxRunTime(){
   if (!m_isPause){

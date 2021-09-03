@@ -18,7 +18,7 @@ def addPipeline():
     ppl = pp.Pipeline()
     ppl.name = jnReq['name']
     ppl.description = jnReq['description']  
-    ppl.setts = jnReq['setts']
+    ppl.setts = str(jnReq['setts'])
     return json.dumps(ppl.__dict__) if pp.add(ppl) else ('internal error', 500)
   except Exception as err:
     print(f'/pipelines POST {request.get_json(silent=True)} failed: %s' % str(err))
@@ -34,7 +34,7 @@ def changePipeline(id : int):
     ppl.id = id
     ppl.name = jnReq['name']
     ppl.description = jnReq['description']    
-    ppl.setts = jnReq['setts']
+    ppl.setts = str(jnReq['setts'])
     return json.dumps(ppl.__dict__) if pp.change(ppl) else ('internal error', 500)
   except Exception as err:
     print(f'/pipelines/{id} PUT {request.get_json(silent=True)} failed: %s' % str(err))

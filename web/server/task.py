@@ -24,17 +24,19 @@ class Task(zm.Task):
 def start(db, userId, iot : Task) -> bool:
   if zmConn and zmConn.startTask(iot):
     try:
+      params = iot.params.replace("'", '"')
+
       with closing(db.cursor()) as cr:
         cr.execute(
           "INSERT INTO tblTask (id, state, pplTaskId, starterPplTaskId, starterEventId, ttlId, script, params) VALUES("
-          f'"{iot.id}",'
-          f'"{zm.StateType.READY.value}",'
-          f'"{iot.pplTaskId}",'
-          f'"{iot.starterPplTaskId}",'
-          f'"{iot.starterEventId}",'
-          f'"{iot.ttlId}",'
-          f'(SELECT script FROM tblTaskTemplate WHERE id = {iot.ttlId}),'
-          f'"{iot.params}");'
+          f"'{iot.id}',"
+          f"'{zm.StateType.READY.value}',"
+          f"'{iot.pplTaskId}',"
+          f"'{iot.starterPplTaskId}',"
+          f"'{iot.starterEventId}',"
+          f"'{iot.ttlId}',"
+          f"(SELECT script FROM tblTaskTemplate WHERE id = {iot.ttlId}),"
+          f"'{params}');"
         )
         db.commit()
       
@@ -72,11 +74,11 @@ def changeState(db, t : Task) -> bool:
         "UPDATE tblTask SET "
         f"state = '{t.state}',"
         f"result = '{t.result}',"
-        f'createTime = "{t.createTime}",'
-        f'takeInWorkTime = "{t.takeInWorkTime}",'
-        f'startTime = "{t.startTime}",'
-        f'stopTime = "{t.stopTime}" '
-        f'WHERE id = {t.id};'  
+        f"createTime = '{t.createTime}',"
+        f"takeInWorkTime = '{t.takeInWorkTime}',"
+        f"startTime = '{t.startTime}',"
+        f"stopTime = '{t.stopTime}' "
+        f"WHERE id = {t.id};"  
       )
       db.commit()
     return True

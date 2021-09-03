@@ -53,8 +53,8 @@ void Executor::waitProcess()
   while ((pid = waitpid(-1, &sts, WNOHANG | WUNTRACED | WCONTINUED)) > 0){
 
     auto itPrc = find_if(m_procs.begin(), m_procs.end(),[pid](const Process& p){
-        return p.getPid() == pid;
-      });    
+      return p.getPid() == pid;
+    });    
     if (itPrc == m_procs.end()){
       ERROR_MESS("worker::waitProcess error not found process " + to_string(pid));
       continue;
@@ -90,11 +90,11 @@ void Executor::waitProcess()
         sts = WEXITSTATUS(sts);
         if (sts != 0){
           mt = ZM_Base::MessType::TASK_ERROR;
-          st = ZM_Base::StateType::ERROR;
+          st = ZM_Base::StateType::ERRORT;
         }
       }else{
         mt = ZM_Base::MessType::TASK_ERROR;
-        st = ZM_Base::StateType::ERROR;
+        st = ZM_Base::StateType::ERRORT;
       }
       itPrc->setTaskState(st);
 
@@ -136,18 +136,72 @@ void Executor::waitProcess()
 
 #else if _WIN32
 
+#include <fstream>
+#include <system_error>
+#include <windows.h>
+
+std::string getLastErrorString(){
+    DWORD errorMessageID = ::GetLastError();
+    if (errorMessageID == 0) {
+        return std::string(); 
+    } else {
+        return std::system_category().message(errorMessageID);
+    }
+}
+
 void Executor::waitProcess()
 {
   for (auto& p : m_procs){
+    
+    DWORD status = WaitForSingleObject(p.getHandle(), 0);
 
-    ZM_Base::MessType mt = ZM_Base::MessType::TASK_COMPLETED;
-    ZM_Base::StateType st = ZM_Base::StateType::COMPLETED;
+    if (status == WAIT_TIMEOUT)
+      continue;
+
+    if (!GetExitCodeProcess(p.getHandle(), &status))
+      status = -1;
+    
+    p.closeHandle();   
+
+    auto tId = p.getTask().id; 
+
+    std::string result;
+    std::string resultFile = std::to_string(tId) + ".result";
+    std::ifstream ifs(resultFile, std::ifstream::in);
+    if (ifs.good()){      
+      ifs.seekg(0, std::ios::end);   
+      result.resize(ifs.tellg());
+      ifs.seekg(0, std::ios::beg);
+      ifs.read(result.data(), result.size());
+      ifs.close();
+    }else{
+      auto mstr = "worker::waitProcess error open " + resultFile + ": " + getLastErrorString();
+      m_app.statusMess(mstr);
+      addErrMess(mstr);
+      status = -1;
+    }
+    
+    if (remove(resultFile.c_str()) == -1){
+      auto mstr = "worker::waitProcess error remove " + resultFile + ": " + getLastErrorString();
+      m_app.statusMess(mstr);
+      addErrMess(mstr);
+    }
+    std::string scriptFile = std::to_string(tId) + ".bat";
+    if (remove(scriptFile.c_str()) == -1){
+      auto mstr = "worker::waitProcess error remove " + scriptFile + ": " + getLastErrorString();
+      m_app.statusMess(mstr);
+      addErrMess(mstr);
+    }   
+
+    ZM_Base::MessType mt = status == 0 ? ZM_Base::MessType::TASK_COMPLETED : ZM_Base::MessType::TASK_ERROR;
+    ZM_Base::StateType st = status == 0 ? ZM_Base::StateType::COMPLETED : ZM_Base::StateType::ERRORT;
+
     p.setTaskState(st);
 
-    m_listMessForSchedr.push(MessForSchedr{p.getTask().id,
+    m_listMessForSchedr.push(MessForSchedr{tId,
                                            mt,
-                                           "result"});
+                                           result});
   }
 }
 
-#endif
+#endif // _WIN32

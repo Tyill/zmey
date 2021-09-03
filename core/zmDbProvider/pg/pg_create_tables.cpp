@@ -85,7 +85,7 @@ bool DbProvider::createTables(){
         "(" << (int)ZM_Base::StateType::PAUSE << ", 'pause'),"
         "(" << (int)ZM_Base::StateType::STOP << ", 'stop'),"
         "(" << (int)ZM_Base::StateType::COMPLETED << ", 'completed'),"
-        "(" << (int)ZM_Base::StateType::ERROR << ", 'error'),"
+        "(" << (int)ZM_Base::StateType::ERRORT << ", 'error'),"
         "(" << (int)ZM_Base::StateType::CANCEL << ", 'cancel'),"
         "(" << (int)ZM_Base::StateType::NOT_RESPONDING << ", 'notResponding') ON CONFLICT (id) DO NOTHING;";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);

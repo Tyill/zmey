@@ -163,7 +163,7 @@ bool DbProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::MessSche
 
           if (m.type == ZM_Base::MessType::TASK_ERROR){ 
             ss << "UPDATE tblTaskState ts SET "
-                  "state = " << (int)ZM_Base::StateType::ERROR << " "
+                  "state = " << (int)ZM_Base::StateType::ERRORT << " "
                   "FROM tblTaskQueue tq "
                   "WHERE ts.qtask = " << m.taskId << " AND tq.worker = " << m.workerId << " AND ts.state = " << (int)ZM_Base::StateType::RUNNING << ";";
           }
@@ -185,7 +185,7 @@ bool DbProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::MessSche
 
           if (m.type == ZM_Base::MessType::TASK_ERROR){ 
             ss << "UPDATE tblTaskState SET "
-                  "state = " << (int)ZM_Base::StateType::ERROR << " "
+                  "state = " << (int)ZM_Base::StateType::ERRORT << " "
                   "WHERE qtask = " << m.taskId << ";";
           }
           else if (m.type == ZM_Base::MessType::TASK_COMPLETED){                      

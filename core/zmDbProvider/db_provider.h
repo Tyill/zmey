@@ -76,7 +76,7 @@ struct TaskTime{
 
 typedef void* UData;
 typedef std::function<void(const char* mess, UData)> ErrCBack;
-typedef void(*ChangeTaskStateCBack)(uint64_t qtId, uint64_t userId, ZM_Base::StateType prevState, ZM_Base::StateType newState, UData);
+typedef void(*ChangeTaskStateCBack)(uint64_t qtId, uint64_t userId, int progress, ZM_Base::StateType prevState, ZM_Base::StateType newState, UData);
 
 class DbProvider{  
 public: 

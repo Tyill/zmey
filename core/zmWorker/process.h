@@ -27,16 +27,17 @@
 #include "zmCommon/timer_delay.h"
 #include "zmBase/structurs.h"
 
+#ifdef _WIN32 
+typedef void* HANDLE; 
+typedef int pid_t;
+#endif 
+
 class Application;
 class Executor;
 
 class Process{
 public:
   Process(Application&, Executor&, const ZM_Base::Task&);
-
-#ifdef _WIN32 
-  typedef int64_t pid_t;
-#endif 
 
   ZM_Base::Task getTask() const;
   pid_t getPid() const;
@@ -46,6 +47,11 @@ public:
   void pause();
   void contin();
   void stop();    
+
+#ifdef _WIN32 
+  HANDLE getHandle() const;
+  void closeHandle();
+#endif
 
 private:
   Application& m_app;  
@@ -57,4 +63,9 @@ private:
   uint64_t m_cdeltaTimeProgress = 0,
            m_cdeltaTimeDuration  = 0;
   bool m_isPause = false;
+
+#ifdef _WIN32 
+  HANDLE m_hProcess = nullptr;
+  HANDLE m_hThread = nullptr;
+#endif
 };

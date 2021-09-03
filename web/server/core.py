@@ -32,10 +32,11 @@ def init(dbConnStr : str):
       
   zmTaskWatch.setChangeTaskStateCBack(taskChangeCBack)
 
-def taskChangeCBack(tId : int, uId : int, prevState: int, newState: int):
+def taskChangeCBack(tId : int, uId : int, progress : int, prevState: int, newState: int):
   try:
     zmt = zm.Task(tId)
     zmt.state = newState
+    zmt.progress = progress
     zmTaskWatch.taskTime(zmt)
 
     tstate = zm.StateType(newState)
@@ -54,8 +55,7 @@ def taskChangeCBack(tId : int, uId : int, prevState: int, newState: int):
     if tstate == zm.StateType.COMPLETED:    
       from . import pipeline_task as pt
       t = task.get(dbo, tId)
-      nextTasks = pt.getNextTasks(dbo, t.pplTaskId)
-
+      nextTasks = pt.getNextTasks(dbo, t.pplTaskId) 
       if nextTasks:
         for nextTaskId, isStartNext, isSendResultToNext in nextTasks:
           if not isStartNext:
@@ -65,7 +65,7 @@ def taskChangeCBack(tId : int, uId : int, prevState: int, newState: int):
             newTask = task.Task(nextTaskId, starterPplTaskId=t.pplTaskId, ttlId=nextTask.ttId)
             newTask.params = nextTask.params
             if isSendResultToNext:
-              newTask.params += zmt.result 
+              newTask.params += zmt.result             
             task.start(dbo, uId, newTask)
      
     db.closeDb(dbo)

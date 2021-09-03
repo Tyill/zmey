@@ -178,7 +178,10 @@ class CentralWidget extends React.Component<IProps, IState>{
 
                                       this.setState({isShowAckDeleteDialog : true});
                                     }}
-                                    hDClickItem={()=>0}>
+                                    hDClickItem={()=>{
+                                      this.m_selTaskTemplate = TaskTemplates.get(t.id);
+                                      this.setState({isShowTaskTemplateConfig : true});
+                                    }}>
                           </ListItem>);
       }
       return <ListGroup className="list-group-flush borderBottom" style={{ maxHeight: "35vh", overflowY:"auto"}} >
@@ -250,7 +253,7 @@ class CentralWidget extends React.Component<IProps, IState>{
     });
 
     let EventList = observer(() => {
-      let events = [];      
+      let events = [];  
       for (let ev of Events.getAll().values()){
         events.push(<ListItem key={ev.id} id={ev.id} title={ev.name} tooltip={ev.description}
                               labelEdit={"Edit Event"}
@@ -267,7 +270,10 @@ class CentralWidget extends React.Component<IProps, IState>{
 
                                 this.setState({isShowAckDeleteDialog : true});
                               }}
-                              hDClickItem={()=>0}>
+                              hDClickItem={()=>{
+                                this.m_selEvent = Events.get(ev.id);
+                                this.setState({isShowEventConfig : true});
+                              }}>
                           </ListItem>);
       }
       return <ListGroup className="list-group-flush borderBottom" style={{ maxHeight: "35vh", overflowY:"auto"}} >

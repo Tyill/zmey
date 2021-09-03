@@ -40,7 +40,7 @@ class PipelineTask:
 def add(pt : PipelineTask) -> bool:
   if 'db' in g:
     try:
-
+      setts = pt.setts.replace("'", '"') 
       nextTasksId = ','.join([str(v) for v in pt.nextTasksId])
       prevTasksId = ','.join([str(v) for v in pt.prevTasksId])
       isStartNext = ','.join([str(v) for v in pt.isStartNext])
@@ -50,17 +50,17 @@ def add(pt : PipelineTask) -> bool:
         cr.execute(
           "INSERT INTO tblPipelineTask (pplId, ttId, params, isEnabled, setts,"
           "nextTasksId, prevTasksId, isStartNext, isSendResultToNext, name, description) VALUES("
-          f'"{pt.pplId}",'
-          f'"{pt.ttId}",'
-          f'"{pt.params}",'
-          f'"{pt.isEnabled}",'
-          f'"{pt.setts}",'
-          f'"{nextTasksId}",'
-          f'"{prevTasksId}",'
-          f'"{isStartNext}",'
-          f'"{isSendResultToNext}",'
-          f'"{pt.name}",'
-          f'"{pt.description}");'
+          f"'{pt.pplId}',"
+          f"'{pt.ttId}',"
+          f"'{pt.params}',"
+          f"'{pt.isEnabled}',"
+          f"'{setts}',"
+          f"'{nextTasksId}',"
+          f"'{prevTasksId}',"
+          f"'{isStartNext}',"
+          f"'{isSendResultToNext}',"
+          f"'{pt.name}',"
+          f"'{pt.description}');"
         )
         pt.id = cr.lastrowid
         g.db.commit()
@@ -96,10 +96,13 @@ def getNextTasks(db, id : int) -> List[List[int]]:
       )
       rows = cr.fetchall()
       for row in rows:
+        ret = []
         nextTasksId = [int(v) for v in row[0].split(',') if len(v)] 
         isStartNext = [int(v) for v in row[1].split(',') if len(v)] 
         isSendResultToNext = [int(v) for v in row[2].split(',') if len(v)] 
-        return [nextTasksId, isStartNext, isSendResultToNext]
+        for i, _ in enumerate(nextTasksId):
+          ret.append([nextTasksId[i], isStartNext[i], isSendResultToNext[i]])
+        return ret
   except Exception as err:
     print("{0} local db query failed: {1}".format("PipelineTask.getNextTasks", str(err)))
   return None
@@ -107,6 +110,7 @@ def getNextTasks(db, id : int) -> List[List[int]]:
 def change(pt : PipelineTask) -> bool:
   if 'db' in g:
     try:
+      setts = pt.setts.replace("'", '"')      
       nextTasksId = ','.join([str(v) for v in pt.nextTasksId])
       prevTasksId = ','.join([str(v) for v in pt.prevTasksId])
       isStartNext = ','.join([str(v) for v in pt.isStartNext])
@@ -114,18 +118,18 @@ def change(pt : PipelineTask) -> bool:
       with closing(g.db.cursor()) as cr:
         cr.execute(
           "UPDATE tblPipelineTask SET "
-          f'pplId = "{pt.pplId}",'
-          f'ttId = "{pt.ttId}",'
-          f'isEnabled = "{pt.isEnabled}",'
-          f'setts = "{pt.setts}",'
-          f'params = "{pt.params}",'
-          f'nextTasksId = "{nextTasksId}",'
-          f'prevTasksId = "{prevTasksId}",'
-          f'isStartNext = "{isStartNext}",'
-          f'isSendResultToNext = "{isSendResultToNext}",'
-          f'name = "{pt.name}",'
-          f'description = "{pt.description}" '
-          f'WHERE id = {pt.id};' 
+          f"pplId = '{pt.pplId}',"
+          f"ttId = '{pt.ttId}',"
+          f"isEnabled = '{pt.isEnabled}',"
+          f"setts = '{setts}',"
+          f"params = '{pt.params}',"
+          f"nextTasksId = '{nextTasksId}',"
+          f"prevTasksId = '{prevTasksId}',"
+          f"isStartNext = '{isStartNext}',"
+          f"isSendResultToNext = '{isSendResultToNext}',"
+          f"name = '{pt.name}',"
+          f"description = '{pt.description}' "
+          f"WHERE id = {pt.id};" 
         )
         g.db.commit()
       return True

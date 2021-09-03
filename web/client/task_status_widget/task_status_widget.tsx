@@ -2,7 +2,7 @@ import React from "react";
 import { Table } from "react-bootstrap";
 import { observer} from "mobx-react-lite"
 
-import { PipelineTasks, Tasks } from "../store/store";
+import { PipelineTasks, Tasks, Events} from "../store/store";
 import { dateFormat } from "../common/common";
 import { stateToString } from "../types"
 
@@ -31,7 +31,8 @@ class TaskStatusWidget extends React.Component<IProps, IState>{
       let tasks = [];
       for (let t of Tasks.getAll()){  
         
-        let prevPplTask = PipelineTasks.get(t.prevPplTaskId); 
+        let starterPplTask = PipelineTasks.get(t.starterPplTaskId);
+        let starterName = starterPplTask ? starterPplTask.name : Events.get(t.starterEventId).name;
      
         let offsTime = new Date().getTimezoneOffset(),
             startTime = new Date(t.startTime),
@@ -41,9 +42,9 @@ class TaskStatusWidget extends React.Component<IProps, IState>{
         
         tasks.push(<tr key={t.id}>
           <td style={bodyStyle}>{t.id}</td>
-          <td style={bodyStyle}>{prevPplTask.name}</td>
+          <td style={bodyStyle}>{starterName}</td>
           <td style={bodyStyle}>{stateToString(t.state)}</td>
-          <td style={bodyStyle}>{stateToString(t.state)}</td>
+          <td style={bodyStyle}>{t.progress}</td>
           <td style={bodyStyle}>{t.startTime ? dateFormat(startTime, "yyyy-mm-dd hh:ii:ss.ms") : ""}</td>
           <td style={bodyStyle}>{t.stopTime ? dateFormat(stopTime, "yyyy-mm-dd hh:ii:ss.ms") : ""}</td>
           <td style={bodyStyle}>{t.result}</td>
