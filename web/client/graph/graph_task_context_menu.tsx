@@ -30,11 +30,13 @@ class TaskContextMenu extends React.Component<IProps, IState>{
   
   startTask(){
 
+    const pplt = PipelineTasks.get(this.props.id);
     let task = {
       pplTaskId : this.props.id,
       starterPplTaskId : this.props.id,
       starterEventId : 0,
-      ttlId : PipelineTasks.get(this.props.id).ttId,
+      ttlId : pplt.ttId,
+      params : pplt.params,
     } as ITask;
 
     let pplTask = PipelineTasks.get(this.props.id);    

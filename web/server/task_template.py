@@ -11,21 +11,28 @@ class TaskTemplate(zm.TaskTemplate):
 def add(iott : TaskTemplate) -> bool:
   if zmConn and g.userId and ('db' in g):
     iott.userId = g.userId
+    name = iott.name
+    iott.name = iott.name.replace("'", "''")
+    description = iott.description
+    iott.description = iott.description.replace("'", "''")
+    script = iott.script
+    iott.script = iott.script.replace("'", "''")
     if zmConn.addTaskTemplate(iott):
       try:
-        script = iott.script.replace("'", '"')
-
         with closing(g.db.cursor()) as cr:
           cr.execute(
             "INSERT INTO tblTaskTemplate (id, name, description, script, averDurationSec, maxDurationSec) VALUES("
             f"'{iott.id}',"
             f"'{iott.name}',"
             f"'{iott.description}',"
-            f"'{script}',"
+            f"'{iott.script}',"
             f"'{iott.averDurationSec}',"
             f"'{iott.maxDurationSec}');"
           )
           g.db.commit()
+          iott.name = name
+          iott.description = description
+          iott.script = script
         return True
       except Exception as err:
         print("{0} local db query failed: {1}".format("TaskTemplate.add", str(err)))
@@ -34,21 +41,28 @@ def add(iott : TaskTemplate) -> bool:
 def change(iott : TaskTemplate) -> bool:
   if zmConn and g.userId and ('db' in g):
     iott.userId = g.userId
+    name = iott.name
+    iott.name = iott.name.replace("'", "''")
+    description = iott.description
+    iott.description = iott.description.replace("'", "''")
+    script = iott.script
+    iott.script = iott.script.replace("'", "''")
     if zmConn.changeTaskTemplate(iott):
       try:
-        script = iott.script.replace("'", '"')
-
         with closing(g.db.cursor()) as cr:
           cr.execute(
             "UPDATE tblTaskTemplate SET "
             f"name = '{iott.name}',"
             f"description = '{iott.description}',"
-            f"script = '{script}',"
+            f"script = '{iott.script}',"
             f"averDurationSec = '{iott.averDurationSec}',"
             f"maxDurationSec = '{iott.maxDurationSec}' "
             f"WHERE id = {iott.id};"
           )
           g.db.commit()
+          iott.name = name
+          iott.description = description
+          iott.script = script
         return True
       except Exception as err:
         print("{0} local db query failed: {1}".format("TaskTemplate.change", str(err)))

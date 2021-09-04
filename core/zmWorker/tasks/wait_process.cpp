@@ -64,7 +64,7 @@ void Executor::waitProcess()
                 
       auto tId = itPrc->getTask().id;
     
-      string resultFile = "/tmp/" + to_string(tId) + ".result",
+      string resultFile = "/tmp/" + to_string(tId) + ".res",
              result;
       bool isRes = true;       
       int fdRes = open(resultFile.c_str(), O_RDONLY);
@@ -83,6 +83,8 @@ void Executor::waitProcess()
         ERROR_MESS("worker::waitProcess error open " + resultFile + ": " + string(strerror(errno)));
         isRes = false;
       }
+      result.erase(remove(result.begin(), result.end(), '\0'), result.end());
+      ZM_Aux::replace(result, "'", "''");
 
       ZM_Base::MessType mt = ZM_Base::MessType::TASK_COMPLETED;
       ZM_Base::StateType st = ZM_Base::StateType::COMPLETED;
@@ -105,7 +107,7 @@ void Executor::waitProcess()
       if (remove(resultFile.c_str()) == -1){
         ERROR_MESS("worker::waitProcess error remove " + resultFile + ": " + string(strerror(errno)));
       }
-      string scriptFile = "/tmp/" + to_string(tId) + ".script";
+      string scriptFile = "/tmp/" + to_string(tId) + ".sh";
       if (remove(scriptFile.c_str()) == -1){
         ERROR_MESS("worker::waitProcess error remove " + scriptFile + ": " + string(strerror(errno)));
       }    
@@ -166,7 +168,7 @@ void Executor::waitProcess()
     auto tId = p.getTask().id; 
 
     std::string result;
-    std::string resultFile = std::to_string(tId) + ".result";
+    std::string resultFile = std::to_string(tId) + ".res";
     std::ifstream ifs(resultFile, std::ifstream::in);
     if (ifs.good()){      
       ifs.seekg(0, std::ios::end);   
@@ -180,7 +182,9 @@ void Executor::waitProcess()
       addErrMess(mstr);
       status = -1;
     }
-    
+    result.erase(remove(result.begin(), result.end(), '\0'), result.end());
+    ZM_Aux::replace(result, "'", "''");
+
     if (remove(resultFile.c_str()) == -1){
       auto mstr = "worker::waitProcess error remove " + resultFile + ": " + getLastErrorString();
       m_app.statusMess(mstr);

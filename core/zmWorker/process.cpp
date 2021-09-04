@@ -49,9 +49,9 @@ Process::Process(Application& app, Executor& exr, const ZM_Base::Task& tsk):
   switch (m_pid = fork()){
     // error
     case -1:{    
-      string mstr = "worker::Process child error fork: " + string(strerror(errno));
-      m_app.statusMess(mstr);
-      m_executor.addErrMess(mstr);
+      m_err = "worker::Process child error fork: " + string(strerror(errno));
+      m_app.statusMess(m_err);
+      m_executor.addErrMess(m_err);
     }
       break;
     // children                        
@@ -61,13 +61,13 @@ Process::Process(Application& app, Executor& exr, const ZM_Base::Task& tsk):
                   perror(err); \
                   _exit(127);  \
                 }    
-      string scriptFile = "/tmp/" + to_string(tsk.id) + ".script";
+      string scriptFile = "/tmp/" + to_string(tsk.id) + ".sh";
       int fdSct = open(scriptFile.c_str(), O_CREAT | O_TRUNC | O_WRONLY, S_IRUSR | S_IWUSR | S_IXUSR);
       CHECK(fdSct, "create");
       CHECK(write(fdSct, tsk.script.data(), tsk.script.size()), "write");
       CHECK(close(fdSct), "close");
       
-      string resultFile = "/tmp/" + to_string(tsk.id) + ".result";
+      string resultFile = "/tmp/" + to_string(tsk.id) + ".res";
       int fdRes = open(resultFile.c_str(), O_CREAT | O_TRUNC | O_RDWR, S_IRUSR | S_IWUSR);
       CHECK(fdRes, "create");
       CHECK(dup2(fdRes, 1), "dup2(fdRes, 1)");// stdout -> fdRes
@@ -123,23 +123,23 @@ void Process::setTaskState(ZM_Base::StateType st){
 }
 void Process::pause(){
   if (kill(m_pid, SIGSTOP) == -1){
-    string mstr = "worker::Process error pause: " + string(strerror(errno));
-    m_app.statusMess(mstr);
-    m_executor.addErrMess(mstr);
+    m_err = "worker::Process error pause: " + string(strerror(errno));
+    m_app.statusMess(m_err);
+    m_executor.addErrMess(m_err);
   }
 }
 void Process::contin(){
   if (kill(m_pid, SIGCONT) == -1){
-    string mstr = "worker::Process error continue: " + string(strerror(errno));
-    m_app.statusMess(mstr);
-    m_executor.addErrMess(mstr);
+    m_err = "worker::Process error continue: " + string(strerror(errno));
+    m_app.statusMess(m_err);
+    m_executor.addErrMess(m_err);
   }
 }
 void Process::stop(){
   if (kill(m_pid, SIGTERM) == -1){
-    string mstr = "worker::Process error stop: " + string(strerror(errno));
-    m_app.statusMess(mstr);
-    m_executor.addErrMess(mstr);
+    m_err = "worker::Process error stop: " + string(strerror(errno));
+    m_app.statusMess(m_err);
+    m_executor.addErrMess(m_err);
   }
 }
 
@@ -160,6 +160,18 @@ std::string getLastErrorStr(){
     }
 }
 
+#define ERR_RETURN(err)   \
+        m_pid = -1;       \
+        m_err = err;      \
+        m_app.statusMess(m_err);      \
+        m_executor.addErrMess(m_err); \
+        if (hOutFile != INVALID_HANDLE_VALUE){ \
+          CloseHandle(hOutFile);               \
+          remove(resultFile.c_str());          \
+          remove(scriptFile.c_str());          \
+        }                                      \
+        return;
+
 Process::Process(Application& app, Executor& exr, const ZM_Base::Task& tsk):
   m_app(app),
   m_executor(exr),
@@ -170,7 +182,10 @@ Process::Process(Application& app, Executor& exr, const ZM_Base::Task& tsk):
   sa.lpSecurityDescriptor = NULL;
   sa.bInheritHandle = TRUE;
 
-  HANDLE hOutFile = CreateFileA((std::to_string(tsk.id) + ".result").c_str(),
+  std::string resultFile = std::to_string(tsk.id) + ".res";
+  std::string scriptFile = std::to_string(tsk.id) + ".bat";
+
+  HANDLE hOutFile = CreateFileA(resultFile.c_str(),
       FILE_WRITE_DATA,
       FILE_SHARE_WRITE | FILE_SHARE_READ,
       &sa,
@@ -179,11 +194,7 @@ Process::Process(Application& app, Executor& exr, const ZM_Base::Task& tsk):
       NULL);
 
   if (hOutFile == INVALID_HANDLE_VALUE){
-    m_pid = -1;
-    std::string mstr = "worker::Process CreateFileA " + std::to_string(tsk.id) + ".result error: " + getLastErrorStr();
-    m_app.statusMess(mstr);
-    m_executor.addErrMess(mstr);
-    return;
+    ERR_RETURN("worker::Process CreateFileA " + std::to_string(tsk.id) + ".res error: " + getLastErrorStr());
   }
 
   PROCESS_INFORMATION pi;
@@ -203,35 +214,31 @@ Process::Process(Application& app, Executor& exr, const ZM_Base::Task& tsk):
   std::string cmd;
   size_t shebPos = tsk.script.find("#!");
   size_t endline = tsk.script.find('\n');
-  if ((shebPos != size_t(-1)) && (endline != size_t(-1))) {
-      cmd = tsk.script.substr(shebPos + 2, endline - shebPos - 2);
+  if ((shebPos != std::string::npos) && (endline != std::string::npos)) {
+      cmd = ZM_Aux::trim(tsk.script.substr(shebPos + 2, endline - shebPos - 2));
 
-      std::string fScript = std::to_string(tsk.id) + ".bat";
-      std::ofstream ofs(fScript, std::ofstream::out);
-      ofs << tsk.script.substr(endline + 1).c_str();
-      ofs.close();
-
-      cmd += " " + fScript + " " + tsk.params;
+      std::ofstream ofs(scriptFile, std::ofstream::out);
+      if (ofs.good()) {
+        ofs << tsk.script.substr(endline + 1).c_str();
+        ofs.close();
+      }
+      else {
+        ERR_RETURN("worker::Process create of script file error: " + scriptFile);
+      }
+      cmd += " " + scriptFile + " " + tsk.params;
   }
   else {
-    m_pid = -1;
-    std::string mstr = "worker::Process shebang of script error";
-    m_app.statusMess(mstr);
-    m_executor.addErrMess(mstr);
-    return;
+    ERR_RETURN("worker::Process shebang of script error");    
   }
   BOOL ret = CreateProcessA(NULL, (char*)cmd.c_str(), NULL, NULL, TRUE, flags, NULL, NULL, &si, &pi);
  
   if (ret){
     m_hProcess = pi.hProcess;
     m_hThread = pi.hThread;
+    m_hResFile = hOutFile;
   }
   else{
-    m_pid = -1;
-    std::string mstr = "worker::Process CreateProcessA " + cmd + " error: " + getLastErrorStr();
-    m_app.statusMess(mstr);
-    m_executor.addErrMess(mstr);
-    return;
+    ERR_RETURN("worker::Process CreateProcessA " + cmd + " error: " + getLastErrorStr());
   }
   m_timerProgress.updateCycTime();
   m_timerDuration.updateCycTime();
@@ -246,6 +253,7 @@ void Process::closeHandle(){
   if (m_hProcess && m_hThread){
     CloseHandle(m_hProcess);
     CloseHandle(m_hThread);
+    CloseHandle(m_hResFile);
   }
 }
 
@@ -275,13 +283,13 @@ void Process::setTaskState(ZM_Base::StateType st){
   m_isPause = (st == ZM_Base::StateType::PAUSE);
 }
 void Process::pause(){
-  
+    // TODO  
 }
 void Process::contin(){
-  
+    // TODO 
 }
 void Process::stop(){
-  
+    // TODO 
 }
 
 #endif

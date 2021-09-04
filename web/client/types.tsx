@@ -130,6 +130,7 @@ interface ITask{
   ttlId : number;
   state : StateType | number;
   progress : number;
+  params : string;
   result : string;
   createTime : string;
   takeInWorkTime : string;

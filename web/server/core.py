@@ -65,7 +65,7 @@ def taskChangeCBack(tId : int, uId : int, progress : int, prevState: int, newSta
             newTask = task.Task(nextTaskId, starterPplTaskId=t.pplTaskId, ttlId=nextTask.ttId)
             newTask.params = nextTask.params
             if isSendResultToNext:
-              newTask.params += zmt.result             
+              newTask.params += ' ' + zmt.result             
             task.start(dbo, uId, newTask)
      
     db.closeDb(dbo)

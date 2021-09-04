@@ -34,6 +34,8 @@ def add(ev : Event) -> bool:
       tasksForStart = ','.join([str(v['pplId']) + " " + str(v['taskId']) for v in ev.tasksForStart if len(v)])
       timeStartOnceOfDay = ','.join([v for v in ev.timeStartOnceOfDay if len(v)])
 
+      name = ev.name.replace("'", "''")
+      description = ev.description.replace("'", "''")
       with closing(g.db.cursor()) as cr:
         cr.execute(
           "INSERT INTO tblEvent (isEnabled, timeStartOnceOfDay, timeStartEverySec,"
@@ -42,8 +44,8 @@ def add(ev : Event) -> bool:
           f"'{timeStartOnceOfDay}',"
           f"'{ev.timeStartEverySec}',"
           f"'{tasksForStart}',"
-          f"'{ev.name}',"
-          f"'{ev.description}');"
+          f"'{name}',"
+          f"'{description}');"
         )
         ev.id = cr.lastrowid
         g.db.commit()
@@ -57,7 +59,8 @@ def change(ev : Event) -> bool:
     try:
       tasksForStart = ','.join([str(v['pplId']) + " " + str(v['taskId']) for v in ev.tasksForStart if len(v)])
       timeStartOnceOfDay = ','.join([v for v in ev.timeStartOnceOfDay if len(v)])
-      
+      name = ev.name.replace("'", "''")
+      description = ev.description.replace("'", "''")
       with closing(g.db.cursor()) as cr:
         cr.execute(
           "UPDATE tblEvent SET "
@@ -65,8 +68,8 @@ def change(ev : Event) -> bool:
           f"timeStartOnceOfDay = '{timeStartOnceOfDay}',"
           f"timeStartEverySec = '{ev.timeStartEverySec}',"
           f"tasksForStart = '{tasksForStart}',"
-          f"name = '{ev.name}',"
-          f"description = '{ev.description}' "
+          f"name = '{name}',"
+          f"description = '{description}' "
           f"WHERE id = {ev.id};"
         )
         g.db.commit()

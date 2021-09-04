@@ -20,6 +20,7 @@ def startTask():
     task.starterPplTaskId = int(jnReq['starterPplTaskId'])
     task.starterEventId = int(jnReq['starterEventId'])
     task.ttlId = int(jnReq['ttlId'])
+    task.params = jnReq['params']
 
     return json.dumps(task.__dict__) if t.start(g.db, g.userId, task) else ('internal error', 500)
   except Exception as err:

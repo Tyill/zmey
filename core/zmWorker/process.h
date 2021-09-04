@@ -46,7 +46,10 @@ public:
   void setTaskState(ZM_Base::StateType);
   void pause();
   void contin();
-  void stop();    
+  void stop();   
+  std::string getErrorStr() const {
+      return m_err;
+  }
 
 #ifdef _WIN32 
   HANDLE getHandle() const;
@@ -63,9 +66,11 @@ private:
   uint64_t m_cdeltaTimeProgress = 0,
            m_cdeltaTimeDuration  = 0;
   bool m_isPause = false;
+  std::string m_err;
 
 #ifdef _WIN32 
   HANDLE m_hProcess = nullptr;
   HANDLE m_hThread = nullptr;
+  HANDLE m_hResFile = nullptr;
 #endif
 };

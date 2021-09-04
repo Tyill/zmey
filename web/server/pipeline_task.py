@@ -40,27 +40,29 @@ class PipelineTask:
 def add(pt : PipelineTask) -> bool:
   if 'db' in g:
     try:
-      setts = pt.setts.replace("'", '"') 
       nextTasksId = ','.join([str(v) for v in pt.nextTasksId])
       prevTasksId = ','.join([str(v) for v in pt.prevTasksId])
       isStartNext = ','.join([str(v) for v in pt.isStartNext])
       isSendResultToNext = ','.join([str(v) for v in pt.isSendResultToNext])
-
+      name = pt.name.replace("'", "''")
+      description = pt.description.replace("'", "''")
+      setts = str(pt.setts).replace("'", "''")
+      params = pt.params.replace("'", "''")
       with closing(g.db.cursor()) as cr:
         cr.execute(
           "INSERT INTO tblPipelineTask (pplId, ttId, params, isEnabled, setts,"
           "nextTasksId, prevTasksId, isStartNext, isSendResultToNext, name, description) VALUES("
           f"'{pt.pplId}',"
           f"'{pt.ttId}',"
-          f"'{pt.params}',"
+          f"'{params}',"
           f"'{pt.isEnabled}',"
           f"'{setts}',"
           f"'{nextTasksId}',"
           f"'{prevTasksId}',"
           f"'{isStartNext}',"
           f"'{isSendResultToNext}',"
-          f"'{pt.name}',"
-          f"'{pt.description}');"
+          f"'{name}',"
+          f"'{description}');"
         )
         pt.id = cr.lastrowid
         g.db.commit()
@@ -110,11 +112,14 @@ def getNextTasks(db, id : int) -> List[List[int]]:
 def change(pt : PipelineTask) -> bool:
   if 'db' in g:
     try:
-      setts = pt.setts.replace("'", '"')      
       nextTasksId = ','.join([str(v) for v in pt.nextTasksId])
       prevTasksId = ','.join([str(v) for v in pt.prevTasksId])
       isStartNext = ','.join([str(v) for v in pt.isStartNext])
       isSendResultToNext = ','.join([str(v) for v in pt.isSendResultToNext])
+      name = pt.name.replace("'", "''")
+      description = pt.description.replace("'", "''")
+      setts = str(pt.setts).replace("'", "''")
+      params = pt.params.replace("'", "''")
       with closing(g.db.cursor()) as cr:
         cr.execute(
           "UPDATE tblPipelineTask SET "
@@ -122,13 +127,13 @@ def change(pt : PipelineTask) -> bool:
           f"ttId = '{pt.ttId}',"
           f"isEnabled = '{pt.isEnabled}',"
           f"setts = '{setts}',"
-          f"params = '{pt.params}',"
+          f"params = '{params}',"
           f"nextTasksId = '{nextTasksId}',"
           f"prevTasksId = '{prevTasksId}',"
           f"isStartNext = '{isStartNext}',"
           f"isSendResultToNext = '{isSendResultToNext}',"
-          f"name = '{pt.name}',"
-          f"description = '{pt.description}' "
+          f"name = '{name}',"
+          f"description = '{description}' "
           f"WHERE id = {pt.id};" 
         )
         g.db.commit()

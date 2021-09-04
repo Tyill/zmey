@@ -19,7 +19,7 @@ def addPipelineTask():
     plt.pplId = int(jnReq['pplId'])
     plt.ttId = int(jnReq['ttId'])
     plt.isEnabled = int(jnReq['isEnabled'])
-    plt.setts = str(jnReq['setts'])
+    plt.setts = jnReq['setts']
     plt.nextTasksId = jnReq['nextTasksId']
     plt.prevTasksId = jnReq['prevTasksId']
     plt.isSendResultToNext = jnReq['isSendResultToNext']
@@ -43,7 +43,7 @@ def changePipelineTask(id : int):
     plt.pplId = int(jnReq['pplId'])
     plt.ttId = int(jnReq['ttId'])
     plt.isEnabled = int(jnReq['isEnabled'])
-    plt.setts = str(jnReq['setts'])
+    plt.setts = jnReq['setts']
     plt.nextTasksId = jnReq['nextTasksId']
     plt.prevTasksId = jnReq['prevTasksId']
     plt.isSendResultToNext = jnReq['isSendResultToNext']

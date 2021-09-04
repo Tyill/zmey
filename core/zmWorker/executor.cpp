@@ -29,6 +29,7 @@ Executor::Executor(Application& app, const std::string& connPnt):
   m_app(app)  
 {
   m_worker.connectPnt = connPnt;
+  m_worker.load = 0;
 }
 
 void Executor::addMessForSchedr(Executor::MessForSchedr mess)

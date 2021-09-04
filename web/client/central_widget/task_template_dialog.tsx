@@ -115,7 +115,7 @@ class TaskTemplateDialogModal extends React.Component<IProps, IState>{
         <Modal.Header closeButton>
           <Modal.Title> {this.m_isNewTask ? "Create of Task Template" : `${ttask.id}# Edit of Task Template`}</Modal.Title>
         </Modal.Header>
-        <Modal.Body style={{height: "80vh", overflow:"auto"}}>
+        <Modal.Body >
           <Form>
             <Form.Row >
               <Form.Group as={Col} style={{maxWidth:"200px"}}  controlId="name">
@@ -135,9 +135,9 @@ class TaskTemplateDialogModal extends React.Component<IProps, IState>{
                 <Form.Control type="number" min="1" ref={(input) => {this.m_refObj["maxDurationSec"] = input }}  defaultValue={ttask.maxDurationSec} />
               </Form.Group>
             </Form.Row>
-            <Form.Group  controlId="script">
+            <Form.Group style={{height:"50vh", overflow:"auto"}} controlId="script">
               <Form.Label>Script</Form.Label>
-              <Form.Control  style={{height:"60vh"}} as="textarea" ref={(input) => {this.m_refObj["script"] = input }} placeholder="" defaultValue={ttask.script} rows={6} />
+              <Form.Control style={{height:"45vh"}} as="textarea" ref={(input) => {this.m_refObj["script"] = input }} placeholder="" defaultValue={ttask.script} rows={6} />
             </Form.Group>         
           <Form.Row style={{height:"20px"}}> 
             <Form.Label style={{marginLeft:"5px"}}>{this.state.statusMess}</Form.Label>   

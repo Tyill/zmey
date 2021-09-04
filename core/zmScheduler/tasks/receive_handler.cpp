@@ -40,7 +40,7 @@ using namespace std;
       return;  \
     } \
     if (!ZM_Aux::isNumber(mess[#field])){ \
-      ERROR_MESS("schedr::receiveHandler error !ZM_Aux::isNumber " + mess[#field] + " from: " + cp, wId); \
+      ERROR_MESS(string("schedr::receiveHandler error !ZM_Aux::isNumber ") + #field + " " + mess[#field] + " from: " + cp, wId); \
       return; \
     }
   #define checkField(field) \

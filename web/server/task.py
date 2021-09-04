@@ -22,10 +22,10 @@ class Task(zm.Task):
     return self.__repr__()
 
 def start(db, userId, iot : Task) -> bool:
-  if zmConn and zmConn.startTask(iot):
+  params = iot.params
+  iot.params = iot.params.replace("'", "''")
+  if zmConn and zmConn.startTask(iot):  
     try:
-      params = iot.params.replace("'", '"')
-
       with closing(db.cursor()) as cr:
         cr.execute(
           "INSERT INTO tblTask (id, state, pplTaskId, starterPplTaskId, starterEventId, ttlId, script, params) VALUES("
@@ -36,9 +36,10 @@ def start(db, userId, iot : Task) -> bool:
           f"'{iot.starterEventId}',"
           f"'{iot.ttlId}',"
           f"(SELECT script FROM tblTaskTemplate WHERE id = {iot.ttlId}),"
-          f"'{params}');"
+          f"'{iot.params}');"
         )
         db.commit()
+        iot.params = params
       
       zmTaskWatch.addTaskForTracking(iot.id, userId)
 
@@ -69,11 +70,12 @@ def get(db, id : int) -> Task:
 
 def changeState(db, t : Task) -> bool:
   try:
+    result = t.result.replace("'", "''")
     with closing(db.cursor()) as cr:
       cr.execute(
         "UPDATE tblTask SET "
         f"state = '{t.state}',"
-        f"result = '{t.result}',"
+        f"result = '{result}',"
         f"createTime = '{t.createTime}',"
         f"takeInWorkTime = '{t.takeInWorkTime}',"
         f"startTime = '{t.startTime}',"
