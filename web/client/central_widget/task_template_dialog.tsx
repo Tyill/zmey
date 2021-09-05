@@ -135,9 +135,9 @@ class TaskTemplateDialogModal extends React.Component<IProps, IState>{
                 <Form.Control type="number" min="1" ref={(input) => {this.m_refObj["maxDurationSec"] = input }}  defaultValue={ttask.maxDurationSec} />
               </Form.Group>
             </Form.Row>
-            <Form.Group style={{height:"50vh", overflow:"auto"}} controlId="script">
+            <Form.Group>
               <Form.Label>Script</Form.Label>
-              <Form.Control style={{height:"45vh"}} as="textarea" ref={(input) => {this.m_refObj["script"] = input }} placeholder="" defaultValue={ttask.script} rows={6} />
+              <Form.Control style={{height:"45vh", overflow:"auto"}} as="textarea" ref={(input) => {this.m_refObj["script"] = input }} placeholder="" defaultValue={ttask.script} rows={6} />
             </Form.Group>         
           <Form.Row style={{height:"20px"}}> 
             <Form.Label style={{marginLeft:"5px"}}>{this.state.statusMess}</Form.Label>   

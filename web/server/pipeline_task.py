@@ -107,7 +107,7 @@ def getNextTasks(db, id : int) -> List[List[int]]:
         return ret
   except Exception as err:
     print("{0} local db query failed: {1}".format("PipelineTask.getNextTasks", str(err)))
-  return None
+  return []
 
 def change(pt : PipelineTask) -> bool:
   if 'db' in g:

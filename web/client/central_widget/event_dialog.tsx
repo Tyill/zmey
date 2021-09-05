@@ -14,7 +14,7 @@ interface IProps {
 };
 
 interface IState {
-  tasksForStart : Array<IPplTaskId>,
+  tasksForStart : Array<number>,
   selPplId : number,
   statusMess : string; 
 }; 
@@ -85,6 +85,8 @@ class EventDialogModal extends React.Component<IProps, IState>{
       description : this.m_refObj["description"].value,
     } as IEvent;
     
+    newEvent.timeStartOnceOfDay = newEvent.timeStartOnceOfDay.filter(v=>v.length);
+
     if (this.m_isNewEvent){
       this.m_hasAdded = true;
       ServerAPI.addEvent(newEvent, 
@@ -124,24 +126,24 @@ class EventDialogModal extends React.Component<IProps, IState>{
     if (pplId && taskId){
 
       if (this.state.tasksForStart.findIndex(v=>{
-        return (v.pplId == pplId) &&  (v.taskId == taskId);
+        return (v == taskId);
       }) == -1){
         this.setState((prev, props)=>{
           let tasksForStart = [...prev.tasksForStart];
-          tasksForStart.push({pplId, taskId});
+          tasksForStart.push(taskId);
           return {tasksForStart};
         })
       }
     }
   }
 
-  deleteTaskFromList(pplId : number, taskId : number){
+  deleteTaskFromList(taskId : number){
 
     this.setState((prev, props)=>{
       let tasksForStart = [...prev.tasksForStart];
       
       const inx = tasksForStart.findIndex(v=>{
-        return (v.pplId == pplId) &&  (v.taskId == taskId);
+        return (v == taskId);
       })
       tasksForStart.splice(inx, 1);
       
@@ -182,16 +184,17 @@ class EventDialogModal extends React.Component<IProps, IState>{
     let tasksForStart = [];
     if (this.state.tasksForStart){
       this.state.tasksForStart.forEach(v=>{
-        if (Pipelines.get(v.pplId)){
-          tasksForStart.push(<div className="border borderRadius" id={ v.pplId.toString() + v.taskId.toString()} 
-                                  key={v.pplId.toString() + v.taskId.toString()}
+        const t = PipelineTasks.get(v);
+        if (Pipelines.get(t.pplId)){
+          tasksForStart.push(<div className="border borderRadius" id={ t.pplId.toString() + t.id.toString()} 
+                                  key={t.pplId.toString() + t.id.toString()}
                                   style={{ margin :"0px", padding:"5px"}}>
-                              {Pipelines.get(v.pplId).name + " : " + PipelineTasks.get(v.taskId).name }
+                              {Pipelines.get(t.pplId).name + " : " + t.name }
                               <span>
                                 <a className = "icon-delete"
                                    title="Delete Task"
                                    style={{float: "right", marginLeft: "20px" }} 
-                                   onClick={()=>this.deleteTaskFromList(v.pplId, v.taskId)}>
+                                   onClick={()=>this.deleteTaskFromList(t.id)}>
                                 </a>
                               </span>          
                             </div>

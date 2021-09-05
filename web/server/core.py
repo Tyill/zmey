@@ -6,9 +6,8 @@ from . import db
 zmConn : zm.Connection = None
 zmTaskWatch : zm.Connection = None
 
-
 def init(dbConnStr : str):
-
+  
   libname = 'libzmClient.so'
   if os.name == 'nt':
     libname = 'zmClient.dll'
@@ -33,6 +32,7 @@ def init(dbConnStr : str):
   zmTaskWatch.setChangeTaskStateCBack(taskChangeCBack)
 
 def taskChangeCBack(tId : int, uId : int, progress : int, prevState: int, newState: int):
+  dbo = None
   try:
     zmt = zm.Task(tId)
     zmt.state = newState
@@ -55,21 +55,20 @@ def taskChangeCBack(tId : int, uId : int, progress : int, prevState: int, newSta
     if tstate == zm.StateType.COMPLETED:    
       from . import pipeline_task as pt
       t = task.get(dbo, tId)
-      nextTasks = pt.getNextTasks(dbo, t.pplTaskId) 
-      if nextTasks:
-        for nextTaskId, isStartNext, isSendResultToNext in nextTasks:
-          if not isStartNext:
-            continue
-          nextTask = pt.get(dbo, nextTaskId)
-          if nextTask.isEnabled:
-            newTask = task.Task(nextTaskId, starterPplTaskId=t.pplTaskId, ttlId=nextTask.ttId)
-            newTask.params = nextTask.params
-            if isSendResultToNext:
-              newTask.params += ' ' + zmt.result             
-            task.start(dbo, uId, newTask)
-     
-    db.closeDb(dbo)
+      nextTasks = pt.getNextTasks(dbo, t.pplTaskId)      
+      for nextTaskId, isStartNext, isSendResultToNext in nextTasks:
+        if not isStartNext:
+          continue
+        nextTask = pt.get(dbo, nextTaskId)
+        if nextTask.isEnabled:
+          newTask = task.Task(nextTaskId, starterPplTaskId=t.pplTaskId, ttlId=nextTask.ttId)
+          newTask.params = nextTask.params
+          if isSendResultToNext:
+            newTask.params += ' ' + zmt.result             
+          task.start(dbo, uId, newTask)    
+    
   except Exception as err:
     print("taskChangeCBack failed: {0}".format(str(err)))
-  
-  
+  finally:
+    if dbo:
+      db.closeDb(dbo)

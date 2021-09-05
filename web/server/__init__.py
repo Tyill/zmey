@@ -23,6 +23,9 @@ def create_app():
   from . import core
   core.init(app.config['DbConnectStr'])
 
+  from . import events_process
+  events_process.init(app.instance_path)
+
   from .api import api
   app.register_blueprint(api.bp)
 
@@ -41,5 +44,4 @@ def create_app():
   app.register_blueprint(bp)
   app.add_url_rule('/', endpoint='/index')
 
-  
   return app 

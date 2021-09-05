@@ -1,6 +1,5 @@
-import { IEvent, IRect, IPoint } from "../types"
+import { IEvent } from "../types"
 import { makeObservable, observable, action } from "mobx"
-import * as ServerAPI from "../server_api/server_api";
 
 ///////////////////////////////////////////////////////////////
 /// Events

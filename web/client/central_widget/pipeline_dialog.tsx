@@ -118,7 +118,7 @@ class PipelineDialogModal extends React.Component<IProps, IState>{
         <Modal.Header closeButton>
           <Modal.Title> {this.m_isNewPipeline ? "Create of Pipeline" : `${ppl.id}# Edit of Task Pipeline`}</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+        <Modal.Body>       
           <Form>
             <Form.Row>
               <Form.Group as={Col} style={{maxWidth:"200px"}} controlId="name">

@@ -6,8 +6,8 @@
   "scripts": {
     "build": "./node_modules/.bin/webpack --config ./client/webpack.prod.config.js",
     "wds": "./node_modules/.bin/webpack-dev-server --config ./client/webpack.dev.config.js",
-    "server": "export FLASK_APP=./server&& export FLASK_ENV=development&& flask run",
-    "serverWin": "set FLASK_APP=./server&& set FLASK_ENV=development&& flask run"
+    "server": "export FLASK_APP=./server&& export FLASK_ENV=development&& flask run --no-reload",
+    "serverWin": "set FLASK_APP=./server&& set FLASK_ENV=development&& flask run --no-reload"
   },
   "repository": {
     "type": "git",

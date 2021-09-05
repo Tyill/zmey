@@ -3,9 +3,6 @@ import os
 import uuid
 import hashlib
 import threading
-from flask import(
-  current_app as app
-)
 
 m_lock = threading.Lock()
 
@@ -45,10 +42,10 @@ def addp(id, name, passw, path) -> bool:
   return True
 
 def add(name, passw) -> bool:
-  return addp(-1, name, passw, app.instance_path)
+  return addp(-1, name, passw, m_instance_path)
 
 def get(uname, passw) -> User:
-  with open(app.instance_path + '/users/users.ini', 'r') as file:
+  with open(m_instance_path + '/users/users.ini', 'r') as file:
     for l in file.readlines():
       id, name, hash, salt = l[:-1].split(':')
       if (name == uname) and (calcHash(passw, salt) == hash): 
@@ -64,8 +61,11 @@ def getById(uid : int) -> User:
   return None
 
 def all() -> List[User]:  
-  users = []
-  with open(app.instance_path + '/users/users.ini', 'r') as file:
+  return allWithPath(m_instance_path)
+
+def allWithPath(path) -> List[User]:  
+  users = []  
+  with open(path + '/users/users.ini', 'r') as file:
     for l in file.readlines():
       id, name, _, _ = l.split(':')
       users.append(User(int(id), name))       

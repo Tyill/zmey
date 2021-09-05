@@ -206,6 +206,13 @@ void Executor::waitProcess()
                                            mt,
                                            result});
   }
+
+  // check max run time
+  for(auto& p : m_procs){
+    if (p.checkMaxRunTime() && (p.getTask().state == ZM_Base::StateType::RUNNING)){
+      p.stop();
+    }
+  }
 }
 
 #endif // _WIN32

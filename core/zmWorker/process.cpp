@@ -289,7 +289,7 @@ void Process::contin(){
     // TODO 
 }
 void Process::stop(){
-    // TODO 
+  TerminateProcess(m_hProcess, -1);
 }
 
 #endif

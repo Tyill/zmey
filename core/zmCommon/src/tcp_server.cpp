@@ -28,6 +28,10 @@
 
 #include <numeric>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 using namespace asio::ip;
 
 TcpServer::TcpServer(const std::string& addr, int port)
@@ -37,7 +41,9 @@ TcpServer::TcpServer(const std::string& addr, int port)
   ioctl(m_acceptor.native_handle(), FIOCLEX); //  FD_CLOEXEC
   int one = 1;
   setsockopt(m_acceptor.native_handle(), SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one));
-#endif 
+#elif _WIN32
+  SetHandleInformation((HANDLE)m_acceptor.native_handle(), HANDLE_FLAG_INHERIT, 0);
+#endif
   accept();
 }
  
