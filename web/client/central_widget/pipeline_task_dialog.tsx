@@ -4,8 +4,8 @@ import { Col, Button, Modal, Form} from "react-bootstrap";
 import { IPipelineTask } from "../types";
 import { PipelineTasks, TaskTemplates, Pipelines} from "../store/store";
 import * as ServerAPI from "../server_api/server_api"
+import Switch from "../common/switch_widget";
 
-import "../css/style.less";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 interface IProps {
@@ -85,6 +85,7 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
       setts : !this.m_isNewPipelineTask ? selTask.setts : {
         isVisible : true,
         isSelected : false,
+        isMoved : false,
         positionX : 0,
         positionY : 0,
         width : 0,
@@ -185,10 +186,13 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
       <Modal show={this.props.show} onHide={()=>this.props.onHide()} >
         <Modal.Header closeButton>
           <Modal.Title> {this.m_isNewPipelineTask ? "Create of Pipeline Task" : `${task.id}# Edit of Pipeline Task`}</Modal.Title>
-          <label className="switch" title="Enable of Task">
-            <input type="checkbox"/>
-            <span className="slider round"></span>
-          </label>
+          <Switch tooltip="On/Off Pipeline Task" 
+                  isChecked={task.isEnabled}
+                  onChange={on=>{
+                    task.isEnabled = on;
+                    PipelineTasks.upd(task);
+                    ServerAPI.changePipelineTask(task);
+                  }}></Switch>
         </Modal.Header>
         <Modal.Body>
           <Form>

@@ -54,6 +54,11 @@ class CentralWidget extends React.Component<IProps, IState>{
     this.hidePipeline = this.hidePipeline.bind(this);
     this.getSelectedPipelineId = this.getSelectedPipelineId.bind(this);
    
+    this.m_selTaskTemplate.id = 0;
+    this.m_selPipeline.id = 0;
+    this.m_selPipelineTask.id = 0;
+    this.m_selEvent.id = 0;
+
     this.state  = { isShowTaskTemplateConfig : false,
                     isShowPipelineConfig : false,
                     isShowPipelineTaskConfig : false,

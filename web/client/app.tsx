@@ -87,7 +87,7 @@ class App extends React.Component<IProps, IState>{
 
     let pplTaskId = 0;
     for (let t of PipelineTasks.getAll().values()){
-      if (t.setts.isSelected){
+      if (t.setts.isSelected && !t.setts.isMoved){
         pplTaskId = t.id;
         break;
       }

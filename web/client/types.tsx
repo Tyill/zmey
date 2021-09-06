@@ -93,6 +93,7 @@ interface IPipelineTask{
   setts : {
     isVisible : boolean;
     isSelected : boolean;
+    isMoved : boolean;
     positionX : number;
     positionY : number;
     width : number;

@@ -94,6 +94,7 @@ class GraphPanel extends React.Component<IProps, IState>{
           ServerAPI.changePipelineTask(prevTask);
         }
       }
+      PipelineTasks.setMoved(task.id, false);
 
       this.drawAll(this.getCanvasContext());
 
@@ -103,7 +104,7 @@ class GraphPanel extends React.Component<IProps, IState>{
 
   hMouseDown(e: React.MouseEvent<HTMLElement>){
    
-    if (this.state.contextMenuTaskId != 0) 
+    if (this.state.contextMenuTaskId != 0)
       this.setState({contextMenuTaskId : 0});
   }
 
@@ -124,7 +125,7 @@ class GraphPanel extends React.Component<IProps, IState>{
   }
 
   hTaskMove(id : number){
-
+    PipelineTasks.setMoved(id, true);
     this.drawAll(this.getCanvasContext());
   }
 
@@ -211,10 +212,12 @@ class GraphPanel extends React.Component<IProps, IState>{
                                 hShowContextMenu={this.hShowContextMenu}
                                 hShowTaskDialog={this.props.hShowTaskDialog}
                                 hSocketInputСaptured={(id, mpos)=>{
+                                  PipelineTasks.setMoved(id, true);
                                   this.m_mouseStartMem = mpos;
                                   this.setState({socketCaptured : {id, type : SocketType.Input}});
                                 }} 
                                 hSocketOutputСaptured={(id, mpos)=>{
+                                  PipelineTasks.setMoved(id, true);
                                   this.m_mouseStartMem = mpos;
                                   this.setState({socketCaptured : {id, type : SocketType.Output}});
                                 }} 

@@ -1,9 +1,10 @@
 import React from "react";
 import { Col, Button, Modal, Form, ListGroup} from "react-bootstrap";
  
-import { IEvent, IPplTaskId } from "../types";
+import { IEvent } from "../types";
 import { Events, Pipelines, PipelineTasks } from "../store/store";
 import * as ServerAPI from "../server_api/server_api"
+import Switch from "../common/switch_widget";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -206,6 +207,13 @@ class EventDialogModal extends React.Component<IProps, IState>{
       <Modal show={this.props.show} onShow={this.hShow} onHide={()=>this.props.onHide()} >
         <Modal.Header closeButton>
           <Modal.Title> {this.m_isNewEvent ? "Create of Event" : `${evt.id}# Edit of Event`}</Modal.Title>
+          <Switch tooltip="On/Off Event" 
+                  isChecked={evt.isEnabled}
+                  onChange={on=>{
+                    evt.isEnabled = on;
+                    Events.upd(evt);
+                    ServerAPI.changeEvent(evt);
+                  }}></Switch>
         </Modal.Header>
         <Modal.Body>
           <Form>

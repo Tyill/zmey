@@ -16,6 +16,7 @@ class PipelineTasksStoreClass {
         setSockets: action,
         setVisible: action,
         setSelected: action,
+        setMoved: action,
         add: action,
         del: action,
         upd: action,
@@ -66,6 +67,15 @@ class PipelineTasksStoreClass {
     })
     return ret;
   }
+  getSelected(pplId: number) : Array<IPipelineTask>{
+    let ret = [] as Array<IPipelineTask>;
+    this.m_pipelineTasks.forEach(tt => {
+      if ((tt.pplId == pplId) && tt.setts.isSelected){        
+        ret.push(tt);
+      }
+    })
+    return ret;
+  }
   setVisible(id : number, visible : boolean){
     if (this.m_pipelineTasks.has(id)){
       let ppt = this.m_pipelineTasks.get(id);
@@ -80,6 +90,15 @@ class PipelineTasksStoreClass {
       let ppt = this.m_pipelineTasks.get(id);
       if (ppt.setts.isSelected != selected){
         ppt.setts.isSelected = selected;
+        this.m_pipelineTasks.set(ppt.id, ppt);
+      }
+    }
+  }
+  setMoved(id : number, moved : boolean){
+    if (this.m_pipelineTasks.has(id)){
+      let ppt = this.m_pipelineTasks.get(id);
+      if (ppt.setts.isMoved != moved){
+        ppt.setts.isMoved = moved;
         this.m_pipelineTasks.set(ppt.id, ppt);
       }
     }

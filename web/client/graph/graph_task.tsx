@@ -113,10 +113,12 @@ class GraphTask extends React.Component<IProps, IState>{
       <Draggable disabled={!this.props.moveEnabled} bounds="parent"
                  position={{x:task.setts.positionX,y:task.setts.positionY}}
                  onDrag={(e, data)=>{
-                  this.setTaskSockets(data);                  
+                  PipelineTasks.setMoved(this.props.id, true);               
+                  this.setTaskSockets(data);   
                   this.props.hMove(this.props.id);
                  }}
                  onStop={(e, data)=>{
+                   PipelineTasks.setMoved(this.props.id, false);
                    PipelineTasks.setPosition(this.props.id, data.x, data.y);                   
                    ServerAPI.changePipelineTask(PipelineTasks.get(this.props.id));
                  }}>

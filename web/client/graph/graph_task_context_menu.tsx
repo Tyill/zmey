@@ -41,10 +41,12 @@ class TaskContextMenu extends React.Component<IProps, IState>{
 
     let pplTask = PipelineTasks.get(this.props.id);    
 
-    ServerAPI.startTask(task, 
-      (resp)=>this.props.hStatusMess(`Success start of Task ${pplTask.name}`, MessType.Ok),
-      ()=>this.props.hStatusMess(`Server error start of Task ${pplTask.name}`, MessType.Error)
-    );
+    if (pplTask.isEnabled){
+      ServerAPI.startTask(task, 
+        (resp)=>this.props.hStatusMess(`Success start of Task ${pplTask.name}`, MessType.Ok),
+        ()=>this.props.hStatusMess(`Server error start of Task ${pplTask.name}`, MessType.Error)
+      );
+    }
     this.props.hHide();
   }
 
@@ -136,7 +138,7 @@ class TaskContextMenu extends React.Component<IProps, IState>{
       task ? 
       <ButtonGroup vertical style={{display: this.props.id != 0 ? "inline": "none", width: "min-content", position:"absolute", 
                                     left: left.toString() + "px", top: top + "px"}}>
-        <Button variant="light" style={{textAlign: "left"}} onClick={this.startTask}>Start task</Button>
+        <Button variant="light" disabled={!task.isEnabled} style={{textAlign: "left"}} onClick={this.startTask}>Start task</Button>
                          
         <DropdownButton variant="light" as={ButtonGroup} 
                         drop="right"

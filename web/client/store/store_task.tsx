@@ -5,7 +5,7 @@ import { makeObservable, observable, action } from "mobx"
 /// Task
 
 class TaskStoreClass {
-  m_tasks : Array<ITask>;  
+  m_tasks : Array<ITask>;
   constructor() {
       makeObservable(this, {
         m_tasks: observable,
@@ -18,6 +18,13 @@ class TaskStoreClass {
   }  
   setAll(tsk : Array<ITask>){
     this.m_tasks = tsk;
+  } 
+  
+  isEqual(one : ITask, two : ITask) : boolean{
+    return (one.state == two.state) &&
+           (one.startTime == two.startTime) &&
+           (one.stopTime == two.stopTime) && 
+           (one.progress == two.progress);            
   }  
 }
 export
