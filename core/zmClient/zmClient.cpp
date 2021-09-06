@@ -460,10 +460,9 @@ uint32_t zmGetAllTaskTemplates(zmConn zo, uint64_t userId, uint64_t** outTId){
 bool zmStartTask(zmConn zo, zmTask cng, uint64_t* tId){
   if (!zo || !tId) return false;
 
-  string prTask = cng.prevTaskId ? cng.prevTaskId : "";
   string params = cng.params ? cng.params : "";
 
-  return static_cast<ZM_DB::DbProvider*>(zo)->startTask(cng.ttlId, cng.priority, params, prTask, *tId);
+  return static_cast<ZM_DB::DbProvider*>(zo)->startTask(cng.ttlId, params, *tId);
 }
 bool zmStopTask(zmConn zo, uint64_t tId){
   if (!zo) return false;
@@ -577,10 +576,10 @@ bool zmTimeOfTask(zmConn zo, uint64_t tId, zmTaskTime* outTTime){
   return false;
 }
 
-bool zmSetChangeTaskStateCBack(zmConn zo, uint64_t tId, zmChangeTaskStateCBack cback, void* userData){
+bool zmSetChangeTaskStateCBack(zmConn zo, uint64_t tId, uint64_t userId, zmChangeTaskStateCBack cback, void* userData){
   if (!zo) return false; 
 
-  return static_cast<ZM_DB::DbProvider*>(zo)->setChangeTaskStateCBack(tId, (ZM_DB::ChangeTaskStateCBack)cback, userData);
+  return static_cast<ZM_DB::DbProvider*>(zo)->setChangeTaskStateCBack(tId, userId, (ZM_DB::ChangeTaskStateCBack)cback, userData);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

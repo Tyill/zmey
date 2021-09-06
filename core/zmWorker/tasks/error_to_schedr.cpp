@@ -36,7 +36,7 @@ void Executor::errorToSchedr(const std::string& schedrConnPnt)
     map<string, string> data{
       {"command", to_string((int)ZM_Base::MessType::INTERN_ERROR)},
       {"connectPnt", m_worker.connectPnt},
-      {"message", mess}
+      {"message",  ZM_Aux::replace(mess, "'", "''")}
     };      
     isSendOk = ZM_Tcp::asyncSendData(schedrConnPnt, ZM_Aux::serialn(data));
   }

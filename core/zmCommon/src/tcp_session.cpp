@@ -76,13 +76,15 @@ void TcpSession::write(const std::string& msg, bool isCBackIfError)
       m_server.SendStatusCB(m_connPnt, msg, m_ec);
     return;
   }    
-  asio::async_write(m_socket, asio::buffer(msg.data(), msg.size()),
-    [this, self, msg, isCBackIfError](std::error_code ec, std::size_t /*length*/){
+  std::shared_ptr<std::string> pms = std::make_shared<std::string>(msg);
+  
+  asio::async_write(m_socket, asio::buffer(pms.get()->data(), msg.size()),
+      [this, self, pms, isCBackIfError](std::error_code ec, std::size_t /*length*/) {
       m_ec = ec;
-      if (m_server.SendStatusCB && (ec || !isCBackIfError)){
-        m_server.SendStatusCB(m_connPnt, msg, ec);          
-      } 
-    });
+      if (m_server.SendStatusCB && (ec || !isCBackIfError)) {
+          m_server.SendStatusCB(m_connPnt, *pms, ec);
+      }
+  });
 }
 
 bool TcpSession::isConnect(){

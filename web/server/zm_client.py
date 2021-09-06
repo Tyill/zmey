@@ -111,11 +111,10 @@ class Task:
   def __init__(self,
                id : int = 0,         
                ttlId : int = 0,         # Task template id    
-               state : StateType = StateType.READY, 
+               state : int = 0, 
                progress : int = 0,
                result : str = "",
-               priority : int = 1,
-               params : List[str] = [],
+               params : str = "",
                createTime : str = "",
                takeInWorkTime : str = "",
                startTime : str = "",
@@ -125,14 +124,13 @@ class Task:
     self.state = state
     self.progress = progress
     self.result = result
-    self.priority = priority           # [1..3]
-    self.params = params               # CLI params for script: ['param1','param2'..]
+    self.params = params               # CLI params for script
     self.createTime = createTime
     self.takeInWorkTime = takeInWorkTime
     self.startTime = startTime
     self.stopTime = stopTime
     def __repr__(self):
-      return f"Task: id {self.id} ttlId {self.ttlId} state {self.state} stopTime {self.stopTime} startTime {self.startTime} takeInWorkTime {self.takeInWorkTime} createTime {self.createTime} params {self.params} priority {self.priority} progress {self.progress} result {self.result}"
+      return f"Task: id {self.id} ttlId {self.ttlId} state {self.state} stopTime {self.stopTime} startTime {self.startTime} takeInWorkTime {self.takeInWorkTime} createTime {self.createTime} params {self.params} progress {self.progress} result {self.result}"
     def __str__(self):
       return self.__repr__()
 class InternError: 
@@ -171,9 +169,7 @@ class _TaskTemplCng_C(ctypes.Structure):
               ('script', ctypes.c_char_p)]
 class _TaskCng_C(ctypes.Structure):
   _fields_ = [('ttlId', ctypes.c_uint64),
-              ('priority', ctypes.c_uint32),
-              ('params', ctypes.c_char_p),
-              ('prevTaskId', ctypes.c_char_p)]
+              ('params', ctypes.c_char_p)]
 class _TaskState_C(ctypes.Structure):
   _fields_ = [('progress', ctypes.c_uint32),
               ('state', ctypes.c_int32)]
@@ -206,7 +202,7 @@ class Connection:
   
   _zmConn = None
   _userErrCBack : ctypes.CFUNCTYPE(None, ctypes.c_char_p, ctypes.c_void_p) = None
-  _changeTaskStateCBack : ctypes.CFUNCTYPE(None, ctypes.c_uint64, ctypes.c_int32, ctypes.c_int32) = None
+  _changeTaskStateCBack : ctypes.CFUNCTYPE(None, ctypes.c_uint64, ctypes.c_uint64, ctypes.c_int32, ctypes.c_int32, ctypes.c_void_p) = None
   _cerr : str = ""
   
   def __init__(self, connStr : str):
@@ -759,9 +755,7 @@ class Connection:
             
       tcng = _TaskCng_C()
       tcng.ttlId = iot.ttlId      
-      tcng.priority = iot.priority
-      tcng.prevTaskId = None # not used yet
-      tcng.params = ','.join(iot.params).encode('utf-8')
+      tcng.params = iot.params.encode('utf-8')
 
       pfun = _lib.zmStartTask
       pfun.argtypes = (ctypes.c_void_p, _TaskCng_C, ctypes.POINTER(ctypes.c_uint64))
@@ -847,7 +841,7 @@ class Connection:
 
       if (pfun(self._zmConn, idBuffer, ctsz, stateBuffer)):      
         for i in range(tsz):
-          iot[i].state = StateType(stateBuffer[i].state)
+          iot[i].state = int(StateType(stateBuffer[i].state))
           iot[i].progress = stateBuffer[i].progress          
         return True
     return False
@@ -890,24 +884,37 @@ class Connection:
         iot.stopTime = ttime.stopTime.decode('utf-8')
         return True
     return False
-  def setChangeTaskStateCBack(self, tId : int, ucb):
+
+  def addTaskForTracking(self, tId : int, uId : int):
     """
     Set change Task state callback
-    :param ucb: def func(tId : uint64, prevState : StateType, newState : StateType)
     """
-    if (self._zmConn):   
+    if (self._zmConn and self._changeTaskStateCBack):   
       c_tid = ctypes.c_uint64(tId)
-      def c_ucb(tId: ctypes.c_uint64, prevState: ctypes.c_int32, newState: ctypes.c_int32):
-        ucb(tId, prevState, newState)
+      c_uid = ctypes.c_uint64(uId)
+    
+      taskStateCBackType = ctypes.CFUNCTYPE(None, ctypes.c_uint64, ctypes.c_uint64, ctypes.c_int32, ctypes.c_int32, ctypes.c_int32, ctypes.c_void_p)
       
-      taskStateCBackType : ctypes.CFUNCTYPE(None, ctypes.c_uint64, ctypes.c_int32, ctypes.c_int32)
-      self._changeTaskStateCBack = taskStateCBackType(c_ucb)
-
       pfun = _lib.zmSetChangeTaskStateCBack
       pfun.restype = ctypes.c_bool
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, taskStateCBackType)
-      return pfun(self._zmConn, c_tid, self._changeTaskStateCBack)
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.c_uint64, taskStateCBackType, ctypes.c_void_p)
+      return pfun(self._zmConn, c_tid, c_uid, self._changeTaskStateCBack, 0)
+    return False
+
+  def setChangeTaskStateCBack(self, ucb):
+    """
+    Set change Task state callback
+    :param ucb: def func(tId : uint64, uId : uint64, progress : int, prevState : StateType, newState : StateType)
+    """
+    if (self._zmConn):   
+      def c_ucb(tId: ctypes.c_uint64, uId: ctypes.c_uint64, progress: ctypes.c_int32, prevState: ctypes.c_int32, newState: ctypes.c_int32, udata: ctypes.c_void_p):
+        ucb(tId, uId, progress, prevState, newState)
       
+      taskStateCBackType = ctypes.CFUNCTYPE(None, ctypes.c_uint64, ctypes.c_uint64, ctypes.c_int32, ctypes.c_int32, ctypes.c_int32, ctypes.c_void_p)
+      self._changeTaskStateCBack = taskStateCBackType(c_ucb)
+      return True
+    return False
+
   #############################################################################
   ### Internal errors
  

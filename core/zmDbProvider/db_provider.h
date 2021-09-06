@@ -76,7 +76,7 @@ struct TaskTime{
 
 typedef void* UData;
 typedef std::function<void(const char* mess, UData)> ErrCBack;
-typedef void(*ChangeTaskStateCBack)(uint64_t qtId, ZM_Base::StateType prevState, ZM_Base::StateType newState, UData);
+typedef void(*ChangeTaskStateCBack)(uint64_t qtId, uint64_t userId, int progress, ZM_Base::StateType prevState, ZM_Base::StateType newState, UData);
 
 class DbProvider{  
 public: 
@@ -123,14 +123,14 @@ public:
   bool delTaskTemplate(uint64_t ttId);
   std::vector<uint64_t> getAllTaskTemplates(uint64_t parent);
 
-  bool startTask(uint64_t ttlId, uint32_t priority, const std::string& params, const std::string& prevTasks, uint64_t& tId);
+  bool startTask(uint64_t ttlId, const std::string& params, uint64_t& tId);
   bool cancelTask(uint64_t tId);
   bool taskState(const std::vector<uint64_t>& tId, std::vector<TaskState>&);
   bool taskResult(uint64_t tId, std::string&);
   bool taskTime(uint64_t tId, TaskTime&);
   
   bool getWorkerByTask(uint64_t tId, ZM_Base::Worker& wcng);
-  bool setChangeTaskStateCBack(uint64_t tId, ChangeTaskStateCBack, UData);
+  bool setChangeTaskStateCBack(uint64_t tId, uint64_t userId, ChangeTaskStateCBack, UData);
 
   std::vector<MessError> getInternErrors(uint64_t sId, uint64_t wId, uint32_t mCnt);
 

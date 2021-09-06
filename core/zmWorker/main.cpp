@@ -59,11 +59,14 @@ int main(int argc, char* argv[]){
   CHECK_RETURN(cng.remoteConnPnt.empty() || (ZM_Aux::split(cng.remoteConnPnt, ':').size() != 2), "Not set param '--remoteAddr[-ra]' - worker remote connection point: IP or DNS:port");
   CHECK_RETURN(cng.schedrConnPnt.empty() || (ZM_Aux::split(cng.schedrConnPnt, ':').size() != 2), "Not set param '--schedrAddr[-sa]' - scheduler connection point: IP or DNS:port");
     
+  signal(SIGTERM, closeHandler);
+
+#ifdef __linux__
   signal(SIGPIPE, SIG_IGN);
   signal(SIGCHLD, loopNotify);
-  signal(SIGTERM, closeHandler);
   signal(SIGHUP, closeHandler);
   signal(SIGQUIT, closeHandler);
+#endif
 
   Executor executor(app, cng.remoteConnPnt);
  

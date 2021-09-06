@@ -62,8 +62,14 @@ bool DbProvider::getSchedr(const std::string& connPnt, ZM_Base::Scheduler& outCn
 bool DbProvider::getTasksOfSchedr(uint64_t sId, std::vector<ZM_Base::Task>& out){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
-  ss << "SELECT * FROM funcTasksOfSchedr(" << sId << ");";
-     
+  ss << "SELECT tq.id, tt.averDurationSec, tt.maxDurationSec, COALESCE(tt.workerPreset, 0),"
+        "       tt.script, tp.params "
+        "FROM tblTaskTemplate tt "
+        "JOIN tblTaskQueue tq ON tq.taskTempl = tt.id "
+        "JOIN tblTaskState ts ON ts.qtask = tq.id "
+        "JOIN tblTaskParam tp ON tp.qtask = tq.id "
+        "WHERE tq.schedr = " << sId << " AND (ts.state BETWEEN " << (int)ZM_Base::StateType::START << " AND " << (int)ZM_Base::StateType::PAUSE << ")";
+
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
     errorMess(string("getTasksOfSchedr error: ") + PQerrorMessage(_pg));
@@ -71,17 +77,13 @@ bool DbProvider::getTasksOfSchedr(uint64_t sId, std::vector<ZM_Base::Task>& out)
   }
   int tsz = PQntuples(pgr.res);
   for (int i = 0; i < tsz; ++i){
-    string params = PQgetvalue(pgr.res, i, 5);
-    params = params.substr(1, params.size() - 2); // remove { and }
-    ZM_Aux::replace(params, "\"", "");
-
     out.push_back(ZM_Base::Task {
       stoull(PQgetvalue(pgr.res, i, 0)),
       stoull(PQgetvalue(pgr.res, i, 3)),
       atoi(PQgetvalue(pgr.res, i, 1)),
       atoi(PQgetvalue(pgr.res, i, 2)),
       PQgetvalue(pgr.res, i, 4),
-      params
+      PQgetvalue(pgr.res, i, 5)
     });
   }
   return true;
@@ -126,17 +128,13 @@ bool DbProvider::getNewTasksForSchedr(uint64_t sId, int maxTaskCnt, std::vector<
   }
   int tsz = PQntuples(pgr.res);
   for (int i = 0; i < tsz; ++i){
-    string params = PQgetvalue(pgr.res, i, 5);
-    params = params.substr(1, params.size() - 2); // remove { and }
-    ZM_Aux::replace(params, "\"", "");
-
     out.push_back(ZM_Base::Task {
       stoull(PQgetvalue(pgr.res, i, 0)),
       stoull(PQgetvalue(pgr.res, i, 3)),
       atoi(PQgetvalue(pgr.res, i, 1)),
       atoi(PQgetvalue(pgr.res, i, 2)),
       PQgetvalue(pgr.res, i, 4),
-      params
+      PQgetvalue(pgr.res, i, 5)
     });
   }
   return true;
@@ -165,7 +163,7 @@ bool DbProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::MessSche
 
           if (m.type == ZM_Base::MessType::TASK_ERROR){ 
             ss << "UPDATE tblTaskState ts SET "
-                  "state = " << (int)ZM_Base::StateType::ERROR << " "
+                  "state = " << (int)ZM_Base::StateType::ERRORT << " "
                   "FROM tblTaskQueue tq "
                   "WHERE ts.qtask = " << m.taskId << " AND tq.worker = " << m.workerId << " AND ts.state = " << (int)ZM_Base::StateType::RUNNING << ";";
           }
@@ -187,7 +185,7 @@ bool DbProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::MessSche
 
           if (m.type == ZM_Base::MessType::TASK_ERROR){ 
             ss << "UPDATE tblTaskState SET "
-                  "state = " << (int)ZM_Base::StateType::ERROR << " "
+                  "state = " << (int)ZM_Base::StateType::ERRORT << " "
                   "WHERE qtask = " << m.taskId << ";";
           }
           else if (m.type == ZM_Base::MessType::TASK_COMPLETED){                      

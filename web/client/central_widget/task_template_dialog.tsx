@@ -2,7 +2,7 @@ import React from "react";
 import { Col, Button, Modal, Form} from "react-bootstrap";
  
 import { ITaskTemplate } from "../types";
-import {ServerAPI} from "../server_api/server_api"
+import * as ServerAPI from "../server_api/server_api"
 import { TaskTemplates} from "../store/store";
 
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -10,7 +10,7 @@ import "../css/style.less";
 
 interface IProps {
   show : boolean;
-  onHide : (selTaskTemplate : ITaskTemplate) => any;
+  onHide : () => any;
   selTaskTemplate : ITaskTemplate;
 };
 
@@ -69,7 +69,7 @@ class TaskTemplateDialogModal extends React.Component<IProps, IState>{
     }
     
     let newTaskTemplate : ITaskTemplate = {
-      id : this.props.selTaskTemplate.id,
+      id : !this.m_isNewTask ? this.props.selTaskTemplate.id : 0,
       name,           
       script,
       averDurationSec, 
@@ -81,7 +81,7 @@ class TaskTemplateDialogModal extends React.Component<IProps, IState>{
       ServerAPI.addTaskTemplate(newTaskTemplate, 
         (respTaskTemplate)=>{
           TaskTemplates.add(respTaskTemplate);      
-          this.setStatusMess("Success create of Task Template", 1, ()=>{this.props.onHide(respTaskTemplate); this.m_hasAdded = false;});          
+          this.setStatusMess("Success create of Task Template", 1, ()=>{this.props.onHide(); this.m_hasAdded = false;});          
         },
         ()=>{this.setStatusMess("Server error create of Task Template"); this.m_hasAdded = false}
       );       
@@ -111,11 +111,11 @@ class TaskTemplateDialogModal extends React.Component<IProps, IState>{
     let ttask = this.props.selTaskTemplate;
 
     return (
-      <Modal dialogClassName="taskTemplateDialogModal" show={this.props.show} onHide={()=>this.props.onHide(ttask)}  >
+      <Modal dialogClassName="taskTemplateDialogModal" show={this.props.show} onHide={()=>this.props.onHide()}  >
         <Modal.Header closeButton>
-          <Modal.Title> {this.m_isNewTask ? "Create of Task Template" : "Edit of Task Template"}</Modal.Title>
+          <Modal.Title> {this.m_isNewTask ? "Create of Task Template" : `${ttask.id}# Edit of Task Template`}</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+        <Modal.Body >
           <Form>
             <Form.Row >
               <Form.Group as={Col} style={{maxWidth:"200px"}}  controlId="name">
@@ -135,9 +135,9 @@ class TaskTemplateDialogModal extends React.Component<IProps, IState>{
                 <Form.Control type="number" min="1" ref={(input) => {this.m_refObj["maxDurationSec"] = input }}  defaultValue={ttask.maxDurationSec} />
               </Form.Group>
             </Form.Row>
-            <Form.Group  controlId="script">
+            <Form.Group>
               <Form.Label>Script</Form.Label>
-              <Form.Control  style={{height:"60vh"}} as="textarea" ref={(input) => {this.m_refObj["script"] = input }} placeholder="" defaultValue={ttask.script} rows={6} />
+              <Form.Control style={{height:"45vh", overflow:"auto"}} as="textarea" ref={(input) => {this.m_refObj["script"] = input }} placeholder="" defaultValue={ttask.script} rows={6} />
             </Form.Group>         
           <Form.Row style={{height:"20px"}}> 
             <Form.Label style={{marginLeft:"5px"}}>{this.state.statusMess}</Form.Label>   
@@ -145,7 +145,7 @@ class TaskTemplateDialogModal extends React.Component<IProps, IState>{
           </Form>          
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" type="close" onClick={()=> this.props.onHide(this.props.selTaskTemplate)}>Close</Button>
+          <Button variant="secondary" type="close" onClick={()=> this.props.onHide()}>Close</Button>
           <Button variant="primary" type="submit" onClick={this.hSubmit}> {this.m_isNewTask ? "Create" : "Save changes"}</Button>
         </Modal.Footer>        
       </Modal>

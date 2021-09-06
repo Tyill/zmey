@@ -64,7 +64,7 @@ namespace ZM_Base{
     PAUSE,
     STOP,    
     COMPLETED,
-    ERROR,
+    ERRORT,
     CANCEL,
     NOT_RESPONDING,
   };

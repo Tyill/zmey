@@ -85,7 +85,6 @@ bool DbProvider::delAllTables(){
   ss << "DROP TABLE IF EXISTS tblTaskState CASCADE; "
         "DROP TABLE IF EXISTS tblTaskTime CASCADE; "
         "DROP TABLE IF EXISTS tblTaskResult CASCADE; "
-        "DROP TABLE IF EXISTS tblPrevTask CASCADE; "
         "DROP TABLE IF EXISTS tblTaskParam CASCADE; "
         "DROP TABLE IF EXISTS tblTaskQueue CASCADE; "
         "DROP TABLE IF EXISTS tblScheduler CASCADE; "
@@ -93,8 +92,7 @@ bool DbProvider::delAllTables(){
         "DROP TABLE IF EXISTS tblTaskTemplate CASCADE; "
         "DROP TABLE IF EXISTS tblInternError CASCADE; "
         "DROP TABLE IF EXISTS tblConnectPnt CASCADE; "
-        "DROP FUNCTION IF EXISTS functasksofschedr(integer);"
-        "DROP FUNCTION IF EXISTS funcstarttask(integer,integer,text[],integer[]);"
+        "DROP FUNCTION IF EXISTS funcstarttask(integer,text);"
         "DROP FUNCTION IF EXISTS funcnewtasksforschedr(integer,integer);";
   
   PGres pgr(PQexec(_pg, ss.str().c_str()));

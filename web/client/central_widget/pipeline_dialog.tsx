@@ -3,13 +3,14 @@ import { Col, Button, Modal, Form} from "react-bootstrap";
  
 import { IPipeline } from "../types";
 import { Pipelines} from "../store/store";
-import {ServerAPI} from "../server_api/server_api"
+import * as ServerAPI from "../server_api/server_api"
 
 import "bootstrap/dist/css/bootstrap.min.css";
 
 interface IProps {
   show : boolean;
-  onHide : (selPipeline : IPipeline) => any;
+  onHide : () => any;
+  onNew : (selPipeline : IPipeline) => any;
   selPipeline : IPipeline;
 };
 
@@ -46,7 +47,7 @@ class PipelineDialogModal extends React.Component<IProps, IState>{
   hSubmit(event) {
     
     if (this.m_hasAdded) return;
-
+    
     let error = "",
         name = this.m_refObj["name"].value,
         description = this.m_refObj["description"].value;
@@ -63,7 +64,12 @@ class PipelineDialogModal extends React.Component<IProps, IState>{
     }
     
     let newPipeline : IPipeline = {
-      id : this.props.selPipeline.id,
+      id : !this.m_isNewPipeline ? this.props.selPipeline.id : 0,
+      setts : !this.m_isNewPipeline ? this.props.selPipeline.setts : {
+        isVisible : true,
+        isSelected : true,
+        hasChangeTask : false,
+      },
       name,           
       description
     }
@@ -74,7 +80,11 @@ class PipelineDialogModal extends React.Component<IProps, IState>{
         (respPipeline)=>{
           Pipelines.add(respPipeline);      
           this.setStatusMess("Success create of Pipeline", 1,
-           ()=>{this.props.onHide(respPipeline); this.m_hasAdded = false;});
+            ()=>{
+              this.props.onHide();
+              this.props.onNew(respPipeline);
+              this.m_hasAdded = false;
+            });
         },
         ()=>{this.setStatusMess("Server error create of Pipeline"); this.m_hasAdded = false;}
       )         
@@ -104,11 +114,11 @@ class PipelineDialogModal extends React.Component<IProps, IState>{
     let ppl = this.props.selPipeline;
     
     return (
-      <Modal show={this.props.show} onHide={()=>this.props.onHide(ppl)} >
+      <Modal show={this.props.show} onHide={()=>this.props.onHide()} >
         <Modal.Header closeButton>
-          <Modal.Title> {this.m_isNewPipeline ? "Create of Pipeline" : "Edit of Task Pipeline"}</Modal.Title>
+          <Modal.Title> {this.m_isNewPipeline ? "Create of Pipeline" : `${ppl.id}# Edit of Task Pipeline`}</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+        <Modal.Body>       
           <Form>
             <Form.Row>
               <Form.Group as={Col} style={{maxWidth:"200px"}} controlId="name">
@@ -126,7 +136,7 @@ class PipelineDialogModal extends React.Component<IProps, IState>{
           </Form>          
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" type="close" onClick={()=> this.props.onHide(this.props.selPipeline)}>Close</Button>
+          <Button variant="secondary" type="close" onClick={()=> this.props.onHide()}>Close</Button>
           <Button variant="primary" type="submit" onClick={this.hSubmit}> {this.m_isNewPipeline ? "Create" : "Save changes"}</Button>
         </Modal.Footer>        
       </Modal>

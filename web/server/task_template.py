@@ -9,8 +9,14 @@ class TaskTemplate(zm.TaskTemplate):
   None
 
 def add(iott : TaskTemplate) -> bool:
-  if zmConn and ('userId' in g) and ('db' in g):
+  if zmConn and g.userId and ('db' in g):
     iott.userId = g.userId
+    name = iott.name
+    iott.name = iott.name.replace("'", "''")
+    description = iott.description
+    iott.description = iott.description.replace("'", "''")
+    script = iott.script
+    iott.script = iott.script.replace("'", "''")
     if zmConn.addTaskTemplate(iott):
       try:
         with closing(g.db.cursor()) as cr:
@@ -24,14 +30,23 @@ def add(iott : TaskTemplate) -> bool:
             f"'{iott.maxDurationSec}');"
           )
           g.db.commit()
+          iott.name = name
+          iott.description = description
+          iott.script = script
         return True
       except Exception as err:
-        print('Local db query failed: %s' % str(err))
+        print("{0} local db query failed: {1}".format("TaskTemplate.add", str(err)))
   return False
 
 def change(iott : TaskTemplate) -> bool:
-  if zmConn and ('userId' in g) and ('db' in g):
+  if zmConn and g.userId and ('db' in g):
     iott.userId = g.userId
+    name = iott.name
+    iott.name = iott.name.replace("'", "''")
+    description = iott.description
+    iott.description = iott.description.replace("'", "''")
+    script = iott.script
+    iott.script = iott.script.replace("'", "''")
     if zmConn.changeTaskTemplate(iott):
       try:
         with closing(g.db.cursor()) as cr:
@@ -42,12 +57,15 @@ def change(iott : TaskTemplate) -> bool:
             f"script = '{iott.script}',"
             f"averDurationSec = '{iott.averDurationSec}',"
             f"maxDurationSec = '{iott.maxDurationSec}' "
-            f"WHERE id = {iott.id};"  
+            f"WHERE id = {iott.id};"
           )
           g.db.commit()
+          iott.name = name
+          iott.description = description
+          iott.script = script
         return True
       except Exception as err:
-        print('Local db query failed: %s' % str(err))
+        print("{0} local db query failed: {1}".format("TaskTemplate.change", str(err)))
   return False
 
 def delete(ttId : int) -> bool:
@@ -63,7 +81,7 @@ def delete(ttId : int) -> bool:
           g.db.commit()
         return True
       except Exception as err:
-        print('Local db query failed: %s' % str(err))
+        print("{0} local db query failed: {1}".format("TaskTemplate.delete", str(err)))
   return False
 
 def all() -> List[TaskTemplate]:
@@ -81,5 +99,5 @@ def all() -> List[TaskTemplate]:
           ttls.append(TaskTemplate(id=row[0], name=row[1], description=row[2], script=row[3], averDurationSec=row[4], maxDurationSec=row[5]))       
       return ttls  
     except Exception as err:
-      print('Local db query failed: %s' % str(err))
+      print("{0} local db query failed: {1}".format("TaskTemplate.all", str(err)))
   return []

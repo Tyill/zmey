@@ -3,11 +3,12 @@ import {CloseButton} from "react-bootstrap";
 
 interface IProps { 
   title : string;
+  tooltip : string;
   key : number; 
   id : number;
-  isSelect : boolean;
+  isSelected : boolean;
   hSelect : (id : number) => any;
-  hDelete : (id : number) => any;
+  hHide : (id : number) => any;
 };
 interface IState { 
   isShowBtn : boolean; 
@@ -24,7 +25,7 @@ class TabItem extends React.Component<IProps, IState>{
     let titleStyle={
       color : "gray"
     } as React.CSSProperties;
-    if (this.props.isSelect){
+    if (this.props.isSelected){
       titleStyle.color = "black";
       titleStyle.borderBottom = "1px solid white"; 
     }
@@ -39,6 +40,7 @@ class TabItem extends React.Component<IProps, IState>{
 
     return (
       <div id={this.props.id.toString()} 
+          title={this.props.tooltip} 
           className="tabPipeline unselectable" style={titleStyle}
           onMouseEnter={(e)=>this.setState({isShowBtn : true})}
           onMouseLeave={(e)=>this.setState({isShowBtn : false})}
@@ -47,7 +49,7 @@ class TabItem extends React.Component<IProps, IState>{
         {this.props.title}
         <CloseButton style={closeBtnStyle} 
                      title="Close"
-                     onClick={(e)=>{this.props.hDelete(this.props.id);
+                     onClick={(e)=>{this.props.hHide(this.props.id);
                                     e.stopPropagation();}}/>
       </div>
     )

@@ -3,7 +3,6 @@ from flask import(
 )
 import os
 
-
 def create_app():
   app = Flask(__name__, instance_relative_config=True, 
                         static_url_path='', 
@@ -17,14 +16,17 @@ def create_app():
   
   os.add_dll_directory(app.config['PostgreLibPath'])
   os.add_dll_directory(app.config['CoreLibPath'])
-
+    
   from . import user
   user.init(app.instance_path) 
 
   from . import core
   core.init(app.config['DbConnectStr'])
 
-  from . import api
+  from . import events_process
+  events_process.init(app.instance_path)
+
+  from .api import api
   app.register_blueprint(api.bp)
 
   from . import auth 
@@ -42,5 +44,4 @@ def create_app():
   app.register_blueprint(bp)
   app.add_url_rule('/', endpoint='/index')
 
-  
   return app 

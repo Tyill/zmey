@@ -29,6 +29,9 @@ body,
 .borderRight{
   border-right: @borderStyle;
 }
+.borderRadius{
+  border-radius: 5px;
+}
 
 .tabPanelPipeline{
   height: 46px;
@@ -49,14 +52,46 @@ body,
   border-top-left-radius: 5px;
 }
 
-.graphPipelineTask{
+.graphPplTaskContainer{
+  position: absolute;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 0px;
+  margin: 0px;
+}
+
+.graphPplTask{
   display: inline-flex;
   flex-direction: row;
   align-items: center;
   padding: 10px;
-  padding-right: 5px;
   border: @borderStyle;
   border-radius: 5px;
+}
+
+.graphPplTaskSocketOutput{
+  width: 15px;
+  height: 15px;
+  border-left: 2px solid #99d3f5;
+}
+.graphPplTaskSocketOutput:hover{
+  border: 2px dashed #99d3f5;
+}
+
+.graphPplTaskSocketInput{
+  width: 15px;
+  height: 15px;
+  border-right: 2px solid #99d3f5;
+}
+.graphPplTaskSocketInput:hover{
+  border: 2px dashed #99d3f5;
+}
+
+.graphPanel{
+  width:4096px;
+  height:2048px;
+  position: absolute;
 }
 
 .unselectable {
@@ -79,4 +114,76 @@ body,
   -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5); 
   box-shadow: inset 0 0 6px rgba(0,0,0,0.5); 
   border-radius: 3px;
+}
+
+input[type=checkbox] {
+  -ms-transform: scale(1.5); /* IE */
+  -moz-transform: scale(1.5); /* FF */
+  -webkit-transform: scale(1.5); /* Safari and Chrome */
+  -o-transform: scale(1.5); /* Opera */
+}
+
+/* The switch - the box around the slider */
+.switch {
+  position: relative;
+  display: inline-block;
+  top: 5px;
+  left: 25px;
+  width: 50px;
+  height: 25px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 21px;
+  width: 21px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(24px);
+  -ms-transform: translateX(24px);
+  transform: translateX(24px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 25px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
 }

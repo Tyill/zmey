@@ -35,19 +35,21 @@ void Executor::updateListTasks()
   while(m_newTasks.tryPop(tsk)){
     Process prc(m_app, *this, tsk);
     if (prc.getPid() == -1){
-      m_newTasks.push(move(tsk));
-      break;
+      m_listMessForSchedr.push(MessForSchedr{ tsk.id,
+                                              ZM_Base::MessType::TASK_ERROR,
+                                              prc.getErrorStr() });
+      continue;
     }
     m_procs.push_back(move(prc));
     m_listMessForSchedr.push(MessForSchedr{tsk.id, ZM_Base::MessType::TASK_RUNNING, ""});
   }
-  for (auto ip = m_procs.begin(); ip != m_procs.end();){
-    ZM_Base::StateType TaskState = ip->getTask().state;
+  for (auto p = m_procs.begin(); p != m_procs.end();){
+    ZM_Base::StateType TaskState = p->getTask().state;
     if ((TaskState == ZM_Base::StateType::COMPLETED) ||
-        (TaskState == ZM_Base::StateType::ERROR)){
-      ip = m_procs.erase(ip);
+        (TaskState == ZM_Base::StateType::ERRORT)){
+      p = m_procs.erase(p);
     }else{
-      ++ip;
+      ++p;
     }
   }
 }

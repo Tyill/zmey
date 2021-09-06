@@ -305,9 +305,7 @@ ZMEY_API uint32_t zmGetAllTaskTemplates(zmConn, uint64_t userId, uint64_t** outT
 /// task config
 struct zmTask{
   uint64_t ttlId;          ///< task template id
-  uint32_t priority;       ///< [1..3]
   char* params;            ///< CLI params for script. May be NULL
-  char* prevTaskId;        ///< prev task to be completed: "tId1, tId2..." May be NULL 
 };
 
 /// start task
@@ -377,7 +375,7 @@ struct zmTaskTime{
 ZMEY_API bool zmTimeOfTask(zmConn, uint64_t tId, zmTaskTime* outTTime);
 
 /// task state callback
-typedef void(*zmChangeTaskStateCBack)(uint64_t tId, zmStateType prevState, zmStateType newState, zmUData);
+typedef void(*zmChangeTaskStateCBack)(uint64_t tId, uint64_t userId, int progress, zmStateType prevState, zmStateType newState, zmUData);
 
 /// set change task state callback
 /// @param[in] zmConn - object connect
@@ -385,7 +383,7 @@ typedef void(*zmChangeTaskStateCBack)(uint64_t tId, zmStateType prevState, zmSta
 /// @param[in] cback
 /// @param[in] userData
 /// @return true - ok
-ZMEY_API bool zmSetChangeTaskStateCBack(zmConn, uint64_t tId, zmChangeTaskStateCBack cback, zmUData);
+ZMEY_API bool zmSetChangeTaskStateCBack(zmConn, uint64_t tId, uint64_t userId, zmChangeTaskStateCBack cback, zmUData);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Internal errors
