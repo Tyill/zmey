@@ -111,7 +111,7 @@ class Task:
   def __init__(self,
                id : int = 0,         
                ttlId : int = 0,         # Task template id    
-               state : int = 0, 
+               state : StateType = StateType.READY,
                progress : int = 0,
                result : str = "",
                params : str = "",
@@ -841,7 +841,7 @@ class Connection:
 
       if (pfun(self._zmConn, idBuffer, ctsz, stateBuffer)):      
         for i in range(tsz):
-          iot[i].state = int(StateType(stateBuffer[i].state))
+          iot[i].state = StateType(stateBuffer[i].state)
           iot[i].progress = stateBuffer[i].progress          
         return True
     return False

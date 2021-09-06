@@ -8,9 +8,9 @@ zmTaskWatch : zm.Connection = None
 
 def init(dbConnStr : str):
   
-  libname = 'libzmClient.so'
+  libname = 'libzmclient.so'
   if os.name == 'nt':
-    libname = 'zmClient.dll'
+    libname = 'zmclient.dll'
       
   zm.loadLib(libname)
   
