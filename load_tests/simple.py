@@ -4,7 +4,7 @@ import sys
 import time
 import subprocess
 import psycopg2
-sys.path.append('c:/cpp/other/zmey/web/server/')
+sys.path.append(os.path.expanduser("~") + '/cpp/zmey/web/server/')
 import zm_client as zm
 
 #### 1 schedr, 30 workers, 1000 tasks on one machine
@@ -26,7 +26,7 @@ with psycopg2.connect(dbname='zmeydb', password='123', host='localhost') as pg:
               "drop function if exists funcnewtasksforschedr(integer,integer);")
   csr.close()
 
-zm.loadLib('c:/cpp/other/zmey/build/Release/zmClient.dll')
+zm.loadLib(os.path.expanduser("~") + '/cpp/zmey/build/Release/libzmclient.so')
 zo = zm.Connection("host=localhost port=5432 password=123 dbname=zmeydb connect_timeout=10")
 
 zo.setErrorCBack(lambda err: print(err))
@@ -34,14 +34,14 @@ zo.setErrorCBack(lambda err: print(err))
 zo.createTables()
 
 # add taskTemplate
-# tt = zm.TaskTemplate(name='tt', userId=0, averDurationSec = 1, maxDurationSec = 10, script="#! /bin/sh \n sleep 1; echo res ")
-# if (not zo.addTaskTemplate(tt)):
-#   exit(-1)
+tt = zm.TaskTemplate(name='tt', userId=0, averDurationSec = 1, maxDurationSec = 10, script="#! /bin/sh \n sleep 1; echo res ")
+if (not zo.addTaskTemplate(tt)):
+  exit(-1)
 
 # add and start schedulers and workers
 print('Add and start schedulers and workers')  
 sCnt = 1
-wCnt = 1
+wCnt = 30
 wCapty = 10
 schPrc = [] 
 wkrPrc = []
@@ -52,12 +52,12 @@ for i in range(sCnt):
   for j in range(wCnt):
     if (not zo.addWorker(zm.Worker(sId=sch.id, connectPnt='localhost:' + str(4450 + i * wCnt + j), capacityTask=wCapty))):
       exit(-1)
-  schPrc.append(subprocess.Popen([os.path.expanduser("~") + '/cpp/zmey/build/Release/zmScheduler',
+  schPrc.append(subprocess.Popen([os.path.expanduser("~") + '/cpp/zmey/build/Release/zmscheduler',
                                   '-la=localhost:' + str(4440 + i),
                                   "-db=host=localhost port=5432 password=123 dbname=zmeydb connect_timeout=10"]))
   time.sleep(3)
   for j in range(wCnt):
-    wkrPrc.append(subprocess.Popen([os.path.expanduser("~") + '/cpp/zmey/build/Release/zmWorker',
+    wkrPrc.append(subprocess.Popen([os.path.expanduser("~") + '/cpp/zmey/build/Release/zmworker',
                                     '-sa=localhost:' + str(4440 + i),
                                     '-la=localhost:' + str(4450 + i * wCnt + j)]))
 

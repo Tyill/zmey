@@ -26,7 +26,7 @@ with psycopg2.connect(dbname='zmeydb', user='alm', password='123', host='localho
               "drop function if exists funcnewtasksforschedr(integer,integer);")
   csr.close()
 
-zm.loadLib(os.path.expanduser("~") + '/cpp/zmey/build/Release/libzmClient.so')
+zm.loadLib(os.path.expanduser("~") + '/cpp/zmey/build/Release/libzmclient.so')
 zo = zm.Connection("host=localhost port=5432 password=123 dbname=zmeydb connect_timeout=10")
 
 zo.setErrorCBack(lambda err: print(err))
@@ -52,12 +52,12 @@ for i in range(sCnt):
   for j in range(wCnt):
     if (not zo.addWorker(zm.Worker(sId=sch.id, connectPnt='localhost:' + str(4450 + i * wCnt + j), capacityTask=wCapty))):
       exit(-1)
-  schPrc.append(subprocess.Popen([os.path.expanduser("~") + '/cpp/zmey/build/Release/zmScheduler',
+  schPrc.append(subprocess.Popen([os.path.expanduser("~") + '/cpp/zmey/build/Release/zmscheduler',
                                   '-la=localhost:' + str(4440 + i),
                                   "-db=host=localhost port=5432 password=123 dbname=zmeydb connect_timeout=10"]))
   time.sleep(3)
   for j in range(wCnt):
-    wkrPrc.append(subprocess.Popen([os.path.expanduser("~") + '/cpp/zmey/build/Release/zmWorker',
+    wkrPrc.append(subprocess.Popen([os.path.expanduser("~") + '/cpp/zmey/build/Release/zmworker',
                                     '-sa=localhost:' + str(4440 + i),
                                     '-la=localhost:' + str(4450 + i * wCnt + j)]))
 
