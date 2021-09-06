@@ -105,6 +105,9 @@ class GraphTask extends React.Component<IProps, IState>{
     let bodyStyle={
       backgroundColor : "white"
     } as React.CSSProperties;
+    if (!task.isEnabled){
+      bodyStyle.backgroundColor = "#C0C0C0";
+    }
     if (this.props.isSelected){
       bodyStyle.backgroundColor = "#f6fdb4";
     }

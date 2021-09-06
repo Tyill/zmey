@@ -186,6 +186,7 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
       <Modal show={this.props.show} onHide={()=>this.props.onHide()} >
         <Modal.Header closeButton>
           <Modal.Title> {this.m_isNewPipelineTask ? "Create of Pipeline Task" : `${task.id}# Edit of Pipeline Task`}</Modal.Title>
+          {!this.m_isNewPipelineTask ? 
           <Switch tooltip="On/Off Pipeline Task" 
                   isChecked={task.isEnabled}
                   onChange={on=>{
@@ -193,6 +194,7 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
                     PipelineTasks.upd(task);
                     ServerAPI.changePipelineTask(task);
                   }}></Switch>
+          : ""}
         </Modal.Header>
         <Modal.Body>
           <Form>

@@ -207,6 +207,7 @@ class EventDialogModal extends React.Component<IProps, IState>{
       <Modal show={this.props.show} onShow={this.hShow} onHide={()=>this.props.onHide()} >
         <Modal.Header closeButton>
           <Modal.Title> {this.m_isNewEvent ? "Create of Event" : `${evt.id}# Edit of Event`}</Modal.Title>
+          {!this.m_isNewEvent ? 
           <Switch tooltip="On/Off Event" 
                   isChecked={evt.isEnabled}
                   onChange={on=>{
@@ -214,6 +215,7 @@ class EventDialogModal extends React.Component<IProps, IState>{
                     Events.upd(evt);
                     ServerAPI.changeEvent(evt);
                   }}></Switch>
+          : ""}
         </Modal.Header>
         <Modal.Body>
           <Form>
