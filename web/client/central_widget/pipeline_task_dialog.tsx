@@ -225,7 +225,7 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
                 <Form.Control as="textarea" ref={(input) => {this.m_refObj["params"] = input }} placeholder="optional" defaultValue={task.params} rows={5} />
               </Form.Group>
             </Form.Row>
-            {task.nextTasksId && task.nextTasksId.length ?
+            {!this.m_isNewPipelineTask && task.nextTasksId && task.nextTasksId.length ?
             <Form.Row >
               <Form.Group as={Col}>
                 <Form.Label>Next tasks</Form.Label>   

@@ -48,7 +48,7 @@ def login():
         session.clear()
         session['userName'] = username
         session['userId'] = usr.id      
-        return redirect(url_for('gui.index'))
+        return redirect(url_for('gui.index')) if username != 'admin' else redirect(url_for('gui.admin'))
 
       flash(error)
   except Exception as err:
@@ -64,12 +64,12 @@ def load():
 @bp.route('/logout')
 def logout():
   session.clear()
-  return redirect(url_for('gui.index'))
+  return redirect(url_for('auth.login'))
   
 def loginRequired(view):
   @functools.wraps(view)
   def wrapped_view(**kwargs):
-    if g.userId is None:
+    if g.userId is None or g.userName == 'admin':
       return redirect(url_for('auth.login'))
     return view(**kwargs)
   return wrapped_view
@@ -77,7 +77,7 @@ def loginRequired(view):
 def adminRequired(view):
   @functools.wraps(view)
   def wrapped_view(**kwargs):
-    if (g.userId is None):
+    if g.userId is None or g.userName != 'admin':
       return redirect(url_for('auth.login'))
     return view(**kwargs)
   return wrapped_view

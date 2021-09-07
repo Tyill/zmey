@@ -15,7 +15,7 @@ def init(app):
   m_instance_path = app.instance_path
 
 def userDb():
-  if ('db' not in g) and g.userName:
+  if ('db' not in g) and g.userName and g.userName != 'admin':
     try: 
       dbPath = current_app.instance_path + '/users/{}.db'.format(g.userName)
       isExist = os.path.exists(dbPath)

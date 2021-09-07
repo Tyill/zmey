@@ -22,7 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#include "zmey_client.h"
+#include "zmclient.h"
 #include "common/aux_func.h"
 #include "common/tcp.h"
 #include "common/serial.h"

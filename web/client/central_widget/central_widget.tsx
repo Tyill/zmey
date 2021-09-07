@@ -1,5 +1,5 @@
 import React from "react";
-import { Container, Row, Col, Image, ListGroup } from "react-bootstrap";
+import { Container, Row, Col, ListGroup } from "react-bootstrap";
 import { observer } from "mobx-react-lite"
 
 import TaskTemplateDialogModal from "./task_template_dialog";
@@ -290,11 +290,6 @@ class CentralWidget extends React.Component<IProps, IState>{
     return (
       <>
         <Container className="d-flex flex-column h-100 m-0 p-0" fluid >
-          <Row noGutters={true} className="borderBottom">
-            <Col className="col menuHeader">               
-              <Image src="../images/label.svg" style={{ margin: 5}} title="Application for schedule and monitor workflows"></Image>
-            </Col>
-          </Row>
           <Row noGutters={true} className="h-100" >
             <Col className="col-2 m-0 p-0 borderRight">   
               <ListHeader title={"Pipeline Tasks"}

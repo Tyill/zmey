@@ -37,4 +37,4 @@ def getTaskState(pplTaskid : int):
     return json.dumps(ret)
   except Exception as err:
     print(f'/tasks/{pplTaskid} GET {request.get_json(silent=True)} failed: %s' % str(err))
-    return ('bad request', 400)
+    return ('bad request', 400) 

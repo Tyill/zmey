@@ -2,13 +2,16 @@ import json
 from flask import request
 
 from .. import auth 
-from .. import event as ev
+from .. import scheduler as sh
 from .api import bp 
 
 ###############################################################################
 ### Scheduler
 
-@bp.route('/schedulers')
+@bp.route('/schedulers', methods=(['GET']))
 @auth.adminRequired
-def allSchedrs():
-  return None
+def allSchedulers():
+  ret = []
+  for p in sh.all():
+    ret.append(p.__dict__)
+  return json.dumps(ret) 

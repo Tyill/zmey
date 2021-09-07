@@ -2,7 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import CentralWidget from "./central_widget/central_widget";
 import * as ServerAPI from "./server_api/server_api"
-import { Container, Row } from "react-bootstrap";
+import { Container, Row, Col, Image } from "react-bootstrap";
 
 import "./css/style.less";
 import { IPipeline, IPipelineTask, ITaskTemplate, IEvent, ITask, MessType } from "./types";
@@ -117,6 +117,11 @@ class App extends React.Component<IProps, IState>{
   render(){         
     return(
       <Container className="d-flex flex-column h-100 m-0 p-0" fluid> 
+        <Row noGutters={true} className="borderBottom">
+          <Col className="col menuHeader">               
+            <Image src="images/label.svg" style={{ margin: 5}} title="Application for schedule and monitor workflows"></Image>
+          </Col>
+        </Row>
         <Row noGutters={true} className="h-100">      
           <CentralWidget setStatusMess={(mess:string)=>this.setStatusMess(mess)}/>
         </Row>
