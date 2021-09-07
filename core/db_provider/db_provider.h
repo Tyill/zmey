@@ -74,6 +74,22 @@ struct TaskTime{
   std::string stopTime;
 };
 
+struct SchedulerState{
+  ZM_Base::StateType state;
+  uint32_t activeTask;
+  std::string startTime;
+  std::string stopTime;
+  std::string pingTime;
+};
+
+struct WorkerState{
+  ZM_Base::StateType state;
+  uint32_t activeTask;
+  uint32_t load;
+  std::string startTime;
+  std::string stopTime;
+};
+
 typedef void* UData;
 typedef std::function<void(const char* mess, UData)> ErrCBack;
 typedef void(*ChangeTaskStateCBack)(uint64_t qtId, uint64_t userId, int progress, ZM_Base::StateType prevState, ZM_Base::StateType newState, UData);
@@ -107,14 +123,14 @@ public:
   bool getSchedr(uint64_t sId, ZM_Base::Scheduler& outCng);
   bool changeSchedr(uint64_t sId, const ZM_Base::Scheduler& newCng);
   bool delSchedr(uint64_t sId);
-  bool schedrState(uint64_t sId, ZM_Base::StateType& );
+  bool schedrState(uint64_t sId, SchedulerState& );
   std::vector<uint64_t> getAllSchedrs(ZM_Base::StateType);
 
   bool addWorker(const ZM_Base::Worker& worker, uint64_t& outWkrId);
   bool getWorker(uint64_t wId, ZM_Base::Worker& outCng);
   bool changeWorker(uint64_t wId, const ZM_Base::Worker& newCng);
   bool delWorker(uint64_t wId);
-  bool workerState(const std::vector<uint64_t>& wId, std::vector<ZM_Base::StateType>&);
+  bool workerState(const std::vector<uint64_t>& wId, std::vector<WorkerState>&);
   std::vector<uint64_t> getAllWorkers(uint64_t sId, ZM_Base::StateType);
  
   bool addTaskTemplate(const ZM_Base::TaskTemplate& cng, uint64_t& outTId);

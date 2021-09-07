@@ -118,10 +118,12 @@ bool DbProvider::delSchedr(uint64_t sId){
   }  
   return true;
 }
-bool DbProvider::schedrState(uint64_t sId, ZM_Base::StateType& state){
+
+bool DbProvider::schedrState(uint64_t sId, SchedulerState& out){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
-  ss << "SELECT state FROM tblScheduler "
+  ss << "SELECT state, activeTask, startTime, stopTime, pingTime "
+        "FROM tblScheduler "
         "WHERE id = " << sId << " AND isDelete = 0;";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
@@ -129,7 +131,11 @@ bool DbProvider::schedrState(uint64_t sId, ZM_Base::StateType& state){
     errorMess(string("schedrState error: ") + PQerrorMessage(_pg));
     return false;
   }
-  state = (ZM_Base::StateType)atoi(PQgetvalue(pgr.res, 0, 0));
+  out.state = (ZM_Base::StateType)atoi(PQgetvalue(pgr.res, 0, 0));
+  out.activeTask = atoi(PQgetvalue(pgr.res, 0, 1));
+  out.startTime = PQgetvalue(pgr.res, 0, 2);
+  out.stopTime = PQgetvalue(pgr.res, 0, 3);
+  out.pingTime = PQgetvalue(pgr.res, 0, 4);
   return true;
 }
 std::vector<uint64_t> DbProvider::getAllSchedrs(ZM_Base::StateType state){  

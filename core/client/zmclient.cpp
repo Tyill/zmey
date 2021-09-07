@@ -63,7 +63,7 @@ zmConn zmCreateConnection(zmConfig cng, char* err/*sz 256*/){
   auto serr = pDb->getLastError();
   if (!serr.empty()){
     if (err){
-      strncpy(err, serr.c_str(), 256);
+      strncpy(err, serr.c_str(), 255);
     }
     delete pDb;
     return nullptr;
@@ -92,7 +92,7 @@ bool zmSetErrorCBack(zmConn zo, zmErrorCBack ecb, zmUData ud){
 }
 bool zmGetLastError(zmConn zo, char* err/*sz 256*/){
   if (zo && err){
-    strncpy(err, static_cast<ZM_DB::DbProvider*>(zo)->getLastError().c_str(), 256);
+    strncpy(err, static_cast<ZM_DB::DbProvider*>(zo)->getLastError().c_str(), 255);
     return true;
   }else{
     return false;
@@ -129,7 +129,7 @@ bool zmGetScheduler(zmConn zo, uint64_t sId, zmSchedr* outCng){
   if (static_cast<ZM_DB::DbProvider*>(zo)->getSchedr(sId, scng)){    
     outCng->capacityTask = scng.capacityTask;
     strcpy(outCng->connectPnt, scng.connectPnt.c_str());
-    strncpy(outCng->name, scng.name.c_str(), 256);
+    strncpy(outCng->name, scng.name.c_str(), 255);
     if (!scng.description.empty()){
       outCng->description = (char*)realloc(outCng->description, scng.description.size() + 1);
       {lock_guard<mutex> lk(m_mtxResources);
@@ -192,16 +192,20 @@ bool zmPingScheduler(zmConn zo, uint64_t sId){
   zmSchedr cng;  
   return zmGetScheduler(zo, sId, &cng) && ZM_Tcp::syncSendData(cng.connectPnt, ZM_Aux::serialn(data));
 }
-bool zmSchedulerState(zmConn zo, uint64_t sId, zmStateType* outState){
+bool zmStateOfScheduler(zmConn zo, uint64_t sId, zmSchedulerState* outState){
   if (!zo) return false; 
 
   if (!outState){
-     static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmSchedulerState error: !outState");
+     static_cast<ZM_DB::DbProvider*>(zo)->errorMess("zmStateOfScheduler error: !outState");
      return false;
   }
-  ZM_Base::StateType state;
-  if (static_cast<ZM_DB::DbProvider*>(zo)->schedrState(sId, state)){    
-    *outState = (zmey::zmStateType)state;
+  ZM_DB::SchedulerState state;
+  if (static_cast<ZM_DB::DbProvider*>(zo)->schedrState(sId, state)){ 
+    outState->state = (zmey::zmStateType)state.state;
+    outState->activeTask = state.activeTask;
+    strncpy(outState->startTime, state.startTime.c_str(), 31);
+    strncpy(outState->stopTime, state.stopTime.c_str(), 31);
+    strncpy(outState->pingTime, state.pingTime.c_str(), 31);
     return true;
   }
   return false;
@@ -254,8 +258,8 @@ bool zmGetWorker(zmConn zo, uint64_t wId, zmWorker* outWCng){
   if (static_cast<ZM_DB::DbProvider*>(zo)->getWorker(wId, wcng)){    
     outWCng->sId = wcng.sId;
     outWCng->capacityTask = wcng.capacityTask;
-    strncpy(outWCng->connectPnt, wcng.connectPnt.c_str(), 256);
-    strncpy(outWCng->name, wcng.name.c_str(), 256);
+    strncpy(outWCng->connectPnt, wcng.connectPnt.c_str(), 255);
+    strncpy(outWCng->name, wcng.name.c_str(), 255);
     if (!wcng.description.empty()){
       outWCng->description = (char*)realloc(outWCng->description, wcng.description.size() + 1);
       {lock_guard<mutex> lk(m_mtxResources);
@@ -333,7 +337,7 @@ bool zmPingWorker(zmConn zo, uint64_t wId){
   zmWorker cng;  
   return zmGetWorker(zo, wId, &cng) && ZM_Tcp::syncSendData(cng.connectPnt, ZM_Aux::serialn(data));
 }
-bool zmWorkerState(zmConn zo, uint64_t* pWId, uint32_t wCnt, zmStateType* outState){
+bool zmStateOfWorker(zmConn zo, uint64_t* pWId, uint32_t wCnt, zmWorkerState* outState){
   if (!zo) return false; 
 
   if (!outState){
@@ -342,9 +346,15 @@ bool zmWorkerState(zmConn zo, uint64_t* pWId, uint32_t wCnt, zmStateType* outSta
   }
   vector<uint64_t> wId(wCnt);
   memcpy(wId.data(), pWId, wCnt * sizeof(uint64_t));
-  vector<ZM_Base::StateType> state;
-  if (static_cast<ZM_DB::DbProvider*>(zo)->workerState(wId, state)){    
-    memcpy(outState, state.data(), wCnt * sizeof(ZM_Base::StateType));
+  vector<ZM_DB::WorkerState> state;
+  if (static_cast<ZM_DB::DbProvider*>(zo)->workerState(wId, state)){
+    for (size_t i = 0; i < state.size(); ++i){
+      outState[i].state = (zmey::zmStateType)state[i].state;
+      outState[i].activeTask = state[i].activeTask;
+      outState[i].load = state[i].load;
+      strncpy(outState[i].startTime, state[i].startTime.c_str(), 31);
+      strncpy(outState[i].stopTime, state[i].stopTime.c_str(), 31);
+    }
     return true;
   }
   return false;
@@ -567,10 +577,10 @@ bool zmTimeOfTask(zmConn zo, uint64_t tId, zmTaskTime* outTTime){
   }
   ZM_DB::TaskTime tskTime;
   if (static_cast<ZM_DB::DbProvider*>(zo)->taskTime(tId, tskTime)){  
-    strncpy(outTTime->createTime, tskTime.createTime.c_str(), 32);
-    strncpy(outTTime->takeInWorkTime, tskTime.takeInWorkTime.c_str(), 32);
-    strncpy(outTTime->startTime, tskTime.startTime.c_str(), 32);
-    strncpy(outTTime->stopTime, tskTime.stopTime.c_str(), 32);
+    strncpy(outTTime->createTime, tskTime.createTime.c_str(), 31);
+    strncpy(outTTime->takeInWorkTime, tskTime.takeInWorkTime.c_str(), 31);
+    strncpy(outTTime->startTime, tskTime.startTime.c_str(), 31);
+    strncpy(outTTime->stopTime, tskTime.stopTime.c_str(), 31);
     return true;
   }
   return false;
@@ -594,8 +604,8 @@ uint32_t zmGetInternErrors(zmConn zo, uint64_t sId, uint64_t wId, uint32_t mCnt,
     for(int i = 0; i < esz; ++i){
       outErrors[i].sId = sId;
       outErrors[i].wId = wId;
-      strncpy(outErrors[i].createTime, errs[i].createTime.c_str(), 32);
-      strncpy(outErrors[i].message, errs[i].message.c_str(), 256);
+      strncpy(outErrors[i].createTime, errs[i].createTime.c_str(), 31);
+      strncpy(outErrors[i].message, errs[i].message.c_str(), 255);
     }    
   }
   return (uint32_t)esz;

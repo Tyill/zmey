@@ -4,11 +4,11 @@ from flask import g
 from .core import zmConn
 from . import zm_client as zm 
 
-class Scheduler(zm.Schedr):
+class Scheduler(zm.Scheduler):
   None
 
 def add(shedr : Scheduler) -> bool:
-  if zmConn and g.userId:
+  if zmConn and ('userId' in g):
     
     shedr.name = shedr.name.replace("'", "''")
     shedr.description = shedr.description.replace("'", "''")
@@ -17,7 +17,7 @@ def add(shedr : Scheduler) -> bool:
   return False
 
 def change(shedr : Scheduler) -> bool:
-  if zmConn and g.userId:
+  if zmConn and ('userId' in g):
     shedr.name = shedr.name.replace("'", "''")
     shedr.description = shedr.description.replace("'", "''")
     
@@ -25,13 +25,17 @@ def change(shedr : Scheduler) -> bool:
   return False
 
 def delete(shedrId : int) -> bool:
-  if zmConn and g.userId:
+  if zmConn and ('userId' in g):
     
     return zmConn.deleteScheduler(shedrId)
   return False
 
 def all() -> List[Scheduler]:
-  if zmConn and g.userId:
+  if zmConn and ('userId' in g):
     
-    return zmConn.getAllSchedulers()
+    scheds = zmConn.getAllSchedulers()
+    for s in scheds:
+      zmConn.schedulerState(s)
+      s.state = zm.stateStr(s.state)
+    return scheds
   return []
