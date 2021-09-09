@@ -75,6 +75,7 @@ def changeState(db, t : Task) -> bool:
       cr.execute(
         "UPDATE tblTask SET "
         f"state = '{t.state}',"
+        f"progress = '{t.progress}',"
         f"result = '{result}',"
         f"createTime = '{t.createTime}',"
         f"takeInWorkTime = '{t.takeInWorkTime}',"
@@ -94,7 +95,7 @@ def getState(pplTaskId : int) -> List[Task]:
       ret = []
       with closing(g.db.cursor()) as cr:
         cr.execute(
-          "SELECT id, starterPplTaskId, starterEventId, state, startTime, stopTime, result "
+          "SELECT id, starterPplTaskId, starterEventId, state, progress, startTime, stopTime, result "
           "FROM tblTask "
           f"WHERE pplTaskId = {pplTaskId} ORDER BY id DESC LIMIT 1000;"
         )
@@ -105,9 +106,10 @@ def getState(pplTaskId : int) -> List[Task]:
           task.starterPplTaskId = row[1]
           task.starterEventId = row[2]
           task.state = row[3]
-          task.startTime = row[4]
-          task.stopTime = row[5]
-          task.result = row[6]
+          task.progress = row[4]
+          task.startTime = row[5]
+          task.stopTime = row[6]
+          task.result = row[7]
           ret.append(task) 
       return ret
     except Exception as err:

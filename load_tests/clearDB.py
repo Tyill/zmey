@@ -23,3 +23,6 @@ def clearDB():
                 "drop index if exists inxTQWorker cascade;" + 
                 "drop trigger if exists trgTaskQueue ON tblTaskQueue cascade;")
     csr.close()
+
+if __name__ == "__main__":
+  clearDB()

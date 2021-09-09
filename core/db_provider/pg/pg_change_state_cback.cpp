@@ -50,14 +50,16 @@ bool DbProvider::setChangeTaskStateCBack(uint64_t tId, uint64_t userId, ChangeTa
       while (!m_impl->m_fClose){
         
         PQconsumeInput(_pg);
-
+        m_impl->m_notifyAuxCheckTOut.updateCycTime();
+        
         bool isChangeState = false;
         PGnotify* notify = nullptr;
         while ((notify = PQnotifies(_pg)) != nullptr){
           isChangeState |= std::string(notify->relname) == m_impl->NOTIFY_NAME_CHANGE_TASK;
           PQfreemem(notify);
         }
-        if (!isChangeState && m_impl->m_firstReqChangeTaskState){
+        bool auxCheckTimeout = m_impl->m_notifyAuxCheckTOut.onDelayOncSec(true, 10, 1);
+        if (!isChangeState && m_impl->m_firstReqChangeTaskState && !auxCheckTimeout){
           ZM_Aux::sleepMs(maxElapseTimeMS);
           continue;
         }

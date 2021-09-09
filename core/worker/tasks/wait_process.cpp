@@ -185,7 +185,13 @@ void Executor::waitProcess()
     result.erase(remove(result.begin(), result.end(), '\0'), result.end());
     ZM_Aux::replace(result, "'", "''");
 
-    if (remove(resultFile.c_str()) == -1){
+    int toutMs = 0, 
+        maxDelayMs = 3000; 
+    while ((remove(resultFile.c_str()) == -1) && (toutMs < maxDelayMs)){
+      toutMs += 10;
+      ZM_Aux::sleepMs(10);
+    }   
+    if (toutMs == maxDelayMs){
       auto mstr = "worker::waitProcess error remove " + resultFile + ": " + getLastErrorString();
       m_app.statusMess(mstr);
       addErrMess(mstr);

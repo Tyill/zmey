@@ -134,14 +134,16 @@ bool DbProvider::getNewTasksForSchedr(uint64_t sId, int maxTaskCnt, std::vector<
   lock_guard<mutex> lk(m_impl->m_mtx);  
   
   PQconsumeInput(_pg);
-
+  m_impl->m_notifyAuxCheckTOut.updateCycTime();
+  
   bool isNewTask = false;
   PGnotify* notify = PQnotifies(_pg);
   if (notify){
     isNewTask = std::string(notify->relname) == m_impl->NOTIFY_NAME_NEW_TASK;
     PQfreemem(notify);
   }
-  if (!isNewTask && m_impl->m_firstReqNewTasks) return true;
+  bool auxCheckTimeout = m_impl->m_notifyAuxCheckTOut.onDelayOncSec(true, 10, 0);
+  if (!isNewTask && m_impl->m_firstReqNewTasks && !auxCheckTimeout) return true;
   m_impl->m_firstReqNewTasks = true;
   
   stringstream ss;
@@ -200,7 +202,8 @@ bool DbProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::MessSche
           }
           else if (m.type == ZM_Base::MessType::TASK_COMPLETED){
            ss << "UPDATE tblTaskState ts SET "
-                 "state = " << (int)ZM_Base::StateType::COMPLETED << " "
+                 "state = " << (int)ZM_Base::StateType::COMPLETED << ", "
+                 "progress = 100 "
                  "FROM tblTaskQueue tq "
                  "WHERE ts.qtask = " << m.taskId << " AND tq.worker = " << m.workerId << " AND ts.state = " << (int)ZM_Base::StateType::RUNNING << ";";
           }
@@ -221,7 +224,8 @@ bool DbProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::MessSche
           }
           else if (m.type == ZM_Base::MessType::TASK_COMPLETED){                      
             ss << "UPDATE tblTaskState SET "
-                  "state = " << (int)ZM_Base::StateType::COMPLETED << " "
+                  "state = " << (int)ZM_Base::StateType::COMPLETED << ", "
+                  "progress = 100 "
                   "WHERE qtask = " << m.taskId << ";";
           }
         }
