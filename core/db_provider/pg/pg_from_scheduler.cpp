@@ -28,6 +28,20 @@ using namespace std;
 
 namespace ZM_DB{
 
+bool DbProvider::setListenNewTaskNotify(bool on){
+  lock_guard<mutex> lk(m_impl->m_mtx);
+
+  string cmd = on ? "LISTEN " : "UNLISTEN ";
+  cmd += m_impl->NOTIFY_NAME_NEW_TASK;
+
+  PGres pgr(PQexec(_pg, cmd.c_str()));
+  if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
+    errorMess(string("setListenNewTaskNotify error: ") + PQerrorMessage(_pg));
+    return false;
+  }
+  return true;
+}
+
 bool DbProvider::getSchedr(const std::string& connPnt, ZM_Base::Scheduler& outCng){
   lock_guard<mutex> lk(m_impl->m_mtx);
   auto cp = ZM_Aux::split(connPnt, ':');
@@ -118,6 +132,18 @@ bool DbProvider::getWorkersOfSchedr(uint64_t sId, std::vector<ZM_Base::Worker>& 
 }
 bool DbProvider::getNewTasksForSchedr(uint64_t sId, int maxTaskCnt, std::vector<ZM_Base::Task>& out){
   lock_guard<mutex> lk(m_impl->m_mtx);  
+  
+  PQconsumeInput(_pg);
+
+  bool isNewTask = false;
+  PGnotify* notify = PQnotifies(_pg);
+  if (notify){
+    isNewTask = std::string(notify->relname) == m_impl->NOTIFY_NAME_NEW_TASK;
+    PQfreemem(notify);
+  }
+  if (!isNewTask && m_impl->m_firstReqNewTasks) return true;
+  m_impl->m_firstReqNewTasks = true;
+  
   stringstream ss;
   ss << "SELECT * FROM funcNewTasksForSchedr(" << sId << "," << maxTaskCnt << ");";
 
@@ -136,6 +162,11 @@ bool DbProvider::getNewTasksForSchedr(uint64_t sId, int maxTaskCnt, std::vector<
       PQgetvalue(pgr.res, i, 4),
       PQgetvalue(pgr.res, i, 5)
     });
+  }
+  int cnt = 1;
+  while ((cnt < tsz) && ((notify = PQnotifies(_pg)) != nullptr)){
+    PQfreemem(notify);
+    ++cnt;
   }
   return true;
 }

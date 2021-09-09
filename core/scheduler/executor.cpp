@@ -54,3 +54,8 @@ bool Executor::getSchedrFromDB(const std::string& connPnt, ZM_DB::DbProvider& db
 {
   return db.getSchedr(connPnt, m_schedr);
 }
+
+bool Executor::listenNewTask(ZM_DB::DbProvider& db, bool on)
+{
+  return db.setListenNewTaskNotify(on);
+}

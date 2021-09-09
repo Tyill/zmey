@@ -41,7 +41,6 @@ class DbProvider::Impl{
 public:
   PGconn* m_db = nullptr; 
   std::mutex m_mtx, m_mtxNotifyTask;
-  std::condition_variable m_cvNotifyTask;
   std::thread m_thrEndTask;
 
   struct NotifyTaskStateCBack{
@@ -54,6 +53,11 @@ public:
 
   std::map<uint64_t, NotifyTaskStateCBack> m_notifyTaskStateCBack;
   bool m_fClose = false;
+  bool m_firstReqNewTasks = false;
+  bool m_firstReqChangeTaskState = false;
+
+  const std::string NOTIFY_NAME_CHANGE_TASK = "changetaskstate";
+  const std::string NOTIFY_NAME_NEW_TASK = "newtasknotify";
 };
 
 class PGres{

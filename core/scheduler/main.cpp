@@ -78,11 +78,12 @@ int main(int argc, char* argv[])
   
   // schedr from DB
   CHECK_RETURN(!executor.getSchedrFromDB(cng.remoteConnPnt, *dbNewTask), "Schedr not found in DB for connectPnt " + cng.remoteConnPnt);
-      
+     
   // prev tasks and workers
   executor.getPrevTaskFromDB(*dbNewTask);
   executor.getPrevWorkersFromDB(*dbNewTask);
- 
+  executor.listenNewTask(*dbNewTask, true);
+   
   // TCP server
   ZM_Tcp::ReceiveDataCBack receiveDataCB = [&executor](const string& cp, const string& data){
     executor.receiveHandler(cp, data);
@@ -122,6 +123,7 @@ int main(int argc, char* argv[])
   /////////////////////////////////////////////////////////////////////////
   
   ZM_Tcp::stopServer();
+  executor.listenNewTask(*dbNewTask, false);
   executor.stopSchedr(*dbSendMess);
 }
 

@@ -152,6 +152,7 @@ public:
   std::vector<MessError> getInternErrors(uint64_t sId, uint64_t wId, uint32_t mCnt);
 
   // for zmSchedr
+  bool setListenNewTaskNotify(bool on);
   bool getSchedr(const std::string& connPnt, ZM_Base::Scheduler& outSchedl);
   bool getTasksOfSchedr(uint64_t sId, std::vector<ZM_Base::Task>& out);
   bool getWorkersOfSchedr(uint64_t sId, std::vector<ZM_Base::Worker>& out);

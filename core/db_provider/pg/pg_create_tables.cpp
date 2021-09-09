@@ -41,10 +41,7 @@ DbProvider::DbProvider(const ZM_DB::ConnectCng& cng) :
 }
 DbProvider::~DbProvider(){  
   if (m_impl->m_thrEndTask.joinable()){
-    m_impl->m_fClose = true;   
-    {lock_guard<mutex> lk(m_impl->m_mtxNotifyTask);  
-      m_impl->m_cvNotifyTask.notify_one();
-    }  
+    m_impl->m_fClose = true; 
     m_impl->m_thrEndTask.join();
   }
   if (_pg){
@@ -118,6 +115,7 @@ bool DbProvider::createTables(){
         "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1),"
         "startTime    TIMESTAMP NOT NULL DEFAULT current_timestamp,"
         "stopTime     TIMESTAMP NOT NULL DEFAULT current_timestamp,"
+        "pingTime     TIMESTAMP NOT NULL DEFAULT current_timestamp,"
         "name         TEXT NOT NULL DEFAULT '',"
         "description  TEXT NOT NULL DEFAULT '');";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
@@ -182,14 +180,14 @@ bool DbProvider::createTables(){
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
     
   ///////////////////////////////////////////////////////////////////////////
-  /// INDEXES  not used yet
+  /// INDEXES
   ss.str(""); 
   ss << "CREATE INDEX IF NOT EXISTS inxTSState ON tblTaskState(state);";
   ss << "CREATE INDEX IF NOT EXISTS inxTQSchedr ON tblTaskQueue(schedr);";
   ss << "CREATE INDEX IF NOT EXISTS inxTQWorker ON tblTaskQueue(worker);";
   ss << "CREATE INDEX IF NOT EXISTS inxTQTaskTempl ON tblTaskQueue(taskTempl);";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
-  
+      
   ///////////////////////////////////////////////////////////////////////////
   /// FUNCTIONS
   ss.str("");
@@ -220,6 +218,28 @@ bool DbProvider::createTables(){
 
         "  RETURN qId;"
         "END;"
+        "$$ LANGUAGE plpgsql;";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+
+  ss.str("");
+  ss << "CREATE OR REPLACE FUNCTION "
+        "funcStartTaskNotify() "
+        "RETURNS trigger AS $$ "
+        "BEGIN "
+        " NOTIFY " << m_impl->NOTIFY_NAME_NEW_TASK << ";"
+        " RETURN NEW;"
+        "END; "
+        "$$ LANGUAGE plpgsql;";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+
+  ss.str("");
+  ss << "CREATE OR REPLACE FUNCTION "
+        "funcChangeTaskNotify() "
+        "RETURNS trigger AS $$ "
+        "BEGIN "
+        " NOTIFY " << m_impl->NOTIFY_NAME_CHANGE_TASK << ";"
+        " RETURN NEW;"
+        "END; "
         "$$ LANGUAGE plpgsql;";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
   
@@ -269,6 +289,24 @@ bool DbProvider::createTables(){
         "  END LOOP;"
         "END;"
         "$$ LANGUAGE plpgsql;";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+
+  ///////////////////////////////////////////////////////////////////////////
+  /// TRIGGERS
+  ss.str(""); 
+  ss << "DROP TRIGGER IF EXISTS trgNewTask ON tblTaskQueue; "
+        "CREATE TRIGGER trgNewTask "
+        "AFTER INSERT ON tblTaskQueue "
+        "FOR EACH STATEMENT "
+        "EXECUTE PROCEDURE funcStartTaskNotify();";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+
+  ss.str(""); 
+  ss << "DROP TRIGGER IF EXISTS trgTaskChange ON tblTaskState; "
+        "CREATE TRIGGER trgTaskChange "
+        "AFTER UPDATE ON tblTaskState "
+        "FOR EACH STATEMENT "
+        "EXECUTE PROCEDURE funcChangeTaskNotify();";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   return true;

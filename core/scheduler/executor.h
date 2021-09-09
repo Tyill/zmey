@@ -40,7 +40,8 @@ public:
   bool isTasksEmpty();
   bool isMessToDBEmpty();
   bool getSchedrFromDB(const std::string& connPnt, ZM_DB::DbProvider& db); 
-
+  bool listenNewTask(ZM_DB::DbProvider& db, bool on);
+  
   void receiveHandler(const std::string& cp, const std::string& data);
   void sendNotifyHandler(const std::string& cp, const std::string& data, const std::error_code& ec);
   void getNewTaskFromDB(ZM_DB::DbProvider& db);

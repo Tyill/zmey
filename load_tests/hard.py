@@ -4,10 +4,14 @@ import sys
 import time
 import subprocess
 
+import clearDB
+
 sys.path.append(os.path.expanduser("~") + '/cpp/zmey/web/server/')
 import zm_client as zm
 
 #### 5 schedr, 5 * 20 workers, 10000 tasks on one machine
+
+#clearDB.clearDB()
 
 zm.loadLib(os.path.expanduser("~") + '/cpp/zmey/build/Release/libzmclient.so')
 zo = zm.Connection("host=localhost port=5432 password=123 dbname=zmeydb connect_timeout=10")
@@ -29,7 +33,7 @@ wCapty = 5
 schPrc = [] 
 wkrPrc = []
 for i in range(sCnt):
-  sch = zm.Schedr(connectPnt='localhost:' + str(4440 + i), capacityTask=wCnt * wCapty)
+  sch = zm.Scheduler(connectPnt='localhost:' + str(4440 + i), capacityTask=wCnt * wCapty)
   if (not zo.addScheduler(sch)):
     exit(-1)
   for j in range(wCnt):
@@ -61,8 +65,8 @@ while complCnt != taskCnt:
   zo.taskState(tasks)
   complCnt = 0
   for i in range(taskCnt):
-    if ((tasks[i].state == zm.StateType.COMPLETED) or 
-        (tasks[i].state == zm.StateType.ERROR)):
+    if ((tasks[i].state == zm.StateType.COMPLETED.value) or 
+        (tasks[i].state == zm.StateType.ERROR.value)):
       complCnt += 1
     
 print('Time to complete all tasks: ', time.time() - tstart)
