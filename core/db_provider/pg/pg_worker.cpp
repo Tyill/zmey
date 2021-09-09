@@ -129,7 +129,7 @@ bool DbProvider::workerState(const std::vector<uint64_t>& wId, std::vector<Worke
                   return s.empty() ? to_string(v) : s + "," + to_string(v);
                 }); 
   stringstream ss;
-  ss << "SELECT state, activeTask, load, startTime, stopTime "
+  ss << "SELECT state, activeTask, load, startTime, stopTime, pingTime "
         "FROM tblWorker "
         "WHERE id IN (" << swId << ")  AND isDelete = 0 ORDER BY id;";
 
@@ -150,6 +150,7 @@ bool DbProvider::workerState(const std::vector<uint64_t>& wId, std::vector<Worke
     out[i].load = atoi(PQgetvalue(pgr.res, (int)i, 2));
     out[i].startTime = PQgetvalue(pgr.res, (int)i, 3);
     out[i].stopTime = PQgetvalue(pgr.res, (int)i, 4);
+    out[i].pingTime = PQgetvalue(pgr.res, (int)i, 5);
   }
   return true;
 }

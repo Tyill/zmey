@@ -89,6 +89,7 @@ bool DbProvider::delAllTables(){
         "DROP TABLE IF EXISTS tblTaskQueue CASCADE; "
         "DROP TABLE IF EXISTS tblScheduler CASCADE; "
         "DROP TABLE IF EXISTS tblWorker CASCADE; "
+        "DROP TABLE IF EXISTS tblState CASCADE; "
         "DROP TABLE IF EXISTS tblTaskTemplate CASCADE; "
         "DROP TABLE IF EXISTS tblInternError CASCADE; "
         "DROP TABLE IF EXISTS tblConnectPnt CASCADE; "

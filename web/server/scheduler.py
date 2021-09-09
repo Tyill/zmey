@@ -13,7 +13,9 @@ def add(shedr : Scheduler) -> bool:
     shedr.name = shedr.name.replace("'", "''")
     shedr.description = shedr.description.replace("'", "''")
     
-    return zmConn.addScheduler(shedr)
+    ok = zmConn.addScheduler(shedr)
+    print(shedr)
+    return ok
   return False
 
 def change(shedr : Scheduler) -> bool:

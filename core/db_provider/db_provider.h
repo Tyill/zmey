@@ -88,6 +88,7 @@ struct WorkerState{
   uint32_t load;
   std::string startTime;
   std::string stopTime;
+  std::string pingTime;
 };
 
 typedef void* UData;

@@ -3,28 +3,11 @@ import os
 import sys
 import time
 import subprocess
-import psycopg2
+
 sys.path.append(os.path.expanduser("~") + '/cpp/zmey/web/server/')
 import zm_client as zm
 
 #### 1 schedr, 30 workers, 1000 tasks on one machine
-
-# del all tables
-with psycopg2.connect(dbname='zmeydb', password='123', host='localhost') as pg:
-  csr = pg.cursor()
-  csr.execute("drop table if exists tblScheduler cascade;" +
-              "drop table if exists tblWorker cascade;" +
-              "drop table if exists tblTaskTemplate cascade;" +
-              "drop table if exists tblTaskState cascade;" +
-              "drop table if exists tblTaskTime cascade;" + 
-              "drop table if exists tblTaskResult cascade;" +
-              "drop table if exists tblTaskParam cascade;" +
-              "drop table if exists tblTaskQueue cascade;" + 
-              "drop table if exists tblInternError cascade;" + 
-              "drop table if exists tblConnectPnt cascade;" + 
-              "drop function if exists funcstarttask(integer,text);" +
-              "drop function if exists funcnewtasksforschedr(integer,integer);")
-  csr.close()
 
 zm.loadLib(os.path.expanduser("~") + '/cpp/zmey/build/Release/libzmclient.so')
 zo = zm.Connection("host=localhost port=5432 password=123 dbname=zmeydb connect_timeout=10")

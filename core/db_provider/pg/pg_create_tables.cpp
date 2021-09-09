@@ -183,9 +183,12 @@ bool DbProvider::createTables(){
     
   ///////////////////////////////////////////////////////////////////////////
   /// INDEXES  not used yet
-//   ss.str(""); 
-//   ss << "CREATE INDEX IF NOT EXISTS inxTSState ON tblTaskState(state);"
-//   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+  ss.str(""); 
+  ss << "CREATE INDEX IF NOT EXISTS inxTSState ON tblTaskState(state);";
+  ss << "CREATE INDEX IF NOT EXISTS inxTQSchedr ON tblTaskQueue(schedr);";
+  ss << "CREATE INDEX IF NOT EXISTS inxTQWorker ON tblTaskQueue(worker);";
+  ss << "CREATE INDEX IF NOT EXISTS inxTQTaskTempl ON tblTaskQueue(taskTempl);";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
   
   ///////////////////////////////////////////////////////////////////////////
   /// FUNCTIONS
@@ -240,9 +243,8 @@ bool DbProvider::createTables(){
         "    JOIN tblTaskQueue tq ON tq.taskTempl = tt.id "
         "    JOIN tblTaskState ts ON ts.qtask = tq.id "
         "    JOIN tblTaskParam tp ON tp.qtask = tq.id "
-        "    JOIN tblTaskTime tm ON tm.qtask = tq.id "
         "    WHERE ts.state = " << int(ZM_Base::StateType::READY) << ""
-        "      AND tq.schedr IS NULL AND tm.takeInWorkTime IS NULL "
+        "      AND tq.schedr IS NULL "
         "      AND (tt.schedrPreset IS NULL OR tt.schedrPreset = sId) "
         "    LIMIT maxTaskCnt "
         "    FOR UPDATE OF tq SKIP LOCKED"
@@ -261,7 +263,7 @@ bool DbProvider::createTables(){
 
         "    UPDATE tblTaskTime SET"
         "      takeInWorkTime = current_timestamp"
-        "    WHERE qtask = qid;"       
+        "    WHERE qtask = qid AND takeInWorkTime IS NULL;"       
         
         "    RETURN NEXT;"
         "  END LOOP;"

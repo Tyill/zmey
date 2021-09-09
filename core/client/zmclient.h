@@ -246,6 +246,7 @@ struct zmWorkerState{
   uint32_t load;
   char startTime[32];
   char stopTime[32];
+  char pingTime[32];
 };
 
 /// worker state

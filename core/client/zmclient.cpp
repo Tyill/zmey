@@ -354,6 +354,7 @@ bool zmStateOfWorker(zmConn zo, uint64_t* pWId, uint32_t wCnt, zmWorkerState* ou
       outState[i].load = state[i].load;
       strncpy(outState[i].startTime, state[i].startTime.c_str(), 31);
       strncpy(outState[i].stopTime, state[i].stopTime.c_str(), 31);
+      strncpy(outState[i].pingTime, state[i].pingTime.c_str(), 31);
     }
     return true;
   }

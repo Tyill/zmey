@@ -323,6 +323,7 @@ bool DbProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::MessSche
         auto data = ZM_Aux::split(m.data, '\t');
         ss << "UPDATE tblWorker SET "
               "activeTask = " << stoi(data[0]) << ", "
+              "pingTime = current_timestamp, "
               "load = " << stoi(data[1]) << " "
               "WHERE id = " << m.workerId << ";";
         break;
@@ -331,7 +332,6 @@ bool DbProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::MessSche
       case ZM_Base::MessType::JUST_START_WORKER:
       case ZM_Base::MessType::STOP_WORKER:
         ss << "UPDATE tblTaskTime SET "
-              "takeInWorkTime = NULL, "
               "startTime = NULL, "
               "stopTime = NULL "
               "FROM tblTaskState ts, tblTaskQueue tq "

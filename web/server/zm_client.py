@@ -96,6 +96,7 @@ class Worker:
                load : int = 0,
                startTime : str = "",
                stopTime : str = "",
+               pingTime : str = "",
                name = "",
                description = ""):
     self.id = id
@@ -107,6 +108,7 @@ class Worker:
     self.load  = load
     self.startTime  = startTime
     self.stopTime  = stopTime
+    self.pingTime  = pingTime
     self.name = name
     self.description = description
     def __repr__(self):
@@ -200,7 +202,8 @@ class _WorkerState_C(ctypes.Structure):
               ('activeTask', ctypes.c_uint32),
               ('load', ctypes.c_uint32),
               ('startTime', ctypes.c_char * 32),
-              ('stopTime', ctypes.c_char * 32)]
+              ('stopTime', ctypes.c_char * 32),
+              ('pingTime', ctypes.c_char * 32)]
 class _TaskTemplCng_C(ctypes.Structure):
   _fields_ = [('userId', ctypes.c_uint64),
               ('schedrPresetId', ctypes.c_uint64),
@@ -640,6 +643,7 @@ class Connection:
           iowkrs[i].load = stateBuffer[i].load
           iowkrs[i].startTime = stateBuffer[i].startTime.decode('utf-8')
           iowkrs[i].stopTime = stateBuffer[i].stopTime.decode('utf-8')
+          iowkrs[i].pingTime = stateBuffer[i].pingTime.decode('utf-8')
         return True
     return False
   def getAllWorkers(self, sId : int, state : StateType=StateType.UNDEFINED) -> List[Worker]:
