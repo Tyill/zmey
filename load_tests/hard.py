@@ -11,7 +11,7 @@ import zm_client as zm
 
 #### 5 schedr, 5 * 20 workers, 10000 tasks on one machine
 
-#clearDB.clearDB()
+clearDB.clearDB()
 
 zm.loadLib(os.path.expanduser("~") + '/cpp/zmey/build/Release/libzmclient.so')
 zo = zm.Connection("host=localhost port=5432 password=123 dbname=zmeydb connect_timeout=10")
