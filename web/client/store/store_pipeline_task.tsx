@@ -159,6 +159,7 @@ class PipelineTasksStoreClass {
         prevTask.nextTasksId.splice(inx, 1);
         prevTask.isSendResultToNext.splice(inx, 1);
         prevTask.isStartNext.splice(inx, 1);
+        prevTask.conditionStartNext.splice(inx, 1);
         
         this.m_pipelineTasks.set(pid, prevTask);
         ServerAPI.changePipelineTask(prevTask);
