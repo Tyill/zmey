@@ -87,8 +87,7 @@ bool Executor::sendTaskToWorker()
       if (ZM_Tcp::asyncSendData(wConnPnt, ZM_Aux::serialn(data))){
         ++(*iWr)->activeTask;
         m_workers[wConnPnt].base.activeTask = (*iWr)->activeTask; 
-        m_messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::TASK_START, (*iWr)->id, task.id}); 
-
+       
         for(auto& wt : m_workers[wConnPnt].taskList){
           if (wt == 0){
             wt = task.id;

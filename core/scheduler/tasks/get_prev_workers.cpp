@@ -24,7 +24,6 @@
 //
 #include "scheduler/executor.h"
 #include "common/tcp.h"
-#include "common/json.h"
 
 using namespace std;
 
@@ -33,35 +32,13 @@ void Executor::getPrevWorkersFromDB(ZM_DB::DbProvider& db)
   vector<ZM_Base::Worker> workers; 
   if (db.getWorkersOfSchedr(m_schedr.id, workers)){
     for(auto& w : workers){
-      m_workers[w.connectPnt] = SWorker{w, w.state, vector<uint64_t>(int(w.capacityTask * 1.5), 0), 
+      m_workers[w.connectPnt] = SWorker{w, w.state, vector<uint64_t>(), 
                                         w.state != ZM_Base::StateType::NOT_RESPONDING};
-    }
 
-    Json::Reader readerJs;
-    Json::Value obj;
-    readerJs.parse(m_schedr.internalData, obj); 
-
-    map<string, vector<uint64_t>> workersCng;
-    if (obj.isObject() && obj.isMember("workers") && obj["workers"].isArray()){
-      Json::Value workersJs = obj["workers"];
-      for (const auto& w : workersJs){
-        if (w.isMember("connPnt") && w["connPnt"].isString() && 
-            w.isMember("tasks") && w["tasks"].isArray()){
-          string connPnt = w["connPnt"].asString();
-          workersCng[connPnt];
-          for (const auto& t : w["tasks"]){
-            if (t.isUInt64())
-              workersCng[connPnt].push_back(t.asUInt64());
-          }
-        }
-      }
-    }
-
-    for (const auto& wcng : workersCng){
-      if (m_workers.count(wcng.first)){
-        for (size_t i = 0; (i < m_workers[wcng.first].taskList.size()) && (i < wcng.second.size()) ; ++i)
-          m_workers[wcng.first].taskList[i] = wcng.second[i];
-      }
+      if (db.getTasksOfWorker(m_schedr.id, w.id, m_workers[w.connectPnt].taskList))
+        m_workers[w.connectPnt].taskList.resize(size_t(w.capacityTask * 1.5));
+      else
+        m_app.statusMess("getTasksOfWorker db error: " + db.getLastError());
     }
   }
   else{

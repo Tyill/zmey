@@ -82,6 +82,7 @@ def initUserDb(db):
           prevTasksId   TEXT NOT NULL, \
           isStartNext   TEXT NOT NULL, \
           isSendResultToNext TEXT NOT NULL, \
+          conditionStartNext TEXT NOT NULL, \
           name          TEXT NOT NULL CHECK (name <> ''), \
           description   TEXT NOT NULL, \
           setts TEXT NOT NULL);"   

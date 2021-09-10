@@ -35,6 +35,7 @@ class PipelineTasksStoreClass {
     ret.prevTasksId = [...pt.prevTasksId];
     ret.isStartNext = [...pt.isStartNext];
     ret.isSendResultToNext = [...pt.isSendResultToNext];
+    ret.conditionStartNext = [...pt.conditionStartNext];
     return ret;   
   }
   getAll() : Map<number, IPipelineTask>{

@@ -6,6 +6,7 @@ from . import db
 zmConn : zm.Connection = None
 zmTaskWatch : zm.Connection = None
 
+
 def init(dbConnStr : str):
   
   libname = 'libzmclient.so'
@@ -56,19 +57,28 @@ def taskChangeCBack(tId : int, uId : int, progress : int, prevState: int, newSta
       from . import pipeline_task as pt
       t = task.get(dbo, tId)
       nextTasks = pt.getNextTasks(dbo, t.pplTaskId)      
-      for nextTaskId, isStartNext, isSendResultToNext in nextTasks:
+      for nextTaskId, isStartNext, isSendResultToNext, conditionStartNext in nextTasks:
         if not isStartNext:
           continue
+
         nextTask = pt.get(dbo, nextTaskId)
         if nextTask.isEnabled:
-          newTask = task.Task(nextTaskId, starterPplTaskId=t.pplTaskId, ttlId=nextTask.ttId)
-          newTask.params = nextTask.params
-          if isSendResultToNext:
-            newTask.params += ' ' + zmt.result             
-          task.start(dbo, uId, newTask)    
+         
+          isCondition = True
+          if len(conditionStartNext):
+            safe_dict = {'t' : zmt, 'len' : len}         
+            isCondition = eval(conditionStartNext, {"__builtins__" : None }, safe_dict)
+          
+          if isCondition:
+            newTask = task.Task(nextTaskId, starterPplTaskId=t.pplTaskId, ttlId=nextTask.ttId)
+            newTask.params = nextTask.params
+            if isSendResultToNext:
+              newTask.params += ' ' + zmt.result             
+            task.start(dbo, uId, newTask)    
     
   except Exception as err:
     print("taskChangeCBack failed: {0}".format(str(err)))
   finally:
     if dbo:
       db.closeDb(dbo)
+

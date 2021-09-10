@@ -98,7 +98,13 @@ void Executor::receiveHandler(const string& remcp, const string& data)
             break;
           }
         }      
-        m_messToDB.push(ZM_DB::MessSchedr(mtype, !taskExist ? wId : 0, tid, mess["taskResult"]));   // wId = 0 для ускорения вставки в БД          
+        if (mtype == ZM_Base::MessType::TASK_RUNNING){
+          if (taskExist)
+            m_messToDB.push(ZM_DB::MessSchedr(mtype, wId, tid));         
+        }
+        else{ // wId = 0 для ускорения вставки в БД 
+          m_messToDB.push(ZM_DB::MessSchedr(mtype, !taskExist ? wId : 0, tid, mess["taskResult"]));            
+        }
         break;
       }        
       case ZM_Base::MessType::TASK_PROGRESS:{

@@ -43,7 +43,7 @@ bool DbProvider::setChangeTaskStateCBack(uint64_t tId, uint64_t userId, ChangeTa
       auto cmd = "LISTEN " + m_impl->NOTIFY_NAME_CHANGE_TASK;
       PGres pgr(PQexec(_pg, cmd.c_str()));
       if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
-        errorMess(string("endTaskCBack LISTEN error: ") + PQerrorMessage(_pg));
+        errorMess(string("endTaskCBack LISTEN: ") + PQerrorMessage(_pg));
       }
 
       int maxElapseTimeMS = 10;
@@ -69,6 +69,10 @@ bool DbProvider::setChangeTaskStateCBack(uint64_t tId, uint64_t userId, ChangeTa
         {
           lock_guard<mutex> lk(m_impl->m_mtxNotifyTask);          
           notifyTasks = m_impl->m_notifyTaskStateCBack;
+        }
+        if (notifyTasks.empty()){
+          ZM_Aux::sleepMs(maxElapseTimeMS);
+          continue;
         }
 
         string stId;
@@ -103,7 +107,7 @@ bool DbProvider::setChangeTaskStateCBack(uint64_t tId, uint64_t userId, ChangeTa
               }
             }
           }else{
-            errorMess(string("endTaskCBack error: ") + PQerrorMessage(_pg));
+            errorMess(string("endTaskCBack: ") + PQerrorMessage(_pg));
           } 
         }
         if (!notifyRes.empty()){

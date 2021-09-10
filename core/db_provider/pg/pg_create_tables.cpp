@@ -54,7 +54,7 @@ bool DbProvider::createTables(){
   #define QUERY(req, sts){              \
     PGres pgr(PQexec(_pg, req));        \
     if (PQresultStatus(pgr.res) != sts){  \
-      errorMess(string("createTables error: ") + PQerrorMessage(_pg)); \
+      errorMess(string("createTables: ") + PQerrorMessage(_pg)); \
       return false;                     \
     }                                   \
   }

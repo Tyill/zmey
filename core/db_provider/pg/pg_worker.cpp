@@ -49,7 +49,7 @@ bool DbProvider::addWorker(const ZM_Base::Worker& worker, uint64_t& outWkrId){
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-      errorMess(string("addWorker error: ") + PQerrorMessage(_pg));
+      errorMess(string("addWorker: ") + PQerrorMessage(_pg));
       return false;
   }
   outWkrId = stoull(PQgetvalue(pgr.res, 0, 0));
@@ -64,7 +64,7 @@ bool DbProvider::getWorker(uint64_t wId, ZM_Base::Worker& cng){
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("getWorker error: ") + PQerrorMessage(_pg));
+    errorMess(string("getWorker: ") + PQerrorMessage(_pg));
     return false;
   }
   if (PQntuples(pgr.res) != 1){
@@ -101,7 +101,7 @@ bool DbProvider::changeWorker(uint64_t wId, const ZM_Base::Worker& newCng){
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
-    errorMess(string("changeWorker error: ") + PQerrorMessage(_pg));
+    errorMess(string("changeWorker: ") + PQerrorMessage(_pg));
     return false;
   }  
   return true;
@@ -115,7 +115,7 @@ bool DbProvider::delWorker(uint64_t wId){
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
-    errorMess(string("delWorker error: ") + PQerrorMessage(_pg));
+    errorMess(string("delWorker: ") + PQerrorMessage(_pg));
     return false;
   }  
   return true;
@@ -135,7 +135,7 @@ bool DbProvider::workerState(const std::vector<uint64_t>& wId, std::vector<Worke
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("workerState error: ") + PQerrorMessage(_pg));
+    errorMess(string("workerState: ") + PQerrorMessage(_pg));
     return false;
   }
   size_t wsz = wId.size();
@@ -164,7 +164,7 @@ std::vector<uint64_t> DbProvider::getAllWorkers(uint64_t sId, ZM_Base::StateType
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("getAllWorkers error: ") + PQerrorMessage(_pg));
+    errorMess(string("getAllWorkers: ") + PQerrorMessage(_pg));
     return std::vector<uint64_t>();
   }  
   int rows = PQntuples(pgr.res);

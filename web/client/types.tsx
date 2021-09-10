@@ -87,6 +87,7 @@ interface IPipelineTask{
   prevTasksId : Array<number>;        ///< pipeline task id of prev tasks 
   isStartNext : Array<number>;        ///< is start next task?
   isSendResultToNext : Array<number>; ///< is send result to next task?
+  conditionStartNext : Array<string>;
   params : string;
   name : string;
   description : string;

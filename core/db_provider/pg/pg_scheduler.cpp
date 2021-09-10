@@ -49,7 +49,7 @@ bool DbProvider::addSchedr(const ZM_Base::Scheduler& schedl, uint64_t& outSchId)
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("addSchedr error: ") + PQerrorMessage(_pg));
+    errorMess(string("addSchedr: ") + PQerrorMessage(_pg));
     return false;
   }
   outSchId = stoull(PQgetvalue(pgr.res, 0, 0));
@@ -64,7 +64,7 @@ bool DbProvider::getSchedr(uint64_t sId, ZM_Base::Scheduler& cng){
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("getSchedr error: ") + PQerrorMessage(_pg));
+    errorMess(string("getSchedr: ") + PQerrorMessage(_pg));
     return false;
   }
   if (PQntuples(pgr.res) != 1){
@@ -99,7 +99,7 @@ bool DbProvider::changeSchedr(uint64_t sId, const ZM_Base::Scheduler& newCng){
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
-    errorMess(string("changeSchedr error: ") + PQerrorMessage(_pg));
+    errorMess(string("changeSchedr: ") + PQerrorMessage(_pg));
     return false;
   }  
   return true;
@@ -113,7 +113,7 @@ bool DbProvider::delSchedr(uint64_t sId){
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
-    errorMess(string("delSchedr error: ") + PQerrorMessage(_pg));
+    errorMess(string("delSchedr: ") + PQerrorMessage(_pg));
     return false;
   }  
   return true;
@@ -128,7 +128,7 @@ bool DbProvider::schedrState(uint64_t sId, SchedulerState& out){
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if ((PQresultStatus(pgr.res) != PGRES_TUPLES_OK) || (PQntuples(pgr.res) != 1)){
-    errorMess(string("schedrState error: ") + PQerrorMessage(_pg));
+    errorMess(string("schedrState: ") + PQerrorMessage(_pg));
     return false;
   }
   out.state = (ZM_Base::StateType)atoi(PQgetvalue(pgr.res, 0, 0));
@@ -146,7 +146,7 @@ std::vector<uint64_t> DbProvider::getAllSchedrs(ZM_Base::StateType state){
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("getAllSchedrs error: ") + PQerrorMessage(_pg));
+    errorMess(string("getAllSchedrs: ") + PQerrorMessage(_pg));
     return std::vector<uint64_t>();
   }  
   int rows = PQntuples(pgr.res);

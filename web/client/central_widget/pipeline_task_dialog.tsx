@@ -74,6 +74,7 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
       selTask.nextTasksId.forEach((id, ix)=>{
         selTask.isStartNext[ix] = this.m_refObj["isStartNext" + id].checked ? 1 : 0;
         selTask.isSendResultToNext[ix] = this.m_refObj["isSendResultToNext" + id].checked ? 1 : 0;
+        selTask.conditionStartNext[ix] = this.m_refObj["conditionStartNext" + id].value;
       });
     }
 
@@ -95,6 +96,7 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
       prevTasksId: !this.m_isNewPipelineTask ? selTask.prevTasksId : [],
       isStartNext: !this.m_isNewPipelineTask ? selTask.isStartNext : [],
       isSendResultToNext: !this.m_isNewPipelineTask ? selTask.isSendResultToNext : [],
+      conditionStartNext: !this.m_isNewPipelineTask ? selTask.conditionStartNext : [],
       params : this.m_refObj["params"].value,
       name : this.m_refObj["name"].value,           
       description : this.m_refObj["description"].value,
@@ -163,9 +165,20 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
     if (task.nextTasksId && task.nextTasksId.length){
       task.nextTasksId.forEach((id, ix)=>{
         const nt = PipelineTasks.get(id);
+        let classStyle = "d-flex flex-row m-0 p-0 borderNoBottom ";
+        if (ix == 0)
+          classStyle += "borderRadiusTop ";
+        if (ix == task.nextTasksId.length - 1)
+          classStyle += "border borderRadiusBottom";
         nextTask.push(   
-          <div className="d-flex flex-row mb-2 p-0 border borderRadius" key={id} style={{ maxWidth:"190px"}} >
-            <p className="m-2 mr-auto p-0 ">{nt.name}</p>
+          <div className={classStyle} key={id}  >
+            <p className="m-2 mr-auto p-0 align-self-center " style={{minWidth:"100px"}}>{nt.name}</p>
+            <input className="m-2 p-2  form-control" style={{maxHeight:"30px"}} 
+                    ref={(input) => {this.m_refObj["conditionStartNext" + id] = input }} 
+                    type="text"                     
+                    title="Сondition for starting"
+                    placeholder="task.result == 'ok'" 
+                    defaultValue={task.conditionStartNext[ix]} />
             <input className="m-2 p-0 align-self-center" 
                     ref={(input) => {this.m_refObj["isStartNext" + id] = input }}
                     type="checkbox"
@@ -175,7 +188,7 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
                     ref={(input) => {this.m_refObj["isSendResultToNext" + id] = input }} 
                     type="checkbox"                     
                     title="Send result to next task"
-                    defaultChecked={task.isSendResultToNext[ix] == 1} />
+                    defaultChecked={task.isSendResultToNext[ix] == 1} />            
           </div>
         )
       })

@@ -14,6 +14,7 @@ class PipelineTask:
                prevTasksId : List[int] = 0,
                isStartNext : List[int] = 0,
                isSendResultToNext : List[int] = 0,
+               conditionStartNext : List[str] = 0,
                params : str = "",
                name : str = "",
                description : str = "",
@@ -27,13 +28,14 @@ class PipelineTask:
     self.prevTasksId = prevTasksId     # Prev pipeline tasks id
     self.isStartNext = isStartNext     # Is start next task?
     self.isSendResultToNext = isSendResultToNext # Is send result to next task?
+    self.conditionStartNext = conditionStartNext
     self.params = params               # Task params
     self.name = name    
     self.description = description
   def __repr__(self):
       return f"PipelineTask: id {self.id} pplId {self.pplId} ttId {self.ttId} params {self.params} \
                isEnabled {self.isEnabled} nextTasksId {self.nextTasksId} prevTasksId {self.prevTasksId} \
-               name {self.name} description {self.description} setts {self.setts}"
+               conditionStartNext {self.conditionStartNext} name {self.name} description {self.description} setts {self.setts}"
   def __str__(self):
     return self.__repr__()
 
@@ -44,6 +46,10 @@ def add(pt : PipelineTask) -> bool:
       prevTasksId = ','.join([str(v) for v in pt.prevTasksId])
       isStartNext = ','.join([str(v) for v in pt.isStartNext])
       isSendResultToNext = ','.join([str(v) for v in pt.isSendResultToNext])
+      conditionStartNext = ','.join([v for v in pt.conditionStartNext])
+      conditionStartNext = conditionStartNext.replace("'", "''")
+      if len(conditionStartNext):
+        conditionStartNext = clearCondition(conditionStartNext)
       name = pt.name.replace("'", "''")
       description = pt.description.replace("'", "''")
       setts = str(pt.setts).replace("'", "''")
@@ -51,7 +57,7 @@ def add(pt : PipelineTask) -> bool:
       with closing(g.db.cursor()) as cr:
         cr.execute(
           "INSERT INTO tblPipelineTask (pplId, ttId, params, isEnabled, setts,"
-          "nextTasksId, prevTasksId, isStartNext, isSendResultToNext, name, description) VALUES("
+          "nextTasksId, prevTasksId, isStartNext, isSendResultToNext, conditionStartNext, name, description) VALUES("
           f"'{pt.pplId}',"
           f"'{pt.ttId}',"
           f"'{params}',"
@@ -61,6 +67,7 @@ def add(pt : PipelineTask) -> bool:
           f"'{prevTasksId}',"
           f"'{isStartNext}',"
           f"'{isSendResultToNext}',"
+          f"'{conditionStartNext}',"
           f"'{name}',"
           f"'{description}');"
         )
@@ -92,7 +99,7 @@ def getNextTasks(db, id : int) -> List[List[int]]:
   try:
     with closing(db.cursor()) as cr:
       cr.execute(
-        "SELECT nextTasksId, isStartNext, isSendResultToNext "
+        "SELECT nextTasksId, isStartNext, isSendResultToNext, conditionStartNext "
         "FROM tblPipelineTask "
         f"WHERE id = {id};"      
       )
@@ -102,8 +109,9 @@ def getNextTasks(db, id : int) -> List[List[int]]:
         nextTasksId = [int(v) for v in row[0].split(',') if len(v)] 
         isStartNext = [int(v) for v in row[1].split(',') if len(v)] 
         isSendResultToNext = [int(v) for v in row[2].split(',') if len(v)] 
+        conditionStartNext = [v for v in row[3].split(',')]
         for i, _ in enumerate(nextTasksId):
-          ret.append([nextTasksId[i], isStartNext[i], isSendResultToNext[i]])
+          ret.append([nextTasksId[i], isStartNext[i], isSendResultToNext[i], conditionStartNext[i]])
         return ret
   except Exception as err:
     print("{0} local db query failed: {1}".format("PipelineTask.getNextTasks", str(err)))
@@ -116,6 +124,10 @@ def change(pt : PipelineTask) -> bool:
       prevTasksId = ','.join([str(v) for v in pt.prevTasksId])
       isStartNext = ','.join([str(v) for v in pt.isStartNext])
       isSendResultToNext = ','.join([str(v) for v in pt.isSendResultToNext])
+      conditionStartNext = ','.join([v for v in pt.conditionStartNext])
+      conditionStartNext = conditionStartNext.replace("'", "''")
+      if len(conditionStartNext):
+        conditionStartNext = clearCondition(conditionStartNext)
       name = pt.name.replace("'", "''")
       description = pt.description.replace("'", "''")
       setts = str(pt.setts).replace("'", "''")
@@ -132,6 +144,7 @@ def change(pt : PipelineTask) -> bool:
           f"prevTasksId = '{prevTasksId}',"
           f"isStartNext = '{isStartNext}',"
           f"isSendResultToNext = '{isSendResultToNext}',"
+          f"conditionStartNext = '{conditionStartNext}',"
           f"name = '{name}',"
           f"description = '{description}' "
           f"WHERE id = {pt.id};" 
@@ -164,7 +177,7 @@ def all() -> List[PipelineTask]:
       with closing(g.db.cursor()) as cr:
         cr.execute(
           "SELECT id, pplId, ttId, params, isEnabled, setts,"
-          "nextTasksId, prevTasksId, isStartNext, isSendResultToNext, name, description "
+          "nextTasksId, prevTasksId, isStartNext, isSendResultToNext, conditionStartNext, name, description "
           "FROM tblPipelineTask "
           "WHERE isDelete = 0;"
         )
@@ -174,12 +187,21 @@ def all() -> List[PipelineTask]:
           prevTasksId = [int(v) for v in row[7].split(',') if len(v)]
           isStartNext = [int(v) for v in row[8].split(',') if len(v)]
           isSendResultToNext = [int(v) for v in row[9].split(',') if len(v)]
+          conditionStartNext = [v for v in row[10].split(',')]
           pts.append(PipelineTask(id=row[0], pplId=row[1], ttId=row[2], params=row[3],
                                   isEnabled=row[4], setts=row[5],
                                   nextTasksId=nextTasksId, prevTasksId=prevTasksId,
                                   isStartNext=isStartNext, isSendResultToNext=isSendResultToNext,
-                                  name=row[10], description=row[11]))       
+                                  conditionStartNext=conditionStartNext, name=row[11], description=row[12]))       
       return pts  
     except Exception as err:
       print("{0} local db query failed: {1}".format("PipelineTask.all", str(err)))
   return []
+
+def clearCondition(conditionStartNext : str):
+  conditionStartNext = conditionStartNext.replace("_", "")
+  conditionStartNext = conditionStartNext.replace("import", "")
+  conditionStartNext = conditionStartNext.replace("for ", "")
+  conditionStartNext = conditionStartNext.replace("while ", "")
+  conditionStartNext = conditionStartNext.replace("sleep(", "")
+  return conditionStartNext
