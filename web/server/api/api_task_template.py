@@ -55,7 +55,11 @@ def delTaskTemplate(id : int):
 @bp.route('/taskTemplates', methods=(['GET']))
 @auth.loginRequired
 def allTaskTemplates():  
-  ret = []
-  for t in tt.all():
-    ret.append(t.__dict__)
-  return json.dumps(ret)
+  try:
+    ret = []
+    for t in tt.all():
+      ret.append(t.__dict__)
+    return json.dumps(ret)
+  except Exception as err:
+    print(f'/taskTemplates GET failed: %s' % str(err))
+    return ('bad request', 400)

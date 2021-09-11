@@ -52,14 +52,14 @@ void Loop::run()
   while (!m_fClose){
     timer.updateCycTime();   
 
-    if(m_executor.appendNewTaskAvailable()){
+    if(m_executor.appendNewTaskAvailable()){      
       if(!frGetNewTask.valid() || (frGetNewTask.wait_for(chrono::seconds(0)) == future_status::ready))
         frGetNewTask = async(launch::async, [this]{
           m_executor.getNewTaskFromDB(m_dbNewTask);
           if (!m_executor.isTasksEmpty())
             m_executor.sendTaskToWorker();  
-        });                                        
-    }        
+        }); 
+    }
 
     if(!m_executor.isMessToDBEmpty()){   
       if(!frSendAllMessToDB.valid() || (frSendAllMessToDB.wait_for(chrono::seconds(0)) == future_status::ready))

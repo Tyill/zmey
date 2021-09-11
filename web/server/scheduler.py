@@ -14,7 +14,6 @@ def add(shedr : Scheduler) -> bool:
     shedr.description = shedr.description.replace("'", "''")
     
     ok = zmConn.addScheduler(shedr)
-    print(shedr)
     return ok
   return False
 
@@ -29,7 +28,7 @@ def change(shedr : Scheduler) -> bool:
 def delete(shedrId : int) -> bool:
   if zmConn and ('userId' in g):
     
-    return zmConn.deleteScheduler(shedrId)
+    return zmConn.delScheduler(shedrId)
   return False
 
 def all() -> List[Scheduler]:

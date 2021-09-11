@@ -32,7 +32,7 @@ public:
  
   struct Config{
     int checkWorkerTOutSec = 120;
-    int pingToDBSec = 30;
+    int pingToDBSec = 20;
     std::string localConnPnt;
     std::string remoteConnPnt;
     ZM_DB::ConnectCng dbConnCng;

@@ -198,7 +198,7 @@ void Executor::waitProcess()
     ZM_Aux::replace(result, "'", "''");
 
     int toutMs = 0, 
-        maxDelayMs = 3000; 
+        maxDelayMs = 5000; 
     while ((remove(resultFile.c_str()) == -1) && (toutMs < maxDelayMs)){
       toutMs += 10;
       ZM_Aux::sleepMs(10);

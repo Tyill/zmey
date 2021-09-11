@@ -1,11 +1,31 @@
 "use strict";
 
+let m_schedrSelected ={
+  id : 0,
+};
+
+let m_workerSelected ={
+  id : 0,
+};
+
+let reqWorkers = function(){
+  if (m_schedrSelected.id != 0){
+    fetch('api/v1/workers?schedId=' + m_schedrSelected.id)
+      .then(response => response.json())    
+      .then(fillWorkers)
+      .catch(e=>console.log(e)); 
+  } 
+}
+
 let reqSchers = function(){
   fetch('api/v1/schedulers')
     .then(response => response.json())    
     .then(fillScheds)
     .catch(e=>console.log(e)); 
+  
+  reqWorkers();
 }
+
 reqSchers();
 setInterval(reqSchers, 5000)
 
@@ -20,8 +40,10 @@ function fillScheds(scheds){
     startTime.setMinutes(startTime.getMinutes() - offsTime);
     stopTime.setMinutes(stopTime.getMinutes() - offsTime);
     pingTime.setMinutes(pingTime.getMinutes() - offsTime);
-    table.insertAdjacentHTML("afterbegin", `<tr>
-                        <th>${s.id}</th>
+
+    const trStyle = s.id == m_schedrSelected.id ? "style=\"background-color:gray\"" : "";
+    table.insertAdjacentHTML("afterbegin", `<tr onclick="hSelectSchedr(event)" ${trStyle}>
+                        <td>${s.id}</td>
                         <td>${s.connectPnt}</td>
                         <td>${s.state}</td>
                         <td>${s.capacityTask}</td>
@@ -52,7 +74,134 @@ function appendSchedr(){
     body: JSON.stringify(newSchedr)})
   .then(response => response.json())    
   .then(reqSchers)
-  .catch(e=>console.log("api/v1/schedulers error", e));  
+  .catch(e=>console.log("api/v1/schedulers POST error", e));  
+}
+
+function changeSchedr(){
+  
+  let newSchedr={
+    connectPnt : document.getElementById("schedrIpAddr").value,
+    capacityTask : document.getElementById("schedrCapacityTask").value,
+    name : document.getElementById("schedrName").value,
+    description : document.getElementById("schedrDescr").value
+  }
+
+  fetch('api/v1/schedulers/' + m_schedrSelected.id, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8'
+    },
+    body: JSON.stringify(newSchedr)})
+  .then(response => response.json())    
+  .then(reqSchers)
+  .catch(e=>console.log("api/v1/schedulers PUT error", e));  
+}
+
+function deleteSchedr(){
+ 
+  fetch('api/v1/schedulers/' + m_schedrSelected.id, {
+    method: 'DELETE'}) 
+  .then(reqSchers)
+  .catch(e=>console.log("api/v1/schedulers DELETE error", e));  
+}
+
+function hSelectSchedr(e){
+  m_schedrSelected.id = parseInt(e.srcElement.parentElement.cells[0].textContent, 10);
+  document.getElementById("schedrIpAddr").value = e.srcElement.parentElement.cells[1].textContent;
+  document.getElementById("schedrCapacityTask").value = e.srcElement.parentElement.cells[3].textContent;
+  document.getElementById("schedrName").value = e.srcElement.parentElement.cells[8].textContent;
+  document.getElementById("schedrDescr").value = e.srcElement.parentElement.cells[9].textContent;
+  reqSchers();
+}
+
+///////////////////////////////////////////////////////////////////////////////////
+
+function fillWorkers(workers){ 
+  let table  = document.getElementById("tblWorkers")
+  table.innerHTML="";
+  for (let w of workers){
+    let offsTime = new Date().getTimezoneOffset(),
+        startTime = new Date(w.startTime),
+        stopTime = new Date(w.stopTime),
+        pingTime = new Date(w.pingTime);
+    startTime.setMinutes(startTime.getMinutes() - offsTime);
+    stopTime.setMinutes(stopTime.getMinutes() - offsTime);
+    pingTime.setMinutes(pingTime.getMinutes() - offsTime);
+
+    const trStyle = w.id == m_workerSelected.id ? "style=\"background-color:gray\"" : "";
+    table.insertAdjacentHTML("afterbegin", `<tr onclick="hSelectWorker(event)" ${trStyle}>
+                        <td>${w.id}</td>
+                        <td>${w.connectPnt}</td>
+                        <td>${w.state}</td>
+                        <td>${w.load}</td>
+                        <td>${w.capacityTask}</td>
+                        <td>${w.activeTask}</td>
+                        <td>${dateFormat(startTime, "yyyy-mm-dd hh:ii:ss")}</td>
+                        <td>${dateFormat(stopTime, "yyyy-mm-dd hh:ii:ss")}</td>
+                        <td>${dateFormat(pingTime, "yyyy-mm-dd hh:ii:ss")}</td>
+                        <td>${w.name}</td>
+                        <td>${w.description}</td>
+                      </tr>`)
+  }
+}
+
+function appendWorker(){
+  
+  let newWorker={
+    sId : m_schedrSelected.id,
+    connectPnt : document.getElementById("workerIpAddr").value,
+    capacityTask : document.getElementById("workerCapacityTask").value,
+    name : document.getElementById("workerName").value,
+    description : document.getElementById("workerDescr").value
+  }
+
+  fetch('api/v1/workers', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8'
+    },
+    body: JSON.stringify(newWorker)})
+  .then(response => response.json())    
+  .then(reqWorkers)
+  .catch(e=>console.log("api/v1/workers POST error", e));  
+}
+
+function changeWorker(){
+  
+  let newWorker={
+    sId : m_schedrSelected.id,
+    connectPnt : document.getElementById("workerIpAddr").value,
+    capacityTask : document.getElementById("workerCapacityTask").value,
+    name : document.getElementById("workerName").value,
+    description : document.getElementById("workerDescr").value
+  }
+
+  fetch('api/v1/workers/' + m_workerSelected.id, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8'
+    },
+    body: JSON.stringify(newWorker)})
+  .then(response => response.json())    
+  .then(reqWorkers)
+  .catch(e=>console.log("api/v1/workers PUT error", e));  
+}
+
+function deleteWorker(){
+ 
+  fetch('api/v1/workers/' + m_workerSelected.id, {
+    method: 'DELETE'}) 
+  .then(reqWorkers)
+  .catch(e=>console.log("api/v1/workers DELETE error", e));  
+}
+
+function hSelectWorker(e){
+  m_workerSelected.id = parseInt(e.srcElement.parentElement.cells[0].textContent, 10);
+  document.getElementById("workerIpAddr").value = e.srcElement.parentElement.cells[1].textContent;
+  document.getElementById("workerCapacityTask").value = e.srcElement.parentElement.cells[4].textContent;
+  document.getElementById("workerName").value = e.srcElement.parentElement.cells[9].textContent;
+  document.getElementById("workerDescr").value = e.srcElement.parentElement.cells[10].textContent;
+  reqSchers();
 }
 
 function dateFormat(date, format) {

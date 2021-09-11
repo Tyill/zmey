@@ -37,7 +37,7 @@ void Executor::addMessToDB(ZM_DB::MessSchedr mess)
 
 bool Executor::appendNewTaskAvailable()
 {
-  return (m_tasks.size() < m_schedr.capacityTask) && (m_schedr.state != ZM_Base::StateType::PAUSE);
+  return (m_schedr.state != ZM_Base::StateType::PAUSE);
 }
 
 bool Executor::isTasksEmpty()

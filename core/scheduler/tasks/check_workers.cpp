@@ -39,7 +39,7 @@ void Executor::checkStatusWorkers()
       w.second.isActive = false;
     }
   }
-  if (wkrNotResp.size() < round(m_workers.size() * 0.75)){ 
+  if (wkrNotResp.size() <= round(m_workers.size() * 0.75)){ 
     for(auto w : wkrNotResp){
       if (w->base.state != ZM_Base::StateType::NOT_RESPONDING){
         m_messToDB.push(ZM_DB::MessSchedr(ZM_Base::MessType::WORKER_NOT_RESPONDING, w->base.id));
