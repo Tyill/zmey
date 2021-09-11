@@ -54,14 +54,18 @@ void Loop::run()
 
     if(m_executor.appendNewTaskAvailable()){
       if(!frGetNewTask.valid() || (frGetNewTask.wait_for(chrono::seconds(0)) == future_status::ready))
-        frGetNewTask = async(launch::async, [this]{ m_executor.getNewTaskFromDB(m_dbNewTask); });                                        
+        frGetNewTask = async(launch::async, [this]{
+          m_executor.getNewTaskFromDB(m_dbNewTask);
+          if (!m_executor.isTasksEmpty())
+            m_executor.sendTaskToWorker();  
+        });                                        
     }        
-
-    bool isAvailableWorkers = m_executor.sendTaskToWorker();    
 
     if(!m_executor.isMessToDBEmpty()){   
       if(!frSendAllMessToDB.valid() || (frSendAllMessToDB.wait_for(chrono::seconds(0)) == future_status::ready))
-        frSendAllMessToDB = async(launch::async, [this]{ m_executor.sendAllMessToDB(m_dbSendMess); });      
+        frSendAllMessToDB = async(launch::async, [this]{
+          m_executor.sendAllMessToDB(m_dbSendMess);
+        });      
     }
 
     if(timer.onDelayOncSec(true, m_cng.checkWorkerTOutSec, 0)){
@@ -72,7 +76,7 @@ void Loop::run()
       m_executor.pingToDB();
     }
     
-    if (m_executor.isMessToDBEmpty() && (m_executor.isTasksEmpty() || !isAvailableWorkers)){ 
+    if (m_executor.isMessToDBEmpty() && !m_fClose){ 
       mainCycleSleep(minCycleTimeMS);
     }
   }

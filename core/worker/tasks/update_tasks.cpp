@@ -42,14 +42,5 @@ void Executor::updateListTasks()
     }
     m_procs.push_back(move(prc));
     m_listMessForSchedr.push(MessForSchedr{tsk.id, ZM_Base::MessType::TASK_RUNNING, ""});
-  }
-  for (auto p = m_procs.begin(); p != m_procs.end();){
-    ZM_Base::StateType TaskState = p->getTask().state;
-    if ((TaskState == ZM_Base::StateType::COMPLETED) ||
-        (TaskState == ZM_Base::StateType::ERRORT)){
-      p = m_procs.erase(p);
-    }else{
-      ++p;
-    }
-  }
+  }  
 }

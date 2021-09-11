@@ -134,6 +134,18 @@ void Executor::waitProcess()
       p.stop();
     }
   }
+
+  { std::lock_guard<std::mutex> lock(m_mtxProcess);    
+    for (auto p = m_procs.begin(); p != m_procs.end();){
+      ZM_Base::StateType TaskState = p->getTask().state;
+      if ((TaskState == ZM_Base::StateType::COMPLETED) ||
+          (TaskState == ZM_Base::StateType::ERRORT)){
+        p = m_procs.erase(p);
+      }else{
+        ++p;
+      }
+    }
+  }
 }
 
 #elif _WIN32
@@ -217,6 +229,18 @@ void Executor::waitProcess()
   for(auto& p : m_procs){
     if (p.checkMaxRunTime() && (p.getTask().state == ZM_Base::StateType::RUNNING)){
       p.stop();
+    }
+  }
+
+  { std::lock_guard<std::mutex> lock(m_mtxProcess);    
+    for (auto p = m_procs.begin(); p != m_procs.end();){
+      ZM_Base::StateType TaskState = p->getTask().state;
+      if ((TaskState == ZM_Base::StateType::COMPLETED) ||
+          (TaskState == ZM_Base::StateType::ERRORT)){
+        p = m_procs.erase(p);
+      }else{
+        ++p;
+      }
     }
   }
 }
