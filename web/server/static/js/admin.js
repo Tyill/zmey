@@ -21,9 +21,8 @@ let reqSchers = function(){
   fetch('api/v1/schedulers')
     .then(response => response.json())    
     .then(fillScheds)
+    .then(reqWorkers)
     .catch(e=>console.log(e)); 
-  
-  reqWorkers();
 }
 
 reqSchers();
@@ -40,6 +39,9 @@ function fillScheds(scheds){
     startTime.setMinutes(startTime.getMinutes() - offsTime);
     stopTime.setMinutes(stopTime.getMinutes() - offsTime);
     pingTime.setMinutes(pingTime.getMinutes() - offsTime);
+    
+    if (m_schedrSelected.id == 0)
+      m_schedrSelected.id = s.id;
 
     const trStyle = s.id == m_schedrSelected.id ? "style=\"background-color:gray\"" : "";
     table.insertAdjacentHTML("afterbegin", `<tr onclick="hSelectSchedr(event)" ${trStyle}>
