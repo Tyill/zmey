@@ -3,7 +3,8 @@ from contextlib import closing
 from flask import g
 
 from .core import zmConn, zmTaskWatch
-from . import zm_client as zm 
+from . import zm_client as zm
+from . import pipeline_task as pt  
 
 class Task(zm.Task):
   """Task config""" 
@@ -89,9 +90,14 @@ def changeState(db, t : Task) -> bool:
     print("{0} local db query failed: {1}".format("Task.changeState", str(err)))
   return False
 
-def getState(pplTaskId : int) -> List[Task]:
+def getState(pplTaskId : int, ifChange : bool) -> List[Task]:
   if ('db' in g):    
     try:
+      if ifChange and not pt.hasChange(g.db, pplTaskId):
+        return []
+      
+      pt.setChange(g.db, pplTaskId, False)
+
       ret = []
       with closing(g.db.cursor()) as cr:
         cr.execute(

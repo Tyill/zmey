@@ -117,6 +117,35 @@ def getNextTasks(db, id : int) -> List[List[int]]:
     print("{0} local db query failed: {1}".format("PipelineTask.getNextTasks", str(err)))
   return []
 
+def hasChange(db, id : int) -> bool:
+  try:
+    with closing(db.cursor()) as cr:
+      cr.execute(
+        "SELECT hasChange "
+        "FROM tblPipelineTask "
+        f"WHERE id = {id};"      
+      )
+      rows = cr.fetchall()
+      for row in rows:
+        return row[0] == 1
+  except Exception as err:
+    print("{0} local db query failed: {1}".format("PipelineTask.hasChange", str(err)))
+  return False
+
+def setChange(db, id : int, on : bool) -> bool:
+  try:
+    with closing(db.cursor()) as cr:
+      cr.execute(
+        "UPDATE tblPipelineTask SET "
+        f"hasChange = '{ 1 if on else 0 }' "
+        f"WHERE id = {id};"      
+      )
+      db.commit()
+      return True
+  except Exception as err:
+    print("{0} local db query failed: {1}".format("PipelineTask.setChange", str(err)))
+  return False
+
 def change(pt : PipelineTask) -> bool:
   if 'db' in g:
     try:

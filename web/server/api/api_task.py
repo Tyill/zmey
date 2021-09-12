@@ -31,8 +31,9 @@ def startTask():
 @auth.loginRequired
 def getTaskState(pplTaskid : int):
   try:
+    ifChange = True if ('ifChange' in request.args) else False
     ret = []
-    for st in t.getState(pplTaskid):
+    for st in t.getState(pplTaskid, ifChange):
       ret.append(st.__dict__)
     return json.dumps(ret)
   except Exception as err:

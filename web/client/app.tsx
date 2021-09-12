@@ -21,6 +21,7 @@ class App extends React.Component<IProps, IState>{
   
   private m_toutStatusMess : number = 0;
   private m_toutTaskUpdate : number = 0;
+  private m_pplTaskId : number = 0;
   
   constructor(props : IProps){
     super(props);
@@ -100,8 +101,11 @@ class App extends React.Component<IProps, IState>{
       }
     }   
     if (pplTaskId){
-      ServerAPI.getTaskState(pplTaskId, (states : Array<ITask>)=>{
-        Tasks.setAll(states); 
+      const isPrev = pplTaskId == this.m_pplTaskId;
+      this.m_pplTaskId = pplTaskId;
+      ServerAPI.getTaskState(pplTaskId, isPrev, (states : Array<ITask>)=>{
+        if (states.length)
+          Tasks.setAll(states); 
         this.m_toutTaskUpdate = setTimeout(this.updateTaskState, 1000);
       },      
       ()=>{

@@ -77,6 +77,7 @@ def initUserDb(db):
           ttId          INT NOT NULL REFERENCES tblTaskTemplate, \
           isEnabled     INT NOT NULL DEFAULT 1 CHECK (isEnabled BETWEEN 0 AND 1), \
           isDelete      INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1), \
+          hasChange     INT NOT NULL DEFAULT 0, \
           params        TEXT NOT NULL, \
           nextTasksId   TEXT NOT NULL, \
           prevTasksId   TEXT NOT NULL, \

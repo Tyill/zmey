@@ -53,9 +53,13 @@ def taskChangeCBack(tId : int, uId : int, progress : int, prevState: int, newSta
     from . import task
     task.changeState(dbo, zmt)
 
-    if tstate == zm.StateType.COMPLETED:    
-      from . import pipeline_task as pt
-      t = task.get(dbo, tId)
+    t = task.get(dbo, tId)
+
+    from . import pipeline_task as pt
+    pt.setChange(dbo, t.pplTaskId, True)    
+
+    if tstate == zm.StateType.COMPLETED: 
+
       nextTasks = pt.getNextTasks(dbo, t.pplTaskId)      
       for nextTaskId, isStartNext, isSendResultToNext, conditionStartNext in nextTasks:
         if not isStartNext:

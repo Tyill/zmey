@@ -46,7 +46,9 @@ public:
   void setTaskState(ZM_Base::StateType);
   void pause();
   void contin();
-  void stop();   
+  void stop();  
+  void stopByTimeout();   
+  bool getResult(std::string&);
   std::string getErrorStr() const {
       return m_err;
   }

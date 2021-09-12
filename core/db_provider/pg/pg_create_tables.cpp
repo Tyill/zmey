@@ -163,8 +163,8 @@ bool DbProvider::createTables(){
         "qtask          INT PRIMARY KEY REFERENCES tblTaskQueue,"        
         "createTime     TIMESTAMP NOT NULL DEFAULT current_timestamp,"
         "takeInWorkTime TIMESTAMP CHECK (takeInWorkTime >= createTime),"
-        "startTime      TIMESTAMP CHECK (startTime >= takeInWorkTime),"
-        "stopTime       TIMESTAMP CHECK (stopTime >= startTime));";
+        "startTime      TIMESTAMP,"
+        "stopTime       TIMESTAMP);";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
