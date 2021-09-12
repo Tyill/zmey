@@ -29,8 +29,22 @@ body,
 .borderRight{
   border-right: @borderStyle;
 }
+.borderNoBottom{
+  border: @borderStyle;
+  border-bottom: none;
+}
 .borderRadius{
   border-radius: 5px;
+}
+
+.borderRadiusTop{
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+}
+
+.borderRadiusBottom{
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
 }
 
 .tabPanelPipeline{
@@ -121,6 +135,7 @@ input[type=checkbox] {
   -moz-transform: scale(1.5); /* FF */
   -webkit-transform: scale(1.5); /* Safari and Chrome */
   -o-transform: scale(1.5); /* Opera */
+  transform: scale(1.5);
 }
 
 /* The switch - the box around the slider */

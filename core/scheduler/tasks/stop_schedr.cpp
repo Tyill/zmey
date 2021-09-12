@@ -23,28 +23,13 @@
 // THE SOFTWARE.
 //
 #include "scheduler/executor.h"
-#include "common/json.h"
 
 using namespace std;
 
 void Executor::stopSchedr(ZM_DB::DbProvider& db)
 {  
-  Json::Value rootJs;
-  rootJs["workers"];
-  for(const auto& w : m_workers){
-    Json::Value wJs;
-    wJs["connPnt"] = w.first;
-    wJs["tasks"];
-    for (auto t : w.second.taskList){
-      wJs["tasks"].append(t);
-    }
-    rootJs["workers"].append(wJs);    
-  }
-  Json::FastWriter writerJs;
-  
   ZM_DB::MessSchedr mess;{
     mess.type = ZM_Base::MessType::STOP_SCHEDR;
-    mess.data = writerJs.write(rootJs);
   }
   addMessToDB(mess);
   sendAllMessToDB(db);

@@ -17,8 +17,9 @@ function startTask(newTask : ITask, onSucces : (resp : ITask) => any, onError : 
 } 
 
 export
-function getTaskState(pplTaskId : number, onSucces : (resp : Array<ITask>) => any, onError : () => any ){
-  fetch('api/v1/tasks/' + pplTaskId, {
+function getTaskState(pplTaskId : number, ifChange : boolean, onSucces : (resp : Array<ITask>) => any, onError : () => any ){
+  const param = ifChange ? "?ifChange" : ""
+  fetch('api/v1/tasks/' + pplTaskId + param, {
     method: 'GET'})
   .then(response => response.json())    
   .then(onSucces)

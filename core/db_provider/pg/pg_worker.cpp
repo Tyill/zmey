@@ -49,7 +49,7 @@ bool DbProvider::addWorker(const ZM_Base::Worker& worker, uint64_t& outWkrId){
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-      errorMess(string("addWorker error: ") + PQerrorMessage(_pg));
+      errorMess(string("addWorker: ") + PQerrorMessage(_pg));
       return false;
   }
   outWkrId = stoull(PQgetvalue(pgr.res, 0, 0));
@@ -64,7 +64,7 @@ bool DbProvider::getWorker(uint64_t wId, ZM_Base::Worker& cng){
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("getWorker error: ") + PQerrorMessage(_pg));
+    errorMess(string("getWorker: ") + PQerrorMessage(_pg));
     return false;
   }
   if (PQntuples(pgr.res) != 1){
@@ -101,7 +101,7 @@ bool DbProvider::changeWorker(uint64_t wId, const ZM_Base::Worker& newCng){
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
-    errorMess(string("changeWorker error: ") + PQerrorMessage(_pg));
+    errorMess(string("changeWorker: ") + PQerrorMessage(_pg));
     return false;
   }  
   return true;
@@ -115,12 +115,13 @@ bool DbProvider::delWorker(uint64_t wId){
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
-    errorMess(string("delWorker error: ") + PQerrorMessage(_pg));
+    errorMess(string("delWorker: ") + PQerrorMessage(_pg));
     return false;
   }  
   return true;
 }
-bool DbProvider::workerState(const std::vector<uint64_t>& wId, std::vector<ZM_Base::StateType>& state){
+ 
+bool DbProvider::workerState(const std::vector<uint64_t>& wId, std::vector<WorkerState>& out){
   lock_guard<mutex> lk(m_impl->m_mtx);
   string swId;
   swId = accumulate(wId.begin(), wId.end(), swId,
@@ -128,12 +129,13 @@ bool DbProvider::workerState(const std::vector<uint64_t>& wId, std::vector<ZM_Ba
                   return s.empty() ? to_string(v) : s + "," + to_string(v);
                 }); 
   stringstream ss;
-  ss << "SELECT state FROM tblWorker "
+  ss << "SELECT state, activeTask, load, startTime, stopTime, pingTime "
+        "FROM tblWorker "
         "WHERE id IN (" << swId << ")  AND isDelete = 0 ORDER BY id;";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("workerState error: ") + PQerrorMessage(_pg));
+    errorMess(string("workerState: ") + PQerrorMessage(_pg));
     return false;
   }
   size_t wsz = wId.size();
@@ -141,9 +143,14 @@ bool DbProvider::workerState(const std::vector<uint64_t>& wId, std::vector<ZM_Ba
     errorMess("workerState error: PQntuples(pgr.res) != wsz");
     return false;
   }
-  state.resize(wsz);
+  out.resize(wsz);
   for (size_t i = 0; i < wsz; ++i){
-    state[i] = (ZM_Base::StateType)atoi(PQgetvalue(pgr.res, (int)i, 0));
+    out[i].state = (ZM_Base::StateType)atoi(PQgetvalue(pgr.res, (int)i, 0));
+    out[i].activeTask = atoi(PQgetvalue(pgr.res, (int)i, 1));
+    out[i].load = atoi(PQgetvalue(pgr.res, (int)i, 2));
+    out[i].startTime = PQgetvalue(pgr.res, (int)i, 3);
+    out[i].stopTime = PQgetvalue(pgr.res, (int)i, 4);
+    out[i].pingTime = PQgetvalue(pgr.res, (int)i, 5);
   }
   return true;
 }
@@ -157,7 +164,7 @@ std::vector<uint64_t> DbProvider::getAllWorkers(uint64_t sId, ZM_Base::StateType
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("getAllWorkers error: ") + PQerrorMessage(_pg));
+    errorMess(string("getAllWorkers: ") + PQerrorMessage(_pg));
     return std::vector<uint64_t>();
   }  
   int rows = PQntuples(pgr.res);

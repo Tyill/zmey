@@ -25,8 +25,8 @@
 #include "executor.h"
 #include "application.h"
   
-Executor::Executor(Application& app):
-  m_app(app)
+Executor::Executor(Application& app, ZM_DB::DbProvider& db):
+  m_app(app), m_db(db)
 {
 }
 
@@ -37,7 +37,7 @@ void Executor::addMessToDB(ZM_DB::MessSchedr mess)
 
 bool Executor::appendNewTaskAvailable()
 {
-  return (m_tasks.size() < m_schedr.capacityTask) && (m_schedr.state != ZM_Base::StateType::PAUSE);
+  return (m_schedr.state != ZM_Base::StateType::PAUSE);
 }
 
 bool Executor::isTasksEmpty()
@@ -53,4 +53,9 @@ bool Executor::isMessToDBEmpty()
 bool Executor::getSchedrFromDB(const std::string& connPnt, ZM_DB::DbProvider& db)
 {
   return db.getSchedr(connPnt, m_schedr);
+}
+
+bool Executor::listenNewTask(ZM_DB::DbProvider& db, bool on)
+{
+  return db.setListenNewTaskNotify(on);
 }

@@ -236,7 +236,7 @@ class EventDialogModal extends React.Component<IProps, IState>{
               </Form.Group>
               <Form.Group as={Col} controlId="startTimeOnce">
                 <Form.Label>Start time once a day</Form.Label>
-                <Form.Control type="text" ref={(input) => {this.m_refObj["startTimeOnce"] = input }} placeholder="12:15; 14:25;..." defaultValue={timeStartOnceOfDay}/>
+                <Form.Control type="text" ref={(input) => {this.m_refObj["startTimeOnce"] = input }} placeholder="2021-06-21 12:15; 14:25;..." defaultValue={timeStartOnceOfDay}/>
               </Form.Group>                
             </Form.Row>
             <Form.Row>

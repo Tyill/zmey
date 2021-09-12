@@ -61,31 +61,10 @@ void Executor::waitProcess()
     }
     // completed or error
     if (WIFEXITED(sts) || WIFSIGNALED(sts)){
-                
-      auto tId = itPrc->getTask().id;
-    
-      string resultFile = "/tmp/" + to_string(tId) + ".res",
-             result;
-      bool isRes = true;       
-      int fdRes = open(resultFile.c_str(), O_RDONLY);
-      if (fdRes >= 0){
-        off_t fsz = lseek(fdRes, 0, SEEK_END);
-        lseek(fdRes, 0, SEEK_SET);
-        result.resize(fsz);
-
-        if (read(fdRes, (char*)result.data(), fsz) == -1){
-          ERROR_MESS("worker::waitProcess error read " + resultFile + ": " + string(strerror(errno))); 
-          isRes = false;
-        }
-        close(fdRes);
-      }
-      else{
-        ERROR_MESS("worker::waitProcess error open " + resultFile + ": " + string(strerror(errno)));
-        isRes = false;
-      }
-      result.erase(remove(result.begin(), result.end(), '\0'), result.end());
-      ZM_Aux::replace(result, "'", "''");
-
+            
+      string result;
+      bool isRes = itPrc->getResult(result); 
+          
       ZM_Base::MessType mt = ZM_Base::MessType::TASK_COMPLETED;
       ZM_Base::StateType st = ZM_Base::StateType::COMPLETED;
       if (WIFEXITED(sts) && isRes){
@@ -99,18 +78,10 @@ void Executor::waitProcess()
         st = ZM_Base::StateType::ERRORT;
       }
       itPrc->setTaskState(st);
-
+      
       m_listMessForSchedr.push(MessForSchedr{itPrc->getTask().id,
                                           mt,
                                           result});
-
-      if (remove(resultFile.c_str()) == -1){
-        ERROR_MESS("worker::waitProcess error remove " + resultFile + ": " + string(strerror(errno)));
-      }
-      string scriptFile = "/tmp/" + to_string(tId) + ".sh";
-      if (remove(scriptFile.c_str()) == -1){
-        ERROR_MESS("worker::waitProcess error remove " + scriptFile + ": " + string(strerror(errno)));
-      }    
     }    
     // stop
     else if (WIFSTOPPED(sts)){
@@ -131,7 +102,19 @@ void Executor::waitProcess()
   // check max run time
   for(auto& p : m_procs){
     if (p.checkMaxRunTime() && (p.getTask().state == ZM_Base::StateType::RUNNING)){
-      p.stop();
+      p.stopByTimeout();
+    }
+  }
+
+  { std::lock_guard<std::mutex> lock(m_mtxProcess);    
+    for (auto p = m_procs.begin(); p != m_procs.end();){
+      ZM_Base::StateType TaskState = p->getTask().state;
+      if ((TaskState == ZM_Base::StateType::COMPLETED) ||
+          (TaskState == ZM_Base::StateType::ERRORT)){
+        p = m_procs.erase(p);
+      }else{
+        ++p;
+      }
     }
   }
 }
@@ -141,15 +124,6 @@ void Executor::waitProcess()
 #include <fstream>
 #include <system_error>
 #include <windows.h>
-
-std::string getLastErrorString(){
-    DWORD errorMessageID = ::GetLastError();
-    if (errorMessageID == 0) {
-        return std::string(); 
-    } else {
-        return std::system_category().message(errorMessageID);
-    }
-}
 
 void Executor::waitProcess()
 {
@@ -162,47 +136,18 @@ void Executor::waitProcess()
 
     if (!GetExitCodeProcess(p.getHandle(), &status))
       status = -1;
-    
+
     p.closeHandle();   
 
-    auto tId = p.getTask().id; 
-
     std::string result;
-    std::string resultFile = std::to_string(tId) + ".res";
-    std::ifstream ifs(resultFile, std::ifstream::in);
-    if (ifs.good()){      
-      ifs.seekg(0, std::ios::end);   
-      result.resize(ifs.tellg());
-      ifs.seekg(0, std::ios::beg);
-      ifs.read(result.data(), result.size());
-      ifs.close();
-    }else{
-      auto mstr = "worker::waitProcess error open " + resultFile + ": " + getLastErrorString();
-      m_app.statusMess(mstr);
-      addErrMess(mstr);
-      status = -1;
-    }
-    result.erase(remove(result.begin(), result.end(), '\0'), result.end());
-    ZM_Aux::replace(result, "'", "''");
-
-    if (remove(resultFile.c_str()) == -1){
-      auto mstr = "worker::waitProcess error remove " + resultFile + ": " + getLastErrorString();
-      m_app.statusMess(mstr);
-      addErrMess(mstr);
-    }
-    std::string scriptFile = std::to_string(tId) + ".bat";
-    if (remove(scriptFile.c_str()) == -1){
-      auto mstr = "worker::waitProcess error remove " + scriptFile + ": " + getLastErrorString();
-      m_app.statusMess(mstr);
-      addErrMess(mstr);
-    }   
+    status = p.getResult(result) ? 0 : -1;
 
     ZM_Base::MessType mt = status == 0 ? ZM_Base::MessType::TASK_COMPLETED : ZM_Base::MessType::TASK_ERROR;
     ZM_Base::StateType st = status == 0 ? ZM_Base::StateType::COMPLETED : ZM_Base::StateType::ERRORT;
 
     p.setTaskState(st);
 
-    m_listMessForSchedr.push(MessForSchedr{tId,
+    m_listMessForSchedr.push(MessForSchedr{p.getTask().id,
                                            mt,
                                            result});
   }
@@ -210,7 +155,19 @@ void Executor::waitProcess()
   // check max run time
   for(auto& p : m_procs){
     if (p.checkMaxRunTime() && (p.getTask().state == ZM_Base::StateType::RUNNING)){
-      p.stop();
+      p.stopByTimeout();
+    }
+  }
+
+  { std::lock_guard<std::mutex> lock(m_mtxProcess);    
+    for (auto p = m_procs.begin(); p != m_procs.end();){
+      ZM_Base::StateType TaskState = p->getTask().state;
+      if ((TaskState == ZM_Base::StateType::COMPLETED) ||
+          (TaskState == ZM_Base::StateType::ERRORT)){
+        p = m_procs.erase(p);
+      }else{
+        ++p;
+      }
     }
   }
 }

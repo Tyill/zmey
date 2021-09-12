@@ -32,6 +32,10 @@
 
 #include "common/aux_func.h"
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 using namespace std;
 
 namespace ZM_Aux {
@@ -153,6 +157,7 @@ CPUData::CPUData(){
   load();
 }
 int CPUData::load(){
+#ifdef __linux__
   std::ifstream fileStat("/proc/stat");  
   std::string line;
   while(std::getline(fileStat, line)){
@@ -188,8 +193,35 @@ int CPUData::load(){
 
         return bound(0, (100 * activeTimeTotal) / totalTime, 100);
       }
-    } 
+    }
   }
+#elif _WIN32
+  auto calculateCPULoad = [](unsigned long long idleTicks, unsigned long long totalTicks) -> float
+  {
+    static unsigned long long _previousTotalTicks = 0;
+    static unsigned long long _previousIdleTicks = 0;
+
+    unsigned long long totalTicksSinceLastTime = totalTicks-_previousTotalTicks;
+    unsigned long long idleTicksSinceLastTime  = idleTicks-_previousIdleTicks;
+
+    float ret = 1.0f-((totalTicksSinceLastTime > 0) ? ((float)idleTicksSinceLastTime)/totalTicksSinceLastTime : 0);
+
+    _previousTotalTicks = totalTicks;
+    _previousIdleTicks  = idleTicks;
+    return ret;
+  };
+
+  auto fileTimeToInt64 = [](const FILETIME & ft) ->unsigned long long {
+    return (((unsigned long long)(ft.dwHighDateTime))<<32)|((unsigned long long)ft.dwLowDateTime);
+  };
+  
+  FILETIME idleTime, kernelTime, userTime;
+  if (GetSystemTimes(&idleTime, &kernelTime, &userTime)){ 
+    auto idle = fileTimeToInt64(idleTime);
+    auto kernelAUser = fileTimeToInt64(kernelTime) + fileTimeToInt64(userTime);
+    return int(calculateCPULoad(idle, kernelAUser) * 100.0f);
+  }
+#endif
   return 0;    
 }
 

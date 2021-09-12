@@ -24,6 +24,7 @@ def addPipelineTask():
     plt.prevTasksId = jnReq['prevTasksId']
     plt.isSendResultToNext = jnReq['isSendResultToNext']
     plt.isStartNext = jnReq['isStartNext']
+    plt.conditionStartNext = jnReq['conditionStartNext']
     plt.params = jnReq['params'] 
     plt.description = jnReq['description']  
     return json.dumps(plt.__dict__) if pt.add(plt) else ('internal error', 500)
@@ -48,6 +49,7 @@ def changePipelineTask(id : int):
     plt.prevTasksId = jnReq['prevTasksId']
     plt.isSendResultToNext = jnReq['isSendResultToNext']
     plt.isStartNext = jnReq['isStartNext']
+    plt.conditionStartNext = jnReq['conditionStartNext']
     plt.params = jnReq['params']
     plt.description = jnReq['description']  
     return json.dumps(plt.__dict__) if pt.change(plt) else ('internal error', 500)
@@ -67,7 +69,11 @@ def delPipelineTask(id : int):
 @bp.route('/pipelineTasks', methods=(['GET']))
 @auth.loginRequired
 def allPipelineTasks():
-  ret = []
-  for t in pt.all():
-    ret.append(t.__dict__)
-  return json.dumps(ret)
+  try:
+    ret = []
+    for t in pt.all():
+      ret.append(t.__dict__)
+    return json.dumps(ret)
+  except Exception as err:
+    print(f'/pipelineTasks GET failed: %s' % str(err))
+    return ('bad request', 400)

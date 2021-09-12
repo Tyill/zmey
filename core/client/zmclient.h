@@ -161,12 +161,20 @@ ZMEY_API bool zmPauseScheduler(zmConn, uint64_t sId);
 /// @return true - ok
 ZMEY_API bool zmPingScheduler(zmConn, uint64_t sId);
 
+struct zmSchedulerState{
+  zmStateType state;
+  uint32_t activeTask;
+  char startTime[32];
+  char stopTime[32];
+  char pingTime[32];
+};
+
 /// scheduler state
 /// @param[in] zmConn - object connect
 /// @param[in] sId - scheduler id 
 /// @param[out] outState - scheduler state
 /// @return true - ok
-ZMEY_API bool zmSchedulerState(zmConn, uint64_t sId, zmStateType* outState);
+ZMEY_API bool zmStateOfScheduler(zmConn, uint64_t sId, zmSchedulerState* outState);
 
 /// get all schedulers
 /// @param[in] zmConn - object connect
@@ -232,13 +240,22 @@ ZMEY_API bool zmPauseWorker(zmConn, uint64_t wId);
 /// @return true - ok
 ZMEY_API bool zmPingWorker(zmConn, uint64_t wId);
 
+struct zmWorkerState{
+  zmStateType state;
+  uint32_t activeTask;
+  uint32_t load;
+  char startTime[32];
+  char stopTime[32];
+  char pingTime[32];
+};
+
 /// worker state
 /// @param[in] zmConn - object connect
 /// @param[in] wId - worker id, order by id.
 /// @param[in] wCnt - worker count
 /// @param[out] outState - worker state. The memory is allocated by the user
 /// @return true - ok
-ZMEY_API bool zmWorkerState(zmConn, uint64_t* wId, uint32_t wCnt, zmStateType* outState);
+ZMEY_API bool zmStateOfWorker(zmConn, uint64_t* wId, uint32_t wCnt, zmWorkerState* outState);
 
 /// get all workers
 /// @param[in] zmConn - object connect

@@ -43,7 +43,7 @@ bool DbProvider::addTaskTemplate(const ZM_Base::TaskTemplate& cng, uint64_t& out
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("addTaskTemplate error: ") + PQerrorMessage(_pg));
+    errorMess(string("addTaskTemplate: ") + PQerrorMessage(_pg));
     return false;
   }
   outTId = stoull(PQgetvalue(pgr.res, 0, 0));
@@ -58,7 +58,7 @@ bool DbProvider::getTaskTemplate(uint64_t tId, ZM_Base::TaskTemplate& outTCng){
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("getTaskTemplate error: ") + PQerrorMessage(_pg));
+    errorMess(string("getTaskTemplate: ") + PQerrorMessage(_pg));
     return false;
   }
   if (PQntuples(pgr.res) != 1){
@@ -91,7 +91,7 @@ bool DbProvider::changeTaskTemplate(uint64_t tId, const ZM_Base::TaskTemplate& n
           
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
-    errorMess(string("changeTaskTemplate error: ") + PQerrorMessage(_pg));
+    errorMess(string("changeTaskTemplate: ") + PQerrorMessage(_pg));
     return false;
   } 
   return true;
@@ -105,7 +105,7 @@ bool DbProvider::delTaskTemplate(uint64_t tId){
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
-    errorMess(string("delTaskTemplate error: ") + PQerrorMessage(_pg));
+    errorMess(string("delTaskTemplate: ") + PQerrorMessage(_pg));
     return false;
   }  
   return true;
@@ -118,7 +118,7 @@ std::vector<uint64_t> DbProvider::getAllTaskTemplates(uint64_t usr){
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("getAllTaskTemplates error: ") + PQerrorMessage(_pg));
+    errorMess(string("getAllTaskTemplates: ") + PQerrorMessage(_pg));
     return std::vector<uint64_t>();
   }  
   int rows = PQntuples(pgr.res);

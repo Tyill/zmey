@@ -92,9 +92,10 @@ void Executor::sendNotifyHandler(const string& cp, const string& data, const std
         ERROR_MESS("schedr::sendHandler wrong command mtype: " + mess["command"] + ", cp: " + cp, wId);
         break;
     }
-    ERROR_MESS("schedr::sendHandler worker not response, cp: " + cp, wId);
     if (worker.base.rating > 1)
       --worker.base.rating;
+    else
+      ERROR_MESS("schedr::sendHandler worker not response, cp: " + cp, wId);
   }
   else {
     ERROR_MESS("schedr::sendHandler wrong receiver: " + cp, 0);

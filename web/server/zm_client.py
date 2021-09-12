@@ -52,38 +52,71 @@ class StateType(Enum):
   CANCEL         = 7
   NOT_RESPONDING = 8
 
-class Schedr: 
-  """Schedr config""" 
+def stateStr(state : int):
+  return StateType(state).name 
+
+class Scheduler: 
+  """Scheduler config""" 
   def __init__(self,
                id : int = 0, 
-               state : StateType = StateType.READY,
+               state : int = 0,
                connectPnt : str = "",
                capacityTask : int = 10000,
+               activeTask : int = 0,
+               startTime : str = "",
+               stopTime : str = "",
+               pingTime : str = "",
                name = "",
                description = ""):
     self.id = id
     self.state = state
     self.connectPnt = connectPnt     # remote connection point: IP or DNS:port
     self.capacityTask = capacityTask # permissible simultaneous number of tasks 
+    self.activeTask  = activeTask
+    self.startTime  = startTime
+    self.stopTime  = stopTime
+    self.pingTime  = pingTime
     self.name = name
     self.description = description
+    def __repr__(self):
+      return f"Scheduler: id {self.id} state {self.state} connectPnt {self.connectPnt} \
+                       capacityTask {self.capacityTask} activeTask {self.activeTask} pingTime {self.pingTime} \
+                       startTime {self.startTime} stopTime {self.stopTime} name {self.name} description {self.description}"
+    def __str__(self):
+      return self.__repr__()
 class Worker: 
   """Worker config""" 
   def __init__(self,
                id : int = 0,
                sId : int = 0, 
-               state : StateType = StateType.READY,
+               state : int = 0,
                connectPnt : str = "",
                capacityTask : int = 10,
+               activeTask : int = 0,
+               load : int = 0,
+               startTime : str = "",
+               stopTime : str = "",
+               pingTime : str = "",
                name = "",
                description = ""):
     self.id = id
-    self.sId = sId                   # Schedr id
+    self.sId = sId                   # Scheduler id
     self.state = state
     self.connectPnt = connectPnt     # remote connection point: IP or DNS:port
     self.capacityTask = capacityTask # permissible simultaneous number of tasks 
+    self.activeTask  = activeTask
+    self.load  = load
+    self.startTime  = startTime
+    self.stopTime  = stopTime
+    self.pingTime  = pingTime
     self.name = name
     self.description = description
+    def __repr__(self):
+      return f"Worker: id {self.id} sId {self.sId} state {self.state} connectPnt {self.connectPnt} \
+                       capacityTask {self.capacityTask} activeTask {self.activeTask} load {self.load} \
+                       startTime {self.startTime} stopTime {self.stopTime} name {self.name} description {self.description}"
+    def __str__(self):
+      return self.__repr__()
 class TaskTemplate: 
   """TaskTemplate config""" 
   def __init__(self,
@@ -111,7 +144,7 @@ class Task:
   def __init__(self,
                id : int = 0,         
                ttlId : int = 0,         # Task template id    
-               state : StateType = StateType.READY,
+               state : int = 0,
                progress : int = 0,
                result : str = "",
                params : str = "",
@@ -140,7 +173,7 @@ class InternError:
                wId : int = 0,
                createTime : str = 0,
                message : str = ""):
-    self.schedrId = sId                 # Schedr id    
+    self.schedrId = sId                 # Scheduler id    
     self.workerId = wId                 # Worker id
     self.createTime = createTime   
     self.message = message          
@@ -152,12 +185,25 @@ class _SchedrCng_C(ctypes.Structure):
               ('connectPnt', ctypes.c_char * 256),
               ('name', ctypes.c_char * 256),
               ('description', ctypes.c_char_p)]
+class _SchedrState_C(ctypes.Structure):
+  _fields_ = [('state', ctypes.c_uint32),
+              ('activeTask', ctypes.c_uint32),
+              ('startTime', ctypes.c_char * 32),
+              ('stopTime', ctypes.c_char * 32),
+              ('pingTime', ctypes.c_char * 32)]
 class _WorkerCng_C(ctypes.Structure):
   _fields_ = [('schedrId', ctypes.c_uint64),
               ('capacityTask', ctypes.c_uint32),
               ('connectPnt', ctypes.c_char * 256),
               ('name', ctypes.c_char * 256),
               ('description', ctypes.c_char_p)]
+class _WorkerState_C(ctypes.Structure):
+  _fields_ = [('state', ctypes.c_uint32),
+              ('activeTask', ctypes.c_uint32),
+              ('load', ctypes.c_uint32),
+              ('startTime', ctypes.c_char * 32),
+              ('stopTime', ctypes.c_char * 32),
+              ('pingTime', ctypes.c_char * 32)]
 class _TaskTemplCng_C(ctypes.Structure):
   _fields_ = [('userId', ctypes.c_uint64),
               ('schedrPresetId', ctypes.c_uint64),
@@ -277,10 +323,10 @@ class Connection:
   #############################################################################
   ### Scheduler
   
-  def addScheduler(self, iosch : Schedr) -> bool:
+  def addScheduler(self, iosch : Scheduler) -> bool:
     """
     Add new scheduler
-    :param iosch: new Schedr config
+    :param iosch: new Scheduler config
     :return: True - ok
     """
     if (self._zmConn):
@@ -299,10 +345,10 @@ class Connection:
         iosch.id = sid.value
         return True
     return False
-  def getScheduler(self, iosch : Schedr) -> bool:
+  def getScheduler(self, iosch : Scheduler) -> bool:
     """
-    Get Schedr config by ID
-    :param iosch: Schedr config
+    Get Scheduler config by ID
+    :param iosch: Scheduler config
     :return: True - ok
     """
     if (self._zmConn):
@@ -322,10 +368,10 @@ class Connection:
           self._freeResources()
         return True
     return False
-  def changeScheduler(self, isch : Schedr) -> bool:
+  def changeScheduler(self, isch : Scheduler) -> bool:
     """
-    Change Schedr config
-    :param isch: new Schedr config
+    Change Scheduler config
+    :param isch: new Scheduler config
     :return: True - ok
     """
     if (self._zmConn):
@@ -344,7 +390,7 @@ class Connection:
   def delScheduler(self, schId) -> bool:
     """
     Delete scheduler
-    :param schId: Schedr id
+    :param schId: Scheduler id
     :return: True - ok
     """
     if (self._zmConn):
@@ -358,7 +404,7 @@ class Connection:
   def startScheduler(self, schId) -> bool:
     """
     Start scheduler
-    :param schId: Schedr id
+    :param schId: Scheduler id
     :return: True - ok
     """
     if (self._zmConn):
@@ -372,7 +418,7 @@ class Connection:
   def pauseScheduler(self, schId) -> bool:
     """
     Pause scheduler
-    :param schId: Schedr id
+    :param schId: Scheduler id
     :return: True - ok
     """
     if (self._zmConn):
@@ -386,7 +432,7 @@ class Connection:
   def pingScheduler(self, schId) -> bool:
     """
     Ping scheduler
-    :param schId: Schedr id
+    :param schId: Scheduler id
     :return: True - ok
     """
     if (self._zmConn):
@@ -397,30 +443,32 @@ class Connection:
       pfun.restype = ctypes.c_bool
       return pfun(self._zmConn, sid)
     return False
-  def schedulerState(self, iosch : Schedr) -> bool:
+  def schedulerState(self, iosch : Scheduler) -> bool:
     """
-    Schedr state
-    :param iosch: Schedr config
+    Scheduler state
+    :param iosch: Scheduler config
     :return: True - ok
     """
     if (self._zmConn):
-      scng = _SchedrCng_C()
-
-      sid = ctypes.c_uint64(iosch.id)
-      sstate = ctypes.c_int32(0)
-      
-      pfun = _lib.zmSchedulerState
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(ctypes.c_int32))
+      sid = ctypes.c_uint64(iosch.id)      
+      stateBuffer = _SchedrState_C()     
+     
+      pfun = _lib.zmStateOfScheduler
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(_SchedrState_C))
       pfun.restype = ctypes.c_bool
-      if (pfun(self._zmConn, sid, ctypes.byref(sstate))):      
-        iosch.state = StateType(sstate.value) 
+      if (pfun(self._zmConn, sid, stateBuffer)):      
+        iosch.state = stateBuffer.state 
+        iosch.activeTask = stateBuffer.activeTask 
+        iosch.startTime = stateBuffer.startTime.decode('utf-8')
+        iosch.stopTime = stateBuffer.stopTime.decode('utf-8')
+        iosch.pingTime = stateBuffer.pingTime.decode('utf-8')
         return True
     return False
-  def getAllSchedulers(self, state : StateType=StateType.UNDEFINED) -> List[Schedr]:
+  def getAllSchedulers(self, state : StateType=StateType.UNDEFINED) -> List[Scheduler]:
     """
     Get all schedrs
     :param state: choose with current state. If the state is 'UNDEFINED', select all
-    :return: list of Schedr
+    :return: list of Scheduler
     """
     if (self._zmConn):
       sstate = ctypes.c_int32(state.value)
@@ -437,7 +485,7 @@ class Connection:
 
         osch = []
         for i in range(osz):
-          s = Schedr(oid[i])
+          s = Scheduler(oid[i])
           self.getScheduler(s)
           osch.append(s)
         return osch
@@ -582,21 +630,26 @@ class Connection:
       iowkrs.sort(key = lambda w: w.id)
           
       idBuffer = (ctypes.c_uint64 * wsz)(*[iowkrs[i].id for i in range(wsz)])
-      stateBuffer = (ctypes.c_int32 * wsz)()
+      stateBuffer = (_WorkerState_C * wsz)()
 
-      pfun = _lib.zmWorkerState
-      pfun.argtypes = (ctypes.c_void_p, ctypes.POINTER(ctypes.c_uint64), ctypes.c_uint32, ctypes.POINTER(ctypes.c_int32))
+      pfun = _lib.zmStateOfWorker
+      pfun.argtypes = (ctypes.c_void_p, ctypes.POINTER(ctypes.c_uint64), ctypes.c_uint32, ctypes.POINTER(_WorkerState_C))
       pfun.restype = ctypes.c_bool
 
       if (pfun(self._zmConn, idBuffer, cwsz, stateBuffer)):      
         for i in range(wsz):
-          iowkrs[i].state = StateType(stateBuffer[i])
+          iowkrs[i].state = stateBuffer[i].state
+          iowkrs[i].activeTask = stateBuffer[i].activeTask
+          iowkrs[i].load = stateBuffer[i].load
+          iowkrs[i].startTime = stateBuffer[i].startTime.decode('utf-8')
+          iowkrs[i].stopTime = stateBuffer[i].stopTime.decode('utf-8')
+          iowkrs[i].pingTime = stateBuffer[i].pingTime.decode('utf-8')
         return True
     return False
   def getAllWorkers(self, sId : int, state : StateType=StateType.UNDEFINED) -> List[Worker]:
     """
     Get all workers
-    :param sId: Schedr id
+    :param sId: Scheduler id
     :param state: choose with current state. If the state is 'UNDEFINED', select all
     :return: list of Worker
     """
@@ -841,7 +894,7 @@ class Connection:
 
       if (pfun(self._zmConn, idBuffer, ctsz, stateBuffer)):      
         for i in range(tsz):
-          iot[i].state = StateType(stateBuffer[i].state)
+          iot[i].state = stateBuffer[i].state
           iot[i].progress = stateBuffer[i].progress          
         return True
     return False
@@ -921,7 +974,7 @@ class Connection:
   def getInternErrors(self, sId : int, wId : int, mCnt : int) -> List[InternError]:
     """
     Get internal errors
-    :param sId: Schedr id
+    :param sId: Scheduler id
     :param wId: Worker id
     :param mCnt: max mess count
     :return: list of errors

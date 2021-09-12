@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin{% endblock %}
+
+{% block content %}
+
+<h4>Schedulers</h4>
+<div class="mb-3 p-0" style="white-space: nowrap; overflow: auto;">
+<table class="m-0 p-0 table table-bordered table-striped table-hover">
+  <thead>
+    <tr>
+      <th style="font-weight: 500" scope="col">Id</th>
+      <th style="font-weight: 500" scope="col">ConnectionPoint</th>
+      <th style="font-weight: 500" scope="col">State</th>
+      <th style="font-weight: 500" scope="col">CapacityTask</th>
+      <th style="font-weight: 500" scope="col">ActiveTask</th>
+      <th style="font-weight: 500" scope="col">StartTime</th>
+      <th style="font-weight: 500" scope="col">StopTime</th>
+      <th style="font-weight: 500" scope="col">PingTime</th>
+      <th style="font-weight: 500" scope="col">Name</th>
+      <th style="font-weight: 500" scope="col">Description</th>
+    </tr>
+  </thead>
+  <tbody id="tblSchedulers">
+  </tbody>
+</table>
+</div>
+
+<div style="display: flex;">
+  <button type="button" class="btn btn-primary" 
+          style="min-width: 150px;  align-self: flex-start"
+          onclick="appendSchedr()">
+          Append New
+  </button>
+  <div class="input-group mb-3 ml-3" style="max-width: 600px;">
+    <input type="text" class="form-control" id="schedrIpAddr"
+            placeholder="ip address" title="ConnectionPoint">
+    <input type="number" class="form-control" min="1" id="schedrCapacityTask"
+            placeholder="capacity task" title="CapacityTask">
+    <input type="text" class="form-control" id="schedrName"
+            placeholder="name" title="Name">
+    <input type="text" class="form-control" id="schedrDescr"
+            placeholder="description" title="Description">
+  </div>    
+  <button type="button" class="ml-3 btn btn-info" 
+          style="min-width: 150px; align-self: flex-start"
+          onclick="changeSchedr()">
+          Change Selected
+  </button>
+  <button type="button" class="ml-3 btn btn-secondary" 
+          style="min-width: 150px; align-self: flex-start"
+          onclick="deleteSchedr()">
+          Delete Selected
+  </button>
+</div>
+
+
+<h4>Workers</h4>
+<div class="mb-3 p-0" style="white-space: nowrap; overflow: auto;">
+<table class="m-0 p-0 table table-bordered table-striped table-hover">
+  <thead>
+    <tr>
+      <th style="font-weight: 500" scope="col">Id</th>
+      <th style="font-weight: 500" scope="col">ConnectionPoint</th>
+      <th style="font-weight: 500" scope="col">State</th>
+      <th style="font-weight: 500" scope="col">Load</th>
+      <th style="font-weight: 500" scope="col">CapacityTask</th>
+      <th style="font-weight: 500" scope="col">ActiveTask</th>
+      <th style="font-weight: 500" scope="col">StartTime</th>
+      <th style="font-weight: 500" scope="col">StopTime</th>
+      <th style="font-weight: 500" scope="col">PingTime</th>
+      <th style="font-weight: 500" scope="col">Name</th>
+      <th style="font-weight: 500" scope="col">Description</th>
+    </tr>
+  </thead>
+  <tbody id="tblWorkers">
+  </tbody>
+</table>
+</div>
+
+<div style="display: flex;">
+  <button type="button" class="btn btn-primary" 
+          style="min-width: 150px;  align-self: flex-start"
+          onclick="appendWorker()">
+          Append New
+  </button>
+  <div class="input-group mb-3 ml-3" style="max-width: 600px;">
+    <input type="text" class="form-control" id="workerIpAddr"
+            placeholder="ip address" title="ConnectionPoint">
+    <input type="number" class="form-control" min="1" id="workerCapacityTask"
+            placeholder="capacity task" title="CapacityTask">
+    <input type="text" class="form-control" id="workerName"
+            placeholder="name" title="Name">
+    <input type="text" class="form-control" id="workerDescr"
+            placeholder="description" title="Description">
+  </div>    
+  <button type="button" class="ml-3 btn btn-info" 
+          style="min-width: 150px; align-self: flex-start"
+          onclick="changeWorker()">
+          Change Selected
+  </button>
+  <button type="button" class="ml-3 btn btn-secondary" 
+          style="min-width: 150px; align-self: flex-start"
+          onclick="deleteWorker()">
+          Delete Selected
+  </button>
+</div>
+
+<script src="/js/admin.js"></script>
+  
+{% endblock %}

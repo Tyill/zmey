@@ -3,7 +3,8 @@ from contextlib import closing
 from flask import g
 
 from .core import zmConn, zmTaskWatch
-from . import zm_client as zm 
+from . import zm_client as zm
+from . import pipeline_task as pt  
 
 class Task(zm.Task):
   """Task config""" 
@@ -75,6 +76,7 @@ def changeState(db, t : Task) -> bool:
       cr.execute(
         "UPDATE tblTask SET "
         f"state = '{t.state}',"
+        f"progress = '{t.progress}',"
         f"result = '{result}',"
         f"createTime = '{t.createTime}',"
         f"takeInWorkTime = '{t.takeInWorkTime}',"
@@ -88,13 +90,18 @@ def changeState(db, t : Task) -> bool:
     print("{0} local db query failed: {1}".format("Task.changeState", str(err)))
   return False
 
-def getState(pplTaskId : int) -> List[Task]:
+def getState(pplTaskId : int, ifChange : bool) -> List[Task]:
   if ('db' in g):    
     try:
+      if ifChange and not pt.hasChange(g.db, pplTaskId):
+        return []
+      
+      pt.setChange(g.db, pplTaskId, False)
+
       ret = []
       with closing(g.db.cursor()) as cr:
         cr.execute(
-          "SELECT id, starterPplTaskId, starterEventId, state, startTime, stopTime, result "
+          "SELECT id, starterPplTaskId, starterEventId, state, progress, startTime, stopTime, result "
           "FROM tblTask "
           f"WHERE pplTaskId = {pplTaskId} ORDER BY id DESC LIMIT 1000;"
         )
@@ -105,9 +112,10 @@ def getState(pplTaskId : int) -> List[Task]:
           task.starterPplTaskId = row[1]
           task.starterEventId = row[2]
           task.state = row[3]
-          task.startTime = row[4]
-          task.stopTime = row[5]
-          task.result = row[6]
+          task.progress = row[4]
+          task.startTime = row[5]
+          task.stopTime = row[6]
+          task.result = row[7]
           ret.append(task) 
       return ret
     except Exception as err:

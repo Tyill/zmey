@@ -24,29 +24,14 @@
 //
 
 #include "scheduler/executor.h"
-#include "common/json.h"
 
 using namespace std;
 
 void Executor::pingToDB()
 {
-  Json::Value rootJs;
-  rootJs["workers"];
-  for(const auto& w : m_workers){
-    Json::Value wJs;
-    wJs["connPnt"] = w.first;
-    wJs["tasks"];
-    for (auto t : w.second.taskList){
-      wJs["tasks"].append(t);
-    }
-    rootJs["workers"].append(wJs);    
-  }
- 
-  Json::FastWriter writerJs;
-  
   ZM_DB::MessSchedr mess;{
     mess.type = ZM_Base::MessType::PING_SCHEDR;
-    mess.data = to_string(m_schedr.activeTask) + '\t' + writerJs.write(rootJs);
+    mess.data = to_string(m_schedr.activeTask);
   }
   m_messToDB.push(move(mess));
 }

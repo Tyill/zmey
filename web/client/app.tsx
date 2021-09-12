@@ -2,16 +2,17 @@ import React from "react";
 import ReactDOM from "react-dom";
 import CentralWidget from "./central_widget/central_widget";
 import * as ServerAPI from "./server_api/server_api"
-import { Container, Row } from "react-bootstrap";
+import { Container, Row, Col, Image } from "react-bootstrap";
 
 import "./css/style.less";
-import { IPipeline, IPipelineTask, ITaskTemplate, IEvent, ITask, MessType } from "./types";
+import { IUser, IPipeline, IPipelineTask, ITaskTemplate, IEvent, ITask, MessType } from "./types";
 import { Pipelines, TaskTemplates, PipelineTasks, Events, Tasks} from "./store/store";
 
 interface IProps {
 };
 
 interface IState {
+  userName : string;
   statusMessType : MessType;
   statusMess : string; 
 };
@@ -20,13 +21,15 @@ class App extends React.Component<IProps, IState>{
   
   private m_toutStatusMess : number = 0;
   private m_toutTaskUpdate : number = 0;
+  private m_pplTaskId : number = 0;
   
   constructor(props : IProps){
     super(props);
 
     this.objFromJS = this.objFromJS.bind(this);
 
-    this.state = { statusMess: "",
+    this.state = { userName : "",
+                   statusMess: "",
                    statusMessType: MessType.Ok}
 
     this.updateTaskState = this.updateTaskState.bind(this);
@@ -40,6 +43,11 @@ class App extends React.Component<IProps, IState>{
   }
 
   componentDidMount() {    
+    ServerAPI.getUser((usr : IUser)=>{  
+      this.setState({userName : usr.name});
+    },
+    ()=>this.setStatusMess("Server error get user", MessType.Error));
+
     ServerAPI.getAllPipelines((pipelines : Array<IPipeline>)=>{  
       let ppl = new Map<number, IPipeline>();
       for (let p of pipelines){
@@ -93,8 +101,11 @@ class App extends React.Component<IProps, IState>{
       }
     }   
     if (pplTaskId){
-      ServerAPI.getTaskState(pplTaskId, (states : Array<ITask>)=>{
-        Tasks.setAll(states); 
+      const isPrev = pplTaskId == this.m_pplTaskId;
+      this.m_pplTaskId = pplTaskId;
+      ServerAPI.getTaskState(pplTaskId, isPrev, (states : Array<ITask>)=>{
+        if (states.length)
+          Tasks.setAll(states); 
         this.m_toutTaskUpdate = setTimeout(this.updateTaskState, 1000);
       },      
       ()=>{
@@ -117,6 +128,16 @@ class App extends React.Component<IProps, IState>{
   render(){         
     return(
       <Container className="d-flex flex-column h-100 m-0 p-0" fluid> 
+        <Row noGutters={true} className="borderBottom  menuHeader">
+          <Col className="d-flex flex-row">               
+            <Image src="images/label.svg" style={{ margin: 5}} title="Application for schedule and monitor workflows"></Image>
+            <p style={{ marginLeft: "auto", alignSelf: "center", marginTop:"15px", marginRight: "10px"}}>{this.state.userName}</p>
+            <a className = "icon-logout"
+               style={{ alignSelf: "center", marginRight: "20px"}}
+               title="Logout"
+               href="auth/login"></a>
+          </Col>         
+        </Row>
         <Row noGutters={true} className="h-100">      
           <CentralWidget setStatusMess={(mess:string)=>this.setStatusMess(mess)}/>
         </Row>
