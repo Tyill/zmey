@@ -63,7 +63,7 @@ void Executor::waitProcess()
     if (WIFEXITED(sts) || WIFSIGNALED(sts)){
             
       string result;
-      bool isRes = p.getResult(result); 
+      bool isRes = itPrc->getResult(result); 
           
       ZM_Base::MessType mt = ZM_Base::MessType::TASK_COMPLETED;
       ZM_Base::StateType st = ZM_Base::StateType::COMPLETED;

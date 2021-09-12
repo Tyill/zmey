@@ -265,7 +265,7 @@ bool DbProvider::createTables(){
         "    JOIN tblTaskParam tp ON tp.qtask = tq.id "
         "    WHERE ts.state = " << int(ZM_Base::StateType::READY) << ""
         "      AND tq.schedr IS NULL "
-        "      AND (tt.schedrPreset IS NULL OR tt.schedrPreset = sId) "
+        "      AND (tt.schedrPreset IS NULL OR tt.schedrPreset = sId) ORDER BY tq.id"
         "    LIMIT maxTaskCnt "
         "    FOR UPDATE OF tq SKIP LOCKED"
         "  LOOP"

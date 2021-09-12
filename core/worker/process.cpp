@@ -176,6 +176,10 @@ void Process::contin(){
     m_executor.addErrMess(m_err);
   }
 }
+void Process::stopByTimeout(){
+  m_err = "Stopping by timeout";
+  stop();
+}
 void Process::stop(){
   if (kill(m_pid, SIGTERM) == -1){
     m_err = "worker::Process error stop: " + string(strerror(errno));
