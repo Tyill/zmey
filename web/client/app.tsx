@@ -5,13 +5,14 @@ import * as ServerAPI from "./server_api/server_api"
 import { Container, Row, Col, Image } from "react-bootstrap";
 
 import "./css/style.less";
-import { IPipeline, IPipelineTask, ITaskTemplate, IEvent, ITask, MessType } from "./types";
+import { IUser, IPipeline, IPipelineTask, ITaskTemplate, IEvent, ITask, MessType } from "./types";
 import { Pipelines, TaskTemplates, PipelineTasks, Events, Tasks} from "./store/store";
 
 interface IProps {
 };
 
 interface IState {
+  userName : string;
   statusMessType : MessType;
   statusMess : string; 
 };
@@ -26,7 +27,8 @@ class App extends React.Component<IProps, IState>{
 
     this.objFromJS = this.objFromJS.bind(this);
 
-    this.state = { statusMess: "",
+    this.state = { userName : "",
+                   statusMess: "",
                    statusMessType: MessType.Ok}
 
     this.updateTaskState = this.updateTaskState.bind(this);
@@ -40,6 +42,11 @@ class App extends React.Component<IProps, IState>{
   }
 
   componentDidMount() {    
+    ServerAPI.getUser((usr : IUser)=>{  
+      this.setState({userName : usr.name});
+    },
+    ()=>this.setStatusMess("Server error get user", MessType.Error));
+
     ServerAPI.getAllPipelines((pipelines : Array<IPipeline>)=>{  
       let ppl = new Map<number, IPipeline>();
       for (let p of pipelines){
@@ -117,10 +124,15 @@ class App extends React.Component<IProps, IState>{
   render(){         
     return(
       <Container className="d-flex flex-column h-100 m-0 p-0" fluid> 
-        <Row noGutters={true} className="borderBottom">
-          <Col className="col menuHeader">               
+        <Row noGutters={true} className="borderBottom  menuHeader">
+          <Col className="d-flex flex-row">               
             <Image src="images/label.svg" style={{ margin: 5}} title="Application for schedule and monitor workflows"></Image>
-          </Col>
+            <p style={{ marginLeft: "auto", alignSelf: "center", marginTop:"15px", marginRight: "10px"}}>{this.state.userName}</p>
+            <a className = "icon-logout"
+               style={{ alignSelf: "center", marginRight: "20px"}}
+               title="Logout"
+               href="auth/login"></a>
+          </Col>         
         </Row>
         <Row noGutters={true} className="h-100">      
           <CentralWidget setStatusMess={(mess:string)=>this.setStatusMess(mess)}/>

@@ -4,6 +4,7 @@ from flask import(
  
 bp = Blueprint('api', __name__, url_prefix='/api/v1')
 
+from . import api_user
 from . import api_event
 from . import api_pipeline
 from . import api_pipeline_task
