@@ -32,7 +32,7 @@
 #include "prepare.h"
 #include "db_provider/db_provider.h"
 #include "common/aux_func.h"
-#include "client/zmey_client.h"
+#include "client/zmclient.h"
 
 using namespace std;
 using namespace zmey;
@@ -132,9 +132,9 @@ TEST_F(APITest, schedrState){
   uint64_t sId = 0;  
   EXPECT_TRUE(zmAddScheduler(_zc, schedr, &sId) && (sId > 0));
 
-  zmStateType state = zmStateType::zmSTATE_STOP;
-  EXPECT_TRUE(zmSchedulerState(_zc, sId, &state) && 
-             (state == zmStateType::zmSTATE_STOP));                                                      
+  zmSchedulerState state;
+  EXPECT_TRUE(zmStateOfScheduler(_zc, sId, &state) && 
+             (state.state == zmStateType::zmSTATE_STOP));                                                      
 }
 TEST_F(APITest, getAllSchedrs){  
   uint64_t* pSId = nullptr;
@@ -273,11 +273,11 @@ TEST_F(APITest, workerState){
   uint64_t wId2 = 0;  
   EXPECT_TRUE(zmAddWorker(_zc, worker, &wId2) && (wId2 > 0));  
 
-  zmStateType* wstate = new zmStateType[2];
+  zmWorkerState* wstate = new zmWorkerState[2];
   uint64_t* pWId = new uint64_t[2]{ wId1, wId2};
-  EXPECT_TRUE(zmWorkerState(_zc, pWId, 2, wstate) &&
-              (wstate[0] == zmStateType::zmSTATE_STOP) && 
-              (wstate[1] == zmStateType::zmSTATE_STOP));                                                      
+  EXPECT_TRUE(zmStateOfWorker(_zc, pWId, 2, wstate) &&
+              (wstate[0].state == zmStateType::zmSTATE_STOP) && 
+              (wstate[1].state == zmStateType::zmSTATE_STOP));                                                      
 }
 TEST_F(APITest, getAllWorkers){  
   uint64_t* pWId = nullptr;

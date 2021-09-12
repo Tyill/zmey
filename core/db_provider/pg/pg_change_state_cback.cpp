@@ -36,19 +36,45 @@ bool DbProvider::setChangeTaskStateCBack(uint64_t tId, uint64_t userId, ChangeTa
   {
     lock_guard<mutex> lk(m_impl->m_mtxNotifyTask);  
     m_impl->m_notifyTaskStateCBack[tId] = {ZM_Base::StateType::UNDEFINED, 0, cback, userId, ud };
-    if (m_impl->m_notifyTaskStateCBack.size() == 1)
-      m_impl->m_cvNotifyTask.notify_one();
   }  
   if (!m_impl->m_thrEndTask.joinable()){
     m_impl->m_thrEndTask = thread([this](){
+      
+      auto cmd = "LISTEN " + m_impl->NOTIFY_NAME_CHANGE_TASK;
+      PGres pgr(PQexec(_pg, cmd.c_str()));
+      if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
+        errorMess(string("endTaskCBack LISTEN: ") + PQerrorMessage(_pg));
+      }
+
+      int maxElapseTimeMS = 10;
       while (!m_impl->m_fClose){
+        
+        PQconsumeInput(_pg);
+        m_impl->m_notifyAuxCheckTOut.updateCycTime();
+        
+        bool isChangeState = false;
+        PGnotify* notify = nullptr;
+        while ((notify = PQnotifies(_pg)) != nullptr){
+          isChangeState |= std::string(notify->relname) == m_impl->NOTIFY_NAME_CHANGE_TASK;
+          PQfreemem(notify);
+        }
+        bool auxCheckTimeout = m_impl->m_notifyAuxCheckTOut.onDelayOncSec(true, 10, 1);
+        if (!isChangeState && m_impl->m_firstReqChangeTaskState && !auxCheckTimeout){
+          ZM_Aux::sleepMs(maxElapseTimeMS);
+          continue;
+        }
+        m_impl->m_firstReqChangeTaskState = true;
+
         std::map<uint64_t, DbProvider::Impl::NotifyTaskStateCBack> notifyTasks;
         {
-          std::unique_lock<std::mutex> lk(m_impl->m_mtxNotifyTask);
-          if (m_impl->m_notifyTaskStateCBack.empty())
-            m_impl->m_cvNotifyTask.wait(lk); 
+          lock_guard<mutex> lk(m_impl->m_mtxNotifyTask);          
           notifyTasks = m_impl->m_notifyTaskStateCBack;
         }
+        if (notifyTasks.empty()){
+          ZM_Aux::sleepMs(maxElapseTimeMS);
+          continue;
+        }
+
         string stId;
         stId = accumulate(notifyTasks.begin(), notifyTasks.end(), stId,
                   [](string& s, pair<uint64_t, DbProvider::Impl::NotifyTaskStateCBack> v){
@@ -81,7 +107,7 @@ bool DbProvider::setChangeTaskStateCBack(uint64_t tId, uint64_t userId, ChangeTa
               }
             }
           }else{
-            errorMess(string("endTaskCBack error: ") + PQerrorMessage(_pg));
+            errorMess(string("endTaskCBack: ") + PQerrorMessage(_pg));
           } 
         }
         if (!notifyRes.empty()){
@@ -105,7 +131,6 @@ bool DbProvider::setChangeTaskStateCBack(uint64_t tId, uint64_t userId, ChangeTa
         }
         auto t_end = std::chrono::high_resolution_clock::now();
         int deltaTimeMs = (int)std::chrono::duration<double, std::milli>(t_end - t_start).count();
-        int maxElapseTimeMS = 10;
         if ((maxElapseTimeMS - deltaTimeMs) > 0)
           ZM_Aux::sleepMs(maxElapseTimeMS - deltaTimeMs);
       }      

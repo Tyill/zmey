@@ -58,7 +58,11 @@ def delEvent(id : int):
 @bp.route('/events', methods=(['GET']))
 @auth.loginRequired
 def allEvents():
-  ret = []
-  for e in ev.all():
-    ret.append(e.__dict__)
-  return json.dumps(ret)
+  try:
+    ret = []
+    for e in ev.all():
+      ret.append(e.__dict__)
+    return json.dumps(ret)
+  except Exception as err:
+    print(f'/events GET failed: %s' % str(err))
+    return ('bad request', 400)

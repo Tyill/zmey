@@ -38,7 +38,7 @@ bool DbProvider::getWorkerByTask(uint64_t tId, ZM_Base::Worker& wcng){
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("getWorkerByTask error: ") + PQerrorMessage(_pg));
+    errorMess(string("getWorkerByTask: ") + PQerrorMessage(_pg));
     return false;
   }
   if (PQntuples(pgr.res) != 1){
@@ -64,7 +64,7 @@ vector<ZM_DB::MessError> DbProvider::getInternErrors(uint64_t sId, uint64_t wId,
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("getInternErrors error: ") + PQerrorMessage(_pg));
+    errorMess(string("getInternErrors: ") + PQerrorMessage(_pg));
     return vector<ZM_DB::MessError>();
   }  
   int rows = PQntuples(pgr.res);
@@ -89,6 +89,7 @@ bool DbProvider::delAllTables(){
         "DROP TABLE IF EXISTS tblTaskQueue CASCADE; "
         "DROP TABLE IF EXISTS tblScheduler CASCADE; "
         "DROP TABLE IF EXISTS tblWorker CASCADE; "
+        "DROP TABLE IF EXISTS tblState CASCADE; "
         "DROP TABLE IF EXISTS tblTaskTemplate CASCADE; "
         "DROP TABLE IF EXISTS tblInternError CASCADE; "
         "DROP TABLE IF EXISTS tblConnectPnt CASCADE; "

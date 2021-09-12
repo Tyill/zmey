@@ -36,7 +36,7 @@ bool DbProvider::startTask(uint64_t ttlId, const std::string& inparams, uint64_t
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("startTask error: ") + PQerrorMessage(_pg));
+    errorMess(string("startTask: ") + PQerrorMessage(_pg));
     return false;
   }
   tId = stoull(PQgetvalue(pgr.res, 0, 0));
@@ -59,7 +59,7 @@ bool DbProvider::cancelTask(uint64_t tId){
         
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("cancelTask error: ") + PQerrorMessage(_pg));
+    errorMess(string("cancelTask: ") + PQerrorMessage(_pg));
     return false;
   }  
   if (PQntuples(pgr.res) != 1){
@@ -82,7 +82,7 @@ bool DbProvider::taskState(const std::vector<uint64_t>& tId, std::vector<ZM_DB::
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("taskState error: ") + PQerrorMessage(_pg));
+    errorMess(string("taskState: ") + PQerrorMessage(_pg));
     return false;
   }
   size_t tsz = tId.size();
@@ -105,7 +105,7 @@ bool DbProvider::taskResult(uint64_t tId, std::string& out){
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){      
-    errorMess(string("taskResult error: ") + PQerrorMessage(_pg));
+    errorMess(string("taskResult: ") + PQerrorMessage(_pg));
     return false;
   } 
   if (PQntuples(pgr.res) != 1){
@@ -124,7 +124,7 @@ bool DbProvider::taskTime(uint64_t tId, ZM_DB::TaskTime& out){
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){      
-    errorMess(string("taskTime error: ") + PQerrorMessage(_pg));
+    errorMess(string("taskTime: ") + PQerrorMessage(_pg));
     return false;
   } 
   if (PQntuples(pgr.res) != 1){

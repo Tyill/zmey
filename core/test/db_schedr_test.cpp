@@ -120,7 +120,7 @@ TEST_F(DBSchedrTest, getTaskOfSchedr){
               (tasks[0].wId == 0)) << _pDb->getLastError();
 
   vector<ZM_DB::MessSchedr> mess;
-  mess.push_back(ZM_DB::MessSchedr{ZM_Base::MessType::TASK_START, wId, tasks[0].id, "result"});
+  mess.push_back(ZM_DB::MessSchedr{ZM_Base::MessType::TASK_RUNNING, wId, tasks[0].id, "result"});
   EXPECT_TRUE(_pDb->sendAllMessFromSchedr(sId, mess)) << _pDb->getLastError();
 
   mess.clear();
@@ -190,7 +190,7 @@ TEST_F(DBSchedrTest, getNewTasksForSchedr){
               (tasks[0].id == tId1)) << _pDb->getLastError();
 
   vector<ZM_DB::MessSchedr> mess;
-  mess.push_back(ZM_DB::MessSchedr{ZM_Base::MessType::TASK_START, wId, tasks[0].id, "result1"});
+  mess.push_back(ZM_DB::MessSchedr{ZM_Base::MessType::TASK_RUNNING, wId, tasks[0].id, "result1"});
   EXPECT_TRUE(_pDb->sendAllMessFromSchedr(sId, mess)) << _pDb->getLastError();
 
   mess.clear();
@@ -238,7 +238,7 @@ TEST_F(DBSchedrTest, getWorkerByTask){
               (tasks[0].id == tId1)) << _pDb->getLastError();
 
   vector<ZM_DB::MessSchedr> mess;
-  mess.push_back(ZM_DB::MessSchedr{ZM_Base::MessType::TASK_START, wId, tasks[0].id, "result1"});
+  mess.push_back(ZM_DB::MessSchedr{ZM_Base::MessType::TASK_RUNNING, wId, tasks[0].id, "result1"});
   EXPECT_TRUE(_pDb->sendAllMessFromSchedr(sId, mess)) << _pDb->getLastError();
   
   tasks.clear();
@@ -265,7 +265,6 @@ TEST_F(DBSchedrTest, sendAllMessFromSchedr){
   vector<ZM_DB::MessSchedr> mess;
   mess.push_back(ZM_DB::MessSchedr{ZM_Base::MessType::TASK_ERROR, wId, 0, "result"});
   mess.push_back(ZM_DB::MessSchedr{ZM_Base::MessType::TASK_COMPLETED, wId, 0, "result"});
-  mess.push_back(ZM_DB::MessSchedr{ZM_Base::MessType::TASK_START, wId, 0, "result"});
   mess.push_back(ZM_DB::MessSchedr{ZM_Base::MessType::TASK_RUNNING, wId, 0, "result"});
   mess.push_back(ZM_DB::MessSchedr{ZM_Base::MessType::TASK_PAUSE, wId, 0, "result"});
   mess.push_back(ZM_DB::MessSchedr{ZM_Base::MessType::TASK_STOP, wId, 0, "result"});

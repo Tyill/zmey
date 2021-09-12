@@ -29,7 +29,7 @@
 
 using namespace std;
 
-void Executor::checkStatusWorkers()
+void Executor::checkStatusWorkers(ZM_DB::DbProvider& db)
 {
   vector<SWorker*> wkrNotResp;
   for(auto& w : m_workers){
@@ -39,7 +39,7 @@ void Executor::checkStatusWorkers()
       w.second.isActive = false;
     }
   }
-  if (wkrNotResp.size() < round(m_workers.size() * 0.75)){ 
+  if (wkrNotResp.size() <= round(m_workers.size() * 0.75)){ 
     for(auto w : wkrNotResp){
       if (w->base.state != ZM_Base::StateType::NOT_RESPONDING){
         m_messToDB.push(ZM_DB::MessSchedr(ZM_Base::MessType::WORKER_NOT_RESPONDING, w->base.id));
@@ -49,6 +49,8 @@ void Executor::checkStatusWorkers()
 
         for(auto& t : w->taskList)
           t = 0;
+        
+        getPrevTaskFromDB(db, w->base.id);
       } 
     }
   }else{

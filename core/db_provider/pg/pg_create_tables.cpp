@@ -41,10 +41,7 @@ DbProvider::DbProvider(const ZM_DB::ConnectCng& cng) :
 }
 DbProvider::~DbProvider(){  
   if (m_impl->m_thrEndTask.joinable()){
-    m_impl->m_fClose = true;   
-    {lock_guard<mutex> lk(m_impl->m_mtxNotifyTask);  
-      m_impl->m_cvNotifyTask.notify_one();
-    }  
+    m_impl->m_fClose = true; 
     m_impl->m_thrEndTask.join();
   }
   if (_pg){
@@ -57,7 +54,7 @@ bool DbProvider::createTables(){
   #define QUERY(req, sts){              \
     PGres pgr(PQexec(_pg, req));        \
     if (PQresultStatus(pgr.res) != sts){  \
-      errorMess(string("createTables error: ") + PQerrorMessage(_pg)); \
+      errorMess(string("createTables: ") + PQerrorMessage(_pg)); \
       return false;                     \
     }                                   \
   }
@@ -118,6 +115,7 @@ bool DbProvider::createTables(){
         "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1),"
         "startTime    TIMESTAMP NOT NULL DEFAULT current_timestamp,"
         "stopTime     TIMESTAMP NOT NULL DEFAULT current_timestamp,"
+        "pingTime     TIMESTAMP NOT NULL DEFAULT current_timestamp,"
         "name         TEXT NOT NULL DEFAULT '',"
         "description  TEXT NOT NULL DEFAULT '');";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
@@ -165,8 +163,8 @@ bool DbProvider::createTables(){
         "qtask          INT PRIMARY KEY REFERENCES tblTaskQueue,"        
         "createTime     TIMESTAMP NOT NULL DEFAULT current_timestamp,"
         "takeInWorkTime TIMESTAMP CHECK (takeInWorkTime >= createTime),"
-        "startTime      TIMESTAMP CHECK (startTime >= takeInWorkTime),"
-        "stopTime       TIMESTAMP CHECK (stopTime >= startTime));";
+        "startTime      TIMESTAMP,"
+        "stopTime       TIMESTAMP);";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
@@ -182,11 +180,14 @@ bool DbProvider::createTables(){
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
     
   ///////////////////////////////////////////////////////////////////////////
-  /// INDEXES  not used yet
-//   ss.str(""); 
-//   ss << "CREATE INDEX IF NOT EXISTS inxTSState ON tblTaskState(state);"
-//   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
-  
+  /// INDEXES
+  ss.str(""); 
+  ss << "CREATE INDEX IF NOT EXISTS inxTSState ON tblTaskState(state);";
+  ss << "CREATE INDEX IF NOT EXISTS inxTQSchedr ON tblTaskQueue(schedr);";
+  ss << "CREATE INDEX IF NOT EXISTS inxTQWorker ON tblTaskQueue(worker);";
+  ss << "CREATE INDEX IF NOT EXISTS inxTQTaskTempl ON tblTaskQueue(taskTempl);";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+      
   ///////////////////////////////////////////////////////////////////////////
   /// FUNCTIONS
   ss.str("");
@@ -219,6 +220,28 @@ bool DbProvider::createTables(){
         "END;"
         "$$ LANGUAGE plpgsql;";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+
+  ss.str("");
+  ss << "CREATE OR REPLACE FUNCTION "
+        "funcStartTaskNotify() "
+        "RETURNS trigger AS $$ "
+        "BEGIN "
+        " NOTIFY " << m_impl->NOTIFY_NAME_NEW_TASK << ";"
+        " RETURN NEW;"
+        "END; "
+        "$$ LANGUAGE plpgsql;";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+
+  ss.str("");
+  ss << "CREATE OR REPLACE FUNCTION "
+        "funcChangeTaskNotify() "
+        "RETURNS trigger AS $$ "
+        "BEGIN "
+        " NOTIFY " << m_impl->NOTIFY_NAME_CHANGE_TASK << ";"
+        " RETURN NEW;"
+        "END; "
+        "$$ LANGUAGE plpgsql;";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
   
   ss.str("");
   ss << "CREATE OR REPLACE FUNCTION "
@@ -240,10 +263,9 @@ bool DbProvider::createTables(){
         "    JOIN tblTaskQueue tq ON tq.taskTempl = tt.id "
         "    JOIN tblTaskState ts ON ts.qtask = tq.id "
         "    JOIN tblTaskParam tp ON tp.qtask = tq.id "
-        "    JOIN tblTaskTime tm ON tm.qtask = tq.id "
         "    WHERE ts.state = " << int(ZM_Base::StateType::READY) << ""
-        "      AND tq.schedr IS NULL AND tm.takeInWorkTime IS NULL "
-        "      AND (tt.schedrPreset IS NULL OR tt.schedrPreset = sId) "
+        "      AND tq.schedr IS NULL "
+        "      AND (tt.schedrPreset IS NULL OR tt.schedrPreset = sId) ORDER BY tq.id"
         "    LIMIT maxTaskCnt "
         "    FOR UPDATE OF tq SKIP LOCKED"
         "  LOOP"
@@ -261,12 +283,30 @@ bool DbProvider::createTables(){
 
         "    UPDATE tblTaskTime SET"
         "      takeInWorkTime = current_timestamp"
-        "    WHERE qtask = qid;"       
+        "    WHERE qtask = qid AND takeInWorkTime IS NULL;"       
         
         "    RETURN NEXT;"
         "  END LOOP;"
         "END;"
         "$$ LANGUAGE plpgsql;";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+
+  ///////////////////////////////////////////////////////////////////////////
+  /// TRIGGERS
+  ss.str(""); 
+  ss << "DROP TRIGGER IF EXISTS trgNewTask ON tblTaskQueue; "
+        "CREATE TRIGGER trgNewTask "
+        "AFTER INSERT ON tblTaskQueue "
+        "FOR EACH STATEMENT "
+        "EXECUTE PROCEDURE funcStartTaskNotify();";
+  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
+
+  ss.str(""); 
+  ss << "DROP TRIGGER IF EXISTS trgTaskChange ON tblTaskState; "
+        "CREATE TRIGGER trgTaskChange "
+        "AFTER UPDATE ON tblTaskState "
+        "FOR EACH STATEMENT "
+        "EXECUTE PROCEDURE funcChangeTaskNotify();";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   return true;

@@ -48,11 +48,8 @@ void Loop::run()
   while (!m_fClose){
     timer.updateCycTime();   
 
-    // check child process
     m_executor.waitProcess();
-
-    m_executor.updateListTasks();
-
+    
     if (!m_executor.isMessForSchedrEmpty()){ 
       m_executor.messageToSchedr(m_cng.schedrConnPnt);
     }
@@ -73,7 +70,7 @@ void Loop::run()
       m_executor.errorToSchedr(m_cng.schedrConnPnt);
     }    
     
-    if (m_executor.isNewTasksEmpty()){
+    if (m_executor.isMessForSchedrEmpty() && !m_fClose){
       mainCycleSleep(minCycleTimeMS);     
     }
   }

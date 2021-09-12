@@ -78,7 +78,8 @@ void Executor::receiveHandler(const string& remcp, const string& data)
     t.state = ZM_Base::StateType::READY;
     t.params = mess["params"];
     m_newTasks.push(move(t)); 
-    Application::loopNotify();
+    
+    updateListTasks();
   }
   else if (mtype == ZM_Base::MessType::PING_WORKER){  // only check
     return;

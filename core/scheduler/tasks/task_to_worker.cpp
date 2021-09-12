@@ -50,7 +50,7 @@ bool Executor::sendTaskToWorker()
     iwcp->load = iw->second.base.load;
     iwcp->state = iw->second.base.state;
   }
-  
+  int cycleCount = 0;
   while (!m_tasks.empty()){
     ZM_Base::Task task;
     m_tasks.front(task);
@@ -87,8 +87,7 @@ bool Executor::sendTaskToWorker()
       if (ZM_Tcp::asyncSendData(wConnPnt, ZM_Aux::serialn(data))){
         ++(*iWr)->activeTask;
         m_workers[wConnPnt].base.activeTask = (*iWr)->activeTask; 
-        m_messToDB.push(ZM_DB::MessSchedr{ZM_Base::MessType::TASK_START, (*iWr)->id, task.id}); 
-
+       
         for(auto& wt : m_workers[wConnPnt].taskList){
           if (wt == 0){
             wt = task.id;
@@ -98,13 +97,18 @@ bool Executor::sendTaskToWorker()
       }else{
         (*iWr)->rating = std::max(1, (*iWr)->rating - 1);
       }      
-      m_ctickTaskToWorker.reset();
     }
     else{
-      if (m_ctickTaskToWorker(1000)){ // every 1000 cycle
-        ERROR_MESS("schedr::sendTaskToWorker not found available worker", 0);
+      if (task.wId != 0){ 
+        m_tasks.tryPop(task);     // transfer task to end 
+        m_tasks.push(move(task)); 
       }
-      return false;
+      else{
+        return false;
+      }
+      ++cycleCount;
+      if (cycleCount >= m_tasks.size()) 
+        return false;
     }
   }
   return true;

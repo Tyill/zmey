@@ -110,6 +110,47 @@ int Process::getProgress(){
   int dt = (int)m_cdeltaTimeProgress / 1000;
   return min(100, dt * 100 / max(1, m_task.averDurationSec));
 }
+bool Process::getResult(string& result){
+  #define ERROR_MESS(mstr)   \
+    m_err = mstr;            \
+    m_app.statusMess(m_err); \
+    m_executor.addErrMess(m_err);
+
+  string resultFile = "/tmp/" + to_string(m_task.id) + ".res";
+  bool isOk = true;       
+  int fdRes = open(resultFile.c_str(), O_RDONLY);
+  if (fdRes >= 0){
+    off_t fsz = lseek(fdRes, 0, SEEK_END);
+    lseek(fdRes, 0, SEEK_SET);
+    result.resize(fsz);
+
+    if (read(fdRes, (char*)result.data(), fsz) == -1){
+      ERROR_MESS("worker::Process::getResult error read " + resultFile + ": " + string(strerror(errno))); 
+      isOk = false;
+    }
+    close(fdRes);
+  }
+  else{
+    ERROR_MESS("worker::Process::getResult error open " + resultFile + ": " + string(strerror(errno)));
+    isOk = false;
+  }
+  result.erase(remove(result.begin(), result.end(), '\0'), result.end());
+  ZM_Aux::replace(result, "'", "''");
+  
+  if (result.empty() && !m_err.empty()){
+    result = m_err;
+    isOk = false;
+  }
+
+  if (remove(resultFile.c_str()) == -1){
+    ERROR_MESS("worker::Process::getResult error remove " + resultFile + ": " + string(strerror(errno)));
+  }
+  string scriptFile = "/tmp/" + to_string(m_task.id) + ".sh";
+  if (remove(scriptFile.c_str()) == -1){
+    ERROR_MESS("worker::Process::getResult error remove " + scriptFile + ": " + string(strerror(errno)));
+  }    
+  return isOk;
+}
 bool Process::checkMaxRunTime(){
   if (!m_isPause){
     m_cdeltaTimeDuration += m_timerDuration.getDeltaTimeMS();
@@ -134,6 +175,10 @@ void Process::contin(){
     m_app.statusMess(m_err);
     m_executor.addErrMess(m_err);
   }
+}
+void Process::stopByTimeout(){
+  m_err = "Stopping by timeout";
+  stop();
 }
 void Process::stop(){
   if (kill(m_pid, SIGTERM) == -1){
@@ -190,7 +235,7 @@ Process::Process(Application& app, Executor& exr, const ZM_Base::Task& tsk):
       FILE_SHARE_WRITE | FILE_SHARE_READ,
       &sa,
       CREATE_ALWAYS,
-      FILE_ATTRIBUTE_NORMAL,
+      FILE_ATTRIBUTE_TEMPORARY,
       NULL);
 
   if (hOutFile == INVALID_HANDLE_VALUE){
@@ -271,6 +316,50 @@ int Process::getProgress(){
   int dt = (int)m_cdeltaTimeProgress / 1000;
   return std::min<int>(100, dt * 100 / std::max<int>(1, m_task.averDurationSec));
 }
+bool Process::getResult(std::string& result){
+ #define ERROR_MESS(mstr)  \
+    m_err = mstr;           \
+    m_app.statusMess(m_err); \
+    m_executor.addErrMess(m_err);
+    
+  bool isOk = true;
+  std::string resultFile = std::to_string(m_task.id) + ".res";
+  std::ifstream ifs(resultFile, std::ifstream::in);
+  if (ifs.good()){      
+    ifs.seekg(0, std::ios::end);   
+    result.resize(ifs.tellg());
+    ifs.seekg(0, std::ios::beg);
+    ifs.read(result.data(), result.size());
+    ifs.close();
+  }else{
+    ERROR_MESS("worker::Process::getResult error open " + resultFile + ": " + getLastErrorStr());
+    isOk = false;
+  }
+      
+  result.erase(remove(result.begin(), result.end(), '\0'), result.end());
+  ZM_Aux::replace(result, "'", "''");
+
+  if (result.empty() && !m_err.empty()){
+    result = m_err;
+    isOk = false;
+  }
+
+  int toutMs = 0, 
+      maxDelayMs = 1000; 
+  while ((remove(resultFile.c_str()) == -1) && (toutMs < maxDelayMs)){
+    toutMs += 10;
+    ZM_Aux::sleepMs(10);
+  }   
+   
+  if (toutMs == maxDelayMs){
+    ERROR_MESS("worker::Process::getResult error remove " + resultFile + ": " + getLastErrorStr());    
+  }
+  std::string scriptFile = std::to_string(m_task.id) + ".bat";
+  if (remove(scriptFile.c_str()) == -1){
+    ERROR_MESS("worker::Process::getResult error remove " + scriptFile + ": " + getLastErrorStr());
+  }  
+  return isOk; 
+}
 bool Process::checkMaxRunTime(){
   if (!m_isPause){
     m_cdeltaTimeDuration += m_timerDuration.getDeltaTimeMS();
@@ -282,14 +371,20 @@ void Process::setTaskState(ZM_Base::StateType st){
   m_task.state = st;
   m_isPause = (st == ZM_Base::StateType::PAUSE);
 }
+
 void Process::pause(){
     // TODO  
 }
 void Process::contin(){
     // TODO 
 }
+void Process::stopByTimeout(){
+  m_err = "Stopping by timeout";
+  stop();
+}
 void Process::stop(){
   TerminateProcess(m_hProcess, -1);
 }
+
 
 #endif  // _WIN32

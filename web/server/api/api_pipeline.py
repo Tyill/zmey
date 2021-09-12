@@ -52,7 +52,11 @@ def delPipeline(id : int):
 @bp.route('/pipelines', methods=(['GET']))
 @auth.loginRequired
 def allPipelines():
-  ret = []
-  for p in pp.all():
-    ret.append(p.__dict__)
-  return json.dumps(ret) 
+  try:
+    ret = []
+    for p in pp.all():
+      ret.append(p.__dict__)
+    return json.dumps(ret) 
+  except Exception as err:
+    print(f'/pipelines GET failed: %s' % str(err))
+    return ('bad request', 400)

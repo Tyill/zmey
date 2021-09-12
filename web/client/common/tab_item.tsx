@@ -1,5 +1,4 @@
 import React from "react";
-import {CloseButton} from "react-bootstrap";
 
 interface IProps { 
   title : string;
@@ -32,7 +31,6 @@ class TabItem extends React.Component<IProps, IState>{
 
     let closeBtnStyle = { 
       paddingLeft: "5px",
-      border : "none",
     } as React.CSSProperties;    
     if (!this.state.isShowBtn){
       closeBtnStyle.visibility = "hidden"; 
@@ -47,10 +45,12 @@ class TabItem extends React.Component<IProps, IState>{
           onClick={(e)=>this.props.hSelect(this.props.id)}
           >
         {this.props.title}
-        <CloseButton style={closeBtnStyle} 
-                     title="Close"
-                     onClick={(e)=>{this.props.hHide(this.props.id);
-                                    e.stopPropagation();}}/>
+        <a className = "icon-cancel"
+           style={closeBtnStyle} 
+           title="Close"
+           onClick={(e)=>{this.props.hHide(this.props.id);
+                          e.stopPropagation();}}>
+        </a>        
       </div>
     )
   }

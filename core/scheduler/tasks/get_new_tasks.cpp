@@ -50,8 +50,5 @@ void Executor::getNewTaskFromDB(ZM_DB::DbProvider& db)
       m_app.statusMess("getNewTaskFromDB db error: " + db.getLastError());
     }
   }
-  m_schedr.activeTask = actSz + newSz;  
-
-  if (newSz > 0)
-    Application::loopNotify();
+  m_schedr.activeTask = actSz + newSz; 
 };

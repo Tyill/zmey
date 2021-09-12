@@ -26,6 +26,10 @@ def checkQueue(queue : mp.Queue):
 
       from . import task
       task.start(dbo, uId, newTask)
+
+      from . import pipeline_task as pt
+      pt.setChange(dbo, newTask.pplTaskId, True)
+
     except Exception as err:
       print("startNewTask failed: {0}".format(str(err)))
     finally:
