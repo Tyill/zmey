@@ -74,7 +74,7 @@ int main(int argc, char* argv[])
   auto dbSendMess = dbNewTask ? createDbProvider(cng, err) : nullptr;
   CHECK_RETURN(!dbNewTask || !dbSendMess, "Schedr DB connect error " + err + ": " + cng.dbConnCng.connectStr); 
     
-  Executor executor(app);
+  Executor executor(app, *dbNewTask);
   
   // schedr from DB
   CHECK_RETURN(!executor.getSchedrFromDB(cng.remoteConnPnt, *dbNewTask), "Schedr not found in DB for connectPnt " + cng.remoteConnPnt);

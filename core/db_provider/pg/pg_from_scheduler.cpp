@@ -73,8 +73,9 @@ bool DbProvider::getSchedr(const std::string& connPnt, ZM_Base::Scheduler& outCn
   outCng.description = PQgetvalue(pgr.res, 0, 6);
   return true;
 }
-bool DbProvider::getTasksOfSchedr(uint64_t sId, std::vector<ZM_Base::Task>& out){
+bool DbProvider::getTasksOfSchedr(uint64_t sId, uint64_t wId, std::vector<ZM_Base::Task>& out){
   lock_guard<mutex> lk(m_impl->m_mtx);
+  string workerId = wId > 0 ? " = " + to_string(wId) : " IS NULL ";
   stringstream ss;
   ss << "SELECT tq.id, tt.averDurationSec, tt.maxDurationSec, COALESCE(tt.workerPreset, 0),"
         "       tt.script, tp.params "
@@ -82,7 +83,7 @@ bool DbProvider::getTasksOfSchedr(uint64_t sId, std::vector<ZM_Base::Task>& out)
         "JOIN tblTaskQueue tq ON tq.taskTempl = tt.id "
         "JOIN tblTaskState ts ON ts.qtask = tq.id "
         "JOIN tblTaskParam tp ON tp.qtask = tq.id "
-        "WHERE tq.schedr = " << sId << " AND tq.worker IS NULL AND (ts.state BETWEEN " << (int)ZM_Base::StateType::START << " AND " << (int)ZM_Base::StateType::PAUSE << ")";
+        "WHERE tq.schedr = " << sId << " AND tq.worker " + workerId + " AND (ts.state BETWEEN " << (int)ZM_Base::StateType::START << " AND " << (int)ZM_Base::StateType::PAUSE << ")";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
@@ -376,23 +377,10 @@ bool DbProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<ZM_DB::MessSche
       case ZM_Base::MessType::JUST_START_WORKER:
       case ZM_Base::MessType::STOP_WORKER:
         ss << "UPDATE tblTaskTime SET "
-              "startTime = NULL, "
-              "stopTime = NULL "
+              "startTime = NULL "
               "FROM tblTaskState ts, tblTaskQueue tq "
-              "WHERE tq.id = ts.qtask AND tq.worker = " << m.workerId << " AND (ts.state BETWEEN " << (int)ZM_Base::StateType::RUNNING << " AND " << (int)ZM_Base::StateType::PAUSE << ");"
+              "WHERE tq.id = ts.qtask AND tq.worker = " << m.workerId << " AND (ts.state BETWEEN " << (int)ZM_Base::StateType::RUNNING << " AND " << (int)ZM_Base::StateType::PAUSE << ");";
               
-              "WITH taskUpd AS ("
-              "UPDATE tblTaskQueue tq SET "
-              "schedr = NULL,"
-              "worker = NULL " 
-              "FROM tblTaskState ts "
-              "WHERE tq.id = ts.qtask AND tq.worker = " << m.workerId << " AND (ts.state BETWEEN " << (int)ZM_Base::StateType::RUNNING << " AND " << (int)ZM_Base::StateType::PAUSE << ") "
-              "RETURNING tq.id) "
-                         
-              "UPDATE tblTaskState SET "
-              "state = " << (int)ZM_Base::StateType::READY << " "
-              "WHERE qtask IN (SELECT id FROM taskUpd);";
-
         if (m.type == ZM_Base::MessType::WORKER_NOT_RESPONDING){
           ss << "UPDATE tblWorker SET "
                 "state = " << (int)ZM_Base::StateType::NOT_RESPONDING << ", "

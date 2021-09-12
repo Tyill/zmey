@@ -44,7 +44,7 @@ bool Application::parseArgs(int argc, char* argv[], Config& outCng){
     cout << "Usage: --localAddr[-la] schedr local connection point: IP or DNS:port. Required\n"
          << "       --remoteAddr[-ra] schedr remote connection point (if from NAT): IP or DNS:port. Optional\n"
          << "       --dbConnStr[-db] database connection string\n"
-         << "       --checkWorkerTOutSec[-cw] check ping from workers, sec. Default 120 sec\n"
+         << "       --checkWorkerTOutSec[-cw] check ping from workers, sec. Default 60 sec\n"
          << "       --pingToDBSec[-pb] ping to DB, sec. Default 20 sec\n";
     return false; 
   }

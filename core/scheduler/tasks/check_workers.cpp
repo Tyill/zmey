@@ -29,7 +29,7 @@
 
 using namespace std;
 
-void Executor::checkStatusWorkers()
+void Executor::checkStatusWorkers(ZM_DB::DbProvider& db)
 {
   vector<SWorker*> wkrNotResp;
   for(auto& w : m_workers){
@@ -49,6 +49,8 @@ void Executor::checkStatusWorkers()
 
         for(auto& t : w->taskList)
           t = 0;
+        
+        getPrevTaskFromDB(db, w->base.id);
       } 
     }
   }else{

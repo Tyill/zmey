@@ -69,7 +69,7 @@ void Loop::run()
     }
 
     if(timer.onDelayOncSec(true, m_cng.checkWorkerTOutSec, 0)){
-      m_executor.checkStatusWorkers();
+      m_executor.checkStatusWorkers(m_dbNewTask);
     }
 
     if(timer.onDelayOncSec(true, m_cng.pingToDBSec, 1)){

@@ -129,6 +129,7 @@ void Executor::receiveHandler(const string& remcp, const string& data)
         m_messToDB.push(ZM_DB::MessSchedr(mtype, wId));        
         for(auto& t : worker.taskList)
           t = 0;
+        getPrevTaskFromDB(m_db, wId);
         break;
       case ZM_Base::MessType::INTERN_ERROR:
         checkField(message);
@@ -212,7 +213,7 @@ void Executor::receiveHandler(const string& remcp, const string& data)
         }}} 
         break;
       default:
-        ERROR_MESS("schedr::receiveHandler wrong command from manager: " + mess["command"], 0);
+        ERROR_MESS("schedr::receiveHandler wrong command: " + mess["command"], 0);
         break;
     }
   }

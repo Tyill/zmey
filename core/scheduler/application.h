@@ -31,7 +31,7 @@ class Application{
 public:
  
   struct Config{
-    int checkWorkerTOutSec = 120;
+    int checkWorkerTOutSec = 60;
     int pingToDBSec = 20;
     std::string localConnPnt;
     std::string remoteConnPnt;

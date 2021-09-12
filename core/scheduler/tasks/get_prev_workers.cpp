@@ -35,8 +35,9 @@ void Executor::getPrevWorkersFromDB(ZM_DB::DbProvider& db)
       m_workers[w.connectPnt] = SWorker{w, w.state, vector<uint64_t>(), 
                                         w.state != ZM_Base::StateType::NOT_RESPONDING};
 
-      if (db.getTasksOfWorker(m_schedr.id, w.id, m_workers[w.connectPnt].taskList))
+      if (db.getTasksOfWorker(m_schedr.id, w.id, m_workers[w.connectPnt].taskList)){
         m_workers[w.connectPnt].taskList.resize(size_t(w.capacityTask * 1.5));
+      }
       else
         m_app.statusMess("getTasksOfWorker db error: " + db.getLastError());
     }

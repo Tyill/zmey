@@ -32,7 +32,7 @@
 
 class Executor{
 public:  
-  Executor(Application&);
+  Executor(Application&, ZM_DB::DbProvider& db);
 
 public:
   void addMessToDB(ZM_DB::MessSchedr);
@@ -47,8 +47,8 @@ public:
   void getNewTaskFromDB(ZM_DB::DbProvider& db);
   void sendAllMessToDB(ZM_DB::DbProvider& db);
   bool sendTaskToWorker();
-  void checkStatusWorkers();
-  void getPrevTaskFromDB(ZM_DB::DbProvider& db);
+  void checkStatusWorkers(ZM_DB::DbProvider& db);
+  void getPrevTaskFromDB(ZM_DB::DbProvider& db, uint64_t wId = 0);
   void getPrevWorkersFromDB(ZM_DB::DbProvider& db);
   void pingToDB();
   void stopSchedr(ZM_DB::DbProvider& db);  
@@ -62,6 +62,7 @@ private:
   };
 
   Application& m_app;
+  ZM_DB::DbProvider& m_db;
 
   std::map<std::string, SWorker> m_workers;   // key - connectPnt  
   std::vector<ZM_Base::Worker> m_workersCpy;
@@ -72,5 +73,4 @@ private:
 
   ZM_Aux::CounterTick m_ctickNewTask;
   ZM_Aux::CounterTick m_ctickMessToDB;
-  ZM_Aux::CounterTick m_ctickTaskToWorker;
 };

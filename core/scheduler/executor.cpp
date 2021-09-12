@@ -25,8 +25,8 @@
 #include "executor.h"
 #include "application.h"
   
-Executor::Executor(Application& app):
-  m_app(app)
+Executor::Executor(Application& app, ZM_DB::DbProvider& db):
+  m_app(app), m_db(db)
 {
 }
 
