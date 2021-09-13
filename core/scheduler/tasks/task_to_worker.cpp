@@ -25,6 +25,7 @@
 #include "scheduler/executor.h"
 #include "common/serial.h"
 #include "common/tcp.h"
+#include "base/link.h"
 
 using namespace std;
 
@@ -75,13 +76,13 @@ bool Executor::sendTaskToWorker()
     if(iWr != m_refWorkers.end()){
       m_tasks.tryPop(task);
       map<string, string> data{
-        {"command",         to_string((int)ZM_Base::MessType::NEW_TASK)},
-        {"connectPnt",      m_schedr.connectPnt},
-        {"taskId",          to_string(task.id)},
-        {"params",          task.params}, 
-        {"script",          task.script},
-        {"averDurationSec", to_string(task.averDurationSec)}, 
-        {"maxDurationSec",  to_string(task.maxDurationSec)}        
+        {ZM_Link::command,         to_string((int)ZM_Base::MessType::NEW_TASK)},
+        {ZM_Link::connectPnt,      m_schedr.connectPnt},
+        {ZM_Link::taskId,          to_string(task.id)},
+        {ZM_Link::params,          task.params}, 
+        {ZM_Link::script,          task.script},
+        {ZM_Link::averDurationSec, to_string(task.averDurationSec)}, 
+        {ZM_Link::maxDurationSec,  to_string(task.maxDurationSec)}        
       };
       const string& wConnPnt = (*iWr)->connectPnt;
       if (ZM_Tcp::asyncSendData(wConnPnt, ZM_Aux::serialn(data))){

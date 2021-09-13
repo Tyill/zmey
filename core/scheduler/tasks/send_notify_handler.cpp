@@ -25,6 +25,7 @@
 
 #include "scheduler/executor.h"
 #include "common/serial.h"
+#include "base/link.h"
 
 using namespace std;
 
@@ -62,21 +63,21 @@ void Executor::sendNotifyHandler(const string& cp, const string& data, const std
   if (ec && (m_workers.find(cp) != m_workers.end())){
     auto& worker = m_workers[cp];
     wId = worker.base.id;
-    ZM_Base::MessType mtype = ZM_Base::MessType(stoi(mess["command"]));
+    ZM_Base::MessType mtype = ZM_Base::MessType(stoi(mess[ZM_Link::command]));
     switch (mtype){
       case ZM_Base::MessType::NEW_TASK:{
-        checkFieldNum(taskId);
-        checkField(params);
-        checkField(script);
-        checkFieldNum(averDurationSec);
-        checkFieldNum(maxDurationSec);
+        checkFieldNum(ZM_Link::taskId);
+        checkField(ZM_Link::params);
+        checkField(ZM_Link::script);
+        checkFieldNum(ZM_Link::averDurationSec);
+        checkFieldNum(ZM_Link::maxDurationSec);
         ZM_Base::Task t;
-        t.id = stoull(mess["taskId"]);
+        t.id = stoull(mess[ZM_Link::taskId]);
         t.wId = wId;
-        t.params = mess["params"];
-        t.script = mess["script"];
-        t.averDurationSec = stoi(mess["averDurationSec"]);
-        t.maxDurationSec = stoi(mess["maxDurationSec"]);
+        t.params = mess[ZM_Link::params];
+        t.script = mess[ZM_Link::script];
+        t.averDurationSec = stoi(mess[ZM_Link::averDurationSec]);
+        t.maxDurationSec = stoi(mess[ZM_Link::maxDurationSec]);
         m_tasks.push(move(t));
         worker.base.activeTask = std::max(0, worker.base.activeTask - 1);
 
@@ -89,7 +90,7 @@ void Executor::sendNotifyHandler(const string& cp, const string& data, const std
         }
         break;
       default:
-        ERROR_MESS("schedr::sendHandler wrong command mtype: " + mess["command"] + ", cp: " + cp, wId);
+        ERROR_MESS("schedr::sendHandler wrong command mtype: " + mess[ZM_Link::command] + ", cp: " + cp, wId);
         break;
     }
     if (worker.base.rating > 1)
