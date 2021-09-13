@@ -61,7 +61,7 @@ bool Executor::sendTaskToWorker()
       [this, &task](const ZM_Base::Worker* w){                
         bool isSpare = false;
         if (((task.wId == 0) || (task.wId == w->id)) && (w->state == ZM_Base::StateType::RUNNING) && 
-            (w->activeTask <= w->capacityTask) && (w->rating > 1)){ 
+            (w->activeTask < w->capacityTask) && (w->rating > 1)){ 
           for(auto& wt : m_workers[w->connectPnt].taskList){
             if (wt == 0){
               isSpare = true;

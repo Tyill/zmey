@@ -97,13 +97,9 @@ void Executor::receiveHandler(const string& remcp, const string& data)
             }
             break;
           }
-        }      
-        if (mtype == ZM_Base::MessType::TASK_RUNNING){
-          if (taskExist)
-            m_messToDB.push(ZM_DB::MessSchedr(mtype, wId, tid));         
-        }
-        else{ // wId = 0 для ускорения вставки в БД 
-          m_messToDB.push(ZM_DB::MessSchedr(mtype, !taskExist ? wId : 0, tid, mess["taskResult"]));            
+        }   
+        if (taskExist){   
+          m_messToDB.push(ZM_DB::MessSchedr(mtype, wId, tid, mess["taskResult"]));            
         }
         break;
       }        
@@ -118,22 +114,34 @@ void Executor::receiveHandler(const string& remcp, const string& data)
           for (const auto& t : takskJs){
             if (t.isMember("taskId") && t["taskId"].isUInt64() &&
                 t.isMember("progress") && t["progress"].isString()){
-              m_messToDB.push(ZM_DB::MessSchedr(mtype, wId, t["taskId"].asUInt64(), t["progress"].asString()));
+              
+              if (find_if(worker.taskList.begin(), worker.taskList.end(), [t](uint64_t tId){
+                return tId == t["taskId"].asUInt64();
+              }) != worker.taskList.end())
+                m_messToDB.push(ZM_DB::MessSchedr(mtype, wId, t["taskId"].asUInt64(), t["progress"].asString()));
             }
           }
         }
         break;
       }
       case ZM_Base::MessType::JUST_START_WORKER:
-      case ZM_Base::MessType::STOP_WORKER:
-        m_messToDB.push(ZM_DB::MessSchedr(mtype, wId));        
-        for(auto& t : worker.taskList)
-          t = 0;
-        getPrevTaskFromDB(m_db, wId);
+      case ZM_Base::MessType::STOP_WORKER:{
+          m_messToDB.push(ZM_DB::MessSchedr(mtype, wId));        
+          vector<ZM_Base::Task> tasks;
+          if (m_db.getTasksById(m_schedr.id, worker.taskList, tasks)){
+            for(auto& t : tasks){
+              m_tasks.push(move(t));
+            }
+          }else{
+            m_app.statusMess("getTasksById db error: " + m_db.getLastError());
+          }
+          for(auto& t : worker.taskList)
+            t = 0;
+        }
         break;
       case ZM_Base::MessType::INTERN_ERROR:
         checkField(message);
-        ERROR_MESS(mess["message"], wId);
+        m_messToDB.push(ZM_DB::MessSchedr::errorMess(wId, mess["message"]));
         break;
       case ZM_Base::MessType::PING_WORKER:
         checkFieldNum(load);
@@ -213,7 +221,7 @@ void Executor::receiveHandler(const string& remcp, const string& data)
         }}} 
         break;
       default:
-        ERROR_MESS("schedr::receiveHandler wrong command: " + mess["command"], 0);
+        ERROR_MESS("schedr::receiveHandler unknown worker: " + cp, 0);
         break;
     }
   }

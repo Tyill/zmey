@@ -154,7 +154,8 @@ public:
   // for zmSchedr
   bool setListenNewTaskNotify(bool on);
   bool getSchedr(const std::string& connPnt, ZM_Base::Scheduler& outSchedl);
-  bool getTasksOfSchedr(uint64_t sId, uint64_t wId, std::vector<ZM_Base::Task>& out);
+  bool getTasksById(uint64_t sId, const std::vector<uint64_t>& tasksId, std::vector<ZM_Base::Task>& out);
+  bool getTasksOfSchedr(uint64_t sId, std::vector<ZM_Base::Task>& out);
   bool getTasksOfWorker(uint64_t sId, uint64_t workerId, std::vector<uint64_t>& outTasksId);
   bool getWorkersOfSchedr(uint64_t sId, std::vector<ZM_Base::Worker>& out);
   bool getNewTasksForSchedr(uint64_t sId, int maxTaskCnt, std::vector<ZM_Base::Task>& out);
