@@ -20,25 +20,29 @@ interface IProps {
 interface IState { 
   socketCaptured : {id : number, type : SocketType};
   contextMenuTaskId : number;  
+  mouseCursor : string;
 };
 
 export default
 class GraphPanel extends React.Component<IProps, IState>{  
   
   private m_canvasRef : HTMLCanvasElement;
+  private m_containerRef : HTMLDivElement;
   private m_mouseStartMem : {x : number, y : number};
   private m_pplId : number;
   private m_taskCountMem : number;
 
   constructor(props : IProps){
     super(props);  
-    this.m_canvasRef = null;  
+    this.m_canvasRef = null; 
+    this.m_containerRef = null; 
     this.m_mouseStartMem = {x : 0, y : 0};
     this.m_pplId = 0;
     this.m_taskCountMem = 0;
 
     this.state = {socketCaptured : {id : 0, type : SocketType.Input},
-                  contextMenuTaskId : 0};
+                  contextMenuTaskId : 0,
+                  mouseCursor : "default"};
 
     this.getCanvasContext = this.getCanvasContext.bind(this);
     this.drawLine = this.drawLine.bind(this);
@@ -101,7 +105,7 @@ class GraphPanel extends React.Component<IProps, IState>{
       this.drawAll(this.getCanvasContext());
 
       this.setState({socketCaptured : {id : 0, type : SocketType.Input}});
-    }
+    }   
   }
 
   hMouseDown(e: React.MouseEvent<HTMLElement>){
@@ -124,6 +128,15 @@ class GraphPanel extends React.Component<IProps, IState>{
 
       this.drawAll(ctx);
     }
+   
+    if (e.nativeEvent.which === 3){
+      this.setState({mouseCursor: "move"});
+      this.m_containerRef.parentElement.scrollLeft += e.nativeEvent.movementX;
+      this.m_containerRef.parentElement.scrollTop += e.nativeEvent.movementY;
+    } 
+    else{
+      this.setState({mouseCursor: "auto"});
+    }   
   }
 
   hTaskMove(id : number){
@@ -230,14 +243,16 @@ class GraphPanel extends React.Component<IProps, IState>{
         }
       }
 
-      return <div className="graphPanel" 
+      return <div className="graphPanel"
                   onMouseMove = { this.hMouseMove }
                   onMouseUp = { this.hMouseUp }
                   onMouseDown = { this.hMouseDown }>
                {tasks}
              </div>           
     });
-    return <div>   
+    return <div ref={ el => this.m_containerRef = el} 
+                style={{cursor : this.state.mouseCursor}}
+                onContextMenu={(e)=>e.preventDefault()}>    
              <canvas className="graphPanel" height="2048px" width="4096px" 
                      ref={ el => this.m_canvasRef = el }/>
              <Tasks/>

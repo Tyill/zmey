@@ -42,6 +42,7 @@ def checkEvents(instance_path : str,  queue : mp.Queue):
     deltaTimeSec = time.time() - startTime
     startTime = time.time()
     currTimeStr = time.strftime('%H:%M', time.localtime())
+    currDateTimeStr = time.strftime('%Y-%m-%d %H:%M', time.localtime())
     for usr in user.allWithPath(instance_path):
       dbo = None      
       try:
@@ -65,6 +66,9 @@ def checkEvents(instance_path : str,  queue : mp.Queue):
             if (currTimeStr == stTime) and (evt.timeLastStartOnceOfDay != currTimeStr):
               startTask(evt, dbo, usr, queue)
               evt.timeLastStartOnceOfDay = currTimeStr
+            elif (currDateTimeStr == stTime) and (evt.timeLastStartOnceOfDay != currDateTimeStr):
+              startTask(evt, dbo, usr, queue)
+              evt.timeLastStartOnceOfDay = currDateTimeStr
               
           event.updateLastStartTime(dbo, evt)
 
