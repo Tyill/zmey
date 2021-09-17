@@ -34,17 +34,17 @@ using namespace std;
 
 #ifdef DEBUG
   #define checkFieldNum(field) \
-    if (mess.find(#field) == mess.end()){ \
-      ERROR_MESS(string("worker::receiveHandler error mess.find ") + #field + " from: " + cp); \
+    if (mess.find(field) == mess.end()){ \
+      ERROR_MESS(string("worker::receiveHandler error mess.find ") + field + " from: " + cp); \
       return;  \
     } \
-    if (!ZM_Aux::isNumber(mess[#field])){ \
-      ERROR_MESS("worker::receiveHandler error !ZM_Aux::isNumber " + mess[#field] + " from: " + cp); \
+    if (!ZM_Aux::isNumber(mess[field])){ \
+      ERROR_MESS("worker::receiveHandler error !ZM_Aux::isNumber " + mess[field] + " from: " + cp); \
       return; \
     }
   #define checkField(field) \
-    if (mess.find(#field) == mess.end()){  \
-      ERROR_MESS(string("worker::receiveHandler error mess.find ") + #field + " from: " + cp); \
+    if (mess.find(field) == mess.end()){  \
+      ERROR_MESS(string("worker::receiveHandler error mess.find ") + field + " from: " + cp); \
       return;  \
     }
 #else
@@ -96,7 +96,7 @@ void Executor::receiveHandler(const string& remcp, const string& data)
       if (iPrc != m_procs.end()){
         switch (mtype){
           case ZM_Base::MessType::TASK_PAUSE:    iPrc->pause(); break;
-          case ZM_Base::MessType::TASK_CONTINUE: iPrc->contin(); break;
+          case ZM_Base::MessType::TASK_CONTINUE: iPrc->continueTask(); break;
           case ZM_Base::MessType::TASK_STOP:     iPrc->stop(); break;
           default:{
             ERROR_MESS("worker::receiveHandler wrong command: " + mess[ZM_Link::command]);

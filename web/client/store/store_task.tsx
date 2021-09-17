@@ -19,6 +19,9 @@ class TaskStoreClass {
   setAll(tsk : Array<ITask>){
     this.m_tasks = tsk;
   } 
+  get(id : number) : ITask {    
+    return this.m_tasks.find((t)=>t.id == id);
+  }
   
   isEqual(one : ITask, two : ITask) : boolean{
     return (one.state == two.state) &&

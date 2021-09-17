@@ -169,7 +169,7 @@ void Process::pause(){
     m_executor.addErrMess(m_err);
   }
 }
-void Process::contin(){
+void Process::continueTask(){
   if (kill(m_pid, SIGCONT) == -1){
     m_err = "worker::Process error continue: " + string(strerror(errno));
     m_app.statusMess(m_err);
@@ -178,9 +178,14 @@ void Process::contin(){
 }
 void Process::stopByTimeout(){
   m_err = "Stopping by timeout";
-  stop();
+  if (kill(m_pid, SIGTERM) == -1) {
+      m_err = "worker::Process error stop: " + string(strerror(errno));
+      m_app.statusMess(m_err);
+      m_executor.addErrMess(m_err);
+  }
 }
 void Process::stop(){
+  m_err = "Stopping by command from user";
   if (kill(m_pid, SIGTERM) == -1){
     m_err = "worker::Process error stop: " + string(strerror(errno));
     m_app.statusMess(m_err);
@@ -373,16 +378,33 @@ void Process::setTaskState(ZM_Base::StateType st){
 }
 
 void Process::pause(){
-    // TODO  
+  if (SuspendThread(m_hThread) == DWORD(-1)){
+    m_err = "worker::Process error pause: " + getLastErrorStr();
+    m_app.statusMess(m_err);
+    m_executor.addErrMess(m_err);
+  }
+  else {
+      m_executor.addMessForSchedr(Executor::MessForSchedr{ m_task.id, ZM_Base::MessType::TASK_PAUSE });
+      setTaskState(ZM_Base::StateType::PAUSE);
+  }
 }
-void Process::contin(){
-    // TODO 
+void Process::continueTask(){
+  if (ResumeThread(m_hThread) == DWORD(-1)){
+    m_err = "worker::Process error continue: " + getLastErrorStr();
+    m_app.statusMess(m_err);
+    m_executor.addErrMess(m_err);
+  }
+  else {
+      m_executor.addMessForSchedr(Executor::MessForSchedr{ m_task.id, ZM_Base::MessType::TASK_CONTINUE });
+      setTaskState(ZM_Base::StateType::RUNNING);
+  }
 }
 void Process::stopByTimeout(){
   m_err = "Stopping by timeout";
-  stop();
+  TerminateProcess(m_hProcess, -1);
 }
 void Process::stop(){
+  m_err = "Stopping by command from user";
   TerminateProcess(m_hProcess, -1);
 }
 

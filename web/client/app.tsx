@@ -104,7 +104,7 @@ class App extends React.Component<IProps, IState>{
       const isPrev = pplTaskId == this.m_pplTaskId;
       this.m_pplTaskId = pplTaskId;
       ServerAPI.getTaskState(pplTaskId, isPrev, (states : Array<ITask>)=>{
-        if (states.length)
+        if (states.length || !isPrev)
           Tasks.setAll(states); 
         this.m_toutTaskUpdate = setTimeout(this.updateTaskState, 1000);
       },      

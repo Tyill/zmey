@@ -31,9 +31,10 @@ namespace ZM_DB{
 bool DbProvider::getWorkerByTask(uint64_t tId, ZM_Base::Worker& wcng){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
-  ss << "SELECT wkr.id, wkr.connPnt "
+  ss << "SELECT wkr.id, tcp.ipAddr, tcp.port "
         "FROM tblTaskQueue tq "
         "JOIN tblWorker wkr ON wkr.id = tq.worker "
+        "JOIN tblConnectPnt tcp ON tcp.id = wkr.connPnt "
         "WHERE tq.id = " << tId << ";";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
@@ -46,7 +47,7 @@ bool DbProvider::getWorkerByTask(uint64_t tId, ZM_Base::Worker& wcng){
     return false;
   }
   wcng.id = stoull(PQgetvalue(pgr.res, 0, 0));
-  wcng.connectPnt = PQgetvalue(pgr.res, 0, 1);
+  wcng.connectPnt = PQgetvalue(pgr.res, 0, 1) + string(":") + PQgetvalue(pgr.res, 0, 2);
 
   return true;
 }

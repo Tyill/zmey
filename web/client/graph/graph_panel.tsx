@@ -130,12 +130,14 @@ class GraphPanel extends React.Component<IProps, IState>{
     }
    
     if (e.nativeEvent.which === 3){
-      this.setState({mouseCursor: "move"});
+      if (this.state.mouseCursor != "move")
+        this.setState({mouseCursor: "move"});
       this.m_containerRef.parentElement.scrollLeft += e.nativeEvent.movementX;
       this.m_containerRef.parentElement.scrollTop += e.nativeEvent.movementY;
     } 
     else{
-      this.setState({mouseCursor: "auto"});
+      if (this.state.mouseCursor != "auto")
+        this.setState({mouseCursor: "auto"});
     }   
   }
 

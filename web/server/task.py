@@ -49,6 +49,15 @@ def start(db, userId, iot : Task) -> bool:
       print("{0} local db query failed: {1}".format("Task.start", str(err)))
   return False
 
+def continueTask(id : int) -> bool:
+  return True if zmConn and zmConn.continueTask(id) else False
+
+def pause(id : int) -> bool:
+  return True if zmConn and zmConn.pauseTask(id) else False
+
+def stop(id : int) -> bool:
+  return True if zmConn and zmConn.stopTask(id) else False
+
 def get(db, id : int) -> Task:
   try:
     task = None

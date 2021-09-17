@@ -35,17 +35,17 @@ using namespace std;
 
 #ifdef DEBUG
   #define checkFieldNum(field) \
-    if (mess.find(#field) == mess.end()){ \
-      ERROR_MESS(string("schedr::sendNotifyHandler Error mess.find ") + #field + " from: " + cp, wId); \
+    if (mess.find(field) == mess.end()){ \
+      ERROR_MESS(string("schedr::sendNotifyHandler Error mess.find ") + field + " from: " + cp, wId); \
       return;  \
     } \
-    if (!ZM_Aux::isNumber(mess[#field])){ \
-      ERROR_MESS("schedr::sendNotifyHandler Error !ZM_Aux::isNumber " + mess[#field] + " from: " + cp, wId); \
+    if (!ZM_Aux::isNumber(mess[field])){ \
+      ERROR_MESS("schedr::sendNotifyHandler Error !ZM_Aux::isNumber " + mess[field] + " from: " + cp, wId); \
       return; \
     }
   #define checkField(field) \
-    if (mess.find(#field) == mess.end()){  \
-      ERROR_MESS(string("schedr::sendNotifyHandler Error mess.find ") + #field + " from: " + cp, wId);  \
+    if (mess.find(field) == mess.end()){  \
+      ERROR_MESS(string("schedr::sendNotifyHandler Error mess.find ") + field + " from: " + cp, wId);  \
       return;  \
     }
 #else
