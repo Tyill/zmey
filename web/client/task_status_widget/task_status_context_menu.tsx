@@ -52,8 +52,8 @@ class TaskStatusContextMenu extends React.Component<IProps, IState>{
   
     let task = Tasks.get(this.props.id);
     
-    const left = task ? this.props.mpos.x : 0;
-    const top = task ? this.props.mpos.y : 0;
+    const left = task ? this.props.mpos.x + 10: 0;
+    const top = task ? this.props.mpos.y - 10: 0;
    
     return (
       task && ((task.state == StateType.RUNNING) || (task.state == StateType.PAUSE)) ? 

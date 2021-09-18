@@ -30,6 +30,7 @@ class GraphPanel extends React.Component<IProps, IState>{
   private m_containerRef : HTMLDivElement;
   private m_mouseStartMem : {x : number, y : number};
   private m_pplId : number;
+  private m_pplTaskId : number;
   private m_taskCountMem : number;
 
   constructor(props : IProps){
@@ -38,6 +39,7 @@ class GraphPanel extends React.Component<IProps, IState>{
     this.m_containerRef = null; 
     this.m_mouseStartMem = {x : 0, y : 0};
     this.m_pplId = 0;
+    this.m_pplTaskId = 0;
     this.m_taskCountMem = 0;
 
     this.state = {socketCaptured : {id : 0, type : SocketType.Input},
@@ -47,6 +49,7 @@ class GraphPanel extends React.Component<IProps, IState>{
     this.getCanvasContext = this.getCanvasContext.bind(this);
     this.drawLine = this.drawLine.bind(this);
     this.drawAll = this.drawAll.bind(this);
+    this.moveTaskOnCenter = this.moveTaskOnCenter.bind(this);
     this.hTaskMove = this.hTaskMove.bind(this);
     this.hTaskSelect = this.hTaskSelect.bind(this);
     this.hMouseUp = this.hMouseUp.bind(this);
@@ -106,10 +109,17 @@ class GraphPanel extends React.Component<IProps, IState>{
 
       this.setState({socketCaptured : {id : 0, type : SocketType.Input}});
     }   
+    if (this.state.mouseCursor != "auto")
+      this.setState({mouseCursor: "auto"});
   }
 
   hMouseDown(e: React.MouseEvent<HTMLElement>){
    
+    if (e.nativeEvent.which === 3){
+      if (this.state.mouseCursor != "move")
+        this.setState({mouseCursor: "move"});
+    }
+
     if (this.state.contextMenuTaskId != 0)
       this.setState({contextMenuTaskId : 0});
   }
@@ -130,8 +140,6 @@ class GraphPanel extends React.Component<IProps, IState>{
     }
    
     if (e.nativeEvent.which === 3){
-      if (this.state.mouseCursor != "move")
-        this.setState({mouseCursor: "move"});
       this.m_containerRef.parentElement.scrollLeft += e.nativeEvent.movementX;
       this.m_containerRef.parentElement.scrollTop += e.nativeEvent.movementY;
     } 
@@ -147,6 +155,7 @@ class GraphPanel extends React.Component<IProps, IState>{
   }
 
   hTaskSelect(id : number){
+    this.m_pplTaskId = id;
 
     for (let t of PipelineTasks.getAll().values()){
       if (t.setts.isSelected && (t.id != id)){
@@ -160,6 +169,8 @@ class GraphPanel extends React.Component<IProps, IState>{
       ServerAPI.changePipelineTask(task);
     }
   }
+
+
 
   hShowContextMenu(id : number){
 
@@ -198,6 +209,19 @@ class GraphPanel extends React.Component<IProps, IState>{
     ctx.stroke();
   }
 
+  moveTaskOnCenter(){
+    const selTasks = PipelineTasks.getSelected(this.m_pplId);
+    if (selTasks.length){
+      if (selTasks[0].id != this.m_pplTaskId){
+        this.m_pplTaskId = selTasks[0].id;
+        const leftOffs = this.m_containerRef.parentElement.getBoundingClientRect().width /2;
+        const topOffs = this.m_containerRef.parentElement.getBoundingClientRect().height /2;
+        this.m_containerRef.parentElement.scrollLeft = selTasks[0].setts.positionX - leftOffs;
+        this.m_containerRef.parentElement.scrollTop = selTasks[0].setts.positionY - topOffs;
+      }
+    }
+  }
+
   render(){  
    
     const Tasks = observer(() => {
@@ -213,6 +237,8 @@ class GraphPanel extends React.Component<IProps, IState>{
         this.drawAll(this.getCanvasContext());
       } 
     
+      this.moveTaskOnCenter();
+      
       if (this.m_taskCountMem != PipelineTasks.getByPPlId(this.m_pplId).length){
         this.m_taskCountMem = PipelineTasks.getByPPlId(this.m_pplId).length;
         this.drawAll(this.getCanvasContext());
