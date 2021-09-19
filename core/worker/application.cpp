@@ -45,7 +45,8 @@ bool Application::parseArgs(int argc, char* argv[], Config& outCng){
          << "       --remoteAddr[-ra] worker remote connection point (if from NAT): IP or DNS:port. Optional\n"
          << "       --schedrAddr[-sa] schedr remote connection point: IP or DNS:port. Required\n"
          << "       --progressTasksTOutSec[-pt] send progress of tasks to schedr, sec. Default 10 sec\n"
-         << "       --pingSchedrTOutSec[-st] send ping to schedr, sec. Default 20 sec\n";
+         << "       --pingSchedrTOutSec[-st] send ping to schedr, sec. Default 20 sec\n"
+         << "       --dirForTempFiles[-dt] directory for temp files. Default '/tmp/zmey/' for linux, './' for win\n";
     return false;  
   }
 
@@ -60,6 +61,7 @@ bool Application::parseArgs(int argc, char* argv[], Config& outCng){
   SET_PARAM(la, localAddr, localConnPnt); 
   SET_PARAM(ra, remoteAddr, remoteConnPnt);
   SET_PARAM(sa, schedrAddr, schedrConnPnt);
+  SET_PARAM(dt, dirForTempFiles, dirForTempFiles);
 
 #define SET_PARAM_NUM(shortName, longName, prm)                                           \
   if (sprms.find(#longName) != sprms.end() && ZM_Aux::isNumber(sprms[#longName])){        \
@@ -71,6 +73,8 @@ bool Application::parseArgs(int argc, char* argv[], Config& outCng){
 
   SET_PARAM_NUM(pt, progressTasksTOutSec, progressTasksTOutSec);
   SET_PARAM_NUM(st, pingSchedrTOutSec, pingSchedrTOutSec);
+
+  m_cng = outCng;
 
   return true;
 }

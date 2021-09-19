@@ -177,7 +177,7 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
                     ref={(input) => {this.m_refObj["conditionStartNext" + id] = input }} 
                     type="text"                     
                     title="Сondition for starting"
-                    placeholder="task.result == 'ok'" 
+                    placeholder="t.result == 'ok'" 
                     defaultValue={task.conditionStartNext[ix]} />
             <input className="m-2 p-0 align-self-center" 
                     ref={(input) => {this.m_refObj["isStartNext" + id] = input }}

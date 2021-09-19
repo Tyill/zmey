@@ -32,10 +32,11 @@ public:
   struct Config{
     int progressTasksTOutSec = 10;
     int pingSchedrTOutSec = 20; 
-    const int checkLoadTOutSec = 1; 
+    int checkLoadTOutSec = 1; 
     std::string localConnPnt;
     std::string remoteConnPnt;
     std::string schedrConnPnt;
+    std::string dirForTempFiles;
   };  
 
   enum Signals{
@@ -46,12 +47,17 @@ public:
 
   static void loopNotify();
   static void loopStop();
- 
+  
   void statusMess(const std::string& mess);
 
   bool parseArgs(int argc, char* argv[], Config& outCng); 
       
+  Config getConfig() const{
+    return m_cng;
+  }
+
 private:
   std::mutex m_mtxStatusMess; 
-  
+  Config m_cng;
+ 
 };

@@ -26,10 +26,10 @@
 
 using namespace std;
 
-void Executor::getPrevTaskFromDB(ZM_DB::DbProvider& db, uint64_t wId)
+void Executor::getPrevTaskFromDB(ZM_DB::DbProvider& db)
 {
   vector<ZM_Base::Task> tasks;
-  if (db.getTasksOfSchedr(m_schedr.id, wId, tasks)){
+  if (db.getTasksOfSchedr(m_schedr.id, tasks)){
     for(auto& t : tasks){
       m_tasks.push(move(t));
     }

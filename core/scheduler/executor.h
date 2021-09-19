@@ -48,7 +48,7 @@ public:
   void sendAllMessToDB(ZM_DB::DbProvider& db);
   bool sendTaskToWorker();
   void checkStatusWorkers(ZM_DB::DbProvider& db);
-  void getPrevTaskFromDB(ZM_DB::DbProvider& db, uint64_t wId = 0);
+  void getPrevTaskFromDB(ZM_DB::DbProvider& db);
   void getPrevWorkersFromDB(ZM_DB::DbProvider& db);
   void pingToDB();
   void stopSchedr(ZM_DB::DbProvider& db);  

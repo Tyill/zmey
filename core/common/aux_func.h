@@ -50,6 +50,8 @@ uint64_t currDateTimeSinceEpochMs();
 
 bool isNumber(const std::string& s);
 
+bool createSubDirectory(const std::string& strDirs);
+
 void sleepMs(uint64_t ms);      
 
 std::string trim(std::string str);

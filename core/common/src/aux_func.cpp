@@ -34,6 +34,9 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#else
+#include <sys/types.h>
+#include <sys/stat.h>
 #endif
 
 using namespace std;
@@ -143,11 +146,37 @@ parseCMDArgs(int argc, char* argv[]){
     if (sp != std::string::npos){
       sprms[ZM_Aux::trim(arg.substr(0, sp))] = ZM_Aux::trim(arg.substr(sp + 1));
     }else{
-      sprms[ZM_Aux::trim(arg)] = "";
+      sprms[arg] = "";
     }
   }
   return sprms;
 }
+
+bool isFileExist(const std::string &name) {
+  ifstream f(name.c_str());
+  return f.good();
+}
+
+bool createSubDirectory(const string& strDirs) {
+    if (isFileExist(strDirs)) return true;
+
+    int sz = int(strDirs.size()), ret = 0;
+    string strTmp = "";
+    for (int i = 0; i < sz; ++i) {
+      char ch = strDirs[i];
+      if (ch != '\\' && ch != '/') strTmp += ch;
+      else {
+#if defined(_WIN32)
+        strTmp += "\\";
+        ret = CreateDirectoryA(strTmp.c_str(), NULL);
+#else
+        strTmp += "/";
+        ret = mkdir(strTmp.c_str(), 0733);
+#endif
+      }
+    }
+    return ret == 0;
+  }
 
 void sleepMs(uint64_t ms){
   std::this_thread::sleep_for(std::chrono::milliseconds(ms));

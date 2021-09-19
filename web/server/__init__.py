@@ -2,26 +2,32 @@ from flask import(
   Flask, Blueprint, render_template
 )
 import os
+import configparser
 
 def create_app():
   app = Flask(__name__, instance_relative_config=True, 
                         static_url_path='', 
                         static_folder='static',
                         template_folder='html') 
+
+  config = configparser.ConfigParser()
+  iniPath = 'zmserver.cng'
+  if len(config.read(iniPath)) == 0:
+    raise RuntimeError(f"Not found '{iniPath}'")
   
   app.config['SECRET_KEY'] = os.urandom(16)
-  app.config['DbConnectStr'] = 'host=localhost port=5432 password=123 dbname=zmeydb connect_timeout=10'
-  app.config['PostgreLibPath'] = 'c:/Program Files/PostgreSQL/10/bin/'
-  app.config['CoreLibPath'] = 'c:/cpp/other/zmey/build/Release/'
+  dbConnectStr = config['Params']['DbConnectStr']
+  postgreLibPath = config['Params']['PostgreLibPath']
+  coreLibPath = config['Params']['CoreLibPath']
   
-  os.add_dll_directory(app.config['PostgreLibPath'])
-  os.add_dll_directory(app.config['CoreLibPath'])
+  os.add_dll_directory(postgreLibPath)
+  os.add_dll_directory(coreLibPath)
     
   from . import user
   user.init(app.instance_path) 
 
   from . import core
-  core.init(app.config['DbConnectStr'])
+  core.init(dbConnectStr)
 
   from . import events_process
   events_process.init(app.instance_path)
