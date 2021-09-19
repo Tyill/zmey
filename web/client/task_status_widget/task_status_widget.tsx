@@ -12,6 +12,7 @@ interface IProps {
 interface IState { 
   selTaskId : number;
   mpos : IPoint;
+  updateAfterFilter : boolean;
 };
 
 export default
@@ -23,7 +24,7 @@ class TaskStatusWidget extends React.Component<IProps, IState>{
   private m_hasNew = false;
   private m_hasHideContextMenu = false;
   private m_hasShowContextMenu = false;
-  private m_hasFilterCheckbox : boolean;
+  private m_hasFilterCheckbox = false;
   private m_table : HTMLTableElement;
 
   constructor(props : IProps){
@@ -33,7 +34,7 @@ class TaskStatusWidget extends React.Component<IProps, IState>{
     this.hHideContextMenu = this.hHideContextMenu.bind(this);
     this.m_refObj = {};
 
-    this.state = {selTaskId : 0, mpos : {x:0,y:0}};   
+    this.state = {selTaskId : 0, mpos : {x:0,y:0}, updateAfterFilter : false};   
   }
 
   shouldComponentUpdate(){
@@ -80,8 +81,12 @@ class TaskStatusWidget extends React.Component<IProps, IState>{
         }
       }
 
-      if (this.m_hasNew || this.m_hasFilterCheckbox){
+      if (this.m_hasNew)
         this.m_tasks = newTasks;
+
+      if (this.m_hasNew || this.m_hasFilterCheckbox){
+
+        this.m_hasFilterCheckbox = false;
         
         this.m_tasksWidget = [];
         const onlyRunning = this.m_refObj["onlyRunningTasks"].checked;
@@ -126,9 +131,7 @@ class TaskStatusWidget extends React.Component<IProps, IState>{
       this.m_hasHideContextMenu = false;
     else
       this.m_hasShowContextMenu = false;
-
-    this.m_hasFilterCheckbox = false;
-
+    
     const TaskName = observer(() => {
       const selPplTask = PipelineTasks.get(Tasks.getPplTaskId());    
       return <a style={{color:"gray"}}>{ selPplTask ? selPplTask.name : "" }</a>        
@@ -142,21 +145,30 @@ class TaskStatusWidget extends React.Component<IProps, IState>{
                     <input className="ml-2 p-0" 
                       ref={(input) => {this.m_refObj["onlyRunningTasks"] = input }}
                       type="checkbox"
-                      onChange={()=>this.m_hasFilterCheckbox = true}  
+                      onChange={()=>{
+                        this.m_hasFilterCheckbox = true;
+                        this.setState({updateAfterFilter : true});
+                      }}  
                       title="Show only running tasks"/>
                   </p>
                   <p className="m-0 p-0" >completed
                     <input className="ml-2 p-0" 
                       ref={(input) => {this.m_refObj["onlyCompletedTasks"] = input }}
                       type="checkbox"    
-                      onChange={()=>this.m_hasFilterCheckbox = true}                 
+                      onChange={()=>{
+                        this.m_hasFilterCheckbox = true;
+                        this.setState({updateAfterFilter : true});
+                      }}                
                       title="Show only completed tasks"/>  
                   </p>   
                   <p className="m-0 p-0" >error
                     <input className="ml-2 p-0" 
                       ref={(input) => {this.m_refObj["onlyErrorTasks"] = input }}
                       type="checkbox"        
-                      onChange={()=>this.m_hasFilterCheckbox = true}               
+                      onChange={()=>{
+                        this.m_hasFilterCheckbox = true;
+                        this.setState({updateAfterFilter : true});
+                      }}              
                       title="Show only error tasks"/>  
                   </p>     
                 </div>                    

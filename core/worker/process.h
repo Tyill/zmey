@@ -49,6 +49,7 @@ public:
   void stop();
   void stopByTimeout();   
   bool getResult(std::string&);
+  bool clearTmpFiles();
   std::string getErrorStr() const {
       return m_err;
   }

@@ -58,14 +58,17 @@ int main(int argc, char* argv[]){
   CHECK_RETURN(cng.localConnPnt.empty() || (ZM_Aux::split(cng.localConnPnt, ':').size() != 2), "Not set param '--localAddr[-la]' - worker local connection point: IP or DNS:port");
   CHECK_RETURN(cng.remoteConnPnt.empty() || (ZM_Aux::split(cng.remoteConnPnt, ':').size() != 2), "Not set param '--remoteAddr[-ra]' - worker remote connection point: IP or DNS:port");
   CHECK_RETURN(cng.schedrConnPnt.empty() || (ZM_Aux::split(cng.schedrConnPnt, ':').size() != 2), "Not set param '--schedrAddr[-sa]' - scheduler connection point: IP or DNS:port");
-    
+  
   signal(SIGTERM, closeHandler);
-
 #ifdef __linux__
   signal(SIGPIPE, SIG_IGN);
   signal(SIGCHLD, loopNotify);
   signal(SIGHUP, closeHandler);
   signal(SIGQUIT, closeHandler);
+
+  if (cng.dirForTempFiles.empty()) 
+    cng.dirForTempFiles = "/tmp/zmey/";
+  CHECK_RETURN(mkdir(cng.dirForTempFiles.c_str(), 0733) == -1,  "Not create dir " + cng.dirForTempFiles + " for temp files");
 #endif
 
   Executor executor(app, cng.remoteConnPnt);

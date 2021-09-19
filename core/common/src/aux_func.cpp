@@ -143,7 +143,7 @@ parseCMDArgs(int argc, char* argv[]){
     if (sp != std::string::npos){
       sprms[ZM_Aux::trim(arg.substr(0, sp))] = ZM_Aux::trim(arg.substr(sp + 1));
     }else{
-      sprms[ZM_Aux::trim(arg)] = "";
+      sprms[arg] = "";
     }
   }
   return sprms;
