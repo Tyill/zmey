@@ -45,10 +45,11 @@ public:
   bool checkMaxRunTime();
   void setTaskState(ZM_Base::StateType);
   void pause();
-  void contin();
-  void stop();  
+  void continueTask();
+  void stop();
   void stopByTimeout();   
   bool getResult(std::string&);
+  bool clearTmpFiles();
   std::string getErrorStr() const {
       return m_err;
   }

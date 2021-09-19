@@ -25,16 +25,17 @@
 #include "worker/executor.h"
 #include "common/tcp.h"
 #include "common/serial.h"
+#include "base/link.h"
 
 using namespace std;
 
 void Executor::pingToSchedr(const std::string& schedrConnPnt){
   m_worker.activeTask = (int)m_newTasks.size() + (int)m_procs.size();
   map<string, string> data{
-    {"command", to_string((int)ZM_Base::MessType::PING_WORKER)},
-    {"connectPnt", m_worker.connectPnt},
-    {"activeTask", to_string(m_worker.activeTask)},
-    {"load", to_string(m_worker.load)}
+    {ZM_Link::command, to_string((int)ZM_Base::MessType::PING_WORKER)},
+    {ZM_Link::connectPnt, m_worker.connectPnt},
+    {ZM_Link::activeTask, to_string(m_worker.activeTask)},
+    {ZM_Link::load, to_string(m_worker.load)}
   };      
   ZM_Tcp::asyncSendData(schedrConnPnt, ZM_Aux::serialn(data));
 }

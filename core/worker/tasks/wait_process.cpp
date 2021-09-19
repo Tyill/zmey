@@ -64,6 +64,8 @@ void Executor::waitProcess()
             
       string result;
       bool isRes = itPrc->getResult(result); 
+      
+      itPrc->clearTmpFiles();
           
       ZM_Base::MessType mt = ZM_Base::MessType::TASK_COMPLETED;
       ZM_Base::StateType st = ZM_Base::StateType::COMPLETED;
@@ -141,6 +143,8 @@ void Executor::waitProcess()
 
     std::string result;
     status = p.getResult(result) ? 0 : -1;
+    
+    p.clearTmpFiles();
 
     ZM_Base::MessType mt = status == 0 ? ZM_Base::MessType::TASK_COMPLETED : ZM_Base::MessType::TASK_ERROR;
     ZM_Base::StateType st = status == 0 ? ZM_Base::StateType::COMPLETED : ZM_Base::StateType::ERRORT;

@@ -27,6 +27,24 @@ def startTask():
     print(f'/tasks POST {request.get_json(silent=True)} failed: %s' % str(err))
     return ('bad request', 400)
 
+@bp.route('/tasks/<int:id>', methods=(['PUT']))
+@auth.loginRequired
+def changeTask(id : int):
+  try:
+    
+    if ('continue' in request.args): 
+      return ('ok', 200) if t.continueTask(id) else ('bad request', 400)  
+    elif ('pause' in request.args): 
+      return ('ok', 200) if t.pause(id) else ('bad request', 400)  
+    elif ('stop' in request.args): 
+      return ('ok', 200) if t.stop(id) else ('bad request', 400)  
+    else:
+      return ('bad request', 400)  
+
+  except Exception as err:
+    print(f'/tasks/{id} PUT failed: %s' % str(err))
+    return ('bad request', 400)
+
 @bp.route('/tasks/<int:pplTaskid>', methods=(['GET']))
 @auth.loginRequired
 def getTaskState(pplTaskid : int):

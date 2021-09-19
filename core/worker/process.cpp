@@ -60,14 +60,16 @@ Process::Process(Application& app, Executor& exr, const ZM_Base::Task& tsk):
                 if (fd == -1){ \
                   perror(err); \
                   _exit(127);  \
-                }    
-      string scriptFile = "/tmp/" + to_string(tsk.id) + ".sh";
+                }  
+     
+      const string& tempDir = m_app.getConfig().dirForTempFiles;
+      string scriptFile = tempDir + to_string(tsk.id) + ".sh";
       int fdSct = open(scriptFile.c_str(), O_CREAT | O_TRUNC | O_WRONLY, S_IRUSR | S_IWUSR | S_IXUSR);
       CHECK(fdSct, "create");
       CHECK(write(fdSct, tsk.script.data(), tsk.script.size()), "write");
       CHECK(close(fdSct), "close");
       
-      string resultFile = "/tmp/" + to_string(tsk.id) + ".res";
+      string resultFile = tempDir + to_string(tsk.id) + ".res";
       int fdRes = open(resultFile.c_str(), O_CREAT | O_TRUNC | O_RDWR, S_IRUSR | S_IWUSR);
       CHECK(fdRes, "create");
       CHECK(dup2(fdRes, 1), "dup2(fdRes, 1)");// stdout -> fdRes
@@ -116,7 +118,7 @@ bool Process::getResult(string& result){
     m_app.statusMess(m_err); \
     m_executor.addErrMess(m_err);
 
-  string resultFile = "/tmp/" + to_string(m_task.id) + ".res";
+  string resultFile = m_app.getConfig().dirForTempFiles + to_string(m_task.id) + ".res";
   bool isOk = true;       
   int fdRes = open(resultFile.c_str(), O_RDONLY);
   if (fdRes >= 0){
@@ -141,15 +143,22 @@ bool Process::getResult(string& result){
     result = m_err;
     isOk = false;
   }
-
+  return isOk;
+}
+bool Process::clearTmpFiles(){
+  bool ok = true;
+  const string& tempDir = m_app.getConfig().dirForTempFiles;
+  string resultFile = tempDir + to_string(m_task.id) + ".res";
   if (remove(resultFile.c_str()) == -1){
     ERROR_MESS("worker::Process::getResult error remove " + resultFile + ": " + string(strerror(errno)));
+    ok = false;
   }
-  string scriptFile = "/tmp/" + to_string(m_task.id) + ".sh";
+  string scriptFile = tempDir + to_string(m_task.id) + ".sh";
   if (remove(scriptFile.c_str()) == -1){
     ERROR_MESS("worker::Process::getResult error remove " + scriptFile + ": " + string(strerror(errno)));
+    ok = false;
   }    
-  return isOk;
+  return ok;
 }
 bool Process::checkMaxRunTime(){
   if (!m_isPause){
@@ -169,7 +178,7 @@ void Process::pause(){
     m_executor.addErrMess(m_err);
   }
 }
-void Process::contin(){
+void Process::continueTask(){
   if (kill(m_pid, SIGCONT) == -1){
     m_err = "worker::Process error continue: " + string(strerror(errno));
     m_app.statusMess(m_err);
@@ -178,9 +187,14 @@ void Process::contin(){
 }
 void Process::stopByTimeout(){
   m_err = "Stopping by timeout";
-  stop();
+  if (kill(m_pid, SIGTERM) == -1) {
+      m_err = "worker::Process error stop: " + string(strerror(errno));
+      m_app.statusMess(m_err);
+      m_executor.addErrMess(m_err);
+  }
 }
 void Process::stop(){
+  m_err = "Stopping by command from user";
   if (kill(m_pid, SIGTERM) == -1){
     m_err = "worker::Process error stop: " + string(strerror(errno));
     m_app.statusMess(m_err);
@@ -323,7 +337,7 @@ bool Process::getResult(std::string& result){
     m_executor.addErrMess(m_err);
     
   bool isOk = true;
-  std::string resultFile = std::to_string(m_task.id) + ".res";
+  std::string resultFile = m_app.getConfig().dirForTempFiles + std::to_string(m_task.id) + ".res";
   std::ifstream ifs(resultFile, std::ifstream::in);
   if (ifs.good()){      
     ifs.seekg(0, std::ios::end);   
@@ -343,22 +357,23 @@ bool Process::getResult(std::string& result){
     result = m_err;
     isOk = false;
   }
-
-  int toutMs = 0, 
-      maxDelayMs = 1000; 
-  while ((remove(resultFile.c_str()) == -1) && (toutMs < maxDelayMs)){
-    toutMs += 10;
-    ZM_Aux::sleepMs(10);
-  }   
-   
-  if (toutMs == maxDelayMs){
+  
+  return isOk; 
+}
+bool Process::clearTmpFiles(){  
+  bool ok = true;
+  std::string& tempDir = m_app.getConfig().dirForTempFiles;
+  std::string resultFile = tempDir + std::to_string(m_task.id) + ".res";
+  if (remove(resultFile.c_str()) == -1){
     ERROR_MESS("worker::Process::getResult error remove " + resultFile + ": " + getLastErrorStr());    
+    ok = false;
   }
-  std::string scriptFile = std::to_string(m_task.id) + ".bat";
+  std::string scriptFile = tempDir + std::to_string(m_task.id) + ".bat";
   if (remove(scriptFile.c_str()) == -1){
     ERROR_MESS("worker::Process::getResult error remove " + scriptFile + ": " + getLastErrorStr());
+    ok = false;
   }  
-  return isOk; 
+  return ok;
 }
 bool Process::checkMaxRunTime(){
   if (!m_isPause){
@@ -373,16 +388,33 @@ void Process::setTaskState(ZM_Base::StateType st){
 }
 
 void Process::pause(){
-    // TODO  
+  if (SuspendThread(m_hThread) == DWORD(-1)){
+    m_err = "worker::Process error pause: " + getLastErrorStr();
+    m_app.statusMess(m_err);
+    m_executor.addErrMess(m_err);
+  }
+  else {
+      m_executor.addMessForSchedr(Executor::MessForSchedr{ m_task.id, ZM_Base::MessType::TASK_PAUSE });
+      setTaskState(ZM_Base::StateType::PAUSE);
+  }
 }
-void Process::contin(){
-    // TODO 
+void Process::continueTask(){
+  if (ResumeThread(m_hThread) == DWORD(-1)){
+    m_err = "worker::Process error continue: " + getLastErrorStr();
+    m_app.statusMess(m_err);
+    m_executor.addErrMess(m_err);
+  }
+  else {
+      m_executor.addMessForSchedr(Executor::MessForSchedr{ m_task.id, ZM_Base::MessType::TASK_CONTINUE });
+      setTaskState(ZM_Base::StateType::RUNNING);
+  }
 }
 void Process::stopByTimeout(){
   m_err = "Stopping by timeout";
-  stop();
+  TerminateProcess(m_hProcess, -1);
 }
 void Process::stop(){
+  m_err = "Stopping by command from user";
   TerminateProcess(m_hProcess, -1);
 }
 

@@ -25,6 +25,7 @@
 #include "worker/executor.h"
 #include "common/tcp.h"
 #include "common/serial.h"
+#include "base/link.h"
 
 using namespace std;
 
@@ -34,9 +35,9 @@ void Executor::errorToSchedr(const std::string& schedrConnPnt)
   bool isSendOk = true;
   while(isSendOk && m_errMess.tryPop(mess)){
     map<string, string> data{
-      {"command", to_string((int)ZM_Base::MessType::INTERN_ERROR)},
-      {"connectPnt", m_worker.connectPnt},
-      {"message",  ZM_Aux::replace(mess, "'", "''")}
+      {ZM_Link::command, to_string((int)ZM_Base::MessType::INTERN_ERROR)},
+      {ZM_Link::connectPnt, m_worker.connectPnt},
+      {ZM_Link::message,  ZM_Aux::replace(mess, "'", "''")}
     };      
     isSendOk = ZM_Tcp::asyncSendData(schedrConnPnt, ZM_Aux::serialn(data));
   }

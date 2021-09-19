@@ -26,6 +26,7 @@
 #include "scheduler/executor.h"
 #include "common/serial.h"
 #include "common/json.h"
+#include "base/link.h"
 
 using namespace std;
 
@@ -35,17 +36,17 @@ using namespace std;
 
 #ifdef DEBUG
   #define checkFieldNum(field) \
-    if (mess.find(#field) == mess.end()){ \
-      ERROR_MESS(string("schedr::receiveHandler error mess.find ") + #field + " from: " + cp, wId); \
+    if (mess.find(field) == mess.end()){ \
+      ERROR_MESS(string("schedr::receiveHandler error mess.find ") + field + " from: " + cp, wId); \
       return;  \
     } \
-    if (!ZM_Aux::isNumber(mess[#field])){ \
-      ERROR_MESS(string("schedr::receiveHandler error !ZM_Aux::isNumber ") + #field + " " + mess[#field] + " from: " + cp, wId); \
+    if (!ZM_Aux::isNumber(mess[field])){ \
+      ERROR_MESS(string("schedr::receiveHandler error !ZM_Aux::isNumber ") + field + " " + mess[field] + " from: " + cp, wId); \
       return; \
     }
   #define checkField(field) \
-    if (mess.find(#field) == mess.end()){  \
-      ERROR_MESS(string("schedr::receiveHandler error mess.find ") + #field + " from: " + cp, wId);  \
+    if (mess.find(field) == mess.end()){  \
+      ERROR_MESS(string("schedr::receiveHandler error mess.find ") + field + " from: " + cp, wId);  \
       return;  \
     }
 #else
@@ -63,11 +64,11 @@ void Executor::receiveHandler(const string& remcp, const string& data)
 
   uint64_t wId = 0;
   string cp = remcp;
-  checkFieldNum(command);
-  checkField(connectPnt);
+  checkFieldNum(ZM_Link::command);
+  checkField(ZM_Link::connectPnt);
        
-  cp = mess["connectPnt"];
-  ZM_Base::MessType mtype = ZM_Base::MessType(stoi(mess["command"]));
+  cp = mess[ZM_Link::connectPnt];
+  ZM_Base::MessType mtype = ZM_Base::MessType(stoi(mess[ZM_Link::command]));
   
   // from worker
   if(m_workers.find(cp) != m_workers.end()){
@@ -80,13 +81,13 @@ void Executor::receiveHandler(const string& remcp, const string& data)
       case ZM_Base::MessType::TASK_PAUSE:
       case ZM_Base::MessType::TASK_CONTINUE:
       case ZM_Base::MessType::TASK_STOP:{
-        checkFieldNum(taskId);        
-        checkFieldNum(load);
-        checkFieldNum(activeTask);
-        checkField(taskResult);     
-        worker.base.activeTask = stoi(mess["activeTask"]);
-        worker.base.load = stoi(mess["load"]);
-        uint64_t tid = stoull(mess["taskId"]); 
+        checkFieldNum(ZM_Link::taskId);        
+        checkFieldNum(ZM_Link::load);
+        checkFieldNum(ZM_Link::activeTask);
+        checkField(ZM_Link::taskResult);     
+        worker.base.activeTask = stoi(mess[ZM_Link::activeTask]);
+        worker.base.load = stoi(mess[ZM_Link::load]);
+        uint64_t tid = stoull(mess[ZM_Link::taskId]); 
         bool taskExist = false;       
         for(auto& t : worker.taskList){
           if (t == tid){
@@ -97,53 +98,61 @@ void Executor::receiveHandler(const string& remcp, const string& data)
             }
             break;
           }
-        }      
-        if (mtype == ZM_Base::MessType::TASK_RUNNING){
-          if (taskExist)
-            m_messToDB.push(ZM_DB::MessSchedr(mtype, wId, tid));         
-        }
-        else{ // wId = 0 для ускорения вставки в БД 
-          m_messToDB.push(ZM_DB::MessSchedr(mtype, !taskExist ? wId : 0, tid, mess["taskResult"]));            
+        }   
+        if (taskExist){   
+          m_messToDB.push(ZM_DB::MessSchedr(mtype, wId, tid, mess[ZM_Link::taskResult]));            
         }
         break;
       }        
       case ZM_Base::MessType::TASK_PROGRESS:{
-        checkField(tasks);
+        checkField(ZM_Link::tasks);
         Json::Reader readerJs;
         Json::Value obj;
-        readerJs.parse(mess["tasks"], obj); 
+        readerJs.parse(mess[ZM_Link::tasks], obj); 
 
-        if (obj.isObject() && obj.isMember("tasks") && obj["tasks"].isArray()){
-          Json::Value takskJs = obj["tasks"];
+        if (obj.isObject() && obj.isMember(ZM_Link::tasks) && obj[ZM_Link::tasks].isArray()){
+          Json::Value takskJs = obj[ZM_Link::tasks];
           for (const auto& t : takskJs){
-            if (t.isMember("taskId") && t["taskId"].isUInt64() &&
-                t.isMember("progress") && t["progress"].isString()){
-              m_messToDB.push(ZM_DB::MessSchedr(mtype, wId, t["taskId"].asUInt64(), t["progress"].asString()));
+            if (t.isMember(ZM_Link::taskId) && t[ZM_Link::taskId].isUInt64() &&
+                t.isMember(ZM_Link::progress) && t[ZM_Link::progress].isString()){
+              
+              if (find_if(worker.taskList.begin(), worker.taskList.end(), [t](uint64_t tId){
+                return tId == t[ZM_Link::taskId].asUInt64();
+              }) != worker.taskList.end())
+                m_messToDB.push(ZM_DB::MessSchedr(mtype, wId, t[ZM_Link::taskId].asUInt64(), t[ZM_Link::progress].asString()));
             }
           }
         }
         break;
       }
       case ZM_Base::MessType::JUST_START_WORKER:
-      case ZM_Base::MessType::STOP_WORKER:
-        m_messToDB.push(ZM_DB::MessSchedr(mtype, wId));        
-        for(auto& t : worker.taskList)
-          t = 0;
-        getPrevTaskFromDB(m_db, wId);
+      case ZM_Base::MessType::STOP_WORKER:{
+          m_messToDB.push(ZM_DB::MessSchedr(mtype, wId));        
+          vector<ZM_Base::Task> tasks;
+          if (m_db.getTasksById(m_schedr.id, worker.taskList, tasks)){
+            for(auto& t : tasks){
+              m_tasks.push(move(t));
+            }
+          }else{
+            m_app.statusMess("getTasksById db error: " + m_db.getLastError());
+          }
+          for(auto& t : worker.taskList)
+            t = 0;
+        }
         break;
       case ZM_Base::MessType::INTERN_ERROR:
-        checkField(message);
-        ERROR_MESS(mess["message"], wId);
+        checkField(ZM_Link::message);
+        m_messToDB.push(ZM_DB::MessSchedr::errorMess(wId, mess[ZM_Link::message]));
         break;
       case ZM_Base::MessType::PING_WORKER:
-        checkFieldNum(load);
-        checkFieldNum(activeTask);
-        worker.base.activeTask = stoi(mess["activeTask"]);
-        worker.base.load = stoi(mess["load"]);
-        m_messToDB.push(ZM_DB::MessSchedr(mtype, wId, 0, mess["activeTask"] + '\t' + mess["load"]));
+        checkFieldNum(ZM_Link::load);
+        checkFieldNum(ZM_Link::activeTask);
+        worker.base.activeTask = stoi(mess[ZM_Link::activeTask]);
+        worker.base.load = stoi(mess[ZM_Link::load]);
+        m_messToDB.push(ZM_DB::MessSchedr(mtype, wId, 0, mess[ZM_Link::activeTask] + '\t' + mess[ZM_Link::load]));
         break;
       default:
-        ERROR_MESS("schedr::receiveHandler unknown command from worker: " + mess["command"], wId);
+        ERROR_MESS("schedr::receiveHandler unknown command from worker: " + mess[ZM_Link::command], wId);
         break;
     }
 
@@ -189,9 +198,9 @@ void Executor::receiveHandler(const string& remcp, const string& data)
         m_schedr.state = ZM_Base::StateType::RUNNING;
         break;
       case ZM_Base::MessType::PAUSE_WORKER:{
-        checkField(workerConnPnt);
-        if (mess.count("workerConnPnt")){ 
-          auto& worker = m_workers[mess["workerConnPnt"]];
+        checkField(ZM_Link::workerConnPnt);
+        if (mess.count(ZM_Link::workerConnPnt)){ 
+          auto& worker = m_workers[mess[ZM_Link::workerConnPnt]];
           if ((worker.base.state != ZM_Base::StateType::NOT_RESPONDING) &&
               (worker.base.state != ZM_Base::StateType::STOP)){
             if (worker.base.state != ZM_Base::StateType::PAUSE){
@@ -201,9 +210,9 @@ void Executor::receiveHandler(const string& remcp, const string& data)
         }}}
         break;
       case ZM_Base::MessType::START_AFTER_PAUSE_WORKER:{
-        checkField(workerConnPnt);
-        if (mess.count("workerConnPnt")){ 
-          auto& worker = m_workers[mess["workerConnPnt"]]; 
+        checkField(ZM_Link::workerConnPnt);
+        if (mess.count(ZM_Link::workerConnPnt)){ 
+          auto& worker = m_workers[mess[ZM_Link::workerConnPnt]]; 
           if ((worker.base.state != ZM_Base::StateType::NOT_RESPONDING) &&
               (worker.base.state != ZM_Base::StateType::STOP)){
             if (worker.base.state != ZM_Base::StateType::RUNNING){
@@ -213,7 +222,7 @@ void Executor::receiveHandler(const string& remcp, const string& data)
         }}} 
         break;
       default:
-        ERROR_MESS("schedr::receiveHandler wrong command: " + mess["command"], 0);
+        ERROR_MESS("schedr::receiveHandler unknown worker: " + cp, 0);
         break;
     }
   }

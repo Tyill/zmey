@@ -46,11 +46,17 @@ void Executor::checkStatusWorkers(ZM_DB::DbProvider& db)
         m_messToDB.push(ZM_DB::MessSchedr::errorMess(w->base.id, "schedr::checkStatusWorkers worker not responding"));          
         w->stateMem = w->base.state;
         w->base.state = ZM_Base::StateType::NOT_RESPONDING;
-
+        
+        vector<ZM_Base::Task> tasks;
+        if (m_db.getTasksById(m_schedr.id, w->taskList, tasks)){
+          for(auto& t : tasks){
+            m_tasks.push(move(t));
+          }
+        }else{
+          m_app.statusMess("getTasksById db error: " + m_db.getLastError());
+        }        
         for(auto& t : w->taskList)
           t = 0;
-        
-        getPrevTaskFromDB(db, w->base.id);
       } 
     }
   }else{
