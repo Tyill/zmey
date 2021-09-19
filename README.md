@@ -5,7 +5,7 @@
 The Zmey software for schedule and monitor workflows.
 
 <p float="left">
-<img src="https://github.com/Tyill/zmey/blob/ver_1_0_docs/docs/demo.gif" width="600" height="400"/>
+<img src="https://github.com/Tyill/zmey/blob/ver_1_0_docs/docs/demo.gif" width="800" height="400"/>
 </p>
 
 ## Features
