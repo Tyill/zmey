@@ -32,7 +32,7 @@
 
 #include "common/aux_func.h"
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <windows.h>
 #else
 #include <sys/types.h>
