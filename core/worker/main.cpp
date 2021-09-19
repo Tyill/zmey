@@ -68,8 +68,10 @@ int main(int argc, char* argv[]){
 
   if (cng.dirForTempFiles.empty()) 
     cng.dirForTempFiles = "/tmp/zmey/";
-  CHECK_RETURN(mkdir(cng.dirForTempFiles.c_str(), 0733) == -1,  "Not create dir " + cng.dirForTempFiles + " for temp files");
 #endif
+  
+  if (!cng.dirForTempFiles.empty())
+    CHECK_RETURN(!ZM_Aux::createSubDirectory(cng.dirForTempFiles), "Not create dir " + cng.dirForTempFiles + " for temp files");
 
   Executor executor(app, cng.remoteConnPnt);
  

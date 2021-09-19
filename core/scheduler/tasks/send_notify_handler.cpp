@@ -58,7 +58,7 @@ void Executor::sendNotifyHandler(const string& cp, const string& data, const std
   // error from worker
   auto mess = ZM_Aux::deserialn(data);
   uint64_t wId = 0;
-  checkFieldNum(command);
+  checkFieldNum(ZM_Link::command);
   
   if (ec && (m_workers.find(cp) != m_workers.end())){
     auto& worker = m_workers[cp];

@@ -105,7 +105,7 @@ void Executor::receiveHandler(const string& remcp, const string& data)
         break;
       }        
       case ZM_Base::MessType::TASK_PROGRESS:{
-        checkField(tasks);
+        checkField(ZM_Link::tasks);
         Json::Reader readerJs;
         Json::Value obj;
         readerJs.parse(mess[ZM_Link::tasks], obj); 

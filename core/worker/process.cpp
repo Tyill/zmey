@@ -62,7 +62,7 @@ Process::Process(Application& app, Executor& exr, const ZM_Base::Task& tsk):
                   _exit(127);  \
                 }  
      
-      string& tempDir = m_app.getConfig().dirForTempFiles;
+      const string& tempDir = m_app.getConfig().dirForTempFiles;
       string scriptFile = tempDir + to_string(tsk.id) + ".sh";
       int fdSct = open(scriptFile.c_str(), O_CREAT | O_TRUNC | O_WRONLY, S_IRUSR | S_IWUSR | S_IXUSR);
       CHECK(fdSct, "create");
@@ -147,7 +147,7 @@ bool Process::getResult(string& result){
 }
 bool Process::clearTmpFiles(){
   bool ok = true;
-  string& tempDir = m_app.getConfig().dirForTempFiles;
+  const string& tempDir = m_app.getConfig().dirForTempFiles;
   string resultFile = tempDir + to_string(m_task.id) + ".res";
   if (remove(resultFile.c_str()) == -1){
     ERROR_MESS("worker::Process::getResult error remove " + resultFile + ": " + string(strerror(errno)));
