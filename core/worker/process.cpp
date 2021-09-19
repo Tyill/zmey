@@ -413,6 +413,10 @@ void Process::stopByTimeout(){
   m_err = "Stopping by timeout";
   TerminateProcess(m_hProcess, -1);
 }
+void Process::stopByTimeout(){
+  m_err = "Stopping by timeout";
+  stop();
+}
 void Process::stop(){
   m_err = "Stopping by command from user";
   TerminateProcess(m_hProcess, -1);
