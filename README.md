@@ -9,6 +9,21 @@ The Zmey software for schedule and monitor workflows.
 <img src="docs/demo.gif" width="600" height="350"/>
 </p>
 
+## Features
+
+* Multi-user system, each user has his own independent task pool
+* Run multiple tasks in parallel on multiple machines
+* Linking tasks into chains and graphs for sequential execution
+* Automatic transmission of the task execution result for the following tasks
+* Automatic start of tasks by time (cyclically or at a specific time)
+* Minimum launch delay of a task ready to start (within the time of the database operation and network delay)
+* Quick deployment of the system:
+  * Installing schedulers and executors on working machines from standard packages (deb, rpm), or docker image;
+  * Installing a web server using pip (python package manager)
+* Unlimited (logically) number of workers and users of the system
+* Simple and intuitive user interface
+* MIT Licensed
+
 ## Architecture 
 <p float="left">
  <img src="docs/functional_scheme.png" 
@@ -26,21 +41,6 @@ The web server is built on the Flask micro-framework. <br/>
 A local SQLite database is created for each user to store the state of the interface. <br/>
 <br/>
 The web client is React application, Mobx is used for control of state, Boostrap design.
-
-## Features
-
-* Multi-user system, each user has his own independent task pool
-* Run multiple tasks in parallel on multiple machines
-* Linking tasks into chains and graphs for sequential execution
-* Automatic transmission of the task execution result for the following tasks
-* Automatic start of tasks by time (cyclically or at a specific time)
-* Minimum launch delay of a task ready to start (within the time of the database operation and network delay)
-* Quick deployment of the system:
-  * Installing schedulers and executors on working machines from standard packages (deb, rpm), or docker image;
-  * Installing a web server using pip (python package manager)
-* Unlimited (logically) number of workers and users of the system
-* Simple and intuitive user interface
-* MIT Licensed
 
 ## How usage
  - install [PostgreSQL](https://www.postgresql.org/download/) and create DB
