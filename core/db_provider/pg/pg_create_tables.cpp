@@ -183,9 +183,9 @@ bool DbProvider::createTables(){
   /// INDEXES
   ss.str(""); 
   ss << "CREATE INDEX IF NOT EXISTS inxTSState ON tblTaskState(state);";
-  ss << "CREATE INDEX IF NOT EXISTS inxTQSchedr ON tblTaskQueue(schedr);";
-  ss << "CREATE INDEX IF NOT EXISTS inxTQWorker ON tblTaskQueue(worker);";
-  ss << "CREATE INDEX IF NOT EXISTS inxTQTaskTempl ON tblTaskQueue(taskTempl);";
+//   ss << "CREATE INDEX IF NOT EXISTS inxTQSchedr ON tblTaskQueue(schedr);";  not needed yet
+//   ss << "CREATE INDEX IF NOT EXISTS inxTQWorker ON tblTaskQueue(worker);";
+//   ss << "CREATE INDEX IF NOT EXISTS inxTQTaskTempl ON tblTaskQueue(taskTempl);";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
       
   ///////////////////////////////////////////////////////////////////////////
