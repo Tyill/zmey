@@ -69,7 +69,8 @@ private:
   ZM_Aux::Queue<ZM_Base::Task> m_newTasks;
   ZM_Aux::Queue<std::string> m_errMess;
   std::list<Process> m_procs;
-  std::mutex m_mtxProcess;
+  std::mutex m_mtxProcess;  
+  std::vector<std::string> m_tmpFiles; // on win32 is not deleted immediately
   
   ZM_Aux::CounterTick m_ctickSendNotify;
 };

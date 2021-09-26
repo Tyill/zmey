@@ -145,19 +145,19 @@ bool Process::getResult(string& result){
   }
   return isOk;
 }
-bool Process::clearTmpFiles(){
+bool Process::clearTmpFiles(std::vector<std::string>& ioBuffFiles){
   bool ok = true;
   const string& tempDir = m_app.getConfig().dirForTempFiles;
-  string resultFile = tempDir + to_string(m_task.id) + ".res";
-  if (remove(resultFile.c_str()) == -1){
-    ERROR_MESS("worker::Process::getResult error remove " + resultFile + ": " + string(strerror(errno)));
-    ok = false;
+  
+  ioBuffFiles.push_back(tempDir + std::to_string(m_task.id) + ".res");
+  ioBuffFiles.push_back(tempDir + std::to_string(m_task.id) + ".sh");
+  
+  for (auto it = ioBuffFiles.begin(); it != ioBuffFiles.end();){
+    if (remove(it->c_str()) == 0){
+      it = ioBuffFiles.erase(it);
+    }
+    else ++it;
   }
-  string scriptFile = tempDir + to_string(m_task.id) + ".sh";
-  if (remove(scriptFile.c_str()) == -1){
-    ERROR_MESS("worker::Process::getResult error remove " + scriptFile + ": " + string(strerror(errno)));
-    ok = false;
-  }    
   return ok;
 }
 bool Process::checkMaxRunTime(){
@@ -360,19 +360,19 @@ bool Process::getResult(std::string& result){
   
   return isOk; 
 }
-bool Process::clearTmpFiles(){  
+bool Process::clearTmpFiles(std::vector<std::string>& ioBuffFiles){  
   bool ok = true;
   std::string& tempDir = m_app.getConfig().dirForTempFiles;
-  std::string resultFile = tempDir + std::to_string(m_task.id) + ".res";
-  if (remove(resultFile.c_str()) == -1){
-    ERROR_MESS("worker::Process::getResult error remove " + resultFile + ": " + getLastErrorStr());    
-    ok = false;
+  
+  ioBuffFiles.push_back(tempDir + std::to_string(m_task.id) + ".res");
+  ioBuffFiles.push_back(tempDir + std::to_string(m_task.id) + ".bat");
+  
+  for (auto it = ioBuffFiles.begin(); it != ioBuffFiles.end();){
+    if (remove(it->c_str()) == 0){
+      it = ioBuffFiles.erase(it);
+    }
+    else ++it;
   }
-  std::string scriptFile = tempDir + std::to_string(m_task.id) + ".bat";
-  if (remove(scriptFile.c_str()) == -1){
-    ERROR_MESS("worker::Process::getResult error remove " + scriptFile + ": " + getLastErrorStr());
-    ok = false;
-  }  
   return ok;
 }
 bool Process::checkMaxRunTime(){
@@ -412,10 +412,6 @@ void Process::continueTask(){
 void Process::stopByTimeout(){
   m_err = "Stopping by timeout";
   TerminateProcess(m_hProcess, -1);
-}
-void Process::stopByTimeout(){
-  m_err = "Stopping by timeout";
-  stop();
 }
 void Process::stop(){
   m_err = "Stopping by command from user";
