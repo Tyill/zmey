@@ -49,7 +49,7 @@ public:
   void stop();
   void stopByTimeout();   
   bool getResult(std::string&);
-  bool clearTmpFiles();
+  bool clearTmpFiles(std::vector<std::string>& ioBuffFiles);
   std::string getErrorStr() const {
       return m_err;
   }
