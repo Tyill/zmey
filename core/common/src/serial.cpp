@@ -27,6 +27,7 @@
 #include <vector>
 #include <numeric>
 #include <cstring>
+#include <string>
 
 using namespace std;
 
