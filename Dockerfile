@@ -4,7 +4,7 @@ FROM ubuntu:18.04
 RUN apt-get update               && \
     apt-get -y install build-essential git cmake 
 
-RUN apt-get -y install libpq-dev
+RUN apt-get -y install libpq-dev postgresql-server-dev-10
 
 ARG CACHEBUST=1
 

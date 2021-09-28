@@ -10,7 +10,6 @@ if (UNIX)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 endif(UNIX)
 
-set(PostgreSQL_ADDITIONAL_VERSIONS "10")
 find_package(PostgreSQL REQUIRED)
 
 target_include_directories(db_provider PRIVATE ${PostgreSQL_INCLUDE_DIRS})
