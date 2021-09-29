@@ -17,7 +17,9 @@ def create_app():
   
   app.config['SECRET_KEY'] = os.urandom(16)
   dbConnectStr = config['Params']['DbConnectStr']
-  postgreLibPath = config['Params']['PostgreLibPath'] if os.name == 'nt' else ''
+  postgreLibPath = ''
+  if os.name == 'nt':
+    postgreLibPath = config['Params']['PostgreLibPath']
   coreLibPath = config['Params']['CoreLibPath']
   
   if os.name == 'nt':

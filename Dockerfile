@@ -8,7 +8,7 @@ RUN apt-get update                                                      && \
 RUN pip3 install flask
 
 # build core
-RUN git  clone https://github.com/Tyill/zmey.git
+RUN git clone https://github.com/Tyill/zmey.git
 WORKDIR /zmey/build
 RUN git checkout ver_1_0
 RUN cmake -B . -S ../core -DCMAKE_BUILD_TYPE=Release && cmake --build .
