@@ -1,20 +1,23 @@
 FROM ubuntu:18.04
 
-RUN apt-get update               && \
-    apt-get -y install build-essential git cmake 
+RUN apt-get update                                                      && \
+    apt-get -y install build-essential git cmake python3.8 python3-pip  && \
+    apt-get -y install libpq-dev postgresql-server-dev-10               && \ 
+    apt-get clean
 
-RUN apt-get -y install libpq-dev postgresql-server-dev-10
+RUN pip3 install flask
 
-ARG CACHEBUST=1
-
+# build core
 RUN git clone https://github.com/Tyill/zmey.git
-
 WORKDIR /zmey/build
+RUN cmake -B . -S ../core -DCMAKE_BUILD_TYPE=Release && cmake --build .
 
-RUN cmake -B . -S ../core -DCMAKE_BUILD_TYPE=Release && cmake --build . --config Release
+# prepare flask app
+ENV FLASK_APP=/zmey/web/server
+ENV LC_ALL=C.UTF-8
+ENV LANG=C.UTF-8
+RUN printf "[Params]\n \
+DbConnectStr=host=0.0.0.0 port=5432 password=123 dbname=zmeydb connect_timeout=10\n \
+CoreLibPath=/zmey/build/Release\n" > /zmey/zmserver.cng
 
-WORKDIR /zmey/build/Release
-
-CMD ["./zmscheduler"]
-
-
+WORKDIR /zmey
