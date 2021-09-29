@@ -20,8 +20,11 @@ def create_app():
   postgreLibPath = config['Params']['PostgreLibPath'] if os.name == 'nt' else ''
   coreLibPath = config['Params']['CoreLibPath']
   
-  os.add_dll_directory(postgreLibPath)
-  os.add_dll_directory(coreLibPath)
+  if os.name == 'nt':
+    os.add_dll_directory(postgreLibPath)
+    os.add_dll_directory(coreLibPath)
+  else:
+    os.environ['PATH'] = coreLibPath + os.pathsep + os.environ['PATH']
     
   from . import user
   user.init(app.instance_path) 
