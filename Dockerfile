@@ -8,7 +8,7 @@ RUN apt-get update                                                      && \
 RUN pip3 install flask
 
 # build core
-RUN git clone https://github.com/Tyill/zmey.git
+RUN git clone https://github.com/Tyill/zmey.git   
 WORKDIR /zmey/build
 RUN git checkout ver_1_0
 RUN cmake -B . -S ../core -DCMAKE_BUILD_TYPE=Release && cmake --build .
@@ -17,8 +17,9 @@ RUN cmake -B . -S ../core -DCMAKE_BUILD_TYPE=Release && cmake --build .
 ENV FLASK_APP=/zmey/web/server
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
+ENV LD_LIBRARY_PATH=/zmey/build/Release
 RUN printf "[Params]\n \
-DbConnectStr=host=0.0.0.0 port=5432 password=123 dbname=zmeydb connect_timeout=10\n \
-CoreLibPath=/zmey/build/Release\n" > /zmey/zmserver.cng
+DbConnectStr=host=192.168.0.104 port=5432 user=Alexander password=123 dbname=zmeydb connect_timeout=10" \
+> /zmey/zmserver.cng
 
 WORKDIR /zmey
