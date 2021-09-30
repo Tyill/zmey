@@ -42,18 +42,42 @@ A local SQLite database is created for each user to store the state of the inter
 The web client is React application, Mobx is used for control of state, Boostrap design.
 
 ## How usage
- - install [PostgreSQL](https://www.postgresql.org/download/) and create DB
- - install Web server: `pip install zmeyweb`
- - run web server (on debug Flask for example): `set FLASK_APP=./server&& flask run --no-reload`, <br/> usage [config file](https://github.com/Tyill/zmey/blob/master/web/zmserver.cng) with params:
-   - `DbConnectStr` - connection string for DB PostgreSQL
-   - `PostgreLibPath` - path to lib `libpq.dll` (actual for Windows)
-   - `CoreLibPath` - path to client lib `zmclient.dll`
- - open the page in the browser `http://127.0.0.1:5000/`
- - go to admin page, to do this, set a username `admin` and password `password`
- - append `sheduler` and `worker` process
- - run `scheduler` and `worker` process (pre-build for [Win](https://github.com/Tyill/zmey/tree/master/pre-build/win64) and for [Linux](https://github.com/Tyill/zmey/tree/master/pre-build/deb))
- - go to login page, create user and log on
- 
+
+ - in the Dockerfile you need to change the connection string to the postgres database, where I have: "DbConnectStr = host=192.168.0.104 port=5432 user=alm password=123 dbname=zmeydb", you specify your connection string. Any empty database will do, no tables need to be created.
+
+ - create the image:
+ docker build . -t zmcore
+
+ - create the subnet:
+ docker network create --subnet=172.18.0.0/16 zmnet
+
+ - start the web server:
+ docker container run -it --rm --net zmnet --ip 172.18.0.2 -p 5000:5000 zmcore flask run --host 0.0.0.0
+
+ - on the host machine in the browser, open the page 172.22.0.1:5000/ (172.22.0.1 is the gateway address for the docker for me, your address may be different) and go to the admin panel, you need to set: login 'admin', password 'p@ssw0rd'(the password is hardcoded in the code). Add a scheduler and a worker, it should look like this:
+<p float="left">
+ <img src="docs/admin.png" 
+  width="800" height="500" alt="lorem">
+</p>
+
+ - then launch the scheduler:
+ docker container run -it --rm --net zmnet --ip 172.18.0.3  -p 4440:4440 zmcore build/Release/zmscheduler -la=172.18.0.3:4440 -db="host=192.168.0.104 port=5432 user=alm password=123 dbname=zmeydb"
+ Here the argument -la = 172.18.0.3: 4440 is the container address and port, we specified it when creating the scheduler in the admin panel, -db is the database connection string (you must have your own).
+
+ - then launch the worker:
+ docker container run -it --rm --net zmnet --ip 172.18.0.4 -p 4450:4450 zmcore build/Release/zmworker -la=172.18.0.4:4450 -sa=172.18.0.3:4440
+ Here the argument -la = 172.18.0.4: 4450 is the address of the container and the port, we specified it when creating the worker in the admin panel, -sa = 172.18.0.3: 4440 is the address of the container sheduler.
+
+ - then on the host machine in the browser go to the registration page 172.22.0.1:5000/auth/register, create any user, then log in from him.
+
+ As a result, the main page of the application should open:
+
+ <p float="left">
+ <img src="docs/main_page.png" 
+  width="800" height="500" alt="lorem">
+</p>
+
+You can also install a web server from pip: `pip install zmeyweb`
 
 ## [Docs (on development stage)](https://tyill.github.io/zmey) 
 
