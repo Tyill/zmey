@@ -25,7 +25,7 @@ def init(instance_path):
   m_instance_path = instance_path
   if not os.path.exists(instance_path + '/users/users.ini'):
     os.makedirs(instance_path + '/users', exist_ok = True) 
-    addp(0, 'admin', 'password', instance_path)
+    addp(0, 'admin', 'p@ssw0rd', instance_path)
 
 def calcHash(passw, salt):  
   return hashlib.sha256(salt.encode() + passw.encode()).hexdigest()

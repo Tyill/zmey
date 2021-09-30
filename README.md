@@ -16,7 +16,6 @@ The Zmey software for schedule and monitor workflows.
 * Linking tasks into chains and graphs for sequential execution
 * Automatic transmission of the task execution result for the following tasks
 * Automatic start of tasks by time (cyclically or at a specific time)
-* Minimum launch delay of a task ready to start (within the time of the database operation and network delay)
 * Quick deployment of the system:
   * Installing schedulers and executors on working machines from standard packages (deb, rpm), or docker image;
   * Installing a web server using pip (python package manager)

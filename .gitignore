@@ -5,6 +5,6 @@ pyenv
 node_modules
 instance
 npm-debug.log
-bundle.js
+web/client/js/bundle.js
 web/debug.py
 docs/concept_

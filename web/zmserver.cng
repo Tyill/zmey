@@ -1,4 +1,0 @@
-[Params]
-DbConnectStr = host=localhost port=5432 password=123 dbname=zmeydb connect_timeout=10
-PostgreLibPath = c:/Program Files/PostgreSQL/10/bin/
-CoreLibPath = c:/cpp/other/zmey/build/Release/
