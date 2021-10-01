@@ -3,6 +3,11 @@ import os
 import sys
 import time
 import subprocess
+import numpy as np
+
+import matplotlib
+matplotlib.use('tkagg')
+import matplotlib.pyplot as plot
 
 import clearDB
 
@@ -48,8 +53,10 @@ for i in range(sCnt):
                                     '-sa=localhost:' + str(4440 + i),
                                     '-la=localhost:' + str(4450 + i * wCnt + j)]))
 
+taskStat = []
 taskCnt = 1000
-for i in range(1000):
+batch = 1000
+for i in range(batch):
   # start tasks
   tasks = []
   tmStartTasks = time.time()   
@@ -71,6 +78,7 @@ for i in range(1000):
         complCnt += 1
   tmWaitTasks = time.time() - tmWaitTasks
   
+  taskStat.append(round(tmStartTasks + tmWaitTasks, 1))
   print('Complete ', taskCnt * (i + 1), ' tasks:'
    ' tmSumm ', round(tmStartTasks + tmWaitTasks, 1),
    ' tmStartTasks ', round(tmStartTasks, 1),
@@ -82,3 +90,13 @@ for i in range(len(schPrc)):
 
 for i in range(len(wkrPrc)):
   wkrPrc[i].terminate()
+
+# graph
+xp = np.arange(len(taskStat))
+ 
+plot.bar(xp, taskStat, align='center')
+plot.xlabel('taskCount, 1000/1')
+plot.ylabel('time, sec/1000')
+plot.title(f'{sCnt} schedr, {sCnt} * {wCnt} workers, {batch * taskCnt} tasks on one machine')
+
+plot.show()
