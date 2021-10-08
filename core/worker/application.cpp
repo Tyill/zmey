@@ -62,7 +62,7 @@ bool Application::parseArgs(int argc, char* argv[], Config& outCng){
   SET_PARAM(ra, remoteAddr, remoteConnPnt);
   SET_PARAM(sa, schedrAddr, schedrConnPnt);
   SET_PARAM(dt, dirForTempFiles, dirForTempFiles);
-
+  
 #define SET_PARAM_NUM(shortName, longName, prm)                                           \
   if (sprms.find(#longName) != sprms.end() && ZM_Aux::isNumber(sprms[#longName])){        \
     outCng.prm = stoi(sprms[#longName]);                                                  \
@@ -75,7 +75,10 @@ bool Application::parseArgs(int argc, char* argv[], Config& outCng){
   SET_PARAM_NUM(st, pingSchedrTOutSec, pingSchedrTOutSec);
 
   m_cng = outCng;
-
+#ifdef __linux__
+  if (m_cng.dirForTempFiles.empty()) 
+    m_cng.dirForTempFiles = "/tmp/zmey/";
+#endif 
   return true;
 }
 

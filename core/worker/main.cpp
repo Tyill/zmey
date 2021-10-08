@@ -65,9 +65,6 @@ int main(int argc, char* argv[]){
   signal(SIGCHLD, loopNotify);
   signal(SIGHUP, closeHandler);
   signal(SIGQUIT, closeHandler);
-
-  if (cng.dirForTempFiles.empty()) 
-    cng.dirForTempFiles = "/tmp/zmey/";
 #endif
   
   if (!cng.dirForTempFiles.empty())
