@@ -22,6 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+
 #include "application.h"
 #include "common/aux_func.h"
 
@@ -29,24 +30,23 @@
 
 using namespace std;
 
-ZM_Aux::SignalConnector Application::SignalConnector;
+Aux::SignalConnector Application::SignalConnector;
 
 void Application::statusMess(const string& mess){
   lock_guard<mutex> lock(m_mtxStatusMess);
-  cout << ZM_Aux::currDateTimeMs() << " " << mess << std::endl;
+  cout << Aux::currDateTimeMs() << " " << mess << std::endl;
 }
 
 bool Application::parseArgs(int argc, char* argv[], Config& outCng){
   
-  map<string, string> sprms = ZM_Aux::parseCMDArgs(argc, argv);
+  map<string, string> sprms = Aux::parseCMDArgs(argc, argv);
   
   if (sprms.empty() || (sprms.cbegin()->first == "help")){
     cout << "Usage: --localAddr[-la] worker local connection point: IP or DNS:port. Required\n"
          << "       --remoteAddr[-ra] worker remote connection point (if from NAT): IP or DNS:port. Optional\n"
          << "       --schedrAddr[-sa] schedr remote connection point: IP or DNS:port. Required\n"
          << "       --progressTasksTOutSec[-pt] send progress of tasks to schedr, sec. Default 10 sec\n"
-         << "       --pingSchedrTOutSec[-st] send ping to schedr, sec. Default 20 sec\n"
-         << "       --dirForTempFiles[-dt] directory for temp files. Default '/tmp/zmey/' for linux, './' for win\n";
+         << "       --pingSchedrTOutSec[-st] send ping to schedr, sec. Default 20 sec\n";
     return false;  
   }
 
@@ -61,13 +61,12 @@ bool Application::parseArgs(int argc, char* argv[], Config& outCng){
   SET_PARAM(la, localAddr, localConnPnt); 
   SET_PARAM(ra, remoteAddr, remoteConnPnt);
   SET_PARAM(sa, schedrAddr, schedrConnPnt);
-  SET_PARAM(dt, dirForTempFiles, dirForTempFiles);
 
 #define SET_PARAM_NUM(shortName, longName, prm)                                           \
-  if (sprms.find(#longName) != sprms.end() && ZM_Aux::isNumber(sprms[#longName])){        \
+  if (sprms.find(#longName) != sprms.end() && Aux::isNumber(sprms[#longName])){           \
     outCng.prm = stoi(sprms[#longName]);                                                  \
   }                                                                                       \
-  else if (sprms.find(#shortName) != sprms.end() && ZM_Aux::isNumber(sprms[#shortName])){ \
+  else if (sprms.find(#shortName) != sprms.end() && Aux::isNumber(sprms[#shortName])){    \
     outCng.prm = stoi(sprms[#shortName]);                                                 \
   }
 

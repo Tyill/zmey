@@ -22,22 +22,23 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+
 #include "executor.h"
 #include "application.h"
   
-Executor::Executor(Application& app, ZM_DB::DbProvider& db):
+Executor::Executor(Application& app, DB::DbProvider& db):
   m_app(app), m_db(db)
 {
 }
 
-void Executor::addMessToDB(ZM_DB::MessSchedr mess)
+void Executor::addMessToDB(DB::MessSchedr mess)
 {
   m_messToDB.push(std::move(mess));
 }
 
 bool Executor::appendNewTaskAvailable()
 {
-  return (m_schedr.state != ZM_Base::StateType::PAUSE);
+  return (m_schedr.state != Base::StateType::PAUSE);
 }
 
 bool Executor::isTasksEmpty()
@@ -50,12 +51,12 @@ bool Executor::isMessToDBEmpty()
   return m_messToDB.empty();
 }
 
-bool Executor::getSchedrFromDB(const std::string& connPnt, ZM_DB::DbProvider& db)
+bool Executor::getSchedrFromDB(const std::string& connPnt, DB::DbProvider& db)
 {
   return db.getSchedr(connPnt, m_schedr);
 }
 
-bool Executor::listenNewTask(ZM_DB::DbProvider& db, bool on)
+bool Executor::listenNewTask(DB::DbProvider& db, bool on)
 {
   return db.setListenNewTaskNotify(on);
 }

@@ -22,6 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+
 #pragma once
 
 #include "common/signal_connector.h"
@@ -36,14 +37,13 @@ public:
     std::string localConnPnt;
     std::string remoteConnPnt;
     std::string schedrConnPnt;
-    std::string dirForTempFiles;
   };  
 
   enum Signals{
     SIGNAL_LOOP_NOTIFY = 0,
     SIGNAL_LOOP_STOP,
   };
-  static ZM_Aux::SignalConnector SignalConnector;
+  static Aux::SignalConnector SignalConnector;
 
   static void loopNotify();
   static void loopStop();

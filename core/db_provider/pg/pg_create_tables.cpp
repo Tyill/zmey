@@ -27,9 +27,9 @@
 
 using namespace std;
 
-namespace ZM_DB{
+namespace DB{
 
-DbProvider::DbProvider(const ZM_DB::ConnectCng& cng) :
+DbProvider::DbProvider(const DB::ConnectCng& cng) :
   m_impl(new DbProvider::Impl),
   m_connCng(cng){ 
 
@@ -61,13 +61,6 @@ bool DbProvider::createTables(){
   QUERY("SELECT pg_catalog.set_config('search_path', 'public', false)", PGRES_TUPLES_OK);
 
   stringstream ss;
-  ss << "CREATE TABLE IF NOT EXISTS tblConnectPnt("
-        "id           SERIAL PRIMARY KEY,"
-        "ipAddr       TEXT NOT NULL CHECK (ipAddr <> ''),"
-        "port         INT NOT NULL CHECK (port > 0));";
-  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
-    
-  ss.str("");
   ss << "CREATE TABLE IF NOT EXISTS tblState("
         "id           SERIAL PRIMARY KEY,"
         "kind         TEXT NOT NULL CHECK (kind <> ''));";
@@ -75,29 +68,29 @@ bool DbProvider::createTables(){
     
   ss.str("");
   ss << "INSERT INTO tblState VALUES"
-        "(" << (int)ZM_Base::StateType::UNDEFINED << ", 'undefined'),"
-        "(" << (int)ZM_Base::StateType::READY << ", 'ready'),"
-        "(" << (int)ZM_Base::StateType::START << ", 'start'),"
-        "(" << (int)ZM_Base::StateType::RUNNING << ", 'running'),"
-        "(" << (int)ZM_Base::StateType::PAUSE << ", 'pause'),"
-        "(" << (int)ZM_Base::StateType::STOP << ", 'stop'),"
-        "(" << (int)ZM_Base::StateType::COMPLETED << ", 'completed'),"
-        "(" << (int)ZM_Base::StateType::ERRORT << ", 'error'),"
-        "(" << (int)ZM_Base::StateType::CANCEL << ", 'cancel'),"
-        "(" << (int)ZM_Base::StateType::NOT_RESPONDING << ", 'notResponding') ON CONFLICT (id) DO NOTHING;";
+        "(" << (int)Base::StateType::UNDEFINED << ", 'undefined'),"
+        "(" << (int)Base::StateType::READY << ", 'ready'),"
+        "(" << (int)Base::StateType::START << ", 'start'),"
+        "(" << (int)Base::StateType::RUNNING << ", 'running'),"
+        "(" << (int)Base::StateType::PAUSE << ", 'pause'),"
+        "(" << (int)Base::StateType::STOP << ", 'stop'),"
+        "(" << (int)Base::StateType::COMPLETED << ", 'completed'),"
+        "(" << (int)Base::StateType::ERRORT << ", 'error'),"
+        "(" << (int)Base::StateType::CANCEL << ", 'cancel'),"
+        "(" << (int)Base::StateType::NOT_RESPONDING << ", 'notResponding') ON CONFLICT (id) DO NOTHING;";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
   ss << "CREATE TABLE IF NOT EXISTS tblScheduler("
         "id           SERIAL PRIMARY KEY,"
-        "connPnt      INT NOT NULL REFERENCES tblConnectPnt,"
-        "state        INT NOT NULL REFERENCES tblState DEFAULT " << (int)ZM_Base::StateType::STOP << ","
+        "state        INT NOT NULL REFERENCES tblState DEFAULT " << (int)Base::StateType::STOP << ","
         "capacityTask INT NOT NULL DEFAULT 10000 CHECK (capacityTask > 0),"
         "activeTask   INT NOT NULL DEFAULT 0 CHECK (activeTask >= 0),"
         "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1),"
         "startTime    TIMESTAMP NOT NULL DEFAULT current_timestamp,"
         "stopTime     TIMESTAMP NOT NULL DEFAULT current_timestamp,"
         "pingTime     TIMESTAMP NOT NULL DEFAULT current_timestamp,"
+        "connPnt      TEXT NOT NULL,"
         "internalData TEXT NOT NULL DEFAULT '',"
         "name        TEXT NOT NULL DEFAULT '',"
         "description  TEXT NOT NULL DEFAULT '');";
@@ -106,9 +99,8 @@ bool DbProvider::createTables(){
   ss.str("");
   ss << "CREATE TABLE IF NOT EXISTS tblWorker("
         "id           SERIAL PRIMARY KEY,"
-        "connPnt      INT NOT NULL REFERENCES tblConnectPnt,"
         "schedr       INT NOT NULL REFERENCES tblScheduler,"
-        "state        INT NOT NULL REFERENCES tblState DEFAULT " << (int)ZM_Base::StateType::STOP << ","
+        "state        INT NOT NULL REFERENCES tblState DEFAULT " << (int)Base::StateType::STOP << ","
         "capacityTask INT NOT NULL DEFAULT 10 CHECK (capacityTask > 0),"
         "activeTask   INT NOT NULL DEFAULT 0 CHECK (activeTask >= 0),"
         "load         INT NOT NULL DEFAULT 0 CHECK (load BETWEEN 0 AND 100),"
@@ -116,6 +108,7 @@ bool DbProvider::createTables(){
         "startTime    TIMESTAMP NOT NULL DEFAULT current_timestamp,"
         "stopTime     TIMESTAMP NOT NULL DEFAULT current_timestamp,"
         "pingTime     TIMESTAMP NOT NULL DEFAULT current_timestamp,"
+        "connPnt      TEXT NOT NULL,"
         "name         TEXT NOT NULL DEFAULT '',"
         "description  TEXT NOT NULL DEFAULT '');";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
@@ -128,25 +121,10 @@ bool DbProvider::createTables(){
         "createTime   TIMESTAMP NOT NULL DEFAULT current_timestamp,"
         "message      TEXT NOT NULL);";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
- 
-  ss.str("");
-  ss << "CREATE TABLE IF NOT EXISTS tblTaskTemplate("
-        "id           SERIAL PRIMARY KEY,"
-        "usr          INT NOT NULL,"
-        "name         TEXT NOT NULL CHECK (name <> ''),"
-        "description  TEXT NOT NULL,"
-        "script       TEXT NOT NULL CHECK (script <> ''),"
-        "averDurationSec INT NOT NULL CHECK (averDurationSec > 0),"
-        "maxDurationSec  INT NOT NULL CHECK (maxDurationSec > 0),"
-        "schedrPreset INT REFERENCES tblScheduler,"
-        "workerPreset INT REFERENCES tblWorker,"
-        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1));";
-  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
-
+  
   ss.str("");
   ss << "CREATE TABLE IF NOT EXISTS tblTaskQueue("
         "id           SERIAL PRIMARY KEY,"
-        "taskTempl    INT NOT NULL REFERENCES tblTaskTemplate,"      
         "schedr       INT REFERENCES tblScheduler,"
         "worker       INT REFERENCES tblWorker);";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
@@ -169,16 +147,16 @@ bool DbProvider::createTables(){
 
   ss.str("");
   ss << "CREATE TABLE IF NOT EXISTS tblTaskParam("
-        "qtask        INT PRIMARY KEY REFERENCES tblTaskQueue,"        
-        "params       TEXT NOT NULL);";
+        "qtask           INT PRIMARY KEY REFERENCES tblTaskQueue,"
+        "averDurationSec INT NOT NULL CHECK (averDurationSec >= 0),"
+        "maxDurationSec  INT NOT NULL CHECK (maxDurationSec >= 0),"
+        "schedrPreset    INT REFERENCES tblScheduler,"
+        "workerPreset    INT REFERENCES tblWorker," 
+        "params          TEXT NOT NULL,"
+        "scriptPath      TEXT NOT NULL,"
+        "resultPath      TEXT NOT NULL);";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
-
-  ss.str("");
-  ss << "CREATE TABLE IF NOT EXISTS tblTaskResult("
-        "qtask        INT PRIMARY KEY REFERENCES tblTaskQueue,"
-        "result       TEXT NOT NULL);";
-  QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
-    
+     
   ///////////////////////////////////////////////////////////////////////////
   /// INDEXES
   ss.str(""); 
@@ -191,29 +169,32 @@ bool DbProvider::createTables(){
   /// FUNCTIONS
   ss.str("");
   ss << "CREATE OR REPLACE FUNCTION "
-        "funcStartTask(ttlId int, tParams TEXT) "
+        "funcStartTask(averDurationSec int, maxDurationSec int, schedrPreset int, workerPreset int, params TEXT, scriptPath TEXT, resultPath TEXT) "
         "RETURNS int AS $$ "
         "DECLARE "
         "  qId int := 0;"
         "BEGIN"
         
-        "  INSERT INTO tblTaskQueue(taskTempl) "
-        "  VALUES(ttlId) RETURNING id INTO qId;"
+        "  INSERT INTO tblTaskQueue "
+        "  DEFAULT VALUES "
+        "  RETURNING id INTO qId;"
         
         "  INSERT INTO tblTaskTime (qtask) VALUES("
         "    qId);"
 
-        "  INSERT INTO tblTaskParam (qtask, params) VALUES("
+        "  INSERT INTO tblTaskParam (qtask, averDurationSec, maxDurationSec, schedrPreset, workerPreset, params, scriptPath, resultPath) VALUES("
         "    qId,"
-        "    tParams);"
-
-        "  INSERT INTO tblTaskResult (qtask, result) VALUES("
-        "    qId,"
-        "    '');"
-                     
+        "    averDurationSec,"
+        "    maxDurationSec,"
+        "    NULLIF(schedrPreset, 0),"
+        "    NULLIF(workerPreset, 0),"
+        "    params,"
+        "    scriptPath,"
+        "    resultPath);"
+                            
         "  INSERT INTO tblTaskState (qtask, state) VALUES("
         "    qId,"
-        "" << int(ZM_Base::StateType::READY) << ");"
+        "" << int(Base::StateType::READY) << ");"
 
         "  RETURN qId;"
         "END;"
@@ -247,24 +228,24 @@ bool DbProvider::createTables(){
         "funcNewTasksForSchedr(sId int, maxTaskCnt int) "
         "RETURNS TABLE("
         "  qid int,"
-        "  averDurSec int,"
-        "  maxDurSec int,"
         "  workerPreset int,"
-        "  script text,"
-        "  params text) AS $$ "
+        "  averDurSec int,"
+        "  maxDurSec int,"        
+        "  params text,"
+        "  scriptPath text,"        
+        "  resultPath text) AS $$ "
         "DECLARE "
         "  t int;"
         "BEGIN"
-        "  FOR qid, averDurSec, maxDurSec, workerPreset, script, params IN"
-        "    SELECT tq.id, tt.averDurationSec, tt.maxDurationSec, COALESCE(tt.workerPreset, 0),"
-        "           tt.script, tp.params"
-        "    FROM tblTaskTemplate tt "
-        "    JOIN tblTaskQueue tq ON tq.taskTempl = tt.id "
-        "    JOIN tblTaskState ts ON ts.qtask = tq.id "
+        "  FOR qid, workerPreset, averDurSec, maxDurSec, params, scriptPath, resultPath IN"
+        "    SELECT tq.id, COALESCE(tp.workerPreset, 0), tp.averDurationSec, tp.maxDurationSec,"
+        "           tp.params, tp.scriptPath, tp.resultPath"
+        "    FROM tblTaskQueue tq "
         "    JOIN tblTaskParam tp ON tp.qtask = tq.id "
-        "    WHERE ts.state = " << int(ZM_Base::StateType::READY) << ""
+        "    JOIN tblTaskState ts ON ts.qtask = tq.id "
+        "    WHERE ts.state = " << int(Base::StateType::READY) << ""
         "      AND tq.schedr IS NULL "
-        "      AND (tt.schedrPreset IS NULL OR tt.schedrPreset = sId) ORDER BY tq.id"
+        "      AND (tp.schedrPreset IS NULL OR tp.schedrPreset = sId) ORDER BY tq.id"
         "    LIMIT maxTaskCnt "
         "    FOR UPDATE OF tq SKIP LOCKED"
         "  LOOP"
@@ -273,7 +254,7 @@ bool DbProvider::createTables(){
         "    WHERE id = qid;"
         
         "    UPDATE tblTaskState SET"
-        "      state = " << int(ZM_Base::StateType::START) << ""
+        "      state = " << int(Base::StateType::START) << ""
         "    WHERE qtask = qid;"
         
         "    UPDATE tblTaskTime SET"
@@ -282,7 +263,7 @@ bool DbProvider::createTables(){
 
         "    UPDATE tblTaskTime SET"
         "      takeInWorkTime = current_timestamp"
-        "    WHERE qtask = qid AND takeInWorkTime IS NULL;"       
+        "    WHERE qtask = qid;"       
         
         "    RETURN NEXT;"
         "  END LOOP;"

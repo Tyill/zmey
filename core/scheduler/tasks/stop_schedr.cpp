@@ -22,14 +22,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+
 #include "scheduler/executor.h"
 
 using namespace std;
 
-void Executor::stopSchedr(ZM_DB::DbProvider& db)
+void Executor::stopSchedr(DB::DbProvider& db)
 {  
-  ZM_DB::MessSchedr mess;{
-    mess.type = ZM_Base::MessType::STOP_SCHEDR;
+  DB::MessSchedr mess;{
+    mess.type = Base::MessType::STOP_SCHEDR;
   }
   addMessToDB(mess);
   sendAllMessToDB(db);

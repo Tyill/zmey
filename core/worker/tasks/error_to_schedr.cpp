@@ -22,6 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+
 #include "worker/executor.h"
 #include "common/tcp.h"
 #include "common/serial.h"
@@ -35,10 +36,10 @@ void Executor::errorToSchedr(const std::string& schedrConnPnt)
   bool isSendOk = true;
   while(isSendOk && m_errMess.tryPop(mess)){
     map<string, string> data{
-      {ZM_Link::command, to_string((int)ZM_Base::MessType::INTERN_ERROR)},
-      {ZM_Link::connectPnt, m_worker.connectPnt},
-      {ZM_Link::message,  ZM_Aux::replace(mess, "'", "''")}
+      {Link::command, to_string((int)Base::MessType::INTERN_ERROR)},
+      {Link::connectPnt, m_worker.connectPnt},
+      {Link::message,  Aux::replace(mess, "'", "''")}
     };      
-    isSendOk = ZM_Tcp::asyncSendData(schedrConnPnt, ZM_Aux::serialn(data));
+    isSendOk = Tcp::asyncSendData(schedrConnPnt, Aux::serialn(data));
   }
 }

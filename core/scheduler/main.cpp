@@ -22,7 +22,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-
 #include "common/tcp.h"
 #include "application.h"
 #include "executor.h"
@@ -34,7 +33,7 @@ using namespace std;
 
 void closeHandler(int sig);
 
-unique_ptr<ZM_DB::DbProvider> 
+unique_ptr<DB::DbProvider> 
 createDbProvider(const Application::Config& cng, string& err);
 
 #define CHECK_RETURN(fun, mess) \
@@ -56,8 +55,8 @@ int main(int argc, char* argv[])
     cng.remoteConnPnt = cng.localConnPnt;
   } 
 
-  CHECK_RETURN(cng.localConnPnt.empty() || (ZM_Aux::split(cng.localConnPnt, ':').size() != 2), "Not set param '--localAddr[-la]' - scheduler local connection point: IP or DNS:port");
-  CHECK_RETURN(cng.remoteConnPnt.empty() || (ZM_Aux::split(cng.remoteConnPnt, ':').size() != 2), "Not set param '--remoteAddr[-ra]' - scheduler remote connection point: IP or DNS:port");
+  CHECK_RETURN(cng.localConnPnt.empty() || (Aux::split(cng.localConnPnt, ':').size() != 2), "Not set param '--localAddr[-la]' - scheduler local connection point: IP or DNS:port");
+  CHECK_RETURN(cng.remoteConnPnt.empty() || (Aux::split(cng.remoteConnPnt, ':').size() != 2), "Not set param '--remoteAddr[-ra]' - scheduler remote connection point: IP or DNS:port");
   CHECK_RETURN(cng.dbConnCng.connectStr.empty(), "Not set param '--dbConnStr[-db]' - database connection string");
    
   signal(SIGINT, closeHandler);
@@ -85,18 +84,18 @@ int main(int argc, char* argv[])
   executor.listenNewTask(*dbNewTask, true);
    
   // TCP server
-  ZM_Tcp::ReceiveDataCBack receiveDataCB = [&executor](const string& cp, const string& data){
+  Tcp::ReceiveDataCBack receiveDataCB = [&executor](const string& cp, const string& data){
     executor.receiveHandler(cp, data);
   };
-  ZM_Tcp::SendStatusCBack sendStatusCB = [&executor](const string& cp, const string& data, const error_code& ec){
+  Tcp::SendStatusCBack sendStatusCB = [&executor](const string& cp, const string& data, const error_code& ec){
     executor.sendNotifyHandler(cp, data, ec);
   };  
-  CHECK_RETURN(!ZM_Tcp::startServer(cng.localConnPnt, receiveDataCB, sendStatusCB, 0, err), 
+  CHECK_RETURN(!Tcp::startServer(cng.localConnPnt, receiveDataCB, sendStatusCB, 0, err), 
     "Schedr error: " + cng.localConnPnt + " " + err);
   app.statusMess("Schedr running: " + cng.localConnPnt);
   
   // on start
-  executor.addMessToDB(ZM_DB::MessSchedr{ ZM_Base::MessType::START_SCHEDR });
+  executor.addMessToDB(DB::MessSchedr{ Base::MessType::START_SCHEDR });
 
   // loop ///////////////////////////////////////////////////////////////////////
   Loop loop(cng, executor, *dbNewTask, *dbSendMess);
@@ -115,14 +114,14 @@ int main(int argc, char* argv[])
     loop.run();
   }
   catch(exception& e){
-    string mess = "schedr::loop exeption: " + string(e.what());
-    executor.addMessToDB(ZM_DB::MessSchedr::errorMess(0, mess));
+    string mess = "loop exeption: " + string(e.what());
+    executor.addMessToDB(DB::MessSchedr::errorMess(0, mess));
     app.statusMess(mess);  
   }
 
   /////////////////////////////////////////////////////////////////////////
   
-  ZM_Tcp::stopServer();
+  Tcp::stopServer();
   executor.listenNewTask(*dbNewTask, false);
   executor.stopSchedr(*dbSendMess);
 }
@@ -132,10 +131,10 @@ void closeHandler(int sig)
   Application::loopStop();
 }
 
-unique_ptr<ZM_DB::DbProvider> 
+unique_ptr<DB::DbProvider> 
 createDbProvider(const Application::Config& cng, string& err)
 {
-  unique_ptr<ZM_DB::DbProvider> db(new ZM_DB::DbProvider(cng.dbConnCng));
+  unique_ptr<DB::DbProvider> db(new DB::DbProvider(cng.dbConnCng));
   err = db->getLastError();
   if (err.empty()){
     return db;

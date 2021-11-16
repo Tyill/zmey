@@ -93,7 +93,7 @@ bool TcpServer::asyncSendData(const std::string& connPnt, const std::string& dat
   if (!m_sessions.count(connPnt) || !m_sessions[connPnt]->isConnect()){    
     tcp::socket socket(m_ioc);
     asio::error_code ec;
-    auto cp = ZM_Aux::split(connPnt, ':');
+    auto cp = Aux::split(connPnt, ':');
     asio::connect(socket, tcp::resolver(m_ioc).resolve(cp[0], cp[1]), ec);
     if (!ec){ 
       m_sessions[connPnt] = std::make_shared<TcpSession>(*this, connPnt, std::move(socket)); 

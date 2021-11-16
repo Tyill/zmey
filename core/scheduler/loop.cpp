@@ -34,7 +34,7 @@
 
 using namespace std;
  
-Loop::Loop(const Application::Config& cng, Executor& exr, ZM_DB::DbProvider& dbNewTask, ZM_DB::DbProvider& dbSendMess):
+Loop::Loop(const Application::Config& cng, Executor& exr, DB::DbProvider& dbNewTask, DB::DbProvider& dbSendMess):
   m_cng(cng),
   m_executor(exr),
   m_dbNewTask(dbNewTask),
@@ -46,7 +46,7 @@ void Loop::run()
 {
   future<void> frGetNewTask,
                frSendAllMessToDB; 
-  ZM_Aux::TimerDelay timer;
+  Aux::TimerDelay timer;
   const int minCycleTimeMS = 10;
     
   while (!m_fClose){

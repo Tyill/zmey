@@ -22,6 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+
 #include "worker/executor.h"
 #include "common/tcp.h"
 #include "common/serial.h"
@@ -32,11 +33,11 @@ using namespace std;
 void Executor::stopToSchedr(const std::string& schedrConnPnt){
   m_worker.activeTask = (int)m_newTasks.size() + (int)m_procs.size();
   map<string, string> data{
-    {ZM_Link::command, to_string((int)ZM_Base::MessType::STOP_WORKER)},
-    {ZM_Link::connectPnt, m_worker.connectPnt},
-    {ZM_Link::activeTask, to_string(m_worker.activeTask)},
-    {ZM_Link::load, to_string(m_worker.load)}
+    {Link::command, to_string((int)Base::MessType::STOP_WORKER)},
+    {Link::connectPnt, m_worker.connectPnt},
+    {Link::activeTask, to_string(m_worker.activeTask)},
+    {Link::load, to_string(m_worker.load)}
   };      
-  ZM_Tcp::asyncSendData(schedrConnPnt, ZM_Aux::serialn(data));
+  Tcp::asyncSendData(schedrConnPnt, Aux::serialn(data));
 }
 

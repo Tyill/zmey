@@ -266,63 +266,17 @@ ZMEY_API bool zmStateOfWorker(zmConn, uint64_t* wId, uint32_t wCnt, zmWorkerStat
 ZMEY_API uint32_t zmGetAllWorkers(zmConn, uint64_t sId, zmStateType state, uint64_t** outWId);
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Task template 
-
-/// task template config
-struct zmTaskTemplate{
-  uint64_t userId;          ///< user id
-  uint64_t schedrPresetId;  ///< schedr preset id. Default 0
-  uint64_t workerPresetId;  ///< worker preset id. Default 0
-  uint32_t averDurationSec; ///< estimated lead time, sec 
-  uint32_t maxDurationSec;  ///< maximum lead time, sec
-  char name[256];           ///< task template name. Necessarily
-  char* description;        ///< description of task. The memory is allocated by the user. May be NULL
-  char* script;             ///< script on bash, python or cmd. The memory is allocated by the user
-};
-
-/// add new task template
-/// @param[in] zmConn - object connect
-/// @param[in] cng - task template config
-/// @param[out] outTId - new task template id
-/// @return true - ok
-ZMEY_API bool zmAddTaskTemplate(zmConn, zmTaskTemplate cng, uint64_t* outTId);
-
-/// get task template cng
-/// @param[in] zmConn - object connect
-/// @param[in] ttId - task template  id
-/// @param[out] outTCng - task template config. The memory is allocated by the user
-/// @return true - ok
-ZMEY_API bool zmGetTaskTemplate(zmConn, uint64_t ttId, zmTaskTemplate* outTCng);
-
-/// change task template cng
-/// A new record is created for each change, the old one is not deleted.
-/// @param[in] zmConn - object connect
-/// @param[in] ttId - task template  id
-/// @param[in] newTCng - new task template config
-/// @return true - ok
-ZMEY_API bool zmChangeTaskTemplate(zmConn, uint64_t ttId, zmTaskTemplate newTCng);
-
-/// delete task template
-/// The record is marked, but not deleted.
-/// @param[in] zmConn - object connect
-/// @param[in] ttId - task template id
-/// @return true - ok
-ZMEY_API bool zmDelTaskTemplate(zmConn, uint64_t ttId);
-
-/// get all tasks templates
-/// @param[in] zmConn - object connect
-/// @param[in] userId - user id
-/// @param[out] outTId - task template id. Pass NULL, no need to free memory
-/// @return count of tasks
-ZMEY_API uint32_t zmGetAllTaskTemplates(zmConn, uint64_t userId, uint64_t** outTId);
-
-///////////////////////////////////////////////////////////////////////////////
 /// Task object
 
 /// task config
 struct zmTask{
-  uint64_t ttlId;          ///< task template id
-  char* params;            ///< CLI params for script. May be NULL
+  uint64_t schedrPresetId;  ///< schedr preset id. Default 0
+  uint64_t workerPresetId;  ///< worker preset id. Default 0
+  uint32_t averDurationSec; ///< estimated lead time, sec. Default 0
+  uint32_t maxDurationSec;  ///< maximum lead time, sec. Default 0
+  char* params;             ///< CLI params for script. May be NULL
+  char* scriptPath;         ///< Script path. Necessarily
+  char* resultPath;         ///< Result path. Necessarily
 };
 
 /// start task
@@ -392,7 +346,7 @@ struct zmTaskTime{
 ZMEY_API bool zmTimeOfTask(zmConn, uint64_t tId, zmTaskTime* outTTime);
 
 /// task state callback
-typedef void(*zmChangeTaskStateCBack)(uint64_t tId, uint64_t userId, int progress, zmStateType prevState, zmStateType newState, zmUData);
+typedef void(*zmChangeTaskStateCBack)(uint64_t tId, int progress, zmStateType prevState, zmStateType newState, zmUData);
 
 /// set change task state callback
 /// @param[in] zmConn - object connect
@@ -400,7 +354,7 @@ typedef void(*zmChangeTaskStateCBack)(uint64_t tId, uint64_t userId, int progres
 /// @param[in] cback
 /// @param[in] userData
 /// @return true - ok
-ZMEY_API bool zmSetChangeTaskStateCBack(zmConn, uint64_t tId, uint64_t userId, zmChangeTaskStateCBack cback, zmUData);
+ZMEY_API bool zmSetChangeTaskStateCBack(zmConn, uint64_t tId, zmChangeTaskStateCBack cback, zmUData);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Internal errors

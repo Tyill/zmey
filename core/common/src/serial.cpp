@@ -31,7 +31,7 @@
 
 using namespace std;
 
-namespace ZM_Aux {
+namespace Aux {
 
   std::string serialn(const std::map<std::string, std::string>& data){
 

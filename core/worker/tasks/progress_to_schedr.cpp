@@ -22,6 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+
 #include "worker/executor.h"
 #include "common/tcp.h"
 #include "common/serial.h"
@@ -33,21 +34,21 @@ using namespace std;
 void Executor::progressToSchedr(const std::string& schedrConnPnt)
 {   
   Json::Value rootJs;
-  rootJs[ZM_Link::tasks];
+  rootJs[Link::tasks];
   for(auto& p : m_procs){
     Json::Value tJs;
-    tJs[ZM_Link::taskId] = p.getTask().id;
-    tJs[ZM_Link::progress] = to_string(p.getProgress());    
-    rootJs[ZM_Link::tasks].append(tJs);    
+    tJs[Link::taskId] = p.getTask().id;
+    tJs[Link::progress] = to_string(p.getProgress());    
+    rootJs[Link::tasks].append(tJs);    
   }
  
   Json::FastWriter writerJs;
    
   map<string, string> data{
-    {ZM_Link::command, to_string((int)ZM_Base::MessType::TASK_PROGRESS)},
-    {ZM_Link::connectPnt, m_worker.connectPnt},
-    {ZM_Link::tasks, writerJs.write(rootJs)},
+    {Link::command, to_string((int)Base::MessType::TASK_PROGRESS)},
+    {Link::connectPnt, m_worker.connectPnt},
+    {Link::tasks, writerJs.write(rootJs)},
   };  
   
-  ZM_Tcp::asyncSendData(schedrConnPnt, ZM_Aux::serialn(data));
+  Tcp::asyncSendData(schedrConnPnt, Aux::serialn(data));
 }

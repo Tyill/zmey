@@ -26,13 +26,19 @@
 
 using namespace std;
 
-namespace ZM_DB{
+namespace DB{
 
-bool DbProvider::startTask(uint64_t ttlId, const std::string& inparams, uint64_t& tId){
+bool DbProvider::startTask(uint64_t schedPresetId, Base::Task& cng, uint64_t& tId){
   lock_guard<mutex> lk(m_impl->m_mtx);  
   
   stringstream ss;
-  ss << "SELECT * FROM funcStartTask(" << ttlId << ",'" << inparams << "');";
+  ss << "SELECT * FROM funcStartTask(" << cng.averDurationSec <<  ","
+                                       << cng.maxDurationSec <<  ","
+                                       << schedPresetId <<  ","
+                                       << cng.wId <<  ","
+                                       << "'" << cng.params << "',"
+                                       << "'" << cng.scriptPath << "',"
+                                       << "'" << cng.resultPath << "');";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
@@ -50,11 +56,11 @@ bool DbProvider::cancelTask(uint64_t tId){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
   ss << "UPDATE tblTaskState ts SET "
-        "state = " << int(ZM_Base::StateType::CANCEL) << " "
+        "state = " << int(Base::StateType::CANCEL) << " "
         "FROM tblTaskQueue tq "
         "WHERE tq.id = " << tId << " AND "
         "      ts.qtask = tq.id AND "
-        "      ts.state = " << int(ZM_Base::StateType::READY) << " "
+        "      ts.state = " << int(Base::StateType::READY) << " "
         "RETURNING ts.qtask;";
         
   PGres pgr(PQexec(_pg, ss.str().c_str()));
@@ -68,7 +74,7 @@ bool DbProvider::cancelTask(uint64_t tId){
   }
   return true;
 }
-bool DbProvider::taskState(const std::vector<uint64_t>& tId, std::vector<ZM_DB::TaskState>& outState){
+bool DbProvider::taskState(const std::vector<uint64_t>& tId, std::vector<DB::TaskState>& outState){
   lock_guard<mutex> lk(m_impl->m_mtx);
   string stId;
   stId = accumulate(tId.begin(), tId.end(), stId,
@@ -92,30 +98,12 @@ bool DbProvider::taskState(const std::vector<uint64_t>& tId, std::vector<ZM_DB::
   }
   outState.resize(tsz);
   for (size_t i = 0; i < tsz; ++i){
-    outState[i].state = (ZM_Base::StateType)atoi(PQgetvalue(pgr.res, (int)i, 0));
+    outState[i].state = (Base::StateType)atoi(PQgetvalue(pgr.res, (int)i, 0));
     outState[i].progress = atoi(PQgetvalue(pgr.res, (int)i, 1));
   }
   return true;
 }
-bool DbProvider::taskResult(uint64_t tId, std::string& out){
-  lock_guard<mutex> lk(m_impl->m_mtx);
-  stringstream ss;
-  ss << "SELECT result FROM tblTaskResult "
-        "WHERE qtask = " << tId << ";";
-
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
-  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){      
-    errorMess(string("taskResult: ") + PQerrorMessage(_pg));
-    return false;
-  } 
-  if (PQntuples(pgr.res) != 1){
-    errorMess("taskResult error: task delete OR not taken to work");
-    return false;
-  } 
-  out = PQgetvalue(pgr.res, 0, 0);
-  return true;
-}
-bool DbProvider::taskTime(uint64_t tId, ZM_DB::TaskTime& out){
+bool DbProvider::taskTime(uint64_t tId, DB::TaskTime& out){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
   ss << "SELECT createTime, takeInWorkTime, startTime, stopTime "

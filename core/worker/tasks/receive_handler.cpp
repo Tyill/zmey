@@ -22,6 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+
 #include "worker/executor.h"
 #include "common/serial.h"
 #include "base/link.h"
@@ -35,16 +36,16 @@ using namespace std;
 #ifdef DEBUG
   #define checkFieldNum(field) \
     if (mess.find(field) == mess.end()){ \
-      ERROR_MESS(string("worker::receiveHandler error mess.find ") + field + " from: " + cp); \
+      ERROR_MESS(string("receiveHandler error mess.find ") + field + " from: " + cp); \
       return;  \
     } \
-    if (!ZM_Aux::isNumber(mess[field])){ \
-      ERROR_MESS("worker::receiveHandler error !ZM_Aux::isNumber " + mess[field] + " from: " + cp); \
+    if (!Aux::isNumber(mess[field])){ \
+      ERROR_MESS("receiveHandler error !Aux::isNumber " + mess[field] + " from: " + cp); \
       return; \
     }
   #define checkField(field) \
     if (mess.find(field) == mess.end()){  \
-      ERROR_MESS(string("worker::receiveHandler error mess.find ") + field + " from: " + cp); \
+      ERROR_MESS(string("receiveHandler error mess.find ") + field + " from: " + cp); \
       return;  \
     }
 #else
@@ -54,40 +55,41 @@ using namespace std;
 
 void Executor::receiveHandler(const string& remcp, const string& data)
 {
-  auto mess = ZM_Aux::deserialn(data);
+  auto mess = Aux::deserialn(data);
   if (mess.empty()){
-    ERROR_MESS("worker::receiveHandler error deserialn data from: " + remcp);
+    ERROR_MESS("receiveHandler error deserialn data from: " + remcp);
     return;
   }  
 
   string cp = remcp;
-  checkField(ZM_Link::connectPnt);
-  cp = mess[ZM_Link::connectPnt];
-  checkFieldNum(ZM_Link::command);
-  ZM_Base::MessType mtype = ZM_Base::MessType(stoi(mess[ZM_Link::command]));  
-  if (mtype == ZM_Base::MessType::NEW_TASK){
-    checkFieldNum(ZM_Link::taskId);
-    checkField(ZM_Link::params);
-    checkField(ZM_Link::script);
-    checkFieldNum(ZM_Link::averDurationSec);
-    checkFieldNum(ZM_Link::maxDurationSec);
-    ZM_Base::Task t;
-    t.id = stoull(mess[ZM_Link::taskId]);
-    t.averDurationSec = stoi(mess[ZM_Link::averDurationSec]);
-    t.maxDurationSec = stoi(mess[ZM_Link::maxDurationSec]);
-    t.script = mess[ZM_Link::script];
-    t.state = ZM_Base::StateType::READY;
-    t.params = mess[ZM_Link::params];
+  checkField(Link::connectPnt);
+  cp = mess[Link::connectPnt];
+  checkFieldNum(Link::command);
+  Base::MessType mtype = Base::MessType(stoi(mess[Link::command]));  
+  if (mtype == Base::MessType::NEW_TASK){
+    checkFieldNum(Link::taskId);
+    checkField(Link::params);
+    checkField(Link::scriptPath);
+    checkField(Link::resultPath);
+    checkFieldNum(Link::averDurationSec);
+    checkFieldNum(Link::maxDurationSec);
+    Base::Task t;
+    t.id = stoull(mess[Link::taskId]);
+    t.averDurationSec = stoi(mess[Link::averDurationSec]);
+    t.maxDurationSec = stoi(mess[Link::maxDurationSec]);
+    t.scriptPath = mess[Link::scriptPath];
+    t.resultPath = mess[Link::resultPath];
+    t.state = Base::StateType::READY;
+    t.params = mess[Link::params];
     m_newTasks.push(move(t)); 
-    
-    updateListTasks();
+    Application::loopNotify();
   }
-  else if (mtype == ZM_Base::MessType::PING_WORKER){  // only check
+  else if (mtype == Base::MessType::PING_WORKER){  // only check
     return;
   }
   else{
-    checkFieldNum(ZM_Link::taskId);
-    uint64_t tId = stoull(mess[ZM_Link::taskId]);
+    checkFieldNum(Link::taskId);
+    uint64_t tId = stoull(mess[Link::taskId]);
     { std::lock_guard<std::mutex> lock(m_mtxProcess);
       
       auto iPrc = find_if(m_procs.begin(), m_procs.end(), [tId](const Process& p){
@@ -95,16 +97,16 @@ void Executor::receiveHandler(const string& remcp, const string& data)
       });
       if (iPrc != m_procs.end()){
         switch (mtype){
-          case ZM_Base::MessType::TASK_PAUSE:    iPrc->pause(); break;
-          case ZM_Base::MessType::TASK_CONTINUE: iPrc->continueTask(); break;
-          case ZM_Base::MessType::TASK_STOP:     iPrc->stop(); break;
+          case Base::MessType::TASK_PAUSE:    iPrc->pause(); break;
+          case Base::MessType::TASK_CONTINUE: iPrc->continueTask(); break;
+          case Base::MessType::TASK_STOP:     iPrc->stop(); break;
           default:{
-            ERROR_MESS("worker::receiveHandler wrong command: " + mess[ZM_Link::command]);
+            ERROR_MESS("receiveHandler wrong command: " + mess[Link::command]);
           }
           break;
         }
       }else{
-        ERROR_MESS("worker::receiveHandler iPrc == _procs.end() for taskId: " + mess[ZM_Link::taskId]);
+        ERROR_MESS("receiveHandler iPrc == _procs.end() for taskId: " + mess[Link::taskId]);
       }
     }
   }  

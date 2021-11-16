@@ -37,8 +37,8 @@ public:
   void stop();
   bool asyncSendData(const std::string& connPnt, const std::string& data, bool isCBackIfError);
   
-  ZM_Tcp::ReceiveDataCBack ReceiveDataCB = nullptr;
-  ZM_Tcp::SendStatusCBack SendStatusCB = nullptr;   
+  Tcp::ReceiveDataCBack ReceiveDataCB = nullptr;
+  Tcp::SendStatusCBack SendStatusCB = nullptr;   
 
 private:
   void accept();

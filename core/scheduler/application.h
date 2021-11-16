@@ -22,6 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+
 #pragma once
 
 #include "db_provider/db_provider.h"
@@ -35,14 +36,14 @@ public:
     int pingToDBSec = 20;
     std::string localConnPnt;
     std::string remoteConnPnt;
-    ZM_DB::ConnectCng dbConnCng;
+    DB::ConnectCng dbConnCng;
   };
 
   enum Signals{
     SIGNAL_LOOP_NOTIFY = 0,
     SIGNAL_LOOP_STOP,
   };
-  static ZM_Aux::SignalConnector SignalConnector;
+  static Aux::SignalConnector SignalConnector;
 
   static void loopNotify();
   static void loopStop();

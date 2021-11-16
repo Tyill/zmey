@@ -28,7 +28,7 @@
 
 #include <asio.hpp>
 
-namespace ZM_Tcp{
+namespace Tcp{
 
 TcpServer* pSrv = nullptr;
 
@@ -38,7 +38,7 @@ bool startServer(const std::string& connPnt, ReceiveDataCBack receiveDataCB, Sen
   if (pSrv) return true;
 
   try{
-    auto cp = ZM_Aux::split(connPnt, ':');
+    auto cp = Aux::split(connPnt, ':');
     pSrv = new TcpServer(cp[0], stoi(cp[1]));
 
     pSrv->ReceiveDataCB = receiveDataCB;
@@ -70,7 +70,7 @@ bool syncSendData(const std::string& connPnt, const std::string& data)
   tcp::socket s(io);
   tcp::resolver resolver(io);
 
-  auto cp = ZM_Aux::split(connPnt, ':');
+  auto cp = Aux::split(connPnt, ':');
   asio::error_code ec;
   asio::connect(s, resolver.resolve(cp[0], cp[1]), ec);
   if (!ec)

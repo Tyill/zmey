@@ -30,7 +30,7 @@
 #include <utility>
 #include <memory>
 
-namespace ZM_Aux{
+namespace Aux{
 
 template<typename T>
 class Queue{

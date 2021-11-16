@@ -22,6 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+
 #pragma once
 
 #include "common/timer_delay.h"
@@ -37,19 +38,17 @@ class Executor;
 
 class Process{
 public:
-  Process(Application&, Executor&, const ZM_Base::Task&);
+  Process(Application&, Executor&, const Base::Task&);
 
-  ZM_Base::Task getTask() const;
+  Base::Task getTask() const;
   pid_t getPid() const;
   int getProgress();
   bool checkMaxRunTime();
-  void setTaskState(ZM_Base::StateType);
+  void setTaskState(Base::StateType);
   void pause();
   void continueTask();
   void stop();
-  void stopByTimeout();   
-  bool getResult(std::string&);
-  bool clearTmpFiles(std::vector<std::string>& ioBuffFiles);
+  void stopByTimeout();
   std::string getErrorStr() const {
       return m_err;
   }
@@ -63,8 +62,8 @@ private:
   Application& m_app;  
   Executor& m_executor;
   pid_t m_pid = 1; 
-  ZM_Base::Task m_task;
-  ZM_Aux::TimerDelay m_timerProgress,
+  Base::Task m_task;
+  Aux::TimerDelay m_timerProgress,
                      m_timerDuration;
   uint64_t m_cdeltaTimeProgress = 0,
            m_cdeltaTimeDuration  = 0;

@@ -55,9 +55,9 @@ int main(int argc, char* argv[]){
     cng.remoteConnPnt = cng.localConnPnt;
   } 
 
-  CHECK_RETURN(cng.localConnPnt.empty() || (ZM_Aux::split(cng.localConnPnt, ':').size() != 2), "Not set param '--localAddr[-la]' - worker local connection point: IP or DNS:port");
-  CHECK_RETURN(cng.remoteConnPnt.empty() || (ZM_Aux::split(cng.remoteConnPnt, ':').size() != 2), "Not set param '--remoteAddr[-ra]' - worker remote connection point: IP or DNS:port");
-  CHECK_RETURN(cng.schedrConnPnt.empty() || (ZM_Aux::split(cng.schedrConnPnt, ':').size() != 2), "Not set param '--schedrAddr[-sa]' - scheduler connection point: IP or DNS:port");
+  CHECK_RETURN(cng.localConnPnt.empty() || (Aux::split(cng.localConnPnt, ':').size() != 2), "Not set param '--localAddr[-la]' - worker local connection point: IP or DNS:port");
+  CHECK_RETURN(cng.remoteConnPnt.empty() || (Aux::split(cng.remoteConnPnt, ':').size() != 2), "Not set param '--remoteAddr[-ra]' - worker remote connection point: IP or DNS:port");
+  CHECK_RETURN(cng.schedrConnPnt.empty() || (Aux::split(cng.schedrConnPnt, ':').size() != 2), "Not set param '--schedrAddr[-sa]' - scheduler connection point: IP or DNS:port");
   
   signal(SIGTERM, closeHandler);
 #ifdef __linux__
@@ -65,28 +65,22 @@ int main(int argc, char* argv[]){
   signal(SIGCHLD, loopNotify);
   signal(SIGHUP, closeHandler);
   signal(SIGQUIT, closeHandler);
-
-  if (cng.dirForTempFiles.empty()) 
-    cng.dirForTempFiles = "/tmp/zmey/";
 #endif
-  
-  if (!cng.dirForTempFiles.empty())
-    CHECK_RETURN(!ZM_Aux::createSubDirectory(cng.dirForTempFiles), "Not create dir " + cng.dirForTempFiles + " for temp files");
-
+ 
   Executor executor(app, cng.remoteConnPnt);
  
   // on start
-  executor.addMessForSchedr(Executor::MessForSchedr{0, ZM_Base::MessType::JUST_START_WORKER});
+  executor.addMessForSchedr(Executor::MessForSchedr{0, Base::MessType::JUST_START_WORKER});
 
   // TCP server
-  ZM_Tcp::ReceiveDataCBack receiveDataCB = [&executor](const string& cp, const string& data){
+  Tcp::ReceiveDataCBack receiveDataCB = [&executor](const string& cp, const string& data){
     executor.receiveHandler(cp, data);
   };
-  ZM_Tcp::SendStatusCBack sendStatusCB = [&executor](const string& cp, const string& data, const error_code& ec){
+  Tcp::SendStatusCBack sendStatusCB = [&executor](const string& cp, const string& data, const error_code& ec){
     executor.sendNotifyHandler(cp, data, ec);
   };
   string err;
-  CHECK_RETURN(!ZM_Tcp::startServer(cng.localConnPnt, receiveDataCB, sendStatusCB, 1, err),
+  CHECK_RETURN(!Tcp::startServer(cng.localConnPnt, receiveDataCB, sendStatusCB, 1, err),
     "Worker error: " + cng.localConnPnt + " " + err);
   app.statusMess("Worker running: " + cng.localConnPnt);
   
@@ -107,7 +101,7 @@ int main(int argc, char* argv[]){
     loop.run();
   }
   catch(exception& e){
-    string mess = "worker::loop exeption: " + string(e.what());
+    string mess = "loop exeption: " + string(e.what());
     app.statusMess(mess);  
   }
 
@@ -115,7 +109,7 @@ int main(int argc, char* argv[]){
   
   executor.stopToSchedr(cng.schedrConnPnt);
 
-  ZM_Tcp::stopServer();
+  Tcp::stopServer();
 }
 
 void closeHandler(int sig)

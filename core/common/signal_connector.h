@@ -31,7 +31,7 @@
 #include <mutex>
 #include <memory>
 
-namespace ZM_Aux{
+namespace Aux{
 
 class SignalConnector {
 

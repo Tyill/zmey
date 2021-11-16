@@ -22,18 +22,19 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+
 #include "scheduler/executor.h"
 #include "common/tcp.h"
 
 using namespace std;
 
-void Executor::getPrevWorkersFromDB(ZM_DB::DbProvider& db)
+void Executor::getPrevWorkersFromDB(DB::DbProvider& db)
 {   
-  vector<ZM_Base::Worker> workers; 
+  vector<Base::Worker> workers; 
   if (db.getWorkersOfSchedr(m_schedr.id, workers)){
     for(auto& w : workers){
       m_workers[w.connectPnt] = SWorker{w, w.state, vector<uint64_t>(), 
-                                        w.state != ZM_Base::StateType::NOT_RESPONDING};
+                                        w.state != Base::StateType::NOT_RESPONDING};
 
       if (db.getTasksOfWorker(m_schedr.id, w.id, m_workers[w.connectPnt].taskList)){
         m_workers[w.connectPnt].taskList.resize(size_t(w.capacityTask * 1.5));

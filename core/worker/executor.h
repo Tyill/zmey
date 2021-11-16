@@ -39,8 +39,8 @@ public:
 public:
   struct MessForSchedr{
     uint64_t taskId;
-    ZM_Base::MessType MessType;
-    std::string taskResult;
+    Base::MessType MessType;
+    std::string error;
   };
 
   void addMessForSchedr(MessForSchedr);
@@ -64,13 +64,12 @@ private:
   
   Application& m_app;  
   
-  ZM_Base::Worker m_worker;
-  ZM_Aux::Queue<MessForSchedr> m_listMessForSchedr;
-  ZM_Aux::Queue<ZM_Base::Task> m_newTasks;
-  ZM_Aux::Queue<std::string> m_errMess;
+  Base::Worker m_worker;
+  Aux::Queue<MessForSchedr> m_listMessForSchedr;
+  Aux::Queue<Base::Task> m_newTasks;
+  Aux::Queue<std::string> m_errMess;
   std::list<Process> m_procs;
   std::mutex m_mtxProcess;  
-  std::vector<std::string> m_tmpFiles; // on win32 is not deleted immediately
   
-  ZM_Aux::CounterTick m_ctickSendNotify;
+  Aux::CounterTick m_ctickSendNotify;
 };

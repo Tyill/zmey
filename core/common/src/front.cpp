@@ -25,7 +25,7 @@
 
 #include "../front.h"
 
-namespace ZM_Aux {
+namespace Aux {
 
 Front::Front() : _oncSz(0) {
 }

@@ -34,7 +34,7 @@ class Executor;
 
 class Loop{
 public:
-  Loop(const Application::Config& cng, Executor&, ZM_DB::DbProvider& dbNewTask, ZM_DB::DbProvider& dbSendMess);
+  Loop(const Application::Config& cng, Executor&, DB::DbProvider& dbNewTask, DB::DbProvider& dbSendMess);
   void run();
   void stop();
 
@@ -46,8 +46,8 @@ private:
 private:
   Application::Config m_cng;
   Executor& m_executor;
-  ZM_DB::DbProvider& m_dbNewTask;
-  ZM_DB::DbProvider& m_dbSendMess;
+  DB::DbProvider& m_dbNewTask;
+  DB::DbProvider& m_dbSendMess;
 
   std::mutex m_mtxNotify;
   std::condition_variable m_cvStandUp;

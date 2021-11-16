@@ -56,63 +56,55 @@ void Executor::waitProcess()
       return p.getPid() == pid;
     });    
     if (itPrc == m_procs.end()){
-      ERROR_MESS("worker::waitProcess error not found process " + to_string(pid));
+      ERROR_MESS("waitProcess error not found process " + to_string(pid));
       continue;
     }
     // completed or error
     if (WIFEXITED(sts) || WIFSIGNALED(sts)){
-            
-      string result;
-      bool isRes = itPrc->getResult(result); 
-      
-      itPrc->clearTmpFiles(m_tmpFiles);
-          
-      ZM_Base::MessType mt = ZM_Base::MessType::TASK_COMPLETED;
-      ZM_Base::StateType st = ZM_Base::StateType::COMPLETED;
-      if (WIFEXITED(sts) && isRes){
+               
+      Base::MessType mt = Base::MessType::TASK_COMPLETED;
+      Base::StateType st = Base::StateType::COMPLETED;
+      if (WIFEXITED(sts)){
         sts = WEXITSTATUS(sts);
         if (sts != 0){
-          mt = ZM_Base::MessType::TASK_ERROR;
-          st = ZM_Base::StateType::ERRORT;
+          mt = Base::MessType::TASK_ERROR;
+          st = Base::StateType::ERRORT;
         }
       }else{
-        mt = ZM_Base::MessType::TASK_ERROR;
-        st = ZM_Base::StateType::ERRORT;
+        mt = Base::MessType::TASK_ERROR;
+        st = Base::StateType::ERRORT;
       }
       itPrc->setTaskState(st);
       
       m_listMessForSchedr.push(MessForSchedr{itPrc->getTask().id,
-                                          mt,
-                                          result});
+                                          mt});
     }    
     // stop
     else if (WIFSTOPPED(sts)){
-      itPrc->setTaskState(ZM_Base::StateType::PAUSE);
+      itPrc->setTaskState(Base::StateType::PAUSE);
       m_listMessForSchedr.push(MessForSchedr{itPrc->getTask().id,
-                                          ZM_Base::MessType::TASK_PAUSE,
-                                          ""});
+                                          Base::MessType::TASK_PAUSE});
     } 
     // continue
     else if (WIFCONTINUED(sts)){
-      itPrc->setTaskState(ZM_Base::StateType::RUNNING);
+      itPrc->setTaskState(Base::StateType::RUNNING);
       m_listMessForSchedr.push(MessForSchedr{itPrc->getTask().id,
-                                          ZM_Base::MessType::TASK_CONTINUE,
-                                          ""});    
+                                          Base::MessType::TASK_CONTINUE});    
     } 
   }  
   
   // check max run time
   for(auto& p : m_procs){
-    if (p.checkMaxRunTime() && (p.getTask().state == ZM_Base::StateType::RUNNING)){
+    if (p.checkMaxRunTime() && (p.getTask().state == Base::StateType::RUNNING)){
       p.stopByTimeout();
     }
   }
 
   { std::lock_guard<std::mutex> lock(m_mtxProcess);    
     for (auto p = m_procs.begin(); p != m_procs.end();){
-      ZM_Base::StateType TaskState = p->getTask().state;
-      if ((TaskState == ZM_Base::StateType::COMPLETED) ||
-          (TaskState == ZM_Base::StateType::ERRORT)){
+      Base::StateType TaskState = p->getTask().state;
+      if ((TaskState == Base::StateType::COMPLETED) ||
+          (TaskState == Base::StateType::ERRORT)){
         p = m_procs.erase(p);
       }else{
         ++p;
@@ -140,34 +132,28 @@ void Executor::waitProcess()
       status = -1;
 
     p.closeHandle();   
-
-    std::string result;
-    status = p.getResult(result) ? 0 : -1;
-    
-    p.clearTmpFiles(m_tmpFiles);
-
-    ZM_Base::MessType mt = status == 0 ? ZM_Base::MessType::TASK_COMPLETED : ZM_Base::MessType::TASK_ERROR;
-    ZM_Base::StateType st = status == 0 ? ZM_Base::StateType::COMPLETED : ZM_Base::StateType::ERRORT;
+  
+    Base::MessType mt = status == 0 ? Base::MessType::TASK_COMPLETED : Base::MessType::TASK_ERROR;
+    Base::StateType st = status == 0 ? Base::StateType::COMPLETED : Base::StateType::ERRORT;
 
     p.setTaskState(st);
 
     m_listMessForSchedr.push(MessForSchedr{p.getTask().id,
-                                           mt,
-                                           result});
+                                           mt});
   }
 
   // check max run time
   for(auto& p : m_procs){
-    if (p.checkMaxRunTime() && (p.getTask().state == ZM_Base::StateType::RUNNING)){
+    if (p.checkMaxRunTime() && (p.getTask().state == Base::StateType::RUNNING)){
       p.stopByTimeout();
     }
   }
 
   { std::lock_guard<std::mutex> lock(m_mtxProcess);    
     for (auto p = m_procs.begin(); p != m_procs.end();){
-      ZM_Base::StateType TaskState = p->getTask().state;
-      if ((TaskState == ZM_Base::StateType::COMPLETED) ||
-          (TaskState == ZM_Base::StateType::ERRORT)){
+      Base::StateType TaskState = p->getTask().state;
+      if ((TaskState == Base::StateType::COMPLETED) ||
+          (TaskState == Base::StateType::ERRORT)){
         p = m_procs.erase(p);
       }else{
         ++p;

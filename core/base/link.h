@@ -1,5 +1,5 @@
 
-namespace ZM_Link{
+namespace Link{
   static const char* command = "command";
   static const char* taskId = "taskId";
   static const char* load = "load";
@@ -11,7 +11,8 @@ namespace ZM_Link{
   static const char* connectPnt = "connectPnt";
   static const char* workerConnPnt = "workerConnPnt";
   static const char* params = "params";
-  static const char* script = "script";
+  static const char* scriptPath = "scriptPath";
+  static const char* resultPath = "resultPath";
   static const char* averDurationSec = "averDurationSec";
   static const char* maxDurationSec = "maxDurationSec";
 } // namespace link

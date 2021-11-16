@@ -27,7 +27,7 @@
         
 #include <string>
 
-namespace ZM_Base{
+namespace Base{
 
   enum class MessType{
     UNDEFINED = -1,
@@ -74,24 +74,13 @@ namespace ZM_Base{
     uint64_t id;              // id tblTaskQueue
     uint64_t wId;             // preset worker id tblWorker. Default 0 - not set
     int averDurationSec;      // estimated lead time
-    int maxDurationSec;       // maximum lead time
-    std::string script;       // script on bash, python or cmd
+    int maxDurationSec;       // maximum lead time  
     std::string params;
+    std::string scriptPath;  
+    std::string resultPath;  
     StateType state;
   };  
-
-  // tblTaskTemplate
-  struct TaskTemplate{
-    uint64_t uId;             // parent id
-    uint64_t sId;             // preset schedr id tblScheduler. Default 0 - not set
-    uint64_t wId;             // preset worker id tblWorker. Default 0 - not set
-    int averDurationSec;      // estimated lead time
-    int maxDurationSec;       // maximum lead time
-    std::string name;
-    std::string description;
-    std::string script;       // script on bash, python or cmd
-  };
-
+ 
   // tblScheduler
   struct Scheduler{
     uint64_t id;              // id tblScheduler

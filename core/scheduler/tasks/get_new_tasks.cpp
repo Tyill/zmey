@@ -27,7 +27,7 @@
 
 using namespace std;
 
-void Executor::getNewTaskFromDB(ZM_DB::DbProvider& db)
+void Executor::getNewTaskFromDB(DB::DbProvider& db)
 {  
   int actSz = 0,
       capSz = m_schedr.capacityTask,
@@ -38,7 +38,7 @@ void Executor::getNewTaskFromDB(ZM_DB::DbProvider& db)
   actSz += m_tasks.size();
   
   if ((capSz - actSz) > 0){ 
-    vector<ZM_Base::Task> newTasks;
+    vector<Base::Task> newTasks;
     if (db.getNewTasksForSchedr(m_schedr.id, capSz - actSz, newTasks)){
       newSz = (int)newTasks.size();
       for(auto& t : newTasks){

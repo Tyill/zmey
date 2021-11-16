@@ -30,22 +30,22 @@
 using namespace std;
 
 #define ERROR_MESS(mess, wId)                               \
-  m_messToDB.push(ZM_DB::MessSchedr::errorMess(wId, mess)); \
+  m_messToDB.push(DB::MessSchedr::errorMess(wId, mess)); \
   m_app.statusMess(mess);
 
 #ifdef DEBUG
   #define checkFieldNum(field) \
     if (mess.find(field) == mess.end()){ \
-      ERROR_MESS(string("schedr::sendNotifyHandler Error mess.find ") + field + " from: " + cp, wId); \
+      ERROR_MESS(string("sendNotifyHandler Error mess.find ") + field + " from: " + cp, wId); \
       return;  \
     } \
-    if (!ZM_Aux::isNumber(mess[field])){ \
-      ERROR_MESS("schedr::sendNotifyHandler Error !ZM_Aux::isNumber " + mess[field] + " from: " + cp, wId); \
+    if (!Aux::isNumber(mess[field])){ \
+      ERROR_MESS("sendNotifyHandler Error !Aux::isNumber " + mess[field] + " from: " + cp, wId); \
       return; \
     }
   #define checkField(field) \
     if (mess.find(field) == mess.end()){  \
-      ERROR_MESS(string("schedr::sendNotifyHandler Error mess.find ") + field + " from: " + cp, wId);  \
+      ERROR_MESS(string("sendNotifyHandler Error mess.find ") + field + " from: " + cp, wId);  \
       return;  \
     }
 #else
@@ -56,28 +56,30 @@ using namespace std;
 void Executor::sendNotifyHandler(const string& cp, const string& data, const std::error_code& ec)
 {
   // error from worker
-  auto mess = ZM_Aux::deserialn(data);
+  auto mess = Aux::deserialn(data);
   uint64_t wId = 0;
-  checkFieldNum(ZM_Link::command);
+  checkFieldNum(Link::command);
   
   if (ec && (m_workers.find(cp) != m_workers.end())){
     auto& worker = m_workers[cp];
     wId = worker.base.id;
-    ZM_Base::MessType mtype = ZM_Base::MessType(stoi(mess[ZM_Link::command]));
+    Base::MessType mtype = Base::MessType(stoi(mess[Link::command]));
     switch (mtype){
-      case ZM_Base::MessType::NEW_TASK:{
-        checkFieldNum(ZM_Link::taskId);
-        checkField(ZM_Link::params);
-        checkField(ZM_Link::script);
-        checkFieldNum(ZM_Link::averDurationSec);
-        checkFieldNum(ZM_Link::maxDurationSec);
-        ZM_Base::Task t;
-        t.id = stoull(mess[ZM_Link::taskId]);
+      case Base::MessType::NEW_TASK:{
+        checkFieldNum(Link::taskId);
+        checkField(Link::params);
+        checkField(Link::scriptPath);
+        checkField(Link::resultPath);
+        checkFieldNum(Link::averDurationSec);
+        checkFieldNum(Link::maxDurationSec);
+        Base::Task t;
+        t.id = stoull(mess[Link::taskId]);
         t.wId = wId;
-        t.params = mess[ZM_Link::params];
-        t.script = mess[ZM_Link::script];
-        t.averDurationSec = stoi(mess[ZM_Link::averDurationSec]);
-        t.maxDurationSec = stoi(mess[ZM_Link::maxDurationSec]);
+        t.params = mess[Link::params];
+        t.scriptPath = mess[Link::scriptPath];
+        t.resultPath = mess[Link::resultPath];
+        t.averDurationSec = stoi(mess[Link::averDurationSec]);
+        t.maxDurationSec = stoi(mess[Link::maxDurationSec]);
         m_tasks.push(move(t));
         worker.base.activeTask = std::max(0, worker.base.activeTask - 1);
 
@@ -90,15 +92,15 @@ void Executor::sendNotifyHandler(const string& cp, const string& data, const std
         }
         break;
       default:
-        ERROR_MESS("schedr::sendHandler wrong command mtype: " + mess[ZM_Link::command] + ", cp: " + cp, wId);
+        ERROR_MESS("sendHandler wrong command mtype: " + mess[Link::command] + ", cp: " + cp, wId);
         break;
     }
     if (worker.base.rating > 1)
       --worker.base.rating;
     else
-      ERROR_MESS("schedr::sendHandler worker not response, cp: " + cp, wId);
+      ERROR_MESS("sendHandler worker not response, cp: " + cp, wId);
   }
   else {
-    ERROR_MESS("schedr::sendHandler wrong receiver: " + cp, 0);
+    ERROR_MESS("sendHandler wrong receiver: " + cp, 0);
   }  
 }

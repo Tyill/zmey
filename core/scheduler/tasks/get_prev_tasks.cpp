@@ -22,13 +22,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+
 #include "scheduler/executor.h"
 
 using namespace std;
 
-void Executor::getPrevTaskFromDB(ZM_DB::DbProvider& db)
+void Executor::getPrevTaskFromDB(DB::DbProvider& db)
 {
-  vector<ZM_Base::Task> tasks;
+  vector<Base::Task> tasks;
   if (db.getTasksOfSchedr(m_schedr.id, tasks)){
     for(auto& t : tasks){
       m_tasks.push(move(t));

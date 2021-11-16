@@ -26,21 +26,18 @@
 
 using namespace std;
 
-namespace ZM_DB{
+namespace DB{
   
-bool DbProvider::addWorker(const ZM_Base::Worker& worker, uint64_t& outWkrId){
+bool DbProvider::addWorker(const Base::Worker& worker, uint64_t& outWkrId){
   lock_guard<mutex> lk(m_impl->m_mtx);
-  auto connPnt = ZM_Aux::split(worker.connectPnt, ':');
+  auto connPnt = Aux::split(worker.connectPnt, ':');
   if (connPnt.size() != 2){
     errorMess("addWorker error: connectPnt not correct");
     return false;
   }
   stringstream ss;
-  ss << "WITH ncp AS (INSERT INTO tblConnectPnt (ipAddr, port) VALUES("
-        " '" << connPnt[0] << "',"
-        " '" << connPnt[1] << "') RETURNING id)"
-        "INSERT INTO tblWorker (connPnt, schedr, state, capacityTask, name, description) VALUES("
-        "(SELECT id FROM ncp),"
+  ss << "INSERT INTO tblWorker (connPnt, schedr, state, capacityTask, name, description) VALUES("
+        "'" << worker.connectPnt << "',"
         "'" << (int)worker.sId << "',"
         "'" << (int)worker.state << "',"
         "'" << worker.capacityTask << "',"
@@ -55,12 +52,12 @@ bool DbProvider::addWorker(const ZM_Base::Worker& worker, uint64_t& outWkrId){
   outWkrId = stoull(PQgetvalue(pgr.res, 0, 0));
   return true;
 }
-bool DbProvider::getWorker(uint64_t wId, ZM_Base::Worker& cng){
+bool DbProvider::getWorker(uint64_t wId, Base::Worker& cng){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
-  ss << "SELECT cp.ipAddr, cp.port, w.schedr, w.state, w.capacityTask, w.name, w.description FROM tblWorker w "
-        "JOIN tblConnectPnt cp ON cp.id = w.connPnt "
-        "WHERE w.id = " << wId << " AND w.isDelete = 0;";
+  ss << "SELECT connPnt, schedr, state, capacityTask, name, description "
+        "FROM tblWorker "
+        "WHERE id = " << wId << " AND isDelete = 0;";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
@@ -71,17 +68,17 @@ bool DbProvider::getWorker(uint64_t wId, ZM_Base::Worker& cng){
     errorMess(string("getWorker error: such worker does not exist"));
     return false;
   }
-  cng.connectPnt = PQgetvalue(pgr.res, 0, 0) + string(":") + PQgetvalue(pgr.res, 0, 1);
-  cng.sId = stoull(PQgetvalue(pgr.res, 0, 2));
-  cng.state = (ZM_Base::StateType)atoi(PQgetvalue(pgr.res, 0, 3));
-  cng.capacityTask = atoi(PQgetvalue(pgr.res, 0, 4));
-  cng.name = PQgetvalue(pgr.res, 0, 5);
-  cng.description = PQgetvalue(pgr.res, 0, 6);
+  cng.connectPnt = PQgetvalue(pgr.res, 0, 0);
+  cng.sId = stoull(PQgetvalue(pgr.res, 0, 1));
+  cng.state = (Base::StateType)atoi(PQgetvalue(pgr.res, 0, 2));
+  cng.capacityTask = atoi(PQgetvalue(pgr.res, 0, 3));
+  cng.name = PQgetvalue(pgr.res, 0, 4);
+  cng.description = PQgetvalue(pgr.res, 0, 5);
   return true;
 }
-bool DbProvider::changeWorker(uint64_t wId, const ZM_Base::Worker& newCng){
+bool DbProvider::changeWorker(uint64_t wId, const Base::Worker& newCng){
   lock_guard<mutex> lk(m_impl->m_mtx);
-  auto connPnt = ZM_Aux::split(newCng.connectPnt, ':');
+  auto connPnt = Aux::split(newCng.connectPnt, ':');
   if (connPnt.size() != 2){
     errorMess("changeWorker error: connectPnt not correct");
     return false;
@@ -90,14 +87,10 @@ bool DbProvider::changeWorker(uint64_t wId, const ZM_Base::Worker& newCng){
   ss << "UPDATE tblWorker SET "
         "schedr = '" << (int)newCng.sId << "',"
         "capacityTask = '" << newCng.capacityTask << "',"
+        "connPnt = '" << newCng.connectPnt << "',"
         "name = '" << newCng.name << "',"
         "description = '" << newCng.description << "' "
-        "WHERE id = " << wId << " AND isDelete = 0; "
-
-        "UPDATE tblConnectPnt SET "
-        "ipAddr = '" << connPnt[0] << "',"
-        "port = '" << connPnt[1] << "' "
-        "WHERE id = (SELECT connPnt FROM tblWorker WHERE id = " << wId << " AND isDelete = 0);";
+        "WHERE id = " << wId << " AND isDelete = 0;";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
@@ -145,7 +138,7 @@ bool DbProvider::workerState(const std::vector<uint64_t>& wId, std::vector<Worke
   }
   out.resize(wsz);
   for (size_t i = 0; i < wsz; ++i){
-    out[i].state = (ZM_Base::StateType)atoi(PQgetvalue(pgr.res, (int)i, 0));
+    out[i].state = (Base::StateType)atoi(PQgetvalue(pgr.res, (int)i, 0));
     out[i].activeTask = atoi(PQgetvalue(pgr.res, (int)i, 1));
     out[i].load = atoi(PQgetvalue(pgr.res, (int)i, 2));
     out[i].startTime = PQgetvalue(pgr.res, (int)i, 3);
@@ -154,7 +147,7 @@ bool DbProvider::workerState(const std::vector<uint64_t>& wId, std::vector<Worke
   }
   return true;
 }
-std::vector<uint64_t> DbProvider::getAllWorkers(uint64_t sId, ZM_Base::StateType state){
+std::vector<uint64_t> DbProvider::getAllWorkers(uint64_t sId, Base::StateType state){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
   ss << "SELECT id FROM tblWorker "

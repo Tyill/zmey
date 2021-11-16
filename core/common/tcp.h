@@ -28,7 +28,7 @@
 #include <functional>
 #include <system_error>
 
-namespace ZM_Tcp{
+namespace Tcp{
 
 /// status send data to receiver 
 /// [in] connPnt - connection point: IP or DNS ':' port
