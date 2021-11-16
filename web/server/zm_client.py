@@ -117,46 +117,29 @@ class Worker:
                        startTime {self.startTime} stopTime {self.stopTime} name {self.name} description {self.description}"
     def __str__(self):
       return self.__repr__()
-class TaskTemplate: 
-  """TaskTemplate config""" 
-  def __init__(self,
-               id : int = 0,
-               userId : int = 0,
-               averDurationSec : int = 1,
-               maxDurationSec : int = 1,
-               name : str = "",
-               description : str = "",
-               script: str = ""):
-    self.id = id
-    self.userId = userId               
-    self.averDurationSec = averDurationSec
-    self.maxDurationSec = maxDurationSec
-    self.name = name    
-    self.description = description
-    self.script = script   
-  def __repr__(self):
-      return f"TaskTemplate: name {self.name} description {self.description} script {self.script} id {self.id} userId {self.userId} averDurationSec {self.averDurationSec} maxDurationSec {self.maxDurationSec}   "
-  def __str__(self):
-      return self.__repr__()
 
 class Task:
   """Task config""" 
   def __init__(self,
                id : int = 0,         
-               ttlId : int = 0,         # Task template id    
                state : int = 0,
                progress : int = 0,
-               result : str = "",
+               averDurationSec : int = 0,
+               maxDurationSec : int = 0,
+               scriptPath : str = "",
+               resultPath : str = "",
                params : str = "",
                createTime : str = "",
                takeInWorkTime : str = "",
                startTime : str = "",
                stopTime : str = ""):
     self.id = id
-    self.ttlId = ttlId
     self.state = state
     self.progress = progress
-    self.result = result
+    self.averDurationSec = averDurationSec
+    self.maxDurationSec = maxDurationSec
+    self.scriptPath = scriptPath
+    self.resultPath = resultPath
     self.params = params               # CLI params for script
     self.createTime = createTime
     self.takeInWorkTime = takeInWorkTime
@@ -204,18 +187,14 @@ class _WorkerState_C(ctypes.Structure):
               ('startTime', ctypes.c_char * 32),
               ('stopTime', ctypes.c_char * 32),
               ('pingTime', ctypes.c_char * 32)]
-class _TaskTemplCng_C(ctypes.Structure):
-  _fields_ = [('userId', ctypes.c_uint64),
-              ('schedrPresetId', ctypes.c_uint64),
+class _TaskCng_C(ctypes.Structure):
+  _fields_ = [('schedrPresetId', ctypes.c_uint64),
               ('workerPresetId', ctypes.c_uint64),
               ('averDurationSec', ctypes.c_uint32),
               ('maxDurationSec', ctypes.c_uint32),
-              ('name', ctypes.c_char * 256),
-              ('description', ctypes.c_char_p),
-              ('script', ctypes.c_char_p)]
-class _TaskCng_C(ctypes.Structure):
-  _fields_ = [('ttlId', ctypes.c_uint64),
-              ('params', ctypes.c_char_p)]
+              ('params', ctypes.c_char_p),
+              ('scriptPath', ctypes.c_char_p),
+              ('resultPath', ctypes.c_char_p)]
 class _TaskState_C(ctypes.Structure):
   _fields_ = [('progress', ctypes.c_uint32),
               ('state', ctypes.c_int32)]
@@ -676,125 +655,6 @@ class Connection:
     return []
     
   #############################################################################
-  ### Task template 
-
-  def addTaskTemplate(self, iott : TaskTemplate) -> bool:
-    """
-    Add new TaskTemplate
-    :param iott: new tasktempl config
-    :return: True - ok
-    """
-    
-    if (self._zmConn):
-      tcng = _TaskTemplCng_C()
-      tcng.userId = iott.userId
-      tcng.schedrPresetId = 0       # not used yet
-      tcng.workerPresetId = 0
-      tcng.averDurationSec = iott.averDurationSec
-      tcng.maxDurationSec = iott.maxDurationSec
-      tcng.name = iott.name.encode('utf-8')
-      tcng.description = iott.description.encode('utf-8')
-      tcng.script = iott.script.encode('utf-8')
-      ttid = ctypes.c_uint64(0)
-      
-      pfun = _lib.zmAddTaskTemplate
-      pfun.argtypes = (ctypes.c_void_p, _TaskTemplCng_C, ctypes.POINTER(ctypes.c_uint64))
-      pfun.restype = ctypes.c_bool
-      if (pfun(self._zmConn, tcng, ctypes.byref(ttid))):
-        iott.id = ttid.value
-        return True
-    return False
-  def getTaskTemplate(self, iott : TaskTemplate) -> bool:
-    """
-    Get TaskTemplate config by ID
-    :param iott: TaskTemplate config
-    :return: True - ok
-    """
-    if (self._zmConn):
-      tcng = _TaskTemplCng_C()
-     
-      ttid = ctypes.c_uint64(iott.id)
-            
-      pfun = _lib.zmGetTaskTemplate
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(_TaskTemplCng_C))
-      pfun.restype = ctypes.c_bool
-      if (pfun(self._zmConn, ttid, ctypes.byref(tcng))):      
-        iott.userId = tcng.userId
-        iott.averDurationSec = tcng.averDurationSec
-        iott.maxDurationSec = tcng.maxDurationSec
-        iott.name = tcng.name.decode('utf-8')
-        if tcng.description:
-          iott.description = tcng.description.decode('utf-8')          
-        if tcng.script:          
-          iott.script = tcng.script.decode('utf-8')
-        self._freeResources()  
-        return True
-    return False
-  def changeTaskTemplate(self, iott : TaskTemplate) -> bool:
-    """
-    Change TaskTemplate config
-    :param iott: new TaskTemplate config
-    :return: True - ok
-    """
-    if (self._zmConn):
-      ttid = ctypes.c_uint64(iott.id)
-      tcng = _TaskTemplCng_C()
-      tcng.userId = iott.userId
-      tcng.schedrPresetId = 0 # not used yet
-      tcng.workerPresetId = 0
-      tcng.averDurationSec = iott.averDurationSec
-      tcng.maxDurationSec = iott.maxDurationSec            
-      tcng.name = iott.name.encode('utf-8')
-      tcng.description = iott.description.encode('utf-8')
-      tcng.script = iott.script.encode('utf-8')
-            
-      pfun = _lib.zmChangeTaskTemplate
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, _TaskTemplCng_C)
-      pfun.restype = ctypes.c_bool
-      return pfun(self._zmConn, ttid, tcng)
-    return False
-  def delTaskTemplate(self, ttId : int) -> bool:
-    """
-    Delete taskTempl
-    :param ttId: taskTempl id
-    :return: True - ok
-    """
-    if (self._zmConn):
-      tid = ctypes.c_uint64(ttId)
-            
-      pfun = _lib.zmDelTaskTemplate
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64)
-      pfun.restype = ctypes.c_bool
-      return pfun(self._zmConn, tid)
-    return False
-  def getAllTaskTemplates(self, uId : int) -> List[TaskTemplate]:
-    """
-    Get all taskTemplates
-    :param uId: User id
-    :return: list of TaskTemplate
-    """
-    if (self._zmConn):
-      userId = ctypes.c_uint64(uId)
-
-      pfun = _lib.zmGetAllTaskTemplates
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(ctypes.POINTER(ctypes.c_uint64)))
-      pfun.restype = ctypes.c_uint32
-      dbuffer = ctypes.POINTER(ctypes.c_uint64)()
-      osz = pfun(self._zmConn, userId, ctypes.byref(dbuffer))
-
-      if dbuffer and (osz > 0):
-        oid = [dbuffer[i] for i in range(osz)]
-        self._freeResources()
-
-        ott = []
-        for i in range(osz):
-          t = TaskTemplate(oid[i])
-          self.getTaskTemplate(t)
-          ott.append(t)
-        return ott
-    return []
-  
-  #############################################################################
   ### Task object
 
   def startTask(self, iot : Task) -> bool:
@@ -807,8 +667,13 @@ class Connection:
       tid = ctypes.c_uint64(0)
             
       tcng = _TaskCng_C()
-      tcng.ttlId = iot.ttlId      
+      tcng.schedrPresetId = 0       # not used yet
+      tcng.workerPresetId = 0
+      tcng.averDurationSec = iot.averDurationSec
+      tcng.maxDurationSec = iot.maxDurationSec   
       tcng.params = iot.params.encode('utf-8')
+      tcng.scriptPath = iot.scriptPath.encode('utf-8')
+      tcng.resultPath = iot.resultPath.encode('utf-8')
 
       pfun = _lib.zmStartTask
       pfun.argtypes = (ctypes.c_void_p, _TaskCng_C, ctypes.POINTER(ctypes.c_uint64))
@@ -898,25 +763,6 @@ class Connection:
           iot[i].progress = stateBuffer[i].progress          
         return True
     return False
-  def taskResult(self, iot : Task) -> bool:
-    """
-    Task result
-    :param iot: Task config
-    :return: True - ok
-    """
-    if (self._zmConn):
-      tid = ctypes.c_uint64(iot.id)
-      tresult = ctypes.c_char_p()
-      
-      pfun = _lib.zmResultOfTask
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.POINTER(ctypes.c_char_p))
-      pfun.restype = ctypes.c_bool
-      if (pfun(self._zmConn, tid, ctypes.byref(tresult))):      
-        if tresult:
-          iot.result = tresult.value.decode("utf-8")
-          self._freeResources()
-        return True
-    return False
   def taskTime(self, iot : Task) -> bool:
     """
     Task time
@@ -938,20 +784,19 @@ class Connection:
         return True
     return False
 
-  def addTaskForTracking(self, tId : int, uId : int):
+  def addTaskForTracking(self, tId : int):
     """
     Set change Task state callback
     """
     if (self._zmConn and self._changeTaskStateCBack):   
       c_tid = ctypes.c_uint64(tId)
-      c_uid = ctypes.c_uint64(uId)
     
-      taskStateCBackType = ctypes.CFUNCTYPE(None, ctypes.c_uint64, ctypes.c_uint64, ctypes.c_int32, ctypes.c_int32, ctypes.c_int32, ctypes.c_void_p)
+      taskStateCBackType = ctypes.CFUNCTYPE(None, ctypes.c_uint64, ctypes.c_int32, ctypes.c_int32, ctypes.c_int32, ctypes.c_void_p)
       
       pfun = _lib.zmSetChangeTaskStateCBack
       pfun.restype = ctypes.c_bool
-      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, ctypes.c_uint64, taskStateCBackType, ctypes.c_void_p)
-      return pfun(self._zmConn, c_tid, c_uid, self._changeTaskStateCBack, 0)
+      pfun.argtypes = (ctypes.c_void_p, ctypes.c_uint64, taskStateCBackType, ctypes.c_void_p)
+      return pfun(self._zmConn, c_tid, self._changeTaskStateCBack, 0)
     return False
 
   def setChangeTaskStateCBack(self, ucb):
@@ -960,10 +805,10 @@ class Connection:
     :param ucb: def func(tId : uint64, uId : uint64, progress : int, prevState : StateType, newState : StateType)
     """
     if (self._zmConn):   
-      def c_ucb(tId: ctypes.c_uint64, uId: ctypes.c_uint64, progress: ctypes.c_int32, prevState: ctypes.c_int32, newState: ctypes.c_int32, udata: ctypes.c_void_p):
-        ucb(tId, uId, progress, prevState, newState)
+      def c_ucb(tId: ctypes.c_uint64, progress: ctypes.c_int32, prevState: ctypes.c_int32, newState: ctypes.c_int32, udata: ctypes.c_void_p):
+        ucb(tId, progress, prevState, newState)
       
-      taskStateCBackType = ctypes.CFUNCTYPE(None, ctypes.c_uint64, ctypes.c_uint64, ctypes.c_int32, ctypes.c_int32, ctypes.c_int32, ctypes.c_void_p)
+      taskStateCBackType = ctypes.CFUNCTYPE(None, ctypes.c_uint64, ctypes.c_int32, ctypes.c_int32, ctypes.c_int32, ctypes.c_void_p)
       self._changeTaskStateCBack = taskStateCBackType(c_ucb)
       return True
     return False
