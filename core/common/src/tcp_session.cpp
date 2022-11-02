@@ -62,7 +62,7 @@ void TcpSession::read()
               break;
             }
           }
-          if (offs > 0) m_buff = std::string(pBuff + offs, buffSz - offs);
+          if (offs > 0) m_buff.setOffset(offs);
         }
         if (!ec) read();                                
       });
