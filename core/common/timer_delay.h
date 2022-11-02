@@ -28,7 +28,7 @@
 #include <vector>
 #include <cstdint>
 
-namespace Aux{
+namespace misc{
 
 class TimerDelay {
   struct tmBase{

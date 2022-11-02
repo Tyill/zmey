@@ -30,7 +30,7 @@
 #include <map>
 #include <cstdint>
 
-namespace Aux {
+namespace misc {
 
 //%Y-%m-%d %H:%M:%S
 std::string currDateTime();

@@ -63,7 +63,7 @@ Process::Process(Application& app, Executor& exr, const base::Task& tsk):
                   _exit(127);  \
                 }  
                 
-      Aux::createSubDirectory(tsk.resultPath);
+      misc::createSubDirectory(tsk.resultPath);
       string resultPath = tsk.resultPath + to_string(tsk.id) + ".dat";
       int fdRes = open(resultPath.c_str(), O_CREAT | O_TRUNC | O_RDWR, S_IRUSR | S_IWUSR);
       CHECK(fdRes, "create");
@@ -188,7 +188,7 @@ Process::Process(Application& app, Executor& exr, const base::Task& tsk):
   sa.lpSecurityDescriptor = NULL;
   sa.bInheritHandle = TRUE;
  
-  Aux::createSubDirectory(tsk.resultPath);
+  misc::createSubDirectory(tsk.resultPath);
   std::string resultPath = tsk.resultPath + std::to_string(tsk.id) + ".dat";
 
   HANDLE hOutFile = CreateFileA(resultPath.c_str(),
@@ -233,7 +233,7 @@ Process::Process(Application& app, Executor& exr, const base::Task& tsk):
   size_t shebPos = script.find("#!");
   size_t endline = script.find('\n');
   if ((shebPos != std::string::npos) && (endline != std::string::npos)) {
-      cmd = Aux::trim(script.substr(shebPos + 2, endline - shebPos - 2));      
+      cmd = misc::trim(script.substr(shebPos + 2, endline - shebPos - 2));      
       cmd += " " + tsk.scriptPath + " " + tsk.params;
   }
   else {

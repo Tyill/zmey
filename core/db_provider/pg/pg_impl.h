@@ -60,7 +60,7 @@ public:
   const std::string NOTIFY_NAME_CHANGE_TASK = "changetaskstate";
   const std::string NOTIFY_NAME_NEW_TASK = "newtasknotify";
 
-  Aux::TimerDelay m_notifyAuxCheckTOut;
+  misc::TimerDelay m_notifyAuxCheckTOut;
 };
 
 class PGres{

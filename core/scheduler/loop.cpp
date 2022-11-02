@@ -46,7 +46,7 @@ void Loop::run()
 {
   future<void> frGetNewTask,
                frSendAllMessToDB; 
-  Aux::TimerDelay timer;
+  misc::TimerDelay timer;
   const int minCycleTimeMS = 10;
     
   while (!m_fClose){

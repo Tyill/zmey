@@ -31,7 +31,7 @@
 
 using namespace std;
 
-namespace Aux {
+namespace misc {
 
   std::string serialn(const std::map<std::string, std::string>& data){
 

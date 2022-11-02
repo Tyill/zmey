@@ -68,10 +68,10 @@ private:
   std::map<std::string, SWorker> m_workers;   // key - connectPnt  
   std::vector<base::Worker> m_workersCpy;
   std::vector<base::Worker*> m_refWorkers;
-  Aux::Queue<base::Task> m_tasks;
-  Aux::Queue<DB::MessSchedr> m_messToDB;
+  misc::Queue<base::Task> m_tasks;
+  misc::Queue<DB::MessSchedr> m_messToDB;
   base::Scheduler m_schedr;
 
-  Aux::CounterTick m_ctickNewTask;
-  Aux::CounterTick m_ctickMessToDB;
+  misc::CounterTick m_ctickNewTask;
+  misc::CounterTick m_ctickMessToDB;
 };

@@ -38,8 +38,8 @@ void Executor::errorToSchedr(const std::string& schedrConnPnt)
     map<string, string> data{
       {Link::command, to_string((int)base::MessType::INTERN_ERROR)},
       {Link::connectPnt, m_worker.connectPnt},
-      {Link::message,  Aux::replace(mess, "'", "''")}
+      {Link::message,  misc::replace(mess, "'", "''")}
     };      
-    isSendOk = Tcp::asyncSendData(schedrConnPnt, Aux::serialn(data));
+    isSendOk = Tcp::asyncSendData(schedrConnPnt, misc::serialn(data));
   }
 }

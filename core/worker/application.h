@@ -43,7 +43,7 @@ public:
     SIGNAL_LOOP_NOTIFY = 0,
     SIGNAL_LOOP_STOP,
   };
-  static Aux::SignalConnector SignalConnector;
+  static misc::SignalConnector SignalConnector;
 
   static void loopNotify();
   static void loopStop();

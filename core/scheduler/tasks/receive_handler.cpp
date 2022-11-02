@@ -40,8 +40,8 @@ using namespace std;
       ERROR_MESS(string("receiveHandler error mess.find ") + field + " from: " + cp, wId); \
       return;  \
     } \
-    if (!Aux::isNumber(mess[field])){ \
-      ERROR_MESS(string("receiveHandler error !Aux::isNumber ") + field + " " + mess[field] + " from: " + cp, wId); \
+    if (!misc::isNumber(mess[field])){ \
+      ERROR_MESS(string("receiveHandler error !misc::isNumber ") + field + " " + mess[field] + " from: " + cp, wId); \
       return; \
     }
   #define checkField(field) \
@@ -56,7 +56,7 @@ using namespace std;
 
 void Executor::receiveHandler(const string& remcp, const string& data)
 {
-  auto mess = Aux::deserialn(data);
+  auto mess = misc::deserialn(data);
   if (mess.empty()){
     ERROR_MESS("receiveHandler error deserialn data from: " + remcp, 0);    
     return;

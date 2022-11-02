@@ -41,7 +41,7 @@
 
 using namespace std;
 
-namespace Aux {
+namespace misc {
     
  // %Y-%m-%d %H:%M:%S
 string currDateTime() {
@@ -138,13 +138,13 @@ parseCMDArgs(int argc, char* argv[]){
     sargs += argv[i];
   }
   map<string, string> sprms;
-  auto argPair = Aux::split(sargs, '-');
+  auto argPair = misc::split(sargs, '-');
   for (auto& arg : argPair){    
-    arg = Aux::trim(arg);
+    arg = misc::trim(arg);
     if (arg.empty()) continue;
     size_t sp = min(arg.find_first_of("="), arg.find_first_of(" "));
     if (sp != std::string::npos){
-      sprms[Aux::trim(arg.substr(0, sp))] = Aux::trim(arg.substr(sp + 1));
+      sprms[misc::trim(arg.substr(0, sp))] = misc::trim(arg.substr(sp + 1));
     }else{
       sprms[arg] = "";
     }

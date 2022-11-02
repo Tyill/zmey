@@ -28,7 +28,7 @@
 #include <string>
 #include <map>
 
-namespace Aux{
+namespace misc{
 
   std::string serialn(const std::map<std::string, std::string>& data);
 

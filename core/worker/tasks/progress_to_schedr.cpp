@@ -50,5 +50,5 @@ void Executor::progressToSchedr(const std::string& schedrConnPnt)
     {Link::tasks, writerJs.write(rootJs)},
   };  
   
-  Tcp::asyncSendData(schedrConnPnt, Aux::serialn(data));
+  Tcp::asyncSendData(schedrConnPnt, misc::serialn(data));
 }

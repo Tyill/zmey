@@ -168,7 +168,7 @@ bool zmStartScheduler(zmConn zo, int sId){
             {"connectPnt", connCng.connectStr}
           };
   zmSchedr cng;  
-  return zmGetScheduler(zo, sId, &cng) && Tcp::syncSendData(cng.connectPnt, Aux::serialn(data));
+  return zmGetScheduler(zo, sId, &cng) && Tcp::syncSendData(cng.connectPnt, misc::serialn(data));
 }
 bool zmPauseScheduler(zmConn zo, int sId){
   if (!zo) return false; 
@@ -179,7 +179,7 @@ bool zmPauseScheduler(zmConn zo, int sId){
             {"connectPnt", connCng.connectStr}
           };
   zmSchedr cng;  
-  return zmGetScheduler(zo, sId, &cng) && Tcp::syncSendData(cng.connectPnt, Aux::serialn(data));
+  return zmGetScheduler(zo, sId, &cng) && Tcp::syncSendData(cng.connectPnt, misc::serialn(data));
 }
 bool zmPingScheduler(zmConn zo, int sId){
   if (!zo) return false; 
@@ -190,7 +190,7 @@ bool zmPingScheduler(zmConn zo, int sId){
             {"connectPnt", connCng.connectStr}
           };
   zmSchedr cng;  
-  return zmGetScheduler(zo, sId, &cng) && Tcp::syncSendData(cng.connectPnt, Aux::serialn(data));
+  return zmGetScheduler(zo, sId, &cng) && Tcp::syncSendData(cng.connectPnt, misc::serialn(data));
 }
 bool zmStateOfScheduler(zmConn zo, int sId, zmSchedulerState* outState){
   if (!zo) return false; 
@@ -303,7 +303,7 @@ bool zmStartWorker(zmConn zo, int wId){
             {"connectPnt", connCng.connectStr},
             {"workerConnPnt", wcng.connectPnt}
           };
-    return Tcp::syncSendData(scng.connectPnt, Aux::serialn(data));
+    return Tcp::syncSendData(scng.connectPnt, misc::serialn(data));
   }else{
     return false;
   } 
@@ -321,7 +321,7 @@ bool zmPauseWorker(zmConn zo, int wId){
             {"connectPnt", connCng.connectStr},
             {"workerConnPnt", wcng.connectPnt}
           };
-    return Tcp::syncSendData(scng.connectPnt, Aux::serialn(data));
+    return Tcp::syncSendData(scng.connectPnt, misc::serialn(data));
   }else{
     return false;
   } 
@@ -335,7 +335,7 @@ bool zmPingWorker(zmConn zo, int wId){
             {"connectPnt", connCng.connectStr}
           };
   zmWorker cng;  
-  return zmGetWorker(zo, wId, &cng) && Tcp::syncSendData(cng.connectPnt, Aux::serialn(data));
+  return zmGetWorker(zo, wId, &cng) && Tcp::syncSendData(cng.connectPnt, misc::serialn(data));
 }
 bool zmStateOfWorker(zmConn zo, int* pWId, uint32_t wCnt, zmWorkerState* outState){
   if (!zo) return false; 
@@ -402,7 +402,7 @@ bool zmStopTask(zmConn zo, int tId){
             {"taskId", to_string(tId)}
           };
 
-    return Tcp::syncSendData(wcng.connectPnt, Aux::serialn(data));
+    return Tcp::syncSendData(wcng.connectPnt, misc::serialn(data));
   }
   return false;
 }
@@ -423,7 +423,7 @@ bool zmPauseTask(zmConn zo, int tId){
             {"taskId", to_string(tId)}
           };
 
-    return Tcp::syncSendData(wcng.connectPnt, Aux::serialn(data));
+    return Tcp::syncSendData(wcng.connectPnt, misc::serialn(data));
   }
   return false;
 }
@@ -439,7 +439,7 @@ bool zmContinueTask(zmConn zo, int tId){
             {"taskId", to_string(tId)}
           };
 
-    return Tcp::syncSendData(wcng.connectPnt, Aux::serialn(data));
+    return Tcp::syncSendData(wcng.connectPnt, misc::serialn(data));
   }
   return false;
 }

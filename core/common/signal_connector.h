@@ -31,7 +31,7 @@
 #include <mutex>
 #include <memory>
 
-namespace Aux{
+namespace misc{
 
 class SignalConnector {
 

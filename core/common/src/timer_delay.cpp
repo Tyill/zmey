@@ -25,7 +25,7 @@
 #include "../aux_func.h"
 #include "../timer_delay.h"
 
-namespace Aux{
+namespace misc{
 
 TimerDelay::TimerDelay(){
   _prevTm = currDateTimeSinceEpochMs();

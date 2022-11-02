@@ -38,6 +38,6 @@ void Executor::pingToSchedr(const std::string& schedrConnPnt){
     {Link::activeTask, to_string(m_worker.activeTask)},
     {Link::load, to_string(m_worker.load)}
   };      
-  Tcp::asyncSendData(schedrConnPnt, Aux::serialn(data));
+  Tcp::asyncSendData(schedrConnPnt, misc::serialn(data));
 }
 

@@ -27,7 +27,7 @@
 
 #include <vector>
 
-namespace Aux {
+namespace misc {
 
 class Front{
   std::vector<bool> _onc;

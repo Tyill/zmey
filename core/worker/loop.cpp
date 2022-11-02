@@ -40,10 +40,10 @@ Loop::Loop(const Application::Config& cng, Executor& exr):
 
 void Loop::run()
 {      
-  Aux::TimerDelay timer;
+  misc::TimerDelay timer;
   const int minCycleTimeMS = 10;
    
-  Aux::CPUData cpu;
+  misc::CPUData cpu;
 
   while (!m_fClose){
     timer.updateCycTime();   

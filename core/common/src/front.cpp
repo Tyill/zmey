@@ -25,7 +25,7 @@
 
 #include "../front.h"
 
-namespace Aux {
+namespace misc {
 
 Front::Front() : _oncSz(0) {
 }

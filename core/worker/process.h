@@ -63,7 +63,7 @@ private:
   Executor& m_executor;
   pid_t m_pid = 1; 
   base::Task m_task;
-  Aux::TimerDelay m_timerProgress,
+  misc::TimerDelay m_timerProgress,
                      m_timerDuration;
   int m_cdeltaTimeProgress = 0,
            m_cdeltaTimeDuration  = 0;

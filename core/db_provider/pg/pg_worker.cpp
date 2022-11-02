@@ -30,7 +30,7 @@ namespace DB{
   
 bool DbProvider::addWorker(const base::Worker& worker, int& outWkrId){
   lock_guard<mutex> lk(m_impl->m_mtx);
-  auto connPnt = Aux::split(worker.connectPnt, ':');
+  auto connPnt = misc::split(worker.connectPnt, ':');
   if (connPnt.size() != 2){
     errorMess("addWorker error: connectPnt not correct");
     return false;
@@ -78,7 +78,7 @@ bool DbProvider::getWorker(int wId, base::Worker& cng){
 }
 bool DbProvider::changeWorker(int wId, const base::Worker& newCng){
   lock_guard<mutex> lk(m_impl->m_mtx);
-  auto connPnt = Aux::split(newCng.connectPnt, ':');
+  auto connPnt = misc::split(newCng.connectPnt, ':');
   if (connPnt.size() != 2){
     errorMess("changeWorker error: connectPnt not correct");
     return false;

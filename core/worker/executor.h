@@ -65,11 +65,11 @@ private:
   Application& m_app;  
   
   base::Worker m_worker;
-  Aux::Queue<MessForSchedr> m_listMessForSchedr;
-  Aux::Queue<base::Task> m_newTasks;
-  Aux::Queue<std::string> m_errMess;
+  misc::Queue<MessForSchedr> m_listMessForSchedr;
+  misc::Queue<base::Task> m_newTasks;
+  misc::Queue<std::string> m_errMess;
   std::list<Process> m_procs;
   std::mutex m_mtxProcess;  
   
-  Aux::CounterTick m_ctickSendNotify;
+  misc::CounterTick m_ctickSendNotify;
 };

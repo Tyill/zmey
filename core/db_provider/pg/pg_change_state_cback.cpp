@@ -60,7 +60,7 @@ bool DbProvider::setChangeTaskStateCBack(int tId, ChangeTaskStateCBack cback, UD
         }
         bool auxCheckTimeout = m_impl->m_notifyAuxCheckTOut.onDelayOncSec(true, 10, 1);
         if (!isChangeState && m_impl->m_firstReqChangeTaskState && !auxCheckTimeout){
-          Aux::sleepMs(maxElapseTimeMS);
+          misc::sleepMs(maxElapseTimeMS);
           continue;
         }
         m_impl->m_firstReqChangeTaskState = true;
@@ -71,7 +71,7 @@ bool DbProvider::setChangeTaskStateCBack(int tId, ChangeTaskStateCBack cback, UD
           notifyTasks = m_impl->m_notifyTaskStateCBack;
         }
         if (notifyTasks.empty()){
-          Aux::sleepMs(maxElapseTimeMS);
+          misc::sleepMs(maxElapseTimeMS);
           continue;
         }
 
@@ -132,7 +132,7 @@ bool DbProvider::setChangeTaskStateCBack(int tId, ChangeTaskStateCBack cback, UD
         auto t_end = std::chrono::high_resolution_clock::now();
         int deltaTimeMs = (int)std::chrono::duration<double, std::milli>(t_end - t_start).count();
         if ((maxElapseTimeMS - deltaTimeMs) > 0)
-          Aux::sleepMs(maxElapseTimeMS - deltaTimeMs);
+          misc::sleepMs(maxElapseTimeMS - deltaTimeMs);
       }      
     });
   }

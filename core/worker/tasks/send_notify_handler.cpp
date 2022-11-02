@@ -31,7 +31,7 @@ using namespace std;
 
 void Executor::sendNotifyHandler(const string& cp, const string& data, const std::error_code& ec)
 {  
-  auto smess = Aux::deserialn(data);  
+  auto smess = misc::deserialn(data);  
   base::MessType messType = (base::MessType)stoi(smess[Link::command]);
   if (ec && (messType != base::MessType::TASK_PROGRESS) &&
             (messType != base::MessType::INTERN_ERROR) &&

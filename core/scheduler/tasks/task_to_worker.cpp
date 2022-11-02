@@ -87,7 +87,7 @@ bool Executor::sendTaskToWorker()
         {Link::maxDurationSec,  to_string(task.maxDurationSec)}        
       };
       const string& wConnPnt = (*iWr)->connectPnt;
-      if (Tcp::asyncSendData(wConnPnt, Aux::serialn(data))){
+      if (Tcp::asyncSendData(wConnPnt, misc::serialn(data))){
         ++(*iWr)->activeTask;
         m_workers[wConnPnt].base.activeTask = (*iWr)->activeTask; 
        

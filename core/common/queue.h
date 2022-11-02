@@ -30,7 +30,7 @@
 #include <utility>
 #include <memory>
 
-namespace Aux{
+namespace misc{
 
 template<typename T>
 class Queue{

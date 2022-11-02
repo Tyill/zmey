@@ -30,16 +30,16 @@
 
 using namespace std;
 
-Aux::SignalConnector Application::SignalConnector;
+misc::SignalConnector Application::SignalConnector;
 
 void Application::statusMess(const string& mess){
   lock_guard<mutex> lock(m_mtxStatusMess);
-  cout << Aux::currDateTimeMs() << " " << mess << std::endl;
+  cout << misc::currDateTimeMs() << " " << mess << std::endl;
 }
 
 bool Application::parseArgs(int argc, char* argv[], Config& outCng){ 
   
-  map<string, string> sprms = Aux::parseCMDArgs(argc, argv);
+  map<string, string> sprms = misc::parseCMDArgs(argc, argv);
 
   if (sprms.empty() || (sprms.cbegin()->first == "help")){
     cout << "Usage: --localAddr[-la] schedr local connection point: IP or DNS:port. Required\n"
@@ -63,10 +63,10 @@ bool Application::parseArgs(int argc, char* argv[], Config& outCng){
   SET_PARAM(db, dbConnStr, dbConnCng.connectStr);
  
 #define SET_PARAM_NUM(shortName, longName, prm)                                           \
-  if (sprms.find(#longName) != sprms.end() && Aux::isNumber(sprms[#longName])){        \
+  if (sprms.find(#longName) != sprms.end() && misc::isNumber(sprms[#longName])){        \
     outCng.prm = stoi(sprms[#longName]);                                                  \
   }                                                                                       \
-  else if (sprms.find(#shortName) != sprms.end() && Aux::isNumber(sprms[#shortName])){ \
+  else if (sprms.find(#shortName) != sprms.end() && misc::isNumber(sprms[#shortName])){ \
     outCng.prm = stoi(sprms[#shortName]);                                                 \
   }
 

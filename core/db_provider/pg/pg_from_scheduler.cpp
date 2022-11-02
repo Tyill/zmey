@@ -334,7 +334,7 @@ bool DbProvider::sendAllMessFromSchedr(int sId, std::vector<DB::MessSchedr>& mes
               "WHERE id = " << m.workerId << ";";
         break;
       case base::MessType::PING_WORKER:{
-        auto data = Aux::split(m.data, '\t');
+        auto data = misc::split(m.data, '\t');
         ss << "UPDATE tblWorker SET "
               "activeTask = " << stoi(data[0]) << ", "
               "pingTime = current_timestamp, "

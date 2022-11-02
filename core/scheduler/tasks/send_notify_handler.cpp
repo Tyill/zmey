@@ -39,8 +39,8 @@ using namespace std;
       ERROR_MESS(string("sendNotifyHandler Error mess.find ") + field + " from: " + cp, wId); \
       return;  \
     } \
-    if (!Aux::isNumber(mess[field])){ \
-      ERROR_MESS("sendNotifyHandler Error !Aux::isNumber " + mess[field] + " from: " + cp, wId); \
+    if (!misc::isNumber(mess[field])){ \
+      ERROR_MESS("sendNotifyHandler Error !misc::isNumber " + mess[field] + " from: " + cp, wId); \
       return; \
     }
   #define checkField(field) \
@@ -56,7 +56,7 @@ using namespace std;
 void Executor::sendNotifyHandler(const string& cp, const string& data, const std::error_code& ec)
 {
   // error from worker
-  auto mess = Aux::deserialn(data);
+  auto mess = misc::deserialn(data);
   int wId = 0;
   checkFieldNum(Link::command);
   
