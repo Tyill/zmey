@@ -32,7 +32,7 @@
 
 #include "prepare.h"
 #include "db_provider/db_provider.h"
-#include "common/aux_func.h"
+#include "common/misc.h"
 #include "client/ddclient.h"
 
 using namespace std;

@@ -45,7 +45,7 @@ bool DbProvider::getWorkerByTask(int tId, base::Worker& wcng){
     errorMess(string("getWorkerByTask error: task delete OR not taken to work"));
     return false;
   }
-  wcng.id = stoull(PQgetvalue(pgr.res, 0, 0));
+  wcng.id = stoi(PQgetvalue(pgr.res, 0, 0));
   wcng.connectPnt = PQgetvalue(pgr.res, 0, 1);
 
   return true;
@@ -70,8 +70,8 @@ vector<DB::MessError> DbProvider::getInternErrors(int sId, int wId, int mCnt){
   int rows = PQntuples(pgr.res);
   std::vector<DB::MessError> ret(rows);
   for (int i = 0; i < rows; ++i){
-    ret[i].schedrId = stoull(PQgetvalue(pgr.res, i, 0));
-    ret[i].workerId = stoull(PQgetvalue(pgr.res, i, 1));
+    ret[i].schedrId = stoi(PQgetvalue(pgr.res, i, 0));
+    ret[i].workerId = stoi(PQgetvalue(pgr.res, i, 1));
     ret[i].message = PQgetvalue(pgr.res, i, 2);
     ret[i].createTime = PQgetvalue(pgr.res, i, 3);
   }

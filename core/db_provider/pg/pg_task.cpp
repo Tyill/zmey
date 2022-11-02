@@ -45,7 +45,7 @@ bool DbProvider::startTask(int schedPresetId, base::Task& cng, int& tId){
     errorMess(string("startTask: ") + PQerrorMessage(_pg));
     return false;
   }
-  tId = stoull(PQgetvalue(pgr.res, 0, 0));
+  tId = stoi(PQgetvalue(pgr.res, 0, 0));
   if (tId == 0){
     errorMess("startTask error: such task does not exist");
     return false;

@@ -24,7 +24,7 @@
 //
 
 #include "application.h"
-#include "common/aux_func.h"
+#include "common/misc.h"
 
 #include <iostream>
 

@@ -86,7 +86,7 @@ void Executor::receiveHandler(const string& remcp, const string& data)
         checkFieldNum(Link::activeTask);
         worker.base.activeTask = stoi(mess[Link::activeTask]);
         worker.base.load = stoi(mess[Link::load]);
-        int tid = stoull(mess[Link::taskId]); 
+        int tid = stoi(mess[Link::taskId]); 
         bool taskExist = false;       
         for(auto& t : worker.taskList){
           if (t == tid){

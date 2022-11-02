@@ -26,7 +26,7 @@
 #pragma once
 
 #include "common/queue.h"
-#include "common/aux_func.h"
+#include "common/misc.h"
 #include "base/base.h"
 #include "db_provider/db_provider.h"
 #include "scheduler/application.h"

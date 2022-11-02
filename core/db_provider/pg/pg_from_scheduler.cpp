@@ -59,7 +59,7 @@ bool DbProvider::getSchedr(const std::string& connPnt, base::Scheduler& outCng){
     errorMess("getSchedr error: such schedr does not exist");
     return false;
   }
-  outCng.id = stoull(PQgetvalue(pgr.res, 0, 0));
+  outCng.id = stoi(PQgetvalue(pgr.res, 0, 0));
   outCng.connectPnt = connPnt;
   outCng.state = (base::StateType)atoi(PQgetvalue(pgr.res, 0, 1));
   outCng.capacityTask = atoi(PQgetvalue(pgr.res, 0, 2));
@@ -94,8 +94,8 @@ bool DbProvider::getTasksById(int sId, const std::vector<int>& tasksId, std::vec
   int tsz = PQntuples(pgr.res);
   for (int i = 0; i < tsz; ++i){
     out.push_back(base::Task {
-      stoull(PQgetvalue(pgr.res, i, 0)),
-      stoull(PQgetvalue(pgr.res, i, 1)),
+      stoi(PQgetvalue(pgr.res, i, 0)),
+      stoi(PQgetvalue(pgr.res, i, 1)),
       atoi(PQgetvalue(pgr.res, i, 2)),
       atoi(PQgetvalue(pgr.res, i, 3)),
       PQgetvalue(pgr.res, i, 4),
@@ -123,8 +123,8 @@ bool DbProvider::getTasksOfSchedr(int sId, std::vector<base::Task>& out){
   int tsz = PQntuples(pgr.res);
   for (int i = 0; i < tsz; ++i){
     out.push_back(base::Task {
-      stoull(PQgetvalue(pgr.res, i, 0)),
-      stoull(PQgetvalue(pgr.res, i, 1)),
+      stoi(PQgetvalue(pgr.res, i, 0)),
+      stoi(PQgetvalue(pgr.res, i, 1)),
       atoi(PQgetvalue(pgr.res, i, 2)),
       atoi(PQgetvalue(pgr.res, i, 3)),
       PQgetvalue(pgr.res, i, 4),
@@ -149,7 +149,7 @@ bool DbProvider::getTasksOfWorker(int sId, int wId, std::vector<int>& outTasksId
   }
   int tsz = PQntuples(pgr.res);
   for (int i = 0; i < tsz; ++i){
-    outTasksId.push_back(stoull(PQgetvalue(pgr.res, i, 0)));
+    outTasksId.push_back(stoi(PQgetvalue(pgr.res, i, 0)));
   }
   return true;
 }
@@ -167,7 +167,7 @@ bool DbProvider::getWorkersOfSchedr(int sId, std::vector<base::Worker>& out){
   }
   int wsz = PQntuples(pgr.res);
   for(int i =0; i < wsz; ++i){
-    out.push_back(base::Worker{ stoull(PQgetvalue(pgr.res, i, 0)),
+    out.push_back(base::Worker{ stoi(PQgetvalue(pgr.res, i, 0)),
                                    sId,
                                    (base::StateType)atoi(PQgetvalue(pgr.res, i, 1)),
                                    atoi(PQgetvalue(pgr.res, i, 2)),
@@ -207,8 +207,8 @@ bool DbProvider::getNewTasksForSchedr(int sId, int maxTaskCnt, std::vector<base:
   int tsz = PQntuples(pgr.res);
   for (int i = 0; i < tsz; ++i){
     out.push_back(base::Task {
-      stoull(PQgetvalue(pgr.res, i, 0)),
-      stoull(PQgetvalue(pgr.res, i, 1)),
+      stoi(PQgetvalue(pgr.res, i, 0)),
+      stoi(PQgetvalue(pgr.res, i, 1)),
       atoi(PQgetvalue(pgr.res, i, 2)),
       atoi(PQgetvalue(pgr.res, i, 3)),
       PQgetvalue(pgr.res, i, 4),

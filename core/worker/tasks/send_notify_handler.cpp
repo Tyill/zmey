@@ -38,7 +38,7 @@ void Executor::sendNotifyHandler(const string& cp, const string& data, const std
             (messType != base::MessType::PING_WORKER)){
     MessForSchedr mess;
     mess.MessType = messType;
-    mess.taskId = stoull(smess[Link::taskId]);
+    mess.taskId = stoi(smess[Link::taskId]);
     m_listMessForSchedr.push(move(mess));
     if (m_ctickSendNotify(1000)){
       m_app.statusMess("sendNotifyHandler error send to schedr: " + ec.message());

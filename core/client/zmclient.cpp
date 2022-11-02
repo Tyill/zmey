@@ -23,7 +23,7 @@
 // THE SOFTWARE.
 //
 #include "zmclient.h"
-#include "common/aux_func.h"
+#include "common/misc.h"
 #include "common/tcp.h"
 #include "common/serial.h"
 #include "db_provider/db_provider.h"

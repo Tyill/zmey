@@ -22,7 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#include "../aux_func.h"
+#include "../misc.h"
 #include "../timer_delay.h"
 
 namespace misc{

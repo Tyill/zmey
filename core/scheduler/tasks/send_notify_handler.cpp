@@ -73,7 +73,7 @@ void Executor::sendNotifyHandler(const string& cp, const string& data, const std
         checkFieldNum(Link::averDurationSec);
         checkFieldNum(Link::maxDurationSec);
         base::Task t;
-        t.id = stoull(mess[Link::taskId]);
+        t.id = stoi(mess[Link::taskId]);
         t.wId = wId;
         t.params = mess[Link::params];
         t.scriptPath = mess[Link::scriptPath];

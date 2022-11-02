@@ -26,7 +26,7 @@
 #include "process.h"
 #include "application.h"
 #include "executor.h"
-#include "common/aux_func.h"
+#include "common/misc.h"
 
 #ifdef __linux__ 
 

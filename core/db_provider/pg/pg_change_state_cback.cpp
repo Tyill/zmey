@@ -99,7 +99,7 @@ bool DbProvider::setChangeTaskStateCBack(int tId, ChangeTaskStateCBack cback, UD
           if (PQresultStatus(pgr.res) == PGRES_TUPLES_OK){
             size_t tsz = PQntuples(pgr.res);
             for (size_t i = 0; i < tsz; ++i){
-              int tId = stoull(PQgetvalue(pgr.res, (int)i, 0));
+              int tId = stoi(PQgetvalue(pgr.res, (int)i, 0));
               base::StateType state = (base::StateType)atoi(PQgetvalue(pgr.res, (int)i, 1));
               int progress = atoi(PQgetvalue(pgr.res, (int)i, 2));
               if ((state != notifyTasks[tId].state) || (progress != notifyTasks[tId].progress)){

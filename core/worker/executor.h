@@ -25,7 +25,7 @@
 #pragma once
 
 #include "common/queue.h"
-#include "common/aux_func.h"
+#include "common/misc.h"
 #include "base/base.h"
 #include "worker/application.h"
 #include "worker/process.h" 

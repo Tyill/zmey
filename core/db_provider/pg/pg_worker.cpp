@@ -49,7 +49,7 @@ bool DbProvider::addWorker(const base::Worker& worker, int& outWkrId){
       errorMess(string("addWorker: ") + PQerrorMessage(_pg));
       return false;
   }
-  outWkrId = stoull(PQgetvalue(pgr.res, 0, 0));
+  outWkrId = stoi(PQgetvalue(pgr.res, 0, 0));
   return true;
 }
 bool DbProvider::getWorker(int wId, base::Worker& cng){
@@ -69,7 +69,7 @@ bool DbProvider::getWorker(int wId, base::Worker& cng){
     return false;
   }
   cng.connectPnt = PQgetvalue(pgr.res, 0, 0);
-  cng.sId = stoull(PQgetvalue(pgr.res, 0, 1));
+  cng.sId = stoi(PQgetvalue(pgr.res, 0, 1));
   cng.state = (base::StateType)atoi(PQgetvalue(pgr.res, 0, 2));
   cng.capacityTask = atoi(PQgetvalue(pgr.res, 0, 3));
   cng.name = PQgetvalue(pgr.res, 0, 4);
@@ -163,7 +163,7 @@ std::vector<int> DbProvider::getAllWorkers(int sId, base::StateType state){
   int rows = PQntuples(pgr.res);
   std::vector<int> ret(rows);
   for (int i = 0; i < rows; ++i){
-    ret[i] = stoull(PQgetvalue(pgr.res, i, 0));
+    ret[i] = stoi(PQgetvalue(pgr.res, i, 0));
   }
   return ret;
 }

@@ -24,7 +24,7 @@
 //
 #include "tcp_server.h"
 #include "../tcp.h"
-#include "../aux_func.h"
+#include "../misc.h"
 
 #include <asio.hpp>
 

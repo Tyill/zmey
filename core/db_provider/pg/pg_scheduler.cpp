@@ -46,7 +46,7 @@ bool DbProvider::addSchedr(const base::Scheduler& schedl, int& outSchId){
     errorMess(string("addSchedr: ") + PQerrorMessage(_pg));
     return false;
   }
-  outSchId = stoull(PQgetvalue(pgr.res, 0, 0));
+  outSchId = stoi(PQgetvalue(pgr.res, 0, 0));
   return true;
 }
 bool DbProvider::getSchedr(int sId, base::Scheduler& cng){
@@ -138,7 +138,7 @@ std::vector<int> DbProvider::getAllSchedrs(base::StateType state){
   int rows = PQntuples(pgr.res);
   std::vector<int> ret(rows);
   for (int i = 0; i < rows; ++i){
-    ret[i] = stoull(PQgetvalue(pgr.res, i, 0));
+    ret[i] = stoi(PQgetvalue(pgr.res, i, 0));
   }
   return ret;
 }

@@ -71,8 +71,8 @@ namespace base{
   
   // task object
   struct Task{
-    int id;              // id tblTaskQueue
-    int wId;             // preset worker id tblWorker. Default 0 - not set
+    int id;                   // id tblTaskQueue
+    int wId;                  // preset worker id tblWorker. Default 0 - not set
     int averDurationSec;      // estimated lead time
     int maxDurationSec;       // maximum lead time  
     std::string params;
@@ -83,7 +83,7 @@ namespace base{
  
   // tblScheduler
   struct Scheduler{
-    int id;              // id tblScheduler
+    int id;                   // id tblScheduler
     StateType state;
     int capacityTask;         // the number of tasks that can be performed simultaneously  
     int activeTask;           // number of running tasks (approximate quantity)

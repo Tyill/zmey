@@ -74,7 +74,7 @@ void Executor::receiveHandler(const string& remcp, const string& data)
     checkFieldNum(Link::averDurationSec);
     checkFieldNum(Link::maxDurationSec);
     base::Task t;
-    t.id = stoull(mess[Link::taskId]);
+    t.id = stoi(mess[Link::taskId]);
     t.averDurationSec = stoi(mess[Link::averDurationSec]);
     t.maxDurationSec = stoi(mess[Link::maxDurationSec]);
     t.scriptPath = mess[Link::scriptPath];

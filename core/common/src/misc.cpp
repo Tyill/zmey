@@ -30,7 +30,7 @@
 #include <fstream>
 #include <algorithm>
 
-#include "common/aux_func.h"
+#include "common/misc.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -62,12 +62,13 @@ string currDateTimeMs() {
 
   int64_t ms = chrono::time_point_cast<chrono::milliseconds>(chrono::system_clock::now()).time_since_epoch().count() % 1000;
 
-  char curDate[24];
-  strftime(curDate, 24, "%Y-%m-%d %H:%M:%S:", lct);
+  char curDate[20];
+  strftime(curDate, 20, "%Y-%m-%d %H:%M:%S:", lct);
 
-  (sprintf)(curDate, "%s%03d", curDate, int(ms));
+  char curDateWithMS[24];
+  (sprintf)(curDateWithMS, "%s%03d", curDate, int(ms));
 
-  return curDate;
+  return curDateWithMS;
 } 
 vector<string> split(const string& str, char sep) {  
   vector<string> res;
