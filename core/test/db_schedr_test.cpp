@@ -57,106 +57,106 @@ protected:
 };
 
 TEST_F(DBSchedrTest, getSchedrByCP){
-  Base::Scheduler schedr{0};
-  schedr.state = Base::StateType::READY;
+  base::Scheduler schedr{0};
+  schedr.state = base::StateType::READY;
   schedr.connectPnt = "localhost:4444"; 
   schedr.capacityTask = 105; 
   int sId = 0;  
   EXPECT_TRUE(_pDb->addSchedr(schedr, sId) && (sId > 0)) << _pDb->getLastError(); 
 
-  schedr.state = Base::StateType::ERRORT;
+  schedr.state = base::StateType::ERRORT;
   schedr.capacityTask = 1;   
   schedr.id = 0;
   EXPECT_TRUE(_pDb->getSchedr(schedr.connectPnt, schedr) && (schedr.id == sId) &&
-                                              (schedr.state == Base::StateType::READY) &&
+                                              (schedr.state == base::StateType::READY) &&
                                               (schedr.connectPnt == "localhost:4444") &&
                                               (schedr.capacityTask == 105)) << _pDb->getLastError(); 
 
-  schedr.state = Base::StateType::ERRORT;
+  schedr.state = base::StateType::ERRORT;
   schedr.connectPnt = ""; 
   schedr.capacityTask = 1;
-  EXPECT_TRUE(!_pDb->getSchedr(schedr.connectPnt, schedr) && (schedr.state == Base::StateType::ERRORT) &&
+  EXPECT_TRUE(!_pDb->getSchedr(schedr.connectPnt, schedr) && (schedr.state == base::StateType::ERRORT) &&
                                               (schedr.connectPnt == "") &&
                                               (schedr.capacityTask == 1)) << _pDb->getLastError();                                                      
 }
 TEST_F(DBSchedrTest, getTaskOfSchedr){
-  Base::Scheduler schedr{0};
-  schedr.state = Base::StateType::READY;
+  base::Scheduler schedr{0};
+  schedr.state = base::StateType::READY;
   schedr.connectPnt = "localhost:4444"; 
   schedr.capacityTask = 105; 
   int sId = 0;  
   EXPECT_TRUE(_pDb->addSchedr(schedr, sId) && (sId > 0)) << _pDb->getLastError(); 
 
-  Base::Worker worker{0};
+  base::Worker worker{0};
   worker.capacityTask = 10;
   worker.sId = sId;
-  worker.state = Base::StateType::READY;
+  worker.state = base::StateType::READY;
   worker.connectPnt = "localhost:4445";
   int wId = 0;  
   EXPECT_TRUE(_pDb->addWorker(worker, wId) && (wId > 0)) << _pDb->getLastError();  
     
   int tId1 = 0;  
-  Base::Task task{0};
+  base::Task task{0};
   EXPECT_TRUE(_pDb->startTask(0, task, tId1)) << _pDb->getLastError();        
 
   int tId2 = 0;  
   EXPECT_TRUE(_pDb->startTask(0, task, tId2 )) << _pDb->getLastError();        
 
-  vector<Base::Task> tasks;
+  vector<base::Task> tasks;
   EXPECT_TRUE(_pDb->getNewTasksForSchedr(sId, 10, tasks) && 
               (tasks.size() == 2) &&
               (tasks[0].id == tId1) && 
               (tasks[0].wId == 0)) << _pDb->getLastError();
 
   vector<DB::MessSchedr> mess;
-  mess.push_back(DB::MessSchedr{Base::MessType::TASK_RUNNING, wId, tasks[0].id});
+  mess.push_back(DB::MessSchedr{base::MessType::TASK_RUNNING, wId, tasks[0].id});
   EXPECT_TRUE(_pDb->sendAllMessFromSchedr(sId, mess)) << _pDb->getLastError();
 
   mess.clear();
-  mess.push_back(DB::MessSchedr{Base::MessType::TASK_COMPLETED, wId, tasks[0].id});
+  mess.push_back(DB::MessSchedr{base::MessType::TASK_COMPLETED, wId, tasks[0].id});
   EXPECT_TRUE(_pDb->sendAllMessFromSchedr(sId, mess)) << _pDb->getLastError();
 
           
 }
 TEST_F(DBSchedrTest, getWorkerOfSchedr){
-  Base::Scheduler schedr{0};
-  schedr.state = Base::StateType::READY;
+  base::Scheduler schedr{0};
+  schedr.state = base::StateType::READY;
   schedr.connectPnt = "localhost:4444";
   schedr.capacityTask = 10000;
   int sId = 0;  
   EXPECT_TRUE(_pDb->addSchedr(schedr, sId) && (sId > 0)) << _pDb->getLastError(); 
   
-  Base::Worker worker{0};
+  base::Worker worker{0};
   worker.capacityTask = 10;
   worker.sId = sId;
-  worker.state = Base::StateType::READY;
+  worker.state = base::StateType::READY;
   worker.connectPnt = "localhost:4444";
   int wId = 0;  
   EXPECT_TRUE(_pDb->addWorker(worker, wId) && (wId > 0)) << _pDb->getLastError();   
  
-  vector<Base::Worker> workers;
+  vector<base::Worker> workers;
   EXPECT_TRUE(_pDb->getWorkersOfSchedr(sId, workers) && 
               (workers.size() == 1) &&
               (workers[0].id == wId)) << _pDb->getLastError(); 
 }
 TEST_F(DBSchedrTest, getNewTasksForSchedr){
-  Base::Scheduler schedr{0};
-  schedr.state = Base::StateType::READY;
+  base::Scheduler schedr{0};
+  schedr.state = base::StateType::READY;
   schedr.connectPnt = "localhost:4444"; 
   schedr.capacityTask = 105; 
   int sId = 0;  
   EXPECT_TRUE(_pDb->addSchedr(schedr, sId) && (sId > 0)) << _pDb->getLastError(); 
 
-  Base::Worker worker{0};
+  base::Worker worker{0};
   worker.capacityTask = 10;
   worker.sId = sId;
-  worker.state = Base::StateType::READY;
+  worker.state = base::StateType::READY;
   worker.connectPnt = "localhost:4445";
   int wId = 0;  
   EXPECT_TRUE(_pDb->addWorker(worker, wId) && (wId > 0)) << _pDb->getLastError();  
       
   int tId1 = 0;  
-  Base::Task task{0};
+  base::Task task{0};
   char path[256]{0};
   task.scriptPath = path; 
   task.resultPath = path;
@@ -165,38 +165,38 @@ TEST_F(DBSchedrTest, getNewTasksForSchedr){
   int tId2 = 0;  
   EXPECT_TRUE(_pDb->startTask(0, task, tId2)) << _pDb->getLastError();        
 
-  vector<Base::Task> tasks;
+  vector<base::Task> tasks;
   EXPECT_TRUE(_pDb->getNewTasksForSchedr(sId, 10, tasks) && 
               (tasks.size() == 2) &&
               (tasks[0].id == tId1)) << _pDb->getLastError();
 
   vector<DB::MessSchedr> mess;
-  mess.push_back(DB::MessSchedr{Base::MessType::TASK_RUNNING, wId, tasks[0].id});
+  mess.push_back(DB::MessSchedr{base::MessType::TASK_RUNNING, wId, tasks[0].id});
   EXPECT_TRUE(_pDb->sendAllMessFromSchedr(sId, mess)) << _pDb->getLastError();
 
   mess.clear();
-  mess.push_back(DB::MessSchedr{Base::MessType::TASK_COMPLETED, wId, tasks[0].id});
+  mess.push_back(DB::MessSchedr{base::MessType::TASK_COMPLETED, wId, tasks[0].id});
   EXPECT_TRUE(_pDb->sendAllMessFromSchedr(sId, mess)) << _pDb->getLastError();
   
 }
 TEST_F(DBSchedrTest, getWorkerByTask){
-  Base::Scheduler schedr{0};
-  schedr.state = Base::StateType::READY;
+  base::Scheduler schedr{0};
+  schedr.state = base::StateType::READY;
   schedr.connectPnt = "localhost:4444"; 
   schedr.capacityTask = 105; 
   int sId = 0;  
   EXPECT_TRUE(_pDb->addSchedr(schedr, sId) && (sId > 0)) << _pDb->getLastError(); 
 
-  Base::Worker worker{0};
+  base::Worker worker{0};
   worker.capacityTask = 10;
   worker.sId = sId;
-  worker.state = Base::StateType::READY;
+  worker.state = base::StateType::READY;
   worker.connectPnt = "localhost:4445";
   int wId = 0;  
   EXPECT_TRUE(_pDb->addWorker(worker, wId) && (wId > 0)) << _pDb->getLastError();  
      
   int tId1 = 0;  
-  Base::Task task{0};
+  base::Task task{0};
   char path[256]{0};
   task.scriptPath = path; 
   task.resultPath = path;
@@ -205,13 +205,13 @@ TEST_F(DBSchedrTest, getWorkerByTask){
   int tId2 = 0;  
   EXPECT_TRUE(_pDb->startTask(0, task, tId2)) << _pDb->getLastError();        
 
-  vector<Base::Task> tasks;
+  vector<base::Task> tasks;
   EXPECT_TRUE(_pDb->getNewTasksForSchedr(sId, 10, tasks) && 
               (tasks.size() == 2) &&
               (tasks[0].id == tId1)) << _pDb->getLastError();
 
   vector<DB::MessSchedr> mess;
-  mess.push_back(DB::MessSchedr{Base::MessType::TASK_RUNNING, wId, tasks[0].id});
+  mess.push_back(DB::MessSchedr{base::MessType::TASK_RUNNING, wId, tasks[0].id});
   EXPECT_TRUE(_pDb->sendAllMessFromSchedr(sId, mess)) << _pDb->getLastError();
   
   tasks.clear();
@@ -220,34 +220,34 @@ TEST_F(DBSchedrTest, getWorkerByTask){
               (worker.id == wId)) << _pDb->getLastError();      
 }
 TEST_F(DBSchedrTest, sendAllMessFromSchedr){
-  Base::Scheduler schedr{0};
-  schedr.state = Base::StateType::READY;
+  base::Scheduler schedr{0};
+  schedr.state = base::StateType::READY;
   schedr.connectPnt = "localhost:4444"; 
   schedr.capacityTask = 105; 
   int sId = 0;  
   EXPECT_TRUE(_pDb->addSchedr(schedr, sId) && (sId > 0)) << _pDb->getLastError(); 
   
-  Base::Worker worker{0};
+  base::Worker worker{0};
   worker.capacityTask = 10;
   worker.sId = sId;
-  worker.state = Base::StateType::READY;
+  worker.state = base::StateType::READY;
   worker.connectPnt = "localhost:4445";
   int wId = 0;  
   EXPECT_TRUE(_pDb->addWorker(worker, wId) && (wId > 0)) << _pDb->getLastError();   
   
   vector<DB::MessSchedr> mess;
-  mess.push_back(DB::MessSchedr{Base::MessType::TASK_ERROR, wId, 0, "result"});
-  mess.push_back(DB::MessSchedr{Base::MessType::TASK_COMPLETED, wId, 0, "result"});
-  mess.push_back(DB::MessSchedr{Base::MessType::TASK_RUNNING, wId, 0, "result"});
-  mess.push_back(DB::MessSchedr{Base::MessType::TASK_PAUSE, wId, 0, "result"});
-  mess.push_back(DB::MessSchedr{Base::MessType::TASK_STOP, wId, 0, "result"});
-  mess.push_back(DB::MessSchedr{Base::MessType::JUST_START_WORKER, wId, 0, "result"});
-  mess.push_back(DB::MessSchedr{Base::MessType::TASK_PROGRESS, wId, 0, "0"});
-  mess.push_back(DB::MessSchedr{Base::MessType::PAUSE_SCHEDR, wId, 0, "result"});
-  mess.push_back(DB::MessSchedr{Base::MessType::PAUSE_WORKER, wId, 0, "result"});
-  mess.push_back(DB::MessSchedr{Base::MessType::START_SCHEDR, wId, 0, "result"});
-  mess.push_back(DB::MessSchedr{Base::MessType::START_WORKER, wId, 0, "result"});
-  mess.push_back(DB::MessSchedr{Base::MessType::WORKER_NOT_RESPONDING, wId, 0, "result"});
+  mess.push_back(DB::MessSchedr{base::MessType::TASK_ERROR, wId, 0, "result"});
+  mess.push_back(DB::MessSchedr{base::MessType::TASK_COMPLETED, wId, 0, "result"});
+  mess.push_back(DB::MessSchedr{base::MessType::TASK_RUNNING, wId, 0, "result"});
+  mess.push_back(DB::MessSchedr{base::MessType::TASK_PAUSE, wId, 0, "result"});
+  mess.push_back(DB::MessSchedr{base::MessType::TASK_STOP, wId, 0, "result"});
+  mess.push_back(DB::MessSchedr{base::MessType::JUST_START_WORKER, wId, 0, "result"});
+  mess.push_back(DB::MessSchedr{base::MessType::TASK_PROGRESS, wId, 0, "0"});
+  mess.push_back(DB::MessSchedr{base::MessType::PAUSE_SCHEDR, wId, 0, "result"});
+  mess.push_back(DB::MessSchedr{base::MessType::PAUSE_WORKER, wId, 0, "result"});
+  mess.push_back(DB::MessSchedr{base::MessType::START_SCHEDR, wId, 0, "result"});
+  mess.push_back(DB::MessSchedr{base::MessType::START_WORKER, wId, 0, "result"});
+  mess.push_back(DB::MessSchedr{base::MessType::WORKER_NOT_RESPONDING, wId, 0, "result"});
 
   EXPECT_TRUE(_pDb->sendAllMessFromSchedr(sId, mess)) << _pDb->getLastError();
 }

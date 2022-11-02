@@ -28,7 +28,7 @@ using namespace std;
 
 namespace DB{
 
-bool DbProvider::startTask(int schedPresetId, Base::Task& cng, int& tId){
+bool DbProvider::startTask(int schedPresetId, base::Task& cng, int& tId){
   lock_guard<mutex> lk(m_impl->m_mtx);  
   
   stringstream ss;
@@ -56,11 +56,11 @@ bool DbProvider::cancelTask(int tId){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
   ss << "UPDATE tblTaskState ts SET "
-        "state = " << int(Base::StateType::CANCEL) << " "
+        "state = " << int(base::StateType::CANCEL) << " "
         "FROM tblTaskQueue tq "
         "WHERE tq.id = " << tId << " AND "
         "      ts.qtask = tq.id AND "
-        "      ts.state = " << int(Base::StateType::READY) << " "
+        "      ts.state = " << int(base::StateType::READY) << " "
         "RETURNING ts.qtask;";
         
   PGres pgr(PQexec(_pg, ss.str().c_str()));
@@ -98,7 +98,7 @@ bool DbProvider::taskState(const std::vector<int>& tId, std::vector<DB::TaskStat
   }
   outState.resize(tsz);
   for (size_t i = 0; i < tsz; ++i){
-    outState[i].state = (Base::StateType)atoi(PQgetvalue(pgr.res, (int)i, 0));
+    outState[i].state = (base::StateType)atoi(PQgetvalue(pgr.res, (int)i, 0));
     outState[i].progress = atoi(PQgetvalue(pgr.res, (int)i, 1));
   }
   return true;

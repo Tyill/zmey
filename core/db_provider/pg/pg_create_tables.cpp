@@ -68,22 +68,22 @@ bool DbProvider::createTables(){
     
   ss.str("");
   ss << "INSERT INTO tblState VALUES"
-        "(" << (int)Base::StateType::UNDEFINED << ", 'undefined'),"
-        "(" << (int)Base::StateType::READY << ", 'ready'),"
-        "(" << (int)Base::StateType::START << ", 'start'),"
-        "(" << (int)Base::StateType::RUNNING << ", 'running'),"
-        "(" << (int)Base::StateType::PAUSE << ", 'pause'),"
-        "(" << (int)Base::StateType::STOP << ", 'stop'),"
-        "(" << (int)Base::StateType::COMPLETED << ", 'completed'),"
-        "(" << (int)Base::StateType::ERRORT << ", 'error'),"
-        "(" << (int)Base::StateType::CANCEL << ", 'cancel'),"
-        "(" << (int)Base::StateType::NOT_RESPONDING << ", 'notResponding') ON CONFLICT (id) DO NOTHING;";
+        "(" << (int)base::StateType::UNDEFINED << ", 'undefined'),"
+        "(" << (int)base::StateType::READY << ", 'ready'),"
+        "(" << (int)base::StateType::START << ", 'start'),"
+        "(" << (int)base::StateType::RUNNING << ", 'running'),"
+        "(" << (int)base::StateType::PAUSE << ", 'pause'),"
+        "(" << (int)base::StateType::STOP << ", 'stop'),"
+        "(" << (int)base::StateType::COMPLETED << ", 'completed'),"
+        "(" << (int)base::StateType::ERRORT << ", 'error'),"
+        "(" << (int)base::StateType::CANCEL << ", 'cancel'),"
+        "(" << (int)base::StateType::NOT_RESPONDING << ", 'notResponding') ON CONFLICT (id) DO NOTHING;";
   QUERY(ss.str().c_str(), PGRES_COMMAND_OK);
 
   ss.str("");
   ss << "CREATE TABLE IF NOT EXISTS tblScheduler("
         "id           SERIAL PRIMARY KEY,"
-        "state        INT NOT NULL REFERENCES tblState DEFAULT " << (int)Base::StateType::STOP << ","
+        "state        INT NOT NULL REFERENCES tblState DEFAULT " << (int)base::StateType::STOP << ","
         "capacityTask INT NOT NULL DEFAULT 10000 CHECK (capacityTask > 0),"
         "activeTask   INT NOT NULL DEFAULT 0 CHECK (activeTask >= 0),"
         "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1),"
@@ -100,7 +100,7 @@ bool DbProvider::createTables(){
   ss << "CREATE TABLE IF NOT EXISTS tblWorker("
         "id           SERIAL PRIMARY KEY,"
         "schedr       INT NOT NULL REFERENCES tblScheduler,"
-        "state        INT NOT NULL REFERENCES tblState DEFAULT " << (int)Base::StateType::STOP << ","
+        "state        INT NOT NULL REFERENCES tblState DEFAULT " << (int)base::StateType::STOP << ","
         "capacityTask INT NOT NULL DEFAULT 10 CHECK (capacityTask > 0),"
         "activeTask   INT NOT NULL DEFAULT 0 CHECK (activeTask >= 0),"
         "load         INT NOT NULL DEFAULT 0 CHECK (load BETWEEN 0 AND 100),"
@@ -194,7 +194,7 @@ bool DbProvider::createTables(){
                             
         "  INSERT INTO tblTaskState (qtask, state) VALUES("
         "    qId,"
-        "" << int(Base::StateType::READY) << ");"
+        "" << int(base::StateType::READY) << ");"
 
         "  RETURN qId;"
         "END;"
@@ -243,7 +243,7 @@ bool DbProvider::createTables(){
         "    FROM tblTaskQueue tq "
         "    JOIN tblTaskParam tp ON tp.qtask = tq.id "
         "    JOIN tblTaskState ts ON ts.qtask = tq.id "
-        "    WHERE ts.state = " << int(Base::StateType::READY) << ""
+        "    WHERE ts.state = " << int(base::StateType::READY) << ""
         "      AND tq.schedr IS NULL "
         "      AND (tp.schedrPreset IS NULL OR tp.schedrPreset = sId) ORDER BY tq.id"
         "    LIMIT maxTaskCnt "
@@ -254,7 +254,7 @@ bool DbProvider::createTables(){
         "    WHERE id = qid;"
         
         "    UPDATE tblTaskState SET"
-        "      state = " << int(Base::StateType::START) << ""
+        "      state = " << int(base::StateType::START) << ""
         "    WHERE qtask = qid;"
         
         "    UPDATE tblTaskTime SET"

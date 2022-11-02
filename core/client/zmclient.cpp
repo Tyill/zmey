@@ -108,11 +108,11 @@ bool zmAddScheduler(zmConn zo, zmSchedr cng, int* outSchId){
      static_cast<DB::DbProvider*>(zo)->errorMess("zmAddScheduler error: !outSchId");
      return false;
   }
-  Base::Scheduler scng;
+  base::Scheduler scng;
   scng.activeTask = 0;
   scng.capacityTask = cng.capacityTask;
   scng.connectPnt = cng.connectPnt;
-  scng.state = Base::StateType::STOP;
+  scng.state = base::StateType::STOP;
   scng.name = cng.name;
   scng.description = cng.description ? cng.description : "";
 
@@ -125,7 +125,7 @@ bool zmGetScheduler(zmConn zo, int sId, zmSchedr* outCng){
      static_cast<DB::DbProvider*>(zo)->errorMess("zmGetSchedulerCng error: !outCng");
      return false;
   }
-  Base::Scheduler scng;
+  base::Scheduler scng;
   if (static_cast<DB::DbProvider*>(zo)->getSchedr(sId, scng)){    
     outCng->capacityTask = scng.capacityTask;
     strcpy(outCng->connectPnt, scng.connectPnt.c_str());
@@ -146,7 +146,7 @@ bool zmGetScheduler(zmConn zo, int sId, zmSchedr* outCng){
 bool zmChangeScheduler(zmConn zo, int sId, zmSchedr newCng){
   if (!zo) return false; 
   
-  Base::Scheduler scng;
+  base::Scheduler scng;
   scng.capacityTask = newCng.capacityTask;
   scng.connectPnt = newCng.connectPnt;
   scng.name = newCng.name;
@@ -164,7 +164,7 @@ bool zmStartScheduler(zmConn zo, int sId){
     
   auto connCng = static_cast<DB::DbProvider*>(zo)->getConnectCng();  
   map<string, string> data{
-            {"command", to_string((int)Base::MessType::START_AFTER_PAUSE_SCHEDR)},
+            {"command", to_string((int)base::MessType::START_AFTER_PAUSE_SCHEDR)},
             {"connectPnt", connCng.connectStr}
           };
   zmSchedr cng;  
@@ -175,7 +175,7 @@ bool zmPauseScheduler(zmConn zo, int sId){
   
   auto connCng = static_cast<DB::DbProvider*>(zo)->getConnectCng();  
   map<string, string> data{
-            {"command", to_string((int)Base::MessType::PAUSE_SCHEDR)},
+            {"command", to_string((int)base::MessType::PAUSE_SCHEDR)},
             {"connectPnt", connCng.connectStr}
           };
   zmSchedr cng;  
@@ -186,7 +186,7 @@ bool zmPingScheduler(zmConn zo, int sId){
   
   auto connCng = static_cast<DB::DbProvider*>(zo)->getConnectCng();  
   map<string, string> data{
-            {"command", to_string((int)Base::MessType::PING_SCHEDR)},
+            {"command", to_string((int)base::MessType::PING_SCHEDR)},
             {"connectPnt", connCng.connectStr}
           };
   zmSchedr cng;  
@@ -213,7 +213,7 @@ bool zmStateOfScheduler(zmConn zo, int sId, zmSchedulerState* outState){
 uint32_t zmGetAllSchedulers(zmConn zo, zmStateType state, int** outSchId){
   if (!zo) return 0; 
 
-  auto schedrs = static_cast<DB::DbProvider*>(zo)->getAllSchedrs((Base::StateType)state);
+  auto schedrs = static_cast<DB::DbProvider*>(zo)->getAllSchedrs((base::StateType)state);
   size_t ssz = schedrs.size();
   if (ssz > 0){
     *outSchId = (int*)realloc(*outSchId, ssz * sizeof(int));
@@ -237,10 +237,10 @@ bool zmAddWorker(zmConn zo, zmWorker cng, int* outWId){
      static_cast<DB::DbProvider*>(zo)->errorMess("zmAddWorker error: !outWId");
      return false;
   }
-  Base::Worker wcng;
+  base::Worker wcng;
   wcng.capacityTask = cng.capacityTask;
   wcng.connectPnt = cng.connectPnt;
-  wcng.state = Base::StateType::STOP;
+  wcng.state = base::StateType::STOP;
   wcng.sId = cng.sId;
   wcng.name = cng.name;
   wcng.description = cng.description ? cng.description : "";
@@ -254,7 +254,7 @@ bool zmGetWorker(zmConn zo, int wId, zmWorker* outWCng){
      static_cast<DB::DbProvider*>(zo)->errorMess("zmGetWorkerCng error: !outWCng");
      return false;
   }
-  Base::Worker wcng;
+  base::Worker wcng;
   if (static_cast<DB::DbProvider*>(zo)->getWorker(wId, wcng)){    
     outWCng->sId = wcng.sId;
     outWCng->capacityTask = wcng.capacityTask;
@@ -276,7 +276,7 @@ bool zmGetWorker(zmConn zo, int wId, zmWorker* outWCng){
 bool zmChangeWorker(zmConn zo, int wId, zmWorker newCng){
   if (!zo) return false; 
 
-  Base::Worker wcng;
+  base::Worker wcng;
   wcng.sId = newCng.sId;
   wcng.capacityTask = newCng.capacityTask;
   wcng.connectPnt = newCng.connectPnt;
@@ -299,7 +299,7 @@ bool zmStartWorker(zmConn zo, int wId){
   auto connCng = static_cast<DB::DbProvider*>(zo)->getConnectCng();  
   if (zmGetWorker(zo, wId, &wcng) && zmGetScheduler(zo, wcng.sId, &scng)){
     map<string, string> data{
-            {"command", to_string((int)Base::MessType::START_AFTER_PAUSE_WORKER)},
+            {"command", to_string((int)base::MessType::START_AFTER_PAUSE_WORKER)},
             {"connectPnt", connCng.connectStr},
             {"workerConnPnt", wcng.connectPnt}
           };
@@ -317,7 +317,7 @@ bool zmPauseWorker(zmConn zo, int wId){
   auto connCng = static_cast<DB::DbProvider*>(zo)->getConnectCng();  
   if (zmGetWorker(zo, wId, &wcng) && zmGetScheduler(zo, wcng.sId, &scng)){
     map<string, string> data{
-            {"command", to_string((int)Base::MessType::PAUSE_WORKER)},
+            {"command", to_string((int)base::MessType::PAUSE_WORKER)},
             {"connectPnt", connCng.connectStr},
             {"workerConnPnt", wcng.connectPnt}
           };
@@ -331,7 +331,7 @@ bool zmPingWorker(zmConn zo, int wId){
   
   auto connCng = static_cast<DB::DbProvider*>(zo)->getConnectCng();  
   map<string, string> data{
-            {"command", to_string((int)Base::MessType::PING_WORKER)},
+            {"command", to_string((int)base::MessType::PING_WORKER)},
             {"connectPnt", connCng.connectStr}
           };
   zmWorker cng;  
@@ -363,7 +363,7 @@ bool zmStateOfWorker(zmConn zo, int* pWId, uint32_t wCnt, zmWorkerState* outStat
 uint32_t zmGetAllWorkers(zmConn zo, int sId, zmStateType state, int** outWId){
   if (!zo) return 0; 
 
-  auto workers = static_cast<DB::DbProvider*>(zo)->getAllWorkers(sId, (Base::StateType)state);
+  auto workers = static_cast<DB::DbProvider*>(zo)->getAllWorkers(sId, (base::StateType)state);
   size_t wsz = workers.size();
   if (wsz > 0){ 
     *outWId = (int*)realloc(*outWId, wsz * sizeof(int));
@@ -380,7 +380,7 @@ uint32_t zmGetAllWorkers(zmConn zo, int sId, zmStateType state, int** outWId){
 bool zmStartTask(zmConn zo, zmTask cng, int* tId){
   if (!zo || !tId || !cng.scriptPath || !cng.resultPath) return false;
 
-  Base::Task task;
+  base::Task task;
   task.wId = cng.workerPresetId;
   task.averDurationSec = cng.averDurationSec;
   task.maxDurationSec = cng.maxDurationSec;
@@ -393,11 +393,11 @@ bool zmStartTask(zmConn zo, zmTask cng, int* tId){
 bool zmStopTask(zmConn zo, int tId){
   if (!zo) return false;
     
-  Base::Worker wcng;  
+  base::Worker wcng;  
   if (static_cast<DB::DbProvider*>(zo)->getWorkerByTask(tId, wcng)){
     auto connCng = static_cast<DB::DbProvider*>(zo)->getConnectCng();  
     map<string, string> data{
-            {"command", to_string((int)Base::MessType::TASK_STOP)},
+            {"command", to_string((int)base::MessType::TASK_STOP)},
             {"connectPnt", connCng.connectStr},
             {"taskId", to_string(tId)}
           };
@@ -414,11 +414,11 @@ bool zmCancelTask(zmConn zo, int tId){
 bool zmPauseTask(zmConn zo, int tId){
   if (!zo) return false;
     
-  Base::Worker wcng;  
+  base::Worker wcng;  
   if (static_cast<DB::DbProvider*>(zo)->getWorkerByTask(tId, wcng)){
     auto connCng = static_cast<DB::DbProvider*>(zo)->getConnectCng();  
     map<string, string> data{
-            {"command", to_string((int)Base::MessType::TASK_PAUSE)},
+            {"command", to_string((int)base::MessType::TASK_PAUSE)},
             {"connectPnt", connCng.connectStr},
             {"taskId", to_string(tId)}
           };
@@ -430,11 +430,11 @@ bool zmPauseTask(zmConn zo, int tId){
 bool zmContinueTask(zmConn zo, int tId){
   if (!zo) return false;
     
-  Base::Worker wcng;
+  base::Worker wcng;
   if (static_cast<DB::DbProvider*>(zo)->getWorkerByTask(tId, wcng)){
     auto connCng = static_cast<DB::DbProvider*>(zo)->getConnectCng();  
     map<string, string> data{
-            {"command", to_string((int)Base::MessType::TASK_CONTINUE)},
+            {"command", to_string((int)base::MessType::TASK_CONTINUE)},
             {"connectPnt", connCng.connectStr},
             {"taskId", to_string(tId)}
           };

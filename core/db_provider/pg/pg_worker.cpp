@@ -28,7 +28,7 @@ using namespace std;
 
 namespace DB{
   
-bool DbProvider::addWorker(const Base::Worker& worker, int& outWkrId){
+bool DbProvider::addWorker(const base::Worker& worker, int& outWkrId){
   lock_guard<mutex> lk(m_impl->m_mtx);
   auto connPnt = Aux::split(worker.connectPnt, ':');
   if (connPnt.size() != 2){
@@ -52,7 +52,7 @@ bool DbProvider::addWorker(const Base::Worker& worker, int& outWkrId){
   outWkrId = stoull(PQgetvalue(pgr.res, 0, 0));
   return true;
 }
-bool DbProvider::getWorker(int wId, Base::Worker& cng){
+bool DbProvider::getWorker(int wId, base::Worker& cng){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
   ss << "SELECT connPnt, schedr, state, capacityTask, name, description "
@@ -70,13 +70,13 @@ bool DbProvider::getWorker(int wId, Base::Worker& cng){
   }
   cng.connectPnt = PQgetvalue(pgr.res, 0, 0);
   cng.sId = stoull(PQgetvalue(pgr.res, 0, 1));
-  cng.state = (Base::StateType)atoi(PQgetvalue(pgr.res, 0, 2));
+  cng.state = (base::StateType)atoi(PQgetvalue(pgr.res, 0, 2));
   cng.capacityTask = atoi(PQgetvalue(pgr.res, 0, 3));
   cng.name = PQgetvalue(pgr.res, 0, 4);
   cng.description = PQgetvalue(pgr.res, 0, 5);
   return true;
 }
-bool DbProvider::changeWorker(int wId, const Base::Worker& newCng){
+bool DbProvider::changeWorker(int wId, const base::Worker& newCng){
   lock_guard<mutex> lk(m_impl->m_mtx);
   auto connPnt = Aux::split(newCng.connectPnt, ':');
   if (connPnt.size() != 2){
@@ -138,7 +138,7 @@ bool DbProvider::workerState(const std::vector<int>& wId, std::vector<WorkerStat
   }
   out.resize(wsz);
   for (size_t i = 0; i < wsz; ++i){
-    out[i].state = (Base::StateType)atoi(PQgetvalue(pgr.res, (int)i, 0));
+    out[i].state = (base::StateType)atoi(PQgetvalue(pgr.res, (int)i, 0));
     out[i].activeTask = atoi(PQgetvalue(pgr.res, (int)i, 1));
     out[i].load = atoi(PQgetvalue(pgr.res, (int)i, 2));
     out[i].startTime = PQgetvalue(pgr.res, (int)i, 3);
@@ -147,7 +147,7 @@ bool DbProvider::workerState(const std::vector<int>& wId, std::vector<WorkerStat
   }
   return true;
 }
-std::vector<int> DbProvider::getAllWorkers(int sId, Base::StateType state){
+std::vector<int> DbProvider::getAllWorkers(int sId, base::StateType state){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
   ss << "SELECT id FROM tblWorker "

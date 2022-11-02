@@ -46,7 +46,7 @@ public:
   std::thread m_thrEndTask;
 
   struct NotifyTaskStateCBack{
-    Base::StateType state;
+    base::StateType state;
     int progress;
     ChangeTaskStateCBack cback;
     UData ud;

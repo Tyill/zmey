@@ -38,13 +38,13 @@ class Executor;
 
 class Process{
 public:
-  Process(Application&, Executor&, const Base::Task&);
+  Process(Application&, Executor&, const base::Task&);
 
-  Base::Task getTask() const;
+  base::Task getTask() const;
   pid_t getPid() const;
   int getProgress();
   bool checkMaxRunTime();
-  void setTaskState(Base::StateType);
+  void setTaskState(base::StateType);
   void pause();
   void continueTask();
   void stop();
@@ -62,7 +62,7 @@ private:
   Application& m_app;  
   Executor& m_executor;
   pid_t m_pid = 1; 
-  Base::Task m_task;
+  base::Task m_task;
   Aux::TimerDelay m_timerProgress,
                      m_timerDuration;
   int m_cdeltaTimeProgress = 0,

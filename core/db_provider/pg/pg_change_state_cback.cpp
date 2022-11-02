@@ -35,7 +35,7 @@ bool DbProvider::setChangeTaskStateCBack(int tId, ChangeTaskStateCBack cback, UD
     return false;
   {
     lock_guard<mutex> lk(m_impl->m_mtxNotifyTask);  
-    m_impl->m_notifyTaskStateCBack[tId] = {Base::StateType::UNDEFINED, 0, cback, ud };
+    m_impl->m_notifyTaskStateCBack[tId] = {base::StateType::UNDEFINED, 0, cback, ud };
   }  
   if (!m_impl->m_thrEndTask.joinable()){
     m_impl->m_thrEndTask = thread([this](){
@@ -89,7 +89,7 @@ bool DbProvider::setChangeTaskStateCBack(int tId, ChangeTaskStateCBack cback, UD
 
         struct TState{
           int id;
-          Base::StateType state;
+          base::StateType state;
           int progress;
         };
         vector<TState> notifyRes;
@@ -100,7 +100,7 @@ bool DbProvider::setChangeTaskStateCBack(int tId, ChangeTaskStateCBack cback, UD
             size_t tsz = PQntuples(pgr.res);
             for (size_t i = 0; i < tsz; ++i){
               int tId = stoull(PQgetvalue(pgr.res, (int)i, 0));
-              Base::StateType state = (Base::StateType)atoi(PQgetvalue(pgr.res, (int)i, 1));
+              base::StateType state = (base::StateType)atoi(PQgetvalue(pgr.res, (int)i, 1));
               int progress = atoi(PQgetvalue(pgr.res, (int)i, 2));
               if ((state != notifyTasks[tId].state) || (progress != notifyTasks[tId].progress)){
                 notifyRes.push_back(TState{tId, state, progress});
@@ -112,15 +112,15 @@ bool DbProvider::setChangeTaskStateCBack(int tId, ChangeTaskStateCBack cback, UD
         }
         if (!notifyRes.empty()){
           for (auto& t : notifyRes){
-            Base::StateType prevState = notifyTasks[t.id].state,
+            base::StateType prevState = notifyTasks[t.id].state,
                                newState = t.state;
             notifyTasks[t.id].cback(t.id, t.progress, prevState, newState, notifyTasks[t.id].ud);
           }
           { 
             lock_guard<mutex> lk(m_impl->m_mtxNotifyTask);  
             for (auto& t : notifyRes){
-              Base::StateType newState = t.state;
-              if ((newState == Base::StateType::COMPLETED) || (newState == Base::StateType::ERRORT) || (newState == Base::StateType::CANCEL)){
+              base::StateType newState = t.state;
+              if ((newState == base::StateType::COMPLETED) || (newState == base::StateType::ERRORT) || (newState == base::StateType::CANCEL)){
                 m_impl->m_notifyTaskStateCBack.erase(t.id);
               }else{
                 m_impl->m_notifyTaskStateCBack[t.id].state = newState;

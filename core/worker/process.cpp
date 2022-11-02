@@ -42,7 +42,7 @@
 
 using namespace std;
 
-Process::Process(Application& app, Executor& exr, const Base::Task& tsk):
+Process::Process(Application& app, Executor& exr, const base::Task& tsk):
   m_app(app),
   m_executor(exr),
   m_task(tsk){
@@ -88,12 +88,12 @@ Process::Process(Application& app, Executor& exr, const Base::Task& tsk):
     default:
       m_timerProgress.updateCycTime();
       m_timerDuration.updateCycTime();
-      m_task.state = Base::StateType::RUNNING;
+      m_task.state = base::StateType::RUNNING;
       break;
   }
 }
 
-Base::Task Process::getTask() const{
+base::Task Process::getTask() const{
   return m_task;
 }
 pid_t Process::getPid() const{
@@ -115,9 +115,9 @@ bool Process::checkMaxRunTime(){
   m_timerDuration.updateCycTime();
   return (m_task.maxDurationSec > 0) && (int(m_cdeltaTimeDuration / 1000) > m_task.maxDurationSec);
 }
-void Process::setTaskState(Base::StateType st){
+void Process::setTaskState(base::StateType st){
   m_task.state = st;
-  m_isPause = (st == Base::StateType::PAUSE);
+  m_isPause = (st == base::StateType::PAUSE);
 }
 void Process::pause(){
   if (kill(m_pid, SIGSTOP) == -1){
@@ -178,7 +178,7 @@ std::string getLastErrorStr(){
         }                                      \
         return;
 
-Process::Process(Application& app, Executor& exr, const Base::Task& tsk):
+Process::Process(Application& app, Executor& exr, const base::Task& tsk):
   m_app(app),
   m_executor(exr),
   m_task(tsk){
@@ -251,7 +251,7 @@ Process::Process(Application& app, Executor& exr, const Base::Task& tsk):
   }
   m_timerProgress.updateCycTime();
   m_timerDuration.updateCycTime();
-  m_task.state = Base::StateType::RUNNING;  
+  m_task.state = base::StateType::RUNNING;  
 }
 
 HANDLE Process::getHandle() const{
@@ -266,7 +266,7 @@ void Process::closeHandle(){
   }
 }
 
-Base::Task Process::getTask() const{
+base::Task Process::getTask() const{
   return m_task;
 }
 pid_t Process::getPid() const{
@@ -287,9 +287,9 @@ bool Process::checkMaxRunTime(){
   m_timerDuration.updateCycTime();
   return (m_task.maxDurationSec > 0) && (int(m_cdeltaTimeDuration / 1000) > m_task.maxDurationSec);
 }
-void Process::setTaskState(Base::StateType st){
+void Process::setTaskState(base::StateType st){
   m_task.state = st;
-  m_isPause = (st == Base::StateType::PAUSE);
+  m_isPause = (st == base::StateType::PAUSE);
 }
 
 void Process::pause(){
@@ -299,8 +299,8 @@ void Process::pause(){
     m_executor.addErrMess(m_err);
   }
   else {
-      m_executor.addMessForSchedr(Executor::MessForSchedr{ m_task.id, Base::MessType::TASK_PAUSE });
-      setTaskState(Base::StateType::PAUSE);
+      m_executor.addMessForSchedr(Executor::MessForSchedr{ m_task.id, base::MessType::TASK_PAUSE });
+      setTaskState(base::StateType::PAUSE);
   }
 }
 void Process::continueTask(){
@@ -310,8 +310,8 @@ void Process::continueTask(){
     m_executor.addErrMess(m_err);
   }
   else {
-      m_executor.addMessForSchedr(Executor::MessForSchedr{ m_task.id, Base::MessType::TASK_CONTINUE });
-      setTaskState(Base::StateType::RUNNING);
+      m_executor.addMessForSchedr(Executor::MessForSchedr{ m_task.id, base::MessType::TASK_CONTINUE });
+      setTaskState(base::StateType::RUNNING);
   }
 }
 void Process::stopByTimeout(){

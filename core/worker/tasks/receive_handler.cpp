@@ -65,26 +65,26 @@ void Executor::receiveHandler(const string& remcp, const string& data)
   checkField(Link::connectPnt);
   cp = mess[Link::connectPnt];
   checkFieldNum(Link::command);
-  Base::MessType mtype = Base::MessType(stoi(mess[Link::command]));  
-  if (mtype == Base::MessType::NEW_TASK){
+  base::MessType mtype = base::MessType(stoi(mess[Link::command]));  
+  if (mtype == base::MessType::NEW_TASK){
     checkFieldNum(Link::taskId);
     checkField(Link::params);
     checkField(Link::scriptPath);
     checkField(Link::resultPath);
     checkFieldNum(Link::averDurationSec);
     checkFieldNum(Link::maxDurationSec);
-    Base::Task t;
+    base::Task t;
     t.id = stoull(mess[Link::taskId]);
     t.averDurationSec = stoi(mess[Link::averDurationSec]);
     t.maxDurationSec = stoi(mess[Link::maxDurationSec]);
     t.scriptPath = mess[Link::scriptPath];
     t.resultPath = mess[Link::resultPath];
-    t.state = Base::StateType::READY;
+    t.state = base::StateType::READY;
     t.params = mess[Link::params];
     m_newTasks.push(move(t)); 
     Application::loopNotify();
   }
-  else if (mtype == Base::MessType::PING_WORKER){  // only check
+  else if (mtype == base::MessType::PING_WORKER){  // only check
     return;
   }
   else{
@@ -97,9 +97,9 @@ void Executor::receiveHandler(const string& remcp, const string& data)
       });
       if (iPrc != m_procs.end()){
         switch (mtype){
-          case Base::MessType::TASK_PAUSE:    iPrc->pause(); break;
-          case Base::MessType::TASK_CONTINUE: iPrc->continueTask(); break;
-          case Base::MessType::TASK_STOP:     iPrc->stop(); break;
+          case base::MessType::TASK_PAUSE:    iPrc->pause(); break;
+          case base::MessType::TASK_CONTINUE: iPrc->continueTask(); break;
+          case base::MessType::TASK_STOP:     iPrc->stop(); break;
           default:{
             ERROR_MESS("receiveHandler wrong command: " + mess[Link::command]);
           }

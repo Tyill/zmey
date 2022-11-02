@@ -54,15 +54,15 @@ bool Executor::sendTaskToWorker()
   }
   int cycleCount = 0;
   while (!m_tasks.empty()){
-    Base::Task task;
+    base::Task task;
     m_tasks.front(task);
-    sort(m_refWorkers.begin(), m_refWorkers.end(), [](const Base::Worker* l, const Base::Worker* r){
+    sort(m_refWorkers.begin(), m_refWorkers.end(), [](const base::Worker* l, const base::Worker* r){
       return float(l->activeTask + l->load / 10.f) / l->rating < float(r->activeTask + r->load / 10.f) / r->rating;
     });
     auto iWr = find_if(m_refWorkers.begin(), m_refWorkers.end(),
-      [this, &task](const Base::Worker* w){                
+      [this, &task](const base::Worker* w){                
         bool isSpare = false;
-        if (((task.wId == 0) || (task.wId == w->id)) && (w->state == Base::StateType::RUNNING) && 
+        if (((task.wId == 0) || (task.wId == w->id)) && (w->state == base::StateType::RUNNING) && 
             (w->activeTask < w->capacityTask) && (w->rating > 1)){ 
           for(auto& wt : m_workers[w->connectPnt].taskList){
             if (wt == 0){
@@ -77,7 +77,7 @@ bool Executor::sendTaskToWorker()
     if(iWr != m_refWorkers.end()){
       m_tasks.tryPop(task);
       map<string, string> data{
-        {Link::command,         to_string((int)Base::MessType::NEW_TASK)},
+        {Link::command,         to_string((int)base::MessType::NEW_TASK)},
         {Link::connectPnt,      m_schedr.connectPnt},
         {Link::taskId,          to_string(task.id)},
         {Link::params,          task.params}, 

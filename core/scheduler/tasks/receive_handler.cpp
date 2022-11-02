@@ -68,19 +68,19 @@ void Executor::receiveHandler(const string& remcp, const string& data)
   checkField(Link::connectPnt);
        
   cp = mess[Link::connectPnt];
-  Base::MessType mtype = Base::MessType(stoi(mess[Link::command]));
+  base::MessType mtype = base::MessType(stoi(mess[Link::command]));
   
   // from worker
   if(m_workers.find(cp) != m_workers.end()){
     auto& worker = m_workers[cp];
     wId = worker.base.id;
     switch (mtype){
-      case Base::MessType::TASK_ERROR:
-      case Base::MessType::TASK_COMPLETED: 
-      case Base::MessType::TASK_RUNNING:        
-      case Base::MessType::TASK_PAUSE:
-      case Base::MessType::TASK_CONTINUE:
-      case Base::MessType::TASK_STOP:{
+      case base::MessType::TASK_ERROR:
+      case base::MessType::TASK_COMPLETED: 
+      case base::MessType::TASK_RUNNING:        
+      case base::MessType::TASK_PAUSE:
+      case base::MessType::TASK_CONTINUE:
+      case base::MessType::TASK_STOP:{
         checkFieldNum(Link::taskId);        
         checkFieldNum(Link::load);
         checkFieldNum(Link::activeTask);
@@ -91,8 +91,8 @@ void Executor::receiveHandler(const string& remcp, const string& data)
         for(auto& t : worker.taskList){
           if (t == tid){
             taskExist = true;
-            if ((mtype == Base::MessType::TASK_ERROR) || (mtype == Base::MessType::TASK_COMPLETED) ||
-                (mtype == Base::MessType::TASK_STOP)){
+            if ((mtype == base::MessType::TASK_ERROR) || (mtype == base::MessType::TASK_COMPLETED) ||
+                (mtype == base::MessType::TASK_STOP)){
               t = 0;
             }
             break;
@@ -103,7 +103,7 @@ void Executor::receiveHandler(const string& remcp, const string& data)
         }
         break;
       }        
-      case Base::MessType::TASK_PROGRESS:{
+      case base::MessType::TASK_PROGRESS:{
         checkField(Link::tasks);
         Json::Reader readerJs;
         Json::Value obj;
@@ -124,10 +124,10 @@ void Executor::receiveHandler(const string& remcp, const string& data)
         }
         break;
       }
-      case Base::MessType::JUST_START_WORKER:
-      case Base::MessType::STOP_WORKER:{
+      case base::MessType::JUST_START_WORKER:
+      case base::MessType::STOP_WORKER:{
           m_messToDB.push(DB::MessSchedr(mtype, wId));        
-          vector<Base::Task> tasks;
+          vector<base::Task> tasks;
           if (m_db.getTasksById(m_schedr.id, worker.taskList, tasks)){
             for(auto& t : tasks){
               m_tasks.push(move(t));
@@ -139,11 +139,11 @@ void Executor::receiveHandler(const string& remcp, const string& data)
             t = 0;
         }
         break;
-      case Base::MessType::INTERN_ERROR:
+      case base::MessType::INTERN_ERROR:
         checkField(Link::message);
         m_messToDB.push(DB::MessSchedr::errorMess(wId, mess[Link::message]));
         break;
-      case Base::MessType::PING_WORKER:
+      case base::MessType::PING_WORKER:
         checkFieldNum(Link::load);
         checkFieldNum(Link::activeTask);
         worker.base.activeTask = stoi(mess[Link::activeTask]);
@@ -155,69 +155,69 @@ void Executor::receiveHandler(const string& remcp, const string& data)
         break;
     }
 
-    if (mtype == Base::MessType::STOP_WORKER){
+    if (mtype == base::MessType::STOP_WORKER){
       worker.isActive = false;
-      worker.base.state = worker.stateMem = Base::StateType::STOP;
+      worker.base.state = worker.stateMem = base::StateType::STOP;
     }
     else{
       worker.isActive = true;
-      if (worker.base.state == Base::StateType::STOP){
-        worker.base.state = worker.stateMem = Base::StateType::RUNNING;
-        m_messToDB.push(DB::MessSchedr{Base::MessType::START_WORKER,
+      if (worker.base.state == base::StateType::STOP){
+        worker.base.state = worker.stateMem = base::StateType::RUNNING;
+        m_messToDB.push(DB::MessSchedr{base::MessType::START_WORKER,
                                         worker.base.id});
       }
-      else if (worker.base.state == Base::StateType::NOT_RESPONDING){
-        if (worker.stateMem != Base::StateType::NOT_RESPONDING){ 
+      else if (worker.base.state == base::StateType::NOT_RESPONDING){
+        if (worker.stateMem != base::StateType::NOT_RESPONDING){ 
           worker.base.state = worker.stateMem;
         }else{
-          worker.base.state = worker.stateMem = Base::StateType::RUNNING;
+          worker.base.state = worker.stateMem = base::StateType::RUNNING;
         }
-        m_messToDB.push(DB::MessSchedr{Base::MessType::START_WORKER,
+        m_messToDB.push(DB::MessSchedr{base::MessType::START_WORKER,
                                         worker.base.id});
       }
-      if (worker.base.rating < Base::Worker::RATING_MAX)
+      if (worker.base.rating < base::Worker::RATING_MAX)
         ++worker.base.rating;
     }
   }
   // from manager
   else{
     switch (mtype){
-      case Base::MessType::PING_SCHEDR:     // only check
+      case base::MessType::PING_SCHEDR:     // only check
         break;
-      case Base::MessType::PAUSE_SCHEDR:
-        if (m_schedr.state != Base::StateType::PAUSE){
+      case base::MessType::PAUSE_SCHEDR:
+        if (m_schedr.state != base::StateType::PAUSE){
           m_messToDB.push(DB::MessSchedr{mtype});
         }
-        m_schedr.state = Base::StateType::PAUSE;
+        m_schedr.state = base::StateType::PAUSE;
         break;
-      case Base::MessType::START_AFTER_PAUSE_SCHEDR:
-        if (m_schedr.state != Base::StateType::RUNNING){
+      case base::MessType::START_AFTER_PAUSE_SCHEDR:
+        if (m_schedr.state != base::StateType::RUNNING){
           m_messToDB.push(DB::MessSchedr{mtype});
         }
-        m_schedr.state = Base::StateType::RUNNING;
+        m_schedr.state = base::StateType::RUNNING;
         break;
-      case Base::MessType::PAUSE_WORKER:{
+      case base::MessType::PAUSE_WORKER:{
         checkField(Link::workerConnPnt);
         if (mess.count(Link::workerConnPnt)){ 
           auto& worker = m_workers[mess[Link::workerConnPnt]];
-          if ((worker.base.state != Base::StateType::NOT_RESPONDING) &&
-              (worker.base.state != Base::StateType::STOP)){
-            if (worker.base.state != Base::StateType::PAUSE){
+          if ((worker.base.state != base::StateType::NOT_RESPONDING) &&
+              (worker.base.state != base::StateType::STOP)){
+            if (worker.base.state != base::StateType::PAUSE){
               m_messToDB.push(DB::MessSchedr{mtype, worker.base.id});
             }
-            worker.base.state = worker.stateMem = Base::StateType::PAUSE;
+            worker.base.state = worker.stateMem = base::StateType::PAUSE;
         }}}
         break;
-      case Base::MessType::START_AFTER_PAUSE_WORKER:{
+      case base::MessType::START_AFTER_PAUSE_WORKER:{
         checkField(Link::workerConnPnt);
         if (mess.count(Link::workerConnPnt)){ 
           auto& worker = m_workers[mess[Link::workerConnPnt]]; 
-          if ((worker.base.state != Base::StateType::NOT_RESPONDING) &&
-              (worker.base.state != Base::StateType::STOP)){
-            if (worker.base.state != Base::StateType::RUNNING){
+          if ((worker.base.state != base::StateType::NOT_RESPONDING) &&
+              (worker.base.state != base::StateType::STOP)){
+            if (worker.base.state != base::StateType::RUNNING){
               m_messToDB.push(DB::MessSchedr{mtype, worker.base.id});
             }
-            worker.base.state = worker.stateMem = Base::StateType::RUNNING;
+            worker.base.state = worker.stateMem = base::StateType::RUNNING;
         }}} 
         break;
       default:

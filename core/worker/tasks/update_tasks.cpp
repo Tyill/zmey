@@ -32,13 +32,13 @@ void Executor::updateListTasks()
 {
   lock_guard<std::mutex> lock(m_mtxProcess);
 
-  Base::Task tsk;
+  base::Task tsk;
   while(m_newTasks.tryPop(tsk)){
-    m_listMessForSchedr.push(MessForSchedr{tsk.id, Base::MessType::TASK_RUNNING});
+    m_listMessForSchedr.push(MessForSchedr{tsk.id, base::MessType::TASK_RUNNING});
     Process prc(m_app, *this, tsk);
     if (prc.getPid() == -1){
       m_listMessForSchedr.push(MessForSchedr{ tsk.id,
-                                              Base::MessType::TASK_ERROR,
+                                              base::MessType::TASK_ERROR,
                                               prc.getErrorStr() });
       continue;
     }

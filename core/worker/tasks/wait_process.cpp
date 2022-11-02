@@ -62,17 +62,17 @@ void Executor::waitProcess()
     // completed or error
     if (WIFEXITED(sts) || WIFSIGNALED(sts)){
                
-      Base::MessType mt = Base::MessType::TASK_COMPLETED;
-      Base::StateType st = Base::StateType::COMPLETED;
+      base::MessType mt = base::MessType::TASK_COMPLETED;
+      base::StateType st = base::StateType::COMPLETED;
       if (WIFEXITED(sts)){
         sts = WEXITSTATUS(sts);
         if (sts != 0){
-          mt = Base::MessType::TASK_ERROR;
-          st = Base::StateType::ERRORT;
+          mt = base::MessType::TASK_ERROR;
+          st = base::StateType::ERRORT;
         }
       }else{
-        mt = Base::MessType::TASK_ERROR;
-        st = Base::StateType::ERRORT;
+        mt = base::MessType::TASK_ERROR;
+        st = base::StateType::ERRORT;
       }
       itPrc->setTaskState(st);
       
@@ -81,30 +81,30 @@ void Executor::waitProcess()
     }    
     // stop
     else if (WIFSTOPPED(sts)){
-      itPrc->setTaskState(Base::StateType::PAUSE);
+      itPrc->setTaskState(base::StateType::PAUSE);
       m_listMessForSchedr.push(MessForSchedr{itPrc->getTask().id,
-                                          Base::MessType::TASK_PAUSE});
+                                          base::MessType::TASK_PAUSE});
     } 
     // continue
     else if (WIFCONTINUED(sts)){
-      itPrc->setTaskState(Base::StateType::RUNNING);
+      itPrc->setTaskState(base::StateType::RUNNING);
       m_listMessForSchedr.push(MessForSchedr{itPrc->getTask().id,
-                                          Base::MessType::TASK_CONTINUE});    
+                                          base::MessType::TASK_CONTINUE});    
     } 
   }  
   
   // check max run time
   for(auto& p : m_procs){
-    if (p.checkMaxRunTime() && (p.getTask().state == Base::StateType::RUNNING)){
+    if (p.checkMaxRunTime() && (p.getTask().state == base::StateType::RUNNING)){
       p.stopByTimeout();
     }
   }
 
   { std::lock_guard<std::mutex> lock(m_mtxProcess);    
     for (auto p = m_procs.begin(); p != m_procs.end();){
-      Base::StateType TaskState = p->getTask().state;
-      if ((TaskState == Base::StateType::COMPLETED) ||
-          (TaskState == Base::StateType::ERRORT)){
+      base::StateType TaskState = p->getTask().state;
+      if ((TaskState == base::StateType::COMPLETED) ||
+          (TaskState == base::StateType::ERRORT)){
         p = m_procs.erase(p);
       }else{
         ++p;
@@ -133,8 +133,8 @@ void Executor::waitProcess()
 
     p.closeHandle();   
   
-    Base::MessType mt = status == 0 ? Base::MessType::TASK_COMPLETED : Base::MessType::TASK_ERROR;
-    Base::StateType st = status == 0 ? Base::StateType::COMPLETED : Base::StateType::ERRORT;
+    base::MessType mt = status == 0 ? base::MessType::TASK_COMPLETED : base::MessType::TASK_ERROR;
+    base::StateType st = status == 0 ? base::StateType::COMPLETED : base::StateType::ERRORT;
 
     p.setTaskState(st);
 
@@ -144,16 +144,16 @@ void Executor::waitProcess()
 
   // check max run time
   for(auto& p : m_procs){
-    if (p.checkMaxRunTime() && (p.getTask().state == Base::StateType::RUNNING)){
+    if (p.checkMaxRunTime() && (p.getTask().state == base::StateType::RUNNING)){
       p.stopByTimeout();
     }
   }
 
   { std::lock_guard<std::mutex> lock(m_mtxProcess);    
     for (auto p = m_procs.begin(); p != m_procs.end();){
-      Base::StateType TaskState = p->getTask().state;
-      if ((TaskState == Base::StateType::COMPLETED) ||
-          (TaskState == Base::StateType::ERRORT)){
+      base::StateType TaskState = p->getTask().state;
+      if ((TaskState == base::StateType::COMPLETED) ||
+          (TaskState == base::StateType::ERRORT)){
         p = m_procs.erase(p);
       }else{
         ++p;

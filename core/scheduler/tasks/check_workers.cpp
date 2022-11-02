@@ -33,7 +33,7 @@ void Executor::checkStatusWorkers(DB::DbProvider& db)
 {
   vector<SWorker*> wkrNotResp;
   for(auto& w : m_workers){
-    if (!w.second.isActive && (w.second.base.state != Base::StateType::STOP)){            
+    if (!w.second.isActive && (w.second.base.state != base::StateType::STOP)){            
       wkrNotResp.push_back(&w.second);
     }else{
       w.second.isActive = false;
@@ -41,13 +41,13 @@ void Executor::checkStatusWorkers(DB::DbProvider& db)
   }
   if (wkrNotResp.size() <= round(m_workers.size() * 0.75)){ 
     for(auto w : wkrNotResp){
-      if (w->base.state != Base::StateType::NOT_RESPONDING){
-        m_messToDB.push(DB::MessSchedr(Base::MessType::WORKER_NOT_RESPONDING, w->base.id));
+      if (w->base.state != base::StateType::NOT_RESPONDING){
+        m_messToDB.push(DB::MessSchedr(base::MessType::WORKER_NOT_RESPONDING, w->base.id));
         m_messToDB.push(DB::MessSchedr::errorMess(w->base.id, "checkStatusWorkers worker not responding"));          
         w->stateMem = w->base.state;
-        w->base.state = Base::StateType::NOT_RESPONDING;
+        w->base.state = base::StateType::NOT_RESPONDING;
         
-        vector<Base::Task> tasks;
+        vector<base::Task> tasks;
         if (m_db.getTasksById(m_schedr.id, w->taskList, tasks)){
           for(auto& t : tasks){
             m_tasks.push(move(t));

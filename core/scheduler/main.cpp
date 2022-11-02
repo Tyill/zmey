@@ -95,7 +95,7 @@ int main(int argc, char* argv[])
   app.statusMess("Schedr running: " + cng.localConnPnt);
   
   // on start
-  executor.addMessToDB(DB::MessSchedr{ Base::MessType::START_SCHEDR });
+  executor.addMessToDB(DB::MessSchedr{ base::MessType::START_SCHEDR });
 
   // loop ///////////////////////////////////////////////////////////////////////
   Loop loop(cng, executor, *dbNewTask, *dbSendMess);

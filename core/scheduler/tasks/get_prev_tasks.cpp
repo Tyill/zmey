@@ -29,7 +29,7 @@ using namespace std;
 
 void Executor::getPrevTaskFromDB(DB::DbProvider& db)
 {
-  vector<Base::Task> tasks;
+  vector<base::Task> tasks;
   if (db.getTasksOfSchedr(m_schedr.id, tasks)){
     for(auto& t : tasks){
       m_tasks.push(move(t));

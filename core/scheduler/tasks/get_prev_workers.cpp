@@ -30,11 +30,11 @@ using namespace std;
 
 void Executor::getPrevWorkersFromDB(DB::DbProvider& db)
 {   
-  vector<Base::Worker> workers; 
+  vector<base::Worker> workers; 
   if (db.getWorkersOfSchedr(m_schedr.id, workers)){
     for(auto& w : workers){
       m_workers[w.connectPnt] = SWorker{w, w.state, vector<int>(), 
-                                        w.state != Base::StateType::NOT_RESPONDING};
+                                        w.state != base::StateType::NOT_RESPONDING};
 
       if (db.getTasksOfWorker(m_schedr.id, w.id, m_workers[w.connectPnt].taskList)){
         m_workers[w.connectPnt].taskList.resize(size_t(w.capacityTask * 1.5));

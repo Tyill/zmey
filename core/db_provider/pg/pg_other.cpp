@@ -28,7 +28,7 @@ using namespace std;
 
 namespace DB{
   
-bool DbProvider::getWorkerByTask(int tId, Base::Worker& wcng){
+bool DbProvider::getWorkerByTask(int tId, base::Worker& wcng){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
   ss << "SELECT wkr.id, wkr.connPnt "

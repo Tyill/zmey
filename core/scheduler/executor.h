@@ -56,8 +56,8 @@ public:
   
 private:
   struct SWorker{
-    Base::Worker base;
-    Base::StateType stateMem;
+    base::Worker base;
+    base::StateType stateMem;
     std::vector<int> taskList;
     bool isActive;
   };
@@ -66,11 +66,11 @@ private:
   DB::DbProvider& m_db;
 
   std::map<std::string, SWorker> m_workers;   // key - connectPnt  
-  std::vector<Base::Worker> m_workersCpy;
-  std::vector<Base::Worker*> m_refWorkers;
-  Aux::Queue<Base::Task> m_tasks;
+  std::vector<base::Worker> m_workersCpy;
+  std::vector<base::Worker*> m_refWorkers;
+  Aux::Queue<base::Task> m_tasks;
   Aux::Queue<DB::MessSchedr> m_messToDB;
-  Base::Scheduler m_schedr;
+  base::Scheduler m_schedr;
 
   Aux::CounterTick m_ctickNewTask;
   Aux::CounterTick m_ctickMessToDB;

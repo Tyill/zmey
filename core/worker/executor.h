@@ -39,7 +39,7 @@ public:
 public:
   struct MessForSchedr{
     int taskId;
-    Base::MessType MessType;
+    base::MessType MessType;
     std::string error;
   };
 
@@ -64,9 +64,9 @@ private:
   
   Application& m_app;  
   
-  Base::Worker m_worker;
+  base::Worker m_worker;
   Aux::Queue<MessForSchedr> m_listMessForSchedr;
-  Aux::Queue<Base::Task> m_newTasks;
+  Aux::Queue<base::Task> m_newTasks;
   Aux::Queue<std::string> m_errMess;
   std::list<Process> m_procs;
   std::mutex m_mtxProcess;  

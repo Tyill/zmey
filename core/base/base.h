@@ -27,7 +27,7 @@
         
 #include <string>
 
-namespace Base{
+namespace base{
 
   enum class MessType{
     UNDEFINED = -1,

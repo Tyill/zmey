@@ -30,7 +30,7 @@ using namespace std;
 void Executor::stopSchedr(DB::DbProvider& db)
 {  
   DB::MessSchedr mess;{
-    mess.type = Base::MessType::STOP_SCHEDR;
+    mess.type = base::MessType::STOP_SCHEDR;
   }
   addMessToDB(mess);
   sendAllMessToDB(db);

@@ -42,7 +42,7 @@ bool DbProvider::setListenNewTaskNotify(bool on){
   return true;
 }
 
-bool DbProvider::getSchedr(const std::string& connPnt, Base::Scheduler& outCng){
+bool DbProvider::getSchedr(const std::string& connPnt, base::Scheduler& outCng){
   lock_guard<mutex> lk(m_impl->m_mtx);
   
   stringstream ss;
@@ -61,7 +61,7 @@ bool DbProvider::getSchedr(const std::string& connPnt, Base::Scheduler& outCng){
   }
   outCng.id = stoull(PQgetvalue(pgr.res, 0, 0));
   outCng.connectPnt = connPnt;
-  outCng.state = (Base::StateType)atoi(PQgetvalue(pgr.res, 0, 1));
+  outCng.state = (base::StateType)atoi(PQgetvalue(pgr.res, 0, 1));
   outCng.capacityTask = atoi(PQgetvalue(pgr.res, 0, 2));
   outCng.activeTask = atoi(PQgetvalue(pgr.res, 0, 3));
   outCng.internalData = PQgetvalue(pgr.res, 0, 4);
@@ -69,7 +69,7 @@ bool DbProvider::getSchedr(const std::string& connPnt, Base::Scheduler& outCng){
   outCng.description = PQgetvalue(pgr.res, 0, 6);
   return true;
 }
-bool DbProvider::getTasksById(int sId, const std::vector<int>& tasksId, std::vector<Base::Task>& out){
+bool DbProvider::getTasksById(int sId, const std::vector<int>& tasksId, std::vector<base::Task>& out){
   lock_guard<mutex> lk(m_impl->m_mtx);
 
   string tId;
@@ -83,7 +83,7 @@ bool DbProvider::getTasksById(int sId, const std::vector<int>& tasksId, std::vec
         "FROM tblTaskQueue tq "
         "JOIN tblTaskState ts ON ts.qtask = tq.id "
         "JOIN tblTaskParam tp ON tp.qtask = tq.id "
-        "WHERE tq.schedr = " << sId << " AND tq.id IN (" << tId << ") AND (ts.state BETWEEN " << (int)Base::StateType::START << " AND " << (int)Base::StateType::PAUSE << ")";
+        "WHERE tq.schedr = " << sId << " AND tq.id IN (" << tId << ") AND (ts.state BETWEEN " << (int)base::StateType::START << " AND " << (int)base::StateType::PAUSE << ")";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
@@ -93,7 +93,7 @@ bool DbProvider::getTasksById(int sId, const std::vector<int>& tasksId, std::vec
 
   int tsz = PQntuples(pgr.res);
   for (int i = 0; i < tsz; ++i){
-    out.push_back(Base::Task {
+    out.push_back(base::Task {
       stoull(PQgetvalue(pgr.res, i, 0)),
       stoull(PQgetvalue(pgr.res, i, 1)),
       atoi(PQgetvalue(pgr.res, i, 2)),
@@ -105,7 +105,7 @@ bool DbProvider::getTasksById(int sId, const std::vector<int>& tasksId, std::vec
   }
   return true;
 }  
-bool DbProvider::getTasksOfSchedr(int sId, std::vector<Base::Task>& out){
+bool DbProvider::getTasksOfSchedr(int sId, std::vector<base::Task>& out){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
   ss << "SELECT tq.id, COALESCE(tp.workerPreset, 0), tp.averDurationSec, tp.maxDurationSec, "
@@ -113,7 +113,7 @@ bool DbProvider::getTasksOfSchedr(int sId, std::vector<Base::Task>& out){
         "FROM tblTaskQueue tq "
         "JOIN tblTaskState ts ON ts.qtask = tq.id "
         "JOIN tblTaskParam tp ON tp.qtask = tq.id "
-        "WHERE tq.schedr = " << sId << " AND tq.worker IS NULL AND (ts.state BETWEEN " << (int)Base::StateType::START << " AND " << (int)Base::StateType::PAUSE << ")";
+        "WHERE tq.schedr = " << sId << " AND tq.worker IS NULL AND (ts.state BETWEEN " << (int)base::StateType::START << " AND " << (int)base::StateType::PAUSE << ")";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
@@ -122,7 +122,7 @@ bool DbProvider::getTasksOfSchedr(int sId, std::vector<Base::Task>& out){
   }
   int tsz = PQntuples(pgr.res);
   for (int i = 0; i < tsz; ++i){
-    out.push_back(Base::Task {
+    out.push_back(base::Task {
       stoull(PQgetvalue(pgr.res, i, 0)),
       stoull(PQgetvalue(pgr.res, i, 1)),
       atoi(PQgetvalue(pgr.res, i, 2)),
@@ -140,7 +140,7 @@ bool DbProvider::getTasksOfWorker(int sId, int wId, std::vector<int>& outTasksId
   ss << "SELECT tq.id "
         "FROM tblTaskQueue tq "
         "JOIN tblTaskState ts ON ts.qtask = tq.id "
-        "WHERE tq.schedr = " << sId << " AND tq.worker = " << wId << " AND (ts.state BETWEEN " << (int)Base::StateType::START << " AND " << (int)Base::StateType::PAUSE << ")";
+        "WHERE tq.schedr = " << sId << " AND tq.worker = " << wId << " AND (ts.state BETWEEN " << (int)base::StateType::START << " AND " << (int)base::StateType::PAUSE << ")";
 
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
@@ -153,7 +153,7 @@ bool DbProvider::getTasksOfWorker(int sId, int wId, std::vector<int>& outTasksId
   }
   return true;
 }
-bool DbProvider::getWorkersOfSchedr(int sId, std::vector<Base::Worker>& out){
+bool DbProvider::getWorkersOfSchedr(int sId, std::vector<base::Worker>& out){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
   ss << "SELECT id, state, capacityTask, activeTask, connPnt, name, description "
@@ -167,12 +167,12 @@ bool DbProvider::getWorkersOfSchedr(int sId, std::vector<Base::Worker>& out){
   }
   int wsz = PQntuples(pgr.res);
   for(int i =0; i < wsz; ++i){
-    out.push_back(Base::Worker{ stoull(PQgetvalue(pgr.res, i, 0)),
+    out.push_back(base::Worker{ stoull(PQgetvalue(pgr.res, i, 0)),
                                    sId,
-                                   (Base::StateType)atoi(PQgetvalue(pgr.res, i, 1)),
+                                   (base::StateType)atoi(PQgetvalue(pgr.res, i, 1)),
                                    atoi(PQgetvalue(pgr.res, i, 2)),
                                    atoi(PQgetvalue(pgr.res, i, 3)),
-                                   Base::Worker::RATING_MAX,
+                                   base::Worker::RATING_MAX,
                                    0,
                                    PQgetvalue(pgr.res, i, 4),
                                    PQgetvalue(pgr.res, i, 5),
@@ -180,7 +180,7 @@ bool DbProvider::getWorkersOfSchedr(int sId, std::vector<Base::Worker>& out){
   }
   return true;
 }
-bool DbProvider::getNewTasksForSchedr(int sId, int maxTaskCnt, std::vector<Base::Task>& out){
+bool DbProvider::getNewTasksForSchedr(int sId, int maxTaskCnt, std::vector<base::Task>& out){
   lock_guard<mutex> lk(m_impl->m_mtx);  
   
   PQconsumeInput(_pg);
@@ -206,7 +206,7 @@ bool DbProvider::getNewTasksForSchedr(int sId, int maxTaskCnt, std::vector<Base:
   }
   int tsz = PQntuples(pgr.res);
   for (int i = 0; i < tsz; ++i){
-    out.push_back(Base::Task {
+    out.push_back(base::Task {
       stoull(PQgetvalue(pgr.res, i, 0)),
       stoull(PQgetvalue(pgr.res, i, 1)),
       atoi(PQgetvalue(pgr.res, i, 2)),
@@ -232,27 +232,27 @@ bool DbProvider::sendAllMessFromSchedr(int sId, std::vector<DB::MessSchedr>& mes
   stringstream ss;
   for (const auto& m : mess){
     switch (m.type){     
-      case Base::MessType::TASK_ERROR:
-      case Base::MessType::TASK_COMPLETED: 
+      case base::MessType::TASK_ERROR:
+      case base::MessType::TASK_COMPLETED: 
         ss << "UPDATE tblTaskTime SET "
               "stopTime = current_timestamp "
               "WHERE qtask = " << m.taskId << ";";
          
-        if (m.type == Base::MessType::TASK_ERROR){ 
+        if (m.type == base::MessType::TASK_ERROR){ 
           ss << "UPDATE tblTaskState SET "
-                "state = " << (int)Base::StateType::ERRORT << " "
+                "state = " << (int)base::StateType::ERRORT << " "
                 "WHERE qtask = " << m.taskId << ";";
         }
-        else if (m.type == Base::MessType::TASK_COMPLETED){                      
+        else if (m.type == base::MessType::TASK_COMPLETED){                      
           ss << "UPDATE tblTaskState SET "
-                "state = " << (int)Base::StateType::COMPLETED << ", "
+                "state = " << (int)base::StateType::COMPLETED << ", "
                 "progress = 100 "
                 "WHERE qtask = " << m.taskId << ";";
         }
         break;                
-      case Base::MessType::TASK_RUNNING:
+      case base::MessType::TASK_RUNNING:
         ss << "UPDATE tblTaskState SET "
-              "state = " << (int)Base::StateType::RUNNING << " "
+              "state = " << (int)base::StateType::RUNNING << " "
               "WHERE qtask = " << m.taskId << ";"
 
               "UPDATE tblTaskQueue SET "
@@ -263,77 +263,77 @@ bool DbProvider::sendAllMessFromSchedr(int sId, std::vector<DB::MessSchedr>& mes
               "startTime = current_timestamp "
               "WHERE qtask = " << m.taskId << ";";
         break;         
-      case Base::MessType::TASK_PAUSE:
+      case base::MessType::TASK_PAUSE:
         ss << "UPDATE tblTaskState SET "
-              "state = " << (int)Base::StateType::PAUSE << " "
+              "state = " << (int)base::StateType::PAUSE << " "
               "WHERE qtask = " << m.taskId << ";"; 
         break;     
-      case Base::MessType::TASK_CONTINUE: // worker talk, when run task
+      case base::MessType::TASK_CONTINUE: // worker talk, when run task
         ss << "UPDATE tblTaskState SET "
-              "state = " << (int)Base::StateType::RUNNING << " "
+              "state = " << (int)base::StateType::RUNNING << " "
               "WHERE qtask = " << m.taskId << ";"; 
         break;    
-      case Base::MessType::TASK_STOP:     
+      case base::MessType::TASK_STOP:     
         ss << "UPDATE tblTaskTime SET "
               "stopTime = current_timestamp "
               "WHERE qtask = " << m.taskId << ";"
               
               "UPDATE tblTaskState SET "
-              "state = " << (int)Base::StateType::STOP << " "
+              "state = " << (int)base::StateType::STOP << " "
               "WHERE qtask = " << m.taskId << ";"; 
         break;
-      case Base::MessType::TASK_PROGRESS:
+      case base::MessType::TASK_PROGRESS:
         ss << "UPDATE tblTaskState SET "
               "progress = " << stoi(m.data) << " "
               "WHERE qtask = " << m.taskId << ";";
         break;
-      case Base::MessType::PAUSE_SCHEDR:
+      case base::MessType::PAUSE_SCHEDR:
         ss << "UPDATE tblScheduler SET "
-              "state = " << (int)Base::StateType::PAUSE << " "
+              "state = " << (int)base::StateType::PAUSE << " "
               "WHERE id = " << sId << ";";
         break;
-      case Base::MessType::START_SCHEDR:
+      case base::MessType::START_SCHEDR:
         ss << "UPDATE tblScheduler SET "
-              "state = " << (int)Base::StateType::RUNNING << ", "
+              "state = " << (int)base::StateType::RUNNING << ", "
               "startTime = current_timestamp "
               "WHERE id = " << sId << ";";
         break;
-      case Base::MessType::STOP_SCHEDR:
+      case base::MessType::STOP_SCHEDR:
         ss << "UPDATE tblScheduler SET "
-              "state = " << (int)Base::StateType::STOP << ", "
+              "state = " << (int)base::StateType::STOP << ", "
               "stopTime = current_timestamp "
               "WHERE id = " << sId << ";";
         break;
-      case Base::MessType::START_AFTER_PAUSE_SCHEDR:
+      case base::MessType::START_AFTER_PAUSE_SCHEDR:
         ss << "UPDATE tblScheduler SET "
-              "state = " << (int)Base::StateType::RUNNING << " "
+              "state = " << (int)base::StateType::RUNNING << " "
               "WHERE id = " << sId << ";";
         break;
-      case Base::MessType::PING_SCHEDR:{
+      case base::MessType::PING_SCHEDR:{
         ss << "UPDATE tblScheduler SET "
-              "state = " << (int)Base::StateType::RUNNING << ", "
+              "state = " << (int)base::StateType::RUNNING << ", "
               "activeTask = " << stoi(m.data) << ", "
               "pingTime = current_timestamp "
               "WHERE id = " << sId << ";";
         break;
       }
-      case Base::MessType::PAUSE_WORKER:
+      case base::MessType::PAUSE_WORKER:
         ss << "UPDATE tblWorker SET "
-              "state = " << (int)Base::StateType::PAUSE << " "
+              "state = " << (int)base::StateType::PAUSE << " "
               "WHERE id = " << m.workerId << ";";
         break;
-      case Base::MessType::START_WORKER:
+      case base::MessType::START_WORKER:
         ss << "UPDATE tblWorker SET "
-              "state = " << (int)Base::StateType::RUNNING << ", "
+              "state = " << (int)base::StateType::RUNNING << ", "
               "startTime = current_timestamp "
               "WHERE id = " << m.workerId << ";";
         break;
-      case Base::MessType::START_AFTER_PAUSE_WORKER:
+      case base::MessType::START_AFTER_PAUSE_WORKER:
         ss << "UPDATE tblWorker SET "
-              "state = " << (int)Base::StateType::RUNNING << " "
+              "state = " << (int)base::StateType::RUNNING << " "
               "WHERE id = " << m.workerId << ";";
         break;
-      case Base::MessType::PING_WORKER:{
+      case base::MessType::PING_WORKER:{
         auto data = Aux::split(m.data, '\t');
         ss << "UPDATE tblWorker SET "
               "activeTask = " << stoi(data[0]) << ", "
@@ -342,24 +342,24 @@ bool DbProvider::sendAllMessFromSchedr(int sId, std::vector<DB::MessSchedr>& mes
               "WHERE id = " << m.workerId << ";";
         break;
       }        
-      case Base::MessType::WORKER_NOT_RESPONDING:
+      case base::MessType::WORKER_NOT_RESPONDING:
         ss << "UPDATE tblWorker SET "
-              "state = " << (int)Base::StateType::NOT_RESPONDING << ", "
+              "state = " << (int)base::StateType::NOT_RESPONDING << ", "
               "stopTime = current_timestamp "
               "WHERE id = " << m.workerId << ";";
         break;
-      case Base::MessType::JUST_START_WORKER:
+      case base::MessType::JUST_START_WORKER:
         ss << "UPDATE tblWorker SET "
               "startTime = current_timestamp "
               "WHERE id = " << m.workerId << ";";
         break;
-      case Base::MessType::STOP_WORKER:             
+      case base::MessType::STOP_WORKER:             
         ss << "UPDATE tblWorker SET "
-              "state = " << (int)Base::StateType::STOP << ", "
+              "state = " << (int)base::StateType::STOP << ", "
               "stopTime = current_timestamp "
               "WHERE id = " << m.workerId << ";";
         break;
-      case Base::MessType::INTERN_ERROR:
+      case base::MessType::INTERN_ERROR:
         if (m.workerId){
           ss << "INSERT INTO tblInternError (schedr, worker, message) VALUES("
                 "'" << sId << "',"

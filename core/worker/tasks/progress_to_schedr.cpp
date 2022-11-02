@@ -45,7 +45,7 @@ void Executor::progressToSchedr(const std::string& schedrConnPnt)
   Json::FastWriter writerJs;
    
   map<string, string> data{
-    {Link::command, to_string((int)Base::MessType::TASK_PROGRESS)},
+    {Link::command, to_string((int)base::MessType::TASK_PROGRESS)},
     {Link::connectPnt, m_worker.connectPnt},
     {Link::tasks, writerJs.write(rootJs)},
   };  

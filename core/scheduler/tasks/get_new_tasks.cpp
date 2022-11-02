@@ -38,7 +38,7 @@ void Executor::getNewTaskFromDB(DB::DbProvider& db)
   actSz += m_tasks.size();
   
   if ((capSz - actSz) > 0){ 
-    vector<Base::Task> newTasks;
+    vector<base::Task> newTasks;
     if (db.getNewTasksForSchedr(m_schedr.id, capSz - actSz, newTasks)){
       newSz = (int)newTasks.size();
       for(auto& t : newTasks){

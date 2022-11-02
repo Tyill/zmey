@@ -32,10 +32,10 @@ using namespace std;
 void Executor::sendNotifyHandler(const string& cp, const string& data, const std::error_code& ec)
 {  
   auto smess = Aux::deserialn(data);  
-  Base::MessType messType = (Base::MessType)stoi(smess[Link::command]);
-  if (ec && (messType != Base::MessType::TASK_PROGRESS) &&
-            (messType != Base::MessType::INTERN_ERROR) &&
-            (messType != Base::MessType::PING_WORKER)){
+  base::MessType messType = (base::MessType)stoi(smess[Link::command]);
+  if (ec && (messType != base::MessType::TASK_PROGRESS) &&
+            (messType != base::MessType::INTERN_ERROR) &&
+            (messType != base::MessType::PING_WORKER)){
     MessForSchedr mess;
     mess.MessType = messType;
     mess.taskId = stoull(smess[Link::taskId]);

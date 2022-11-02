@@ -30,7 +30,7 @@ using namespace std;
 
 namespace DB{
 
-bool DbProvider::addSchedr(const Base::Scheduler& schedl, int& outSchId){    
+bool DbProvider::addSchedr(const base::Scheduler& schedl, int& outSchId){    
   lock_guard<mutex> lk(m_impl->m_mtx);
   
   stringstream ss;
@@ -49,7 +49,7 @@ bool DbProvider::addSchedr(const Base::Scheduler& schedl, int& outSchId){
   outSchId = stoull(PQgetvalue(pgr.res, 0, 0));
   return true;
 }
-bool DbProvider::getSchedr(int sId, Base::Scheduler& cng){
+bool DbProvider::getSchedr(int sId, base::Scheduler& cng){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
   ss << "SELECT connPnt, state, capacityTask, name, description "
@@ -66,13 +66,13 @@ bool DbProvider::getSchedr(int sId, Base::Scheduler& cng){
     return false;
   }
   cng.connectPnt = PQgetvalue(pgr.res, 0, 0);
-  cng.state = (Base::StateType)atoi(PQgetvalue(pgr.res, 0, 1));
+  cng.state = (base::StateType)atoi(PQgetvalue(pgr.res, 0, 1));
   cng.capacityTask = atoi(PQgetvalue(pgr.res, 0, 2));
   cng.name = PQgetvalue(pgr.res, 0, 3);
   cng.description = PQgetvalue(pgr.res, 0, 4);
   return true;
 }
-bool DbProvider::changeSchedr(int sId, const Base::Scheduler& newCng){  
+bool DbProvider::changeSchedr(int sId, const base::Scheduler& newCng){  
   lock_guard<mutex> lk(m_impl->m_mtx);
  
   stringstream ss;
@@ -117,14 +117,14 @@ bool DbProvider::schedrState(int sId, SchedulerState& out){
     errorMess(string("schedrState: ") + PQerrorMessage(_pg));
     return false;
   }
-  out.state = (Base::StateType)atoi(PQgetvalue(pgr.res, 0, 0));
+  out.state = (base::StateType)atoi(PQgetvalue(pgr.res, 0, 0));
   out.activeTask = atoi(PQgetvalue(pgr.res, 0, 1));
   out.startTime = PQgetvalue(pgr.res, 0, 2);
   out.stopTime = PQgetvalue(pgr.res, 0, 3);
   out.pingTime = PQgetvalue(pgr.res, 0, 4);
   return true;
 }
-std::vector<int> DbProvider::getAllSchedrs(Base::StateType state){  
+std::vector<int> DbProvider::getAllSchedrs(base::StateType state){  
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
   ss << "SELECT id FROM tblScheduler "
