@@ -64,7 +64,7 @@ struct MessError{
   std::string message;
 };
 struct TaskState{
-  uint32_t progress;
+  int progress;
   base::StateType state;
 };
 struct TaskTime{
@@ -76,7 +76,7 @@ struct TaskTime{
 
 struct SchedulerState{
   base::StateType state;
-  uint32_t activeTask;
+  int activeTask;
   std::string startTime;
   std::string stopTime;
   std::string pingTime;
@@ -84,8 +84,8 @@ struct SchedulerState{
 
 struct WorkerState{
   base::StateType state;
-  uint32_t activeTask;
-  uint32_t load;
+  int activeTask;
+  int load;
   std::string startTime;
   std::string stopTime;
   std::string pingTime;
@@ -142,7 +142,7 @@ public:
   bool getWorkerByTask(int tId, base::Worker& wcng);
   bool setChangeTaskStateCBack(int tId, ChangeTaskStateCBack, UData);
 
-  std::vector<MessError> getInternErrors(int sId, int wId, uint32_t mCnt);
+  std::vector<MessError> getInternErrors(int sId, int wId, int mCnt);
 
   // for schedr
   bool setListenNewTaskNotify(bool on);

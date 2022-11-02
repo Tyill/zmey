@@ -51,7 +51,7 @@ bool DbProvider::getWorkerByTask(int tId, base::Worker& wcng){
   return true;
 }
 
-vector<DB::MessError> DbProvider::getInternErrors(int sId, int wId, uint32_t mCnt){
+vector<DB::MessError> DbProvider::getInternErrors(int sId, int wId, int mCnt){
   lock_guard<mutex> lk(m_impl->m_mtx);
   if (mCnt == 0){
     mCnt = INT32_MAX;

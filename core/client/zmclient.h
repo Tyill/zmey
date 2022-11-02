@@ -111,7 +111,7 @@ ZMEY_API bool zmGetLastError(zmConn, char* err/*sz 256*/);
 
 /// scheduler config
 struct zmSchedr{
-  uint32_t capacityTask = 10000; ///< permissible simultaneous number of tasks 
+  int capacityTask = 10000; ///< permissible simultaneous number of tasks 
   char connectPnt[256];          ///< remote connection point: IP or DNS:port  
   char name[256];                ///< scheduler name. Optional.
   char* description;             ///< description of schedr. The memory is allocated by the user. May be NULL 
@@ -163,7 +163,7 @@ ZMEY_API bool zmPingScheduler(zmConn, int sId);
 
 struct zmSchedulerState{
   zmStateType state;
-  uint32_t activeTask;
+  int activeTask;
   char startTime[32];
   char stopTime[32];
   char pingTime[32];
@@ -181,7 +181,7 @@ ZMEY_API bool zmStateOfScheduler(zmConn, int sId, zmSchedulerState* outState);
 /// @param[in] state - choose with current state. If the state is 'UNDEFINED', select all
 /// @param[out] outSchId - schedulers id. Pass NULL, no need to free memory
 /// @return count of schedulers
-ZMEY_API uint32_t zmGetAllSchedulers(zmConn, zmStateType state, int** outSchId);
+ZMEY_API int zmGetAllSchedulers(zmConn, zmStateType state, int** outSchId);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Worker
@@ -189,7 +189,7 @@ ZMEY_API uint32_t zmGetAllSchedulers(zmConn, zmStateType state, int** outSchId);
 /// worker config
 struct zmWorker{
   int sId;               ///< scheduler id 
-  uint32_t capacityTask = 10; ///< permissible simultaneous number of tasks
+  int capacityTask = 10; ///< permissible simultaneous number of tasks
   char connectPnt[256];       ///< remote connection point: IP or DNS:port  
   char name[256];             ///< worker name. Optional.
   char* description;          ///< description of worker. The memory is allocated by the user. May be NULL 
@@ -242,8 +242,8 @@ ZMEY_API bool zmPingWorker(zmConn, int wId);
 
 struct zmWorkerState{
   zmStateType state;
-  uint32_t activeTask;
-  uint32_t load;
+  int activeTask;
+  int load;
   char startTime[32];
   char stopTime[32];
   char pingTime[32];
@@ -255,7 +255,7 @@ struct zmWorkerState{
 /// @param[in] wCnt - worker count
 /// @param[out] outState - worker state. The memory is allocated by the user
 /// @return true - ok
-ZMEY_API bool zmStateOfWorker(zmConn, int* wId, uint32_t wCnt, zmWorkerState* outState);
+ZMEY_API bool zmStateOfWorker(zmConn, int* wId, int wCnt, zmWorkerState* outState);
 
 /// get all workers
 /// @param[in] zmConn - object connect
@@ -263,7 +263,7 @@ ZMEY_API bool zmStateOfWorker(zmConn, int* wId, uint32_t wCnt, zmWorkerState* ou
 /// @param[in] state - choose with current state. If the state is 'UNDEFINED', select all
 /// @param[out] outWId - worker id. Pass NULL, no need to free memory
 /// @return count of schedulers
-ZMEY_API uint32_t zmGetAllWorkers(zmConn, int sId, zmStateType state, int** outWId);
+ZMEY_API int zmGetAllWorkers(zmConn, int sId, zmStateType state, int** outWId);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Task object
@@ -272,8 +272,8 @@ ZMEY_API uint32_t zmGetAllWorkers(zmConn, int sId, zmStateType state, int** outW
 struct zmTask{
   int schedrPresetId;  ///< schedr preset id. Default 0
   int workerPresetId;  ///< worker preset id. Default 0
-  uint32_t averDurationSec; ///< estimated lead time, sec. Default 0
-  uint32_t maxDurationSec;  ///< maximum lead time, sec. Default 0
+  int averDurationSec; ///< estimated lead time, sec. Default 0
+  int maxDurationSec;  ///< maximum lead time, sec. Default 0
   char* params;             ///< CLI params for script. May be NULL
   char* scriptPath;         ///< Script path. Necessarily
   char* resultPath;         ///< Result path. Necessarily
@@ -312,7 +312,7 @@ ZMEY_API bool zmContinueTask(zmConn, int tId);
 
 /// task state
 struct zmTaskState{
-  uint32_t progress;      ///< [0..100]
+  int progress;      ///< [0..100]
   zmStateType state;
 };
 
@@ -322,7 +322,7 @@ struct zmTaskState{
 /// @param[in] tCnt - task id count
 /// @param[out] outTState - task state. The memory is allocated by the user
 /// @return true - ok
-ZMEY_API bool zmStateOfTask(zmConn, int* tId, uint32_t tCnt, zmTaskState* outTState);
+ZMEY_API bool zmStateOfTask(zmConn, int* tId, int tCnt, zmTaskState* outTState);
 
 /// get task result
 /// @param[in] zmConn - object connect
@@ -374,7 +374,7 @@ struct zmInternError{
 /// @param[in] mCnt - last mess max count
 /// @param[out] outErrors. The memory is allocated by the user
 /// @return count of errors
-ZMEY_API uint32_t zmGetInternErrors(zmConn, int sId, int wId, uint32_t mCnt, zmInternError* outErrors);
+ZMEY_API int zmGetInternErrors(zmConn, int sId, int wId, int mCnt, zmInternError* outErrors);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// free resouces
