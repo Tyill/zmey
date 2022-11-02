@@ -33,7 +33,7 @@ void Executor::getPrevWorkersFromDB(DB::DbProvider& db)
   vector<Base::Worker> workers; 
   if (db.getWorkersOfSchedr(m_schedr.id, workers)){
     for(auto& w : workers){
-      m_workers[w.connectPnt] = SWorker{w, w.state, vector<uint64_t>(), 
+      m_workers[w.connectPnt] = SWorker{w, w.state, vector<int>(), 
                                         w.state != Base::StateType::NOT_RESPONDING};
 
       if (db.getTasksOfWorker(m_schedr.id, w.id, m_workers[w.connectPnt].taskList)){

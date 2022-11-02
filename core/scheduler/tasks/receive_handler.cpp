@@ -62,7 +62,7 @@ void Executor::receiveHandler(const string& remcp, const string& data)
     return;
   } 
 
-  uint64_t wId = 0;
+  int wId = 0;
   string cp = remcp;
   checkFieldNum(Link::command);
   checkField(Link::connectPnt);
@@ -86,7 +86,7 @@ void Executor::receiveHandler(const string& remcp, const string& data)
         checkFieldNum(Link::activeTask);
         worker.base.activeTask = stoi(mess[Link::activeTask]);
         worker.base.load = stoi(mess[Link::load]);
-        uint64_t tid = stoull(mess[Link::taskId]); 
+        int tid = stoull(mess[Link::taskId]); 
         bool taskExist = false;       
         for(auto& t : worker.taskList){
           if (t == tid){
@@ -115,7 +115,7 @@ void Executor::receiveHandler(const string& remcp, const string& data)
             if (t.isMember(Link::taskId) && t[Link::taskId].isUInt64() &&
                 t.isMember(Link::progress) && t[Link::progress].isString()){
               
-              if (find_if(worker.taskList.begin(), worker.taskList.end(), [t](uint64_t tId){
+              if (find_if(worker.taskList.begin(), worker.taskList.end(), [t](int tId){
                 return tId == t[Link::taskId].asUInt64();
               }) != worker.taskList.end())
                 m_messToDB.push(DB::MessSchedr(mtype, wId, t[Link::taskId].asUInt64(), t[Link::progress].asString()));

@@ -65,7 +65,7 @@ private:
   Base::Task m_task;
   Aux::TimerDelay m_timerProgress,
                      m_timerDuration;
-  uint64_t m_cdeltaTimeProgress = 0,
+  int m_cdeltaTimeProgress = 0,
            m_cdeltaTimeDuration  = 0;
   bool m_isPause = false;
   std::string m_err;

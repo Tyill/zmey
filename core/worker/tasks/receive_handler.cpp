@@ -89,7 +89,7 @@ void Executor::receiveHandler(const string& remcp, const string& data)
   }
   else{
     checkFieldNum(Link::taskId);
-    uint64_t tId = stoull(mess[Link::taskId]);
+    int tId = stoi(mess[Link::taskId]);
     { std::lock_guard<std::mutex> lock(m_mtxProcess);
       
       auto iPrc = find_if(m_procs.begin(), m_procs.end(), [tId](const Process& p){

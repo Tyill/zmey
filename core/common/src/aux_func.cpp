@@ -60,7 +60,7 @@ string currDateTimeMs() {
   time (&ct);
   tm* lct = localtime (&ct);
 
-  uint64_t ms = chrono::time_point_cast<chrono::milliseconds>(chrono::system_clock::now()).time_since_epoch().count() % 1000;
+  int64_t ms = chrono::time_point_cast<chrono::milliseconds>(chrono::system_clock::now()).time_since_epoch().count() % 1000;
 
   char curDate[24];
   strftime(curDate, 24, "%Y-%m-%d %H:%M:%S:", lct);
@@ -117,7 +117,7 @@ std::string trim(std::string str){
 
   return str;
 }
-uint64_t currDateTimeSinceEpochMs(){
+int64_t currDateTimeSinceEpochMs(){
   auto now = std::chrono::system_clock::now();
   auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
   return now_ms.time_since_epoch().count();
@@ -178,7 +178,7 @@ bool createSubDirectory(const string& strDirs) {
     return ret == 0;
   }
 
-void sleepMs(uint64_t ms){
+void sleepMs(int ms){
   std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 }    
 

@@ -46,13 +46,13 @@ bool startWith(const std::string& fullString, const std::string& starting);
 
 std::string replace(std::string& ioStr, const std::string& targ, const std::string& repl);
 
-uint64_t currDateTimeSinceEpochMs();
+int64_t currDateTimeSinceEpochMs();
 
 bool isNumber(const std::string& s);
 
 bool createSubDirectory(const std::string& strDirs);
 
-void sleepMs(uint64_t ms);      
+void sleepMs(int ms);      
 
 std::string trim(std::string str);
 

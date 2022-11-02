@@ -52,7 +52,7 @@ public:
     UData ud;
   };
 
-  std::map<uint64_t, NotifyTaskStateCBack> m_notifyTaskStateCBack;
+  std::map<int, NotifyTaskStateCBack> m_notifyTaskStateCBack;
   bool m_fClose = false;
   bool m_firstReqNewTasks = false;
   bool m_firstReqChangeTaskState = false;

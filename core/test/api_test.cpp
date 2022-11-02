@@ -72,14 +72,14 @@ TEST_F(APITest, addSchedr){
   ddSchedr schedr{0};
   schedr.capacityTask = 10000;
   strcpy(schedr.connectPnt, "localhost:4444");  
-  uint64_t sId = 0;  
+  int sId = 0;  
   EXPECT_TRUE(ddAddScheduler(_zc, schedr, &sId) && (sId > 0));         
 }
 TEST_F(APITest, getSchedr){  
   ddSchedr schedr{0};
   schedr.capacityTask = 10000;
   strcpy(schedr.connectPnt, "localhost:4444");  
-  uint64_t sId = 0;  
+  int sId = 0;  
   EXPECT_TRUE(ddAddScheduler(_zc, schedr, &sId) && (sId > 0)); 
 
   schedr.capacityTask = 1;
@@ -98,7 +98,7 @@ TEST_F(APITest, changeSchedr){
   ddSchedr schedr{0};
   schedr.capacityTask = 10000;
   strcpy(schedr.connectPnt, "localhost:4444");  
-  uint64_t sId = 0;  
+  int sId = 0;  
   EXPECT_TRUE(ddAddScheduler(_zc, schedr, &sId) && (sId > 0)); 
 
   strcpy(schedr.connectPnt, "localhost:1234"); 
@@ -115,7 +115,7 @@ TEST_F(APITest, delSchedr){
   ddSchedr schedr{0};
   schedr.capacityTask = 10000;
   strcpy(schedr.connectPnt, "localhost:4444");  
-  uint64_t sId = 0;  
+  int sId = 0;  
   EXPECT_TRUE(ddAddScheduler(_zc, schedr, &sId) && (sId > 0));
     
   EXPECT_TRUE(ddDelScheduler(_zc, sId));
@@ -126,7 +126,7 @@ TEST_F(APITest, schedrState){
   ddSchedr schedr{0};
   schedr.capacityTask = 10000;
   strcpy(schedr.connectPnt, "localhost:4444");  
-  uint64_t sId = 0;  
+  int sId = 0;  
   EXPECT_TRUE(ddAddScheduler(_zc, schedr, &sId) && (sId > 0));
 
   ddSchedulerState state;
@@ -134,19 +134,19 @@ TEST_F(APITest, schedrState){
              (state.state == ddStateType::ddSTATE_STOP));                                                      
 }
 TEST_F(APITest, getAllSchedrs){  
-  uint64_t* pSId = nullptr;
+  int* pSId = nullptr;
   auto sCnt = ddGetAllSchedulers(_zc, ddStateType::ddSTATE_UNDEFINED, &pSId);
   EXPECT_TRUE((sCnt == 0) && !pSId);   
 
   ddSchedr schedr{0};
   schedr.capacityTask = 10000;
   strcpy(schedr.connectPnt, "localhost:4444");  
-  uint64_t sId1 = 0;  
+  int sId1 = 0;  
   EXPECT_TRUE(ddAddScheduler(_zc, schedr, &sId1) && (sId1 > 0)); 
 
   schedr.capacityTask = 10000;
   strcpy(schedr.connectPnt, "localhost:5555");  
-  uint64_t sId2 = 0;  
+  int sId2 = 0;  
   EXPECT_TRUE(ddAddScheduler(_zc, schedr, &sId2) && (sId2 > 0)); 
 
   sCnt = ddGetAllSchedulers(_zc, ddStateType::ddSTATE_STOP, &pSId);
@@ -163,14 +163,14 @@ TEST_F(APITest, addWorker){
   ddSchedr schedr{0};
   schedr.capacityTask = 10000;
   strcpy(schedr.connectPnt, "localhost:4444");  
-  uint64_t sId = 0;  
+  int sId = 0;  
   EXPECT_TRUE(ddAddScheduler(_zc, schedr, &sId) && (sId > 0));  
   
   ddWorker worker{0};
   worker.sId = sId;
   worker.capacityTask = 10;
   strcpy(worker.connectPnt, "localhost:4445");  
-  uint64_t wId = 0;  
+  int wId = 0;  
   EXPECT_TRUE(ddAddWorker(_zc, worker, &wId) && (wId > 0));  
 
   worker.sId = sId + 1;
@@ -183,14 +183,14 @@ TEST_F(APITest, getWorker){
   ddSchedr schedr{0};
   schedr.capacityTask = 10000;
   strcpy(schedr.connectPnt, "localhost:4444");  
-  uint64_t sId = 0;  
+  int sId = 0;  
   EXPECT_TRUE(ddAddScheduler(_zc, schedr, &sId) && (sId > 0));  
   
   ddWorker worker{0};
   worker.sId = sId;
   worker.capacityTask = 10;
   strcpy(worker.connectPnt, "localhost:4445");  
-  uint64_t wId = 0;  
+  int wId = 0;  
   EXPECT_TRUE(ddAddWorker(_zc, worker, &wId) && (wId > 0));  
 
   strcpy(worker.connectPnt, "");  
@@ -209,14 +209,14 @@ TEST_F(APITest, changeWorker){
   ddSchedr schedr{0};
   schedr.capacityTask = 10000;
   strcpy(schedr.connectPnt, "localhost:4444");  
-  uint64_t sId = 0;  
+  int sId = 0;  
   EXPECT_TRUE(ddAddScheduler(_zc, schedr, &sId) && (sId > 0));  
   
   ddWorker worker{0};
   worker.sId = sId;
   worker.capacityTask = 10;
   strcpy(worker.connectPnt, "localhost:4445");  
-  uint64_t wId = 0;  
+  int wId = 0;  
   EXPECT_TRUE(ddAddWorker(_zc, worker, &wId) && (wId > 0)); 
   
   strcpy(worker.connectPnt, "localhost:1234"); 
@@ -236,14 +236,14 @@ TEST_F(APITest, delWorker){
   ddSchedr schedr{0};
   schedr.capacityTask = 10000;
   strcpy(schedr.connectPnt, "localhost:4444");  
-  uint64_t sId = 0;  
+  int sId = 0;  
   EXPECT_TRUE(ddAddScheduler(_zc, schedr, &sId) && (sId > 0));  
   
   ddWorker worker{0};
   worker.sId = sId;
   worker.capacityTask = 10;
   strcpy(worker.connectPnt, "localhost:4445");  
-  uint64_t wId = 0;  
+  int wId = 0;  
   EXPECT_TRUE(ddAddWorker(_zc, worker, &wId) && (wId > 0)); 
     
   EXPECT_TRUE(ddDelWorker(_zc, wId));
@@ -254,50 +254,50 @@ TEST_F(APITest, workerState){
   ddSchedr schedr{0};
   schedr.capacityTask = 10000;
   strcpy(schedr.connectPnt, "localhost:4444");  
-  uint64_t sId = 0;  
+  int sId = 0;  
   EXPECT_TRUE(ddAddScheduler(_zc, schedr, &sId) && (sId > 0));  
   
   ddWorker worker{0};
   worker.sId = sId;
   worker.capacityTask = 10;
   strcpy(worker.connectPnt, "localhost:4445");  
-  uint64_t wId1 = 0;  
+  int wId1 = 0;  
   EXPECT_TRUE(ddAddWorker(_zc, worker, &wId1) && (wId1 > 0)); 
 
   worker.sId = sId;
   worker.capacityTask = 10;
   strcpy(worker.connectPnt, "localhost:4446");  
-  uint64_t wId2 = 0;  
+  int wId2 = 0;  
   EXPECT_TRUE(ddAddWorker(_zc, worker, &wId2) && (wId2 > 0));  
 
   ddWorkerState* wstate = new ddWorkerState[2];
-  uint64_t* pWId = new uint64_t[2]{ wId1, wId2};
+  int* pWId = new int[2]{ wId1, wId2};
   EXPECT_TRUE(ddStateOfWorker(_zc, pWId, 2, wstate) &&
               (wstate[0].state == ddStateType::ddSTATE_STOP) && 
               (wstate[1].state == ddStateType::ddSTATE_STOP));                                                      
 }
 TEST_F(APITest, getAllWorkers){  
-  uint64_t* pWId = nullptr;
+  int* pWId = nullptr;
   auto wCnt = ddGetAllWorkers(_zc, 1, ddStateType::ddSTATE_UNDEFINED, &pWId);
   EXPECT_TRUE((wCnt == 0) && !pWId);   
 
   ddSchedr schedr{0};
   schedr.capacityTask = 10000;
   strcpy(schedr.connectPnt, "localhost:4444");  
-  uint64_t sId = 0;  
+  int sId = 0;  
   EXPECT_TRUE(ddAddScheduler(_zc, schedr, &sId) && (sId > 0));  
   
   ddWorker worker{0};
   worker.sId = sId;
   worker.capacityTask = 10;
   strcpy(worker.connectPnt, "localhost:4445");  
-  uint64_t wId1 = 0;  
+  int wId1 = 0;  
   EXPECT_TRUE(ddAddWorker(_zc, worker, &wId1) && (wId1 > 0)); 
 
   worker.sId = sId;
   worker.capacityTask = 10;
   strcpy(worker.connectPnt, "localhost:4446");  
-  uint64_t wId2 = 0;  
+  int wId2 = 0;  
   EXPECT_TRUE(ddAddWorker(_zc, worker, &wId2) && (wId2 > 0));
     
   wCnt = ddGetAllWorkers(_zc, sId, ddStateType::ddSTATE_STOP, &pWId);
@@ -315,13 +315,13 @@ TEST_F(APITest, getAllWorkers){
 
 TEST_F(APITest, startTask){
   ddTask task{0};
-  uint64_t tId1 = 0; 
+  int tId1 = 0; 
   char path[256]{0};
   task.scriptPath = path; 
   task.resultPath = path;
   EXPECT_TRUE(ddStartTask(_zc, task, &tId1)); 
 
-  uint64_t tId2 = 0;  
+  int tId2 = 0;  
   EXPECT_TRUE(ddStartTask(_zc, task, &tId2));           
 }
 TEST_F(APITest, cancelTask){
@@ -329,7 +329,7 @@ TEST_F(APITest, cancelTask){
   char path[256]{0};
   task.scriptPath = path; 
   task.resultPath = path;
-  uint64_t tId1 = 0;  
+  int tId1 = 0;  
   EXPECT_TRUE(ddStartTask(_zc, task, &tId1));        
 
   EXPECT_TRUE(ddCancelTask(_zc, tId1));           
@@ -339,13 +339,13 @@ TEST_F(APITest, taskState){
   char path[256]{0};
   task.scriptPath = path; 
   task.resultPath = path;
-  uint64_t tId1 = 0;  
+  int tId1 = 0;  
   EXPECT_TRUE(ddStartTask(_zc, task, &tId1));  
   
-  uint64_t tId2 = 0;  
+  int tId2 = 0;  
   EXPECT_TRUE(ddStartTask(_zc, task, &tId2));  
   
-  uint64_t* tIds = new uint64_t[2] {tId1, tId2};
+  int* tIds = new int[2] {tId1, tId2};
   ddTaskState* tState = new ddTaskState[2];
   EXPECT_TRUE(ddStateOfTask(_zc, tIds, 2, tState) && 
               (tState[0].progress == 0) &&
@@ -358,7 +358,7 @@ TEST_F(APITest, TaskTime){
   char path[256]{0};
   task.scriptPath = path; 
   task.resultPath = path;
-  uint64_t tId1 = 0;  
+  int tId1 = 0;  
   EXPECT_TRUE(ddStartTask(_zc, task,  &tId1));  
 
   ddTaskTime result;
@@ -369,10 +369,10 @@ TEST_F(APITest, getAllTask){
   char path[256]{0};
   task.scriptPath = path; 
   task.resultPath = path;
-  uint64_t tId1 = 0;  
+  int tId1 = 0;  
   EXPECT_TRUE(ddStartTask(_zc, task, &tId1));  
  
-  uint64_t tId2 = 0;  
+  int tId2 = 0;  
   EXPECT_TRUE(ddStartTask(_zc, task, &tId2));    
 }
 

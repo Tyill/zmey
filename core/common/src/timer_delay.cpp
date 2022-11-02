@@ -33,7 +33,7 @@ TimerDelay::TimerDelay(){
   _tmCnt = 0;
 }
 void TimerDelay::updateCycTime(){
-  uint64_t ct = currDateTimeSinceEpochMs();
+  int64_t ct = currDateTimeSinceEpochMs();
   _deltaTm = ct - _prevTm;
   _prevTm = ct;
   for (int i = 0; i < _tmCnt; ++i) {
@@ -43,7 +43,7 @@ void TimerDelay::updateCycTime(){
     _tmrs[i].isActive = false;
   }  
 }
-uint64_t TimerDelay::getDeltaTimeMS(){
+int64_t TimerDelay::getDeltaTimeMS(){
   return currDateTimeSinceEpochMs() - _prevTm;
 }
 bool TimerDelay::onDelaySec(bool start, int delay, int id){

@@ -30,7 +30,7 @@ using namespace std;
 
 namespace DB{
 
-bool DbProvider::setChangeTaskStateCBack(uint64_t tId, ChangeTaskStateCBack cback, UData ud){
+bool DbProvider::setChangeTaskStateCBack(int tId, ChangeTaskStateCBack cback, UData ud){
   if (!cback)
     return false;
   {
@@ -65,7 +65,7 @@ bool DbProvider::setChangeTaskStateCBack(uint64_t tId, ChangeTaskStateCBack cbac
         }
         m_impl->m_firstReqChangeTaskState = true;
 
-        std::map<uint64_t, DbProvider::Impl::NotifyTaskStateCBack> notifyTasks;
+        std::map<int, DbProvider::Impl::NotifyTaskStateCBack> notifyTasks;
         {
           lock_guard<mutex> lk(m_impl->m_mtxNotifyTask);          
           notifyTasks = m_impl->m_notifyTaskStateCBack;
@@ -77,7 +77,7 @@ bool DbProvider::setChangeTaskStateCBack(uint64_t tId, ChangeTaskStateCBack cbac
 
         string stId;
         stId = accumulate(notifyTasks.begin(), notifyTasks.end(), stId,
-                  [](string& s, pair<uint64_t, DbProvider::Impl::NotifyTaskStateCBack> v){
+                  [](string& s, pair<int, DbProvider::Impl::NotifyTaskStateCBack> v){
                     return s.empty() ? to_string(v.first) : s + "," + to_string(v.first);
                   });       
         stringstream ss;
@@ -88,7 +88,7 @@ bool DbProvider::setChangeTaskStateCBack(uint64_t tId, ChangeTaskStateCBack cbac
         auto t_start = std::chrono::high_resolution_clock::now();
 
         struct TState{
-          uint64_t id;
+          int id;
           Base::StateType state;
           int progress;
         };
@@ -99,7 +99,7 @@ bool DbProvider::setChangeTaskStateCBack(uint64_t tId, ChangeTaskStateCBack cbac
           if (PQresultStatus(pgr.res) == PGRES_TUPLES_OK){
             size_t tsz = PQntuples(pgr.res);
             for (size_t i = 0; i < tsz; ++i){
-              uint64_t tId = stoull(PQgetvalue(pgr.res, (int)i, 0));
+              int tId = stoull(PQgetvalue(pgr.res, (int)i, 0));
               Base::StateType state = (Base::StateType)atoi(PQgetvalue(pgr.res, (int)i, 1));
               int progress = atoi(PQgetvalue(pgr.res, (int)i, 2));
               if ((state != notifyTasks[tId].state) || (progress != notifyTasks[tId].progress)){

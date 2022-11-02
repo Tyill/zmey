@@ -38,17 +38,17 @@ struct ConnectCng{
 };
 struct MessSchedr{
   Base::MessType type = Base::MessType::INTERN_ERROR;
-  uint64_t workerId = 0;
-  uint64_t taskId = 0;
+  int workerId = 0;
+  int taskId = 0;
   std::string data;
   
-  MessSchedr(Base::MessType _type = Base::MessType::INTERN_ERROR, uint64_t _workerId = 0, uint64_t _taskId = 0, const std::string& _data = "") :
+  MessSchedr(Base::MessType _type = Base::MessType::INTERN_ERROR, int _workerId = 0, int _taskId = 0, const std::string& _data = "") :
     type(_type),
     workerId(_workerId),
     taskId(_taskId),
     data(_data){}
 
-  static MessSchedr errorMess(uint64_t _workerId, const std::string& _err){
+  static MessSchedr errorMess(int _workerId, const std::string& _err){
     MessSchedr mess;{
       mess.type = Base::MessType::INTERN_ERROR;
       mess.workerId = _workerId;
@@ -58,8 +58,8 @@ struct MessSchedr{
   };
 };
 struct MessError{
-  uint64_t schedrId;
-  uint64_t workerId;
+  int schedrId;
+  int workerId;
   std::string createTime;
   std::string message;
 };
@@ -93,7 +93,7 @@ struct WorkerState{
 
 typedef void* UData;
 typedef std::function<void(const char* mess, UData)> ErrCBack;
-typedef void(*ChangeTaskStateCBack)(uint64_t qtId, int progress, Base::StateType prevState, Base::StateType newState, UData);
+typedef void(*ChangeTaskStateCBack)(int qtId, int progress, Base::StateType prevState, Base::StateType newState, UData);
 
 class DbProvider{  
 public: 
@@ -120,39 +120,39 @@ public:
   
   bool createTables();
   
-  bool addSchedr(const Base::Scheduler& schedl, uint64_t& outSchId);
-  bool getSchedr(uint64_t sId, Base::Scheduler& outCng);
-  bool changeSchedr(uint64_t sId, const Base::Scheduler& newCng);
-  bool delSchedr(uint64_t sId);
-  bool schedrState(uint64_t sId, SchedulerState& );
-  std::vector<uint64_t> getAllSchedrs(Base::StateType);
+  bool addSchedr(const Base::Scheduler& schedl, int& outSchId);
+  bool getSchedr(int sId, Base::Scheduler& outCng);
+  bool changeSchedr(int sId, const Base::Scheduler& newCng);
+  bool delSchedr(int sId);
+  bool schedrState(int sId, SchedulerState& );
+  std::vector<int> getAllSchedrs(Base::StateType);
 
-  bool addWorker(const Base::Worker& worker, uint64_t& outWkrId);
-  bool getWorker(uint64_t wId, Base::Worker& outCng);
-  bool changeWorker(uint64_t wId, const Base::Worker& newCng);
-  bool delWorker(uint64_t wId);
-  bool workerState(const std::vector<uint64_t>& wId, std::vector<WorkerState>&);
-  std::vector<uint64_t> getAllWorkers(uint64_t sId, Base::StateType);
+  bool addWorker(const Base::Worker& worker, int& outWkrId);
+  bool getWorker(int wId, Base::Worker& outCng);
+  bool changeWorker(int wId, const Base::Worker& newCng);
+  bool delWorker(int wId);
+  bool workerState(const std::vector<int>& wId, std::vector<WorkerState>&);
+  std::vector<int> getAllWorkers(int sId, Base::StateType);
   
-  bool startTask(uint64_t schedPresetId, Base::Task& cng, uint64_t& tId);
-  bool cancelTask(uint64_t tId);
-  bool taskState(const std::vector<uint64_t>& tId, std::vector<TaskState>&);
-  bool taskTime(uint64_t tId, TaskTime&);
+  bool startTask(int schedPresetId, Base::Task& cng, int& tId);
+  bool cancelTask(int tId);
+  bool taskState(const std::vector<int>& tId, std::vector<TaskState>&);
+  bool taskTime(int tId, TaskTime&);
   
-  bool getWorkerByTask(uint64_t tId, Base::Worker& wcng);
-  bool setChangeTaskStateCBack(uint64_t tId, ChangeTaskStateCBack, UData);
+  bool getWorkerByTask(int tId, Base::Worker& wcng);
+  bool setChangeTaskStateCBack(int tId, ChangeTaskStateCBack, UData);
 
-  std::vector<MessError> getInternErrors(uint64_t sId, uint64_t wId, uint32_t mCnt);
+  std::vector<MessError> getInternErrors(int sId, int wId, uint32_t mCnt);
 
   // for schedr
   bool setListenNewTaskNotify(bool on);
   bool getSchedr(const std::string& connPnt, Base::Scheduler& outSchedl);
-  bool getTasksById(uint64_t sId, const std::vector<uint64_t>& tasksId, std::vector<Base::Task>& out);
-  bool getTasksOfSchedr(uint64_t sId, std::vector<Base::Task>& out);
-  bool getTasksOfWorker(uint64_t sId, uint64_t workerId, std::vector<uint64_t>& outTasksId);
-  bool getWorkersOfSchedr(uint64_t sId, std::vector<Base::Worker>& out);
-  bool getNewTasksForSchedr(uint64_t sId, int maxTaskCnt, std::vector<Base::Task>& out);
-  bool sendAllMessFromSchedr(uint64_t sId, std::vector<MessSchedr>& out);
+  bool getTasksById(int sId, const std::vector<int>& tasksId, std::vector<Base::Task>& out);
+  bool getTasksOfSchedr(int sId, std::vector<Base::Task>& out);
+  bool getTasksOfWorker(int sId, int workerId, std::vector<int>& outTasksId);
+  bool getWorkersOfSchedr(int sId, std::vector<Base::Worker>& out);
+  bool getNewTasksForSchedr(int sId, int maxTaskCnt, std::vector<Base::Task>& out);
+  bool sendAllMessFromSchedr(int sId, std::vector<MessSchedr>& out);
 
   // for test
   bool delAllTables();  

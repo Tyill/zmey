@@ -28,7 +28,7 @@ using namespace std;
 
 namespace DB{
   
-bool DbProvider::getWorkerByTask(uint64_t tId, Base::Worker& wcng){
+bool DbProvider::getWorkerByTask(int tId, Base::Worker& wcng){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
   ss << "SELECT wkr.id, wkr.connPnt "
@@ -51,7 +51,7 @@ bool DbProvider::getWorkerByTask(uint64_t tId, Base::Worker& wcng){
   return true;
 }
 
-vector<DB::MessError> DbProvider::getInternErrors(uint64_t sId, uint64_t wId, uint32_t mCnt){
+vector<DB::MessError> DbProvider::getInternErrors(int sId, int wId, uint32_t mCnt){
   lock_guard<mutex> lk(m_impl->m_mtx);
   if (mCnt == 0){
     mCnt = INT32_MAX;

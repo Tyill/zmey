@@ -69,12 +69,12 @@ bool DbProvider::getSchedr(const std::string& connPnt, Base::Scheduler& outCng){
   outCng.description = PQgetvalue(pgr.res, 0, 6);
   return true;
 }
-bool DbProvider::getTasksById(uint64_t sId, const std::vector<uint64_t>& tasksId, std::vector<Base::Task>& out){
+bool DbProvider::getTasksById(int sId, const std::vector<int>& tasksId, std::vector<Base::Task>& out){
   lock_guard<mutex> lk(m_impl->m_mtx);
 
   string tId;
   tId = accumulate(tasksId.begin(), tasksId.end(), tId,
-                [](string& s, uint64_t v){
+                [](string& s, int v){
                   return s.empty() ? to_string(v) : s + "," + to_string(v);
                 }); 
   stringstream ss;
@@ -105,7 +105,7 @@ bool DbProvider::getTasksById(uint64_t sId, const std::vector<uint64_t>& tasksId
   }
   return true;
 }  
-bool DbProvider::getTasksOfSchedr(uint64_t sId, std::vector<Base::Task>& out){
+bool DbProvider::getTasksOfSchedr(int sId, std::vector<Base::Task>& out){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
   ss << "SELECT tq.id, COALESCE(tp.workerPreset, 0), tp.averDurationSec, tp.maxDurationSec, "
@@ -134,7 +134,7 @@ bool DbProvider::getTasksOfSchedr(uint64_t sId, std::vector<Base::Task>& out){
   }
   return true;
 }
-bool DbProvider::getTasksOfWorker(uint64_t sId, uint64_t wId, std::vector<uint64_t>& outTasksId){
+bool DbProvider::getTasksOfWorker(int sId, int wId, std::vector<int>& outTasksId){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
   ss << "SELECT tq.id "
@@ -153,7 +153,7 @@ bool DbProvider::getTasksOfWorker(uint64_t sId, uint64_t wId, std::vector<uint64
   }
   return true;
 }
-bool DbProvider::getWorkersOfSchedr(uint64_t sId, std::vector<Base::Worker>& out){
+bool DbProvider::getWorkersOfSchedr(int sId, std::vector<Base::Worker>& out){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
   ss << "SELECT id, state, capacityTask, activeTask, connPnt, name, description "
@@ -180,7 +180,7 @@ bool DbProvider::getWorkersOfSchedr(uint64_t sId, std::vector<Base::Worker>& out
   }
   return true;
 }
-bool DbProvider::getNewTasksForSchedr(uint64_t sId, int maxTaskCnt, std::vector<Base::Task>& out){
+bool DbProvider::getNewTasksForSchedr(int sId, int maxTaskCnt, std::vector<Base::Task>& out){
   lock_guard<mutex> lk(m_impl->m_mtx);  
   
   PQconsumeInput(_pg);
@@ -223,7 +223,7 @@ bool DbProvider::getNewTasksForSchedr(uint64_t sId, int maxTaskCnt, std::vector<
   }
   return true;
 }
-bool DbProvider::sendAllMessFromSchedr(uint64_t sId, std::vector<DB::MessSchedr>& mess){
+bool DbProvider::sendAllMessFromSchedr(int sId, std::vector<DB::MessSchedr>& mess){
   lock_guard<mutex> lk(m_impl->m_mtx);
   
   if(mess.empty()){

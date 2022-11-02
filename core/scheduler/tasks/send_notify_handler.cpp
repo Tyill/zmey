@@ -57,7 +57,7 @@ void Executor::sendNotifyHandler(const string& cp, const string& data, const std
 {
   // error from worker
   auto mess = Aux::deserialn(data);
-  uint64_t wId = 0;
+  int wId = 0;
   checkFieldNum(Link::command);
   
   if (ec && (m_workers.find(cp) != m_workers.end())){

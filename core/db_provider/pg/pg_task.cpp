@@ -28,7 +28,7 @@ using namespace std;
 
 namespace DB{
 
-bool DbProvider::startTask(uint64_t schedPresetId, Base::Task& cng, uint64_t& tId){
+bool DbProvider::startTask(int schedPresetId, Base::Task& cng, int& tId){
   lock_guard<mutex> lk(m_impl->m_mtx);  
   
   stringstream ss;
@@ -52,7 +52,7 @@ bool DbProvider::startTask(uint64_t schedPresetId, Base::Task& cng, uint64_t& tI
   }  
   return true;
 }
-bool DbProvider::cancelTask(uint64_t tId){
+bool DbProvider::cancelTask(int tId){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
   ss << "UPDATE tblTaskState ts SET "
@@ -74,11 +74,11 @@ bool DbProvider::cancelTask(uint64_t tId){
   }
   return true;
 }
-bool DbProvider::taskState(const std::vector<uint64_t>& tId, std::vector<DB::TaskState>& outState){
+bool DbProvider::taskState(const std::vector<int>& tId, std::vector<DB::TaskState>& outState){
   lock_guard<mutex> lk(m_impl->m_mtx);
   string stId;
   stId = accumulate(tId.begin(), tId.end(), stId,
-                [](string& s, uint64_t v){
+                [](string& s, int v){
                   return s.empty() ? to_string(v) : s + "," + to_string(v);
                 }); 
   stringstream ss;
@@ -103,7 +103,7 @@ bool DbProvider::taskState(const std::vector<uint64_t>& tId, std::vector<DB::Tas
   }
   return true;
 }
-bool DbProvider::taskTime(uint64_t tId, DB::TaskTime& out){
+bool DbProvider::taskTime(int tId, DB::TaskTime& out){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
   ss << "SELECT createTime, takeInWorkTime, startTime, stopTime "

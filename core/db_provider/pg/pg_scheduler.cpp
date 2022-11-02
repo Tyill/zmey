@@ -30,7 +30,7 @@ using namespace std;
 
 namespace DB{
 
-bool DbProvider::addSchedr(const Base::Scheduler& schedl, uint64_t& outSchId){    
+bool DbProvider::addSchedr(const Base::Scheduler& schedl, int& outSchId){    
   lock_guard<mutex> lk(m_impl->m_mtx);
   
   stringstream ss;
@@ -49,7 +49,7 @@ bool DbProvider::addSchedr(const Base::Scheduler& schedl, uint64_t& outSchId){
   outSchId = stoull(PQgetvalue(pgr.res, 0, 0));
   return true;
 }
-bool DbProvider::getSchedr(uint64_t sId, Base::Scheduler& cng){
+bool DbProvider::getSchedr(int sId, Base::Scheduler& cng){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
   ss << "SELECT connPnt, state, capacityTask, name, description "
@@ -72,7 +72,7 @@ bool DbProvider::getSchedr(uint64_t sId, Base::Scheduler& cng){
   cng.description = PQgetvalue(pgr.res, 0, 4);
   return true;
 }
-bool DbProvider::changeSchedr(uint64_t sId, const Base::Scheduler& newCng){  
+bool DbProvider::changeSchedr(int sId, const Base::Scheduler& newCng){  
   lock_guard<mutex> lk(m_impl->m_mtx);
  
   stringstream ss;
@@ -90,7 +90,7 @@ bool DbProvider::changeSchedr(uint64_t sId, const Base::Scheduler& newCng){
   }  
   return true;
 }
-bool DbProvider::delSchedr(uint64_t sId){  
+bool DbProvider::delSchedr(int sId){  
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
   ss << "UPDATE tblScheduler SET "
@@ -105,7 +105,7 @@ bool DbProvider::delSchedr(uint64_t sId){
   return true;
 }
 
-bool DbProvider::schedrState(uint64_t sId, SchedulerState& out){
+bool DbProvider::schedrState(int sId, SchedulerState& out){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
   ss << "SELECT state, activeTask, startTime, stopTime, pingTime "
@@ -124,7 +124,7 @@ bool DbProvider::schedrState(uint64_t sId, SchedulerState& out){
   out.pingTime = PQgetvalue(pgr.res, 0, 4);
   return true;
 }
-std::vector<uint64_t> DbProvider::getAllSchedrs(Base::StateType state){  
+std::vector<int> DbProvider::getAllSchedrs(Base::StateType state){  
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
   ss << "SELECT id FROM tblScheduler "
@@ -133,10 +133,10 @@ std::vector<uint64_t> DbProvider::getAllSchedrs(Base::StateType state){
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
     errorMess(string("getAllSchedrs: ") + PQerrorMessage(_pg));
-    return std::vector<uint64_t>();
+    return std::vector<int>();
   }  
   int rows = PQntuples(pgr.res);
-  std::vector<uint64_t> ret(rows);
+  std::vector<int> ret(rows);
   for (int i = 0; i < rows; ++i){
     ret[i] = stoull(PQgetvalue(pgr.res, i, 0));
   }

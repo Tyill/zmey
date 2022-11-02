@@ -37,12 +37,12 @@ class TimerDelay {
   };
   std::vector<tmBase> _tmrs;
   int _tmCnt;  
-  uint64_t _prevTm;
-  uint64_t _deltaTm;  
+  int64_t _prevTm;
+  int64_t _deltaTm;  
 public:
   TimerDelay();
   void updateCycTime();
-  uint64_t getDeltaTimeMS();
+  int64_t getDeltaTimeMS();
   bool onDelaySec(bool start, int delay, int id);  
   bool offDelaySec(bool start, int delay, int id);
   bool onDelayMS(bool start, int delay, int id);

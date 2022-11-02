@@ -38,7 +38,7 @@ public:
 
 public:
   struct MessForSchedr{
-    uint64_t taskId;
+    int taskId;
     Base::MessType MessType;
     std::string error;
   };

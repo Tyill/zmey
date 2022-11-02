@@ -28,7 +28,7 @@ using namespace std;
 
 namespace DB{
   
-bool DbProvider::addWorker(const Base::Worker& worker, uint64_t& outWkrId){
+bool DbProvider::addWorker(const Base::Worker& worker, int& outWkrId){
   lock_guard<mutex> lk(m_impl->m_mtx);
   auto connPnt = Aux::split(worker.connectPnt, ':');
   if (connPnt.size() != 2){
@@ -52,7 +52,7 @@ bool DbProvider::addWorker(const Base::Worker& worker, uint64_t& outWkrId){
   outWkrId = stoull(PQgetvalue(pgr.res, 0, 0));
   return true;
 }
-bool DbProvider::getWorker(uint64_t wId, Base::Worker& cng){
+bool DbProvider::getWorker(int wId, Base::Worker& cng){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
   ss << "SELECT connPnt, schedr, state, capacityTask, name, description "
@@ -76,7 +76,7 @@ bool DbProvider::getWorker(uint64_t wId, Base::Worker& cng){
   cng.description = PQgetvalue(pgr.res, 0, 5);
   return true;
 }
-bool DbProvider::changeWorker(uint64_t wId, const Base::Worker& newCng){
+bool DbProvider::changeWorker(int wId, const Base::Worker& newCng){
   lock_guard<mutex> lk(m_impl->m_mtx);
   auto connPnt = Aux::split(newCng.connectPnt, ':');
   if (connPnt.size() != 2){
@@ -99,7 +99,7 @@ bool DbProvider::changeWorker(uint64_t wId, const Base::Worker& newCng){
   }  
   return true;
 }
-bool DbProvider::delWorker(uint64_t wId){
+bool DbProvider::delWorker(int wId){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
   ss << "UPDATE tblWorker SET "
@@ -114,11 +114,11 @@ bool DbProvider::delWorker(uint64_t wId){
   return true;
 }
  
-bool DbProvider::workerState(const std::vector<uint64_t>& wId, std::vector<WorkerState>& out){
+bool DbProvider::workerState(const std::vector<int>& wId, std::vector<WorkerState>& out){
   lock_guard<mutex> lk(m_impl->m_mtx);
   string swId;
   swId = accumulate(wId.begin(), wId.end(), swId,
-                [](string& s, uint64_t v){
+                [](string& s, int v){
                   return s.empty() ? to_string(v) : s + "," + to_string(v);
                 }); 
   stringstream ss;
@@ -147,7 +147,7 @@ bool DbProvider::workerState(const std::vector<uint64_t>& wId, std::vector<Worke
   }
   return true;
 }
-std::vector<uint64_t> DbProvider::getAllWorkers(uint64_t sId, Base::StateType state){
+std::vector<int> DbProvider::getAllWorkers(int sId, Base::StateType state){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
   ss << "SELECT id FROM tblWorker "
@@ -158,10 +158,10 @@ std::vector<uint64_t> DbProvider::getAllWorkers(uint64_t sId, Base::StateType st
   PGres pgr(PQexec(_pg, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
     errorMess(string("getAllWorkers: ") + PQerrorMessage(_pg));
-    return std::vector<uint64_t>();
+    return std::vector<int>();
   }  
   int rows = PQntuples(pgr.res);
-  std::vector<uint64_t> ret(rows);
+  std::vector<int> ret(rows);
   for (int i = 0; i < rows; ++i){
     ret[i] = stoull(PQgetvalue(pgr.res, i, 0));
   }
