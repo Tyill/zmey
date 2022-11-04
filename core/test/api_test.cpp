@@ -29,11 +29,11 @@
 #include <vector>
 #include <algorithm>
 #include <memory>
+#include <gtest/gtest.h>
 
-#include "prepare.h"
 #include "db_provider/db_provider.h"
 #include "common/misc.h"
-#include "client/ddclient.h"
+#include "client/zmclient.h"
 
 using namespace std;
 using namespace ddag;
