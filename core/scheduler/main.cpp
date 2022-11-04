@@ -84,13 +84,13 @@ int main(int argc, char* argv[])
   executor.listenNewTask(*dbNewTask, true);
    
   // TCP server
-  Tcp::ReceiveDataCBack receiveDataCB = [&executor](const string& cp, const string& data){
+  misc::ReceiveDataCBack receiveDataCB = [&executor](const string& cp, const string& data){
     executor.receiveHandler(cp, data);
   };
-  Tcp::SendStatusCBack sendStatusCB = [&executor](const string& cp, const string& data, const error_code& ec){
+  misc::SendStatusCBack sendStatusCB = [&executor](const string& cp, const string& data, const error_code& ec){
     executor.sendNotifyHandler(cp, data, ec);
   };  
-  CHECK_RETURN(!Tcp::startServer(cng.localConnPnt, receiveDataCB, sendStatusCB, 0, err), 
+  CHECK_RETURN(!misc::startServer(cng.localConnPnt, receiveDataCB, sendStatusCB, 0, err), 
     "Schedr error: " + cng.localConnPnt + " " + err);
   app.statusMess("Schedr running: " + cng.localConnPnt);
   
@@ -121,7 +121,7 @@ int main(int argc, char* argv[])
 
   /////////////////////////////////////////////////////////////////////////
   
-  Tcp::stopServer();
+  misc::stopServer();
   executor.listenNewTask(*dbNewTask, false);
   executor.stopSchedr(*dbSendMess);
 }

@@ -43,7 +43,7 @@ void Executor::messageToSchedr(const std::string& schedrConnPnt)
           {Link::activeTask, to_string(m_worker.activeTask)},
           {Link::load,       to_string(m_worker.load)}
     };
-    isSendOk = Tcp::asyncSendData(schedrConnPnt, misc::serialn(data));
+    isSendOk = misc::asyncSendData(schedrConnPnt, misc::serialn(data));
   }
 }
 

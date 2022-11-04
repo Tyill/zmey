@@ -40,6 +40,6 @@ void Executor::errorToSchedr(const std::string& schedrConnPnt)
       {Link::connectPnt, m_worker.connectPnt},
       {Link::message,  misc::replace(mess, "'", "''")}
     };      
-    isSendOk = Tcp::asyncSendData(schedrConnPnt, misc::serialn(data));
+    isSendOk = misc::asyncSendData(schedrConnPnt, misc::serialn(data));
   }
 }

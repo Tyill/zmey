@@ -23,12 +23,12 @@
 // THE SOFTWARE.
 //
 #include "tcp_server.h"
-#include "../tcp.h"
-#include "../misc.h"
+#include "common/tcp.h"
+#include "common/misc.h"
 
 #include <asio.hpp>
 
-namespace Tcp{
+namespace misc{
 
 TcpServer* pSrv = nullptr;
 

@@ -27,5 +27,5 @@ add_subdirectory(client)
 
 find_package(GTest)
 if (GTest_FOUND)
-add_subdirectory(test)
+#add_subdirectory(test)
 endif()

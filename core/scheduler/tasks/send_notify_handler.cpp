@@ -95,10 +95,7 @@ void Executor::sendNotifyHandler(const string& cp, const string& data, const std
         ERROR_MESS("sendHandler wrong command mtype: " + mess[Link::command] + ", cp: " + cp, wId);
         break;
     }
-    if (worker.base.rating > 1)
-      --worker.base.rating;
-    else
-      ERROR_MESS("sendHandler worker not response, cp: " + cp, wId);
+    ERROR_MESS("sendHandler worker not response, cp: " + cp, wId);
   }
   else {
     ERROR_MESS("sendHandler wrong receiver: " + cp, 0);

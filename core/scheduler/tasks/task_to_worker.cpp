@@ -48,7 +48,6 @@ bool Executor::sendTaskToWorker()
   auto iwcp = m_workersCpy.begin();
   for (; iw != m_workers.cend(); ++iw, ++iwcp){
     iwcp->activeTask = iw->second.base.activeTask;
-    iwcp->rating = iw->second.base.rating;
     iwcp->load = iw->second.base.load;
     iwcp->state = iw->second.base.state;
   }
@@ -57,13 +56,13 @@ bool Executor::sendTaskToWorker()
     base::Task task;
     m_tasks.front(task);
     sort(m_refWorkers.begin(), m_refWorkers.end(), [](const base::Worker* l, const base::Worker* r){
-      return float(l->activeTask + l->load / 10.f) / l->rating < float(r->activeTask + r->load / 10.f) / r->rating;
+      return float(l->activeTask + l->load / 10.f) < float(r->activeTask + r->load / 10.f);
     });
     auto iWr = find_if(m_refWorkers.begin(), m_refWorkers.end(),
       [this, &task](const base::Worker* w){                
         bool isSpare = false;
         if (((task.wId == 0) || (task.wId == w->id)) && (w->state == base::StateType::RUNNING) && 
-            (w->activeTask < w->capacityTask) && (w->rating > 1)){ 
+            (w->activeTask < w->capacityTask)){ 
           for(auto& wt : m_workers[w->connectPnt].taskList){
             if (wt == 0){
               isSpare = true;
@@ -87,7 +86,7 @@ bool Executor::sendTaskToWorker()
         {Link::maxDurationSec,  to_string(task.maxDurationSec)}        
       };
       const string& wConnPnt = (*iWr)->connectPnt;
-      if (Tcp::asyncSendData(wConnPnt, misc::serialn(data))){
+      if (misc::asyncSendData(wConnPnt, misc::serialn(data))){
         ++(*iWr)->activeTask;
         m_workers[wConnPnt].base.activeTask = (*iWr)->activeTask; 
        
@@ -97,9 +96,7 @@ bool Executor::sendTaskToWorker()
             break;
           }
         } 
-      }else{
-        (*iWr)->rating = std::max(1, (*iWr)->rating - 1);
-      }      
+      }     
     }
     else{
       if (task.wId != 0){ 

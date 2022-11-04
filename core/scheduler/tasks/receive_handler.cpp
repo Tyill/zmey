@@ -175,8 +175,6 @@ void Executor::receiveHandler(const string& remcp, const string& data)
         m_messToDB.push(DB::MessSchedr{base::MessType::START_WORKER,
                                         worker.base.id});
       }
-      if (worker.base.rating < base::Worker::RATING_MAX)
-        ++worker.base.rating;
     }
   }
   // from manager

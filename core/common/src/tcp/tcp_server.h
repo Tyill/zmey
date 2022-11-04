@@ -22,7 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#include "../tcp.h"
+#include "common/tcp.h"
 
 #include <map>
 #include <asio.hpp>
@@ -37,8 +37,8 @@ public:
   void stop();
   bool asyncSendData(const std::string& connPnt, const std::string& data, bool isCBackIfError);
   
-  Tcp::ReceiveDataCBack ReceiveDataCB = nullptr;
-  Tcp::SendStatusCBack SendStatusCB = nullptr;   
+  misc::ReceiveDataCBack ReceiveDataCB = nullptr;
+  misc::SendStatusCBack SendStatusCB = nullptr;   
 
 private:
   void accept();

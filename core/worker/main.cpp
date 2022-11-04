@@ -73,14 +73,14 @@ int main(int argc, char* argv[]){
   executor.addMessForSchedr(Executor::MessForSchedr{0, base::MessType::JUST_START_WORKER});
 
   // TCP server
-  Tcp::ReceiveDataCBack receiveDataCB = [&executor](const string& cp, const string& data){
+  misc::ReceiveDataCBack receiveDataCB = [&executor](const string& cp, const string& data){
     executor.receiveHandler(cp, data);
   };
-  Tcp::SendStatusCBack sendStatusCB = [&executor](const string& cp, const string& data, const error_code& ec){
+  misc::SendStatusCBack sendStatusCB = [&executor](const string& cp, const string& data, const error_code& ec){
     executor.sendNotifyHandler(cp, data, ec);
   };
   string err;
-  CHECK_RETURN(!Tcp::startServer(cng.localConnPnt, receiveDataCB, sendStatusCB, 1, err),
+  CHECK_RETURN(!misc::startServer(cng.localConnPnt, receiveDataCB, sendStatusCB, 1, err),
     "Worker error: " + cng.localConnPnt + " " + err);
   app.statusMess("Worker running: " + cng.localConnPnt);
   
@@ -109,7 +109,7 @@ int main(int argc, char* argv[]){
   
   executor.stopToSchedr(cng.schedrConnPnt);
 
-  Tcp::stopServer();
+  misc::stopServer();
 }
 
 void closeHandler(int sig)

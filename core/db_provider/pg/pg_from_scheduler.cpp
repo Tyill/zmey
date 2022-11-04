@@ -64,9 +64,8 @@ bool DbProvider::getSchedr(const std::string& connPnt, base::Scheduler& outCng){
   outCng.state = (base::StateType)atoi(PQgetvalue(pgr.res, 0, 1));
   outCng.capacityTask = atoi(PQgetvalue(pgr.res, 0, 2));
   outCng.activeTask = atoi(PQgetvalue(pgr.res, 0, 3));
-  outCng.internalData = PQgetvalue(pgr.res, 0, 4);
-  outCng.name = PQgetvalue(pgr.res, 0, 5);
-  outCng.description = PQgetvalue(pgr.res, 0, 6);
+  outCng.name = PQgetvalue(pgr.res, 0, 4);
+  outCng.description = PQgetvalue(pgr.res, 0, 5);
   return true;
 }
 bool DbProvider::getTasksById(int sId, const std::vector<int>& tasksId, std::vector<base::Task>& out){
@@ -172,7 +171,6 @@ bool DbProvider::getWorkersOfSchedr(int sId, std::vector<base::Worker>& out){
                                    (base::StateType)atoi(PQgetvalue(pgr.res, i, 1)),
                                    atoi(PQgetvalue(pgr.res, i, 2)),
                                    atoi(PQgetvalue(pgr.res, i, 3)),
-                                   base::Worker::RATING_MAX,
                                    0,
                                    PQgetvalue(pgr.res, i, 4),
                                    PQgetvalue(pgr.res, i, 5),

@@ -28,7 +28,7 @@
 #include <functional>
 #include <system_error>
 
-namespace Tcp{
+namespace misc{
 
 /// status send data to receiver 
 /// [in] connPnt - connection point: IP or DNS ':' port
@@ -59,8 +59,8 @@ void stopServer();
 /// asynchronous data sending to receiver whithout answer 
 /// [in] connPnt - connection point: IP or DNS ':' port
 /// [in] data - data for send
-/// [in] isStsCBackIfError - status send call back only if an error
-bool asyncSendData(const std::string& connPnt, const std::string& data, bool isStsCBackIfError = true);
+/// [in] stsCBackError - status send call back only if an error
+bool asyncSendData(const std::string& connPnt, const std::string& data, bool stsCBackError = true);
 
 /// synchronous data sending once to receiver whithout answer
 /// [in] connPnt - connection point of receiver: IP or DNS ':' port
