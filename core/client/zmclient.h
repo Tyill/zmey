@@ -36,11 +36,8 @@
 #define ZMEY_API
 #endif
 
-#include <stdint.h>
-
 #if defined(__cplusplus)
 extern "C" {
-namespace zmey{
 #endif /* __cplusplus */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -67,9 +64,6 @@ enum zmStateType{
 /// @param[out] outVersion. The memory is allocated by the user
 ZMEY_API void zmVersionLib(char* outVersion /*sz 8*/);
 
-///////////////////////////////////////////////////////////////////////////////
-/// Connection with DB
-
 /// connection config
 struct zmConfig{
   char* connectStr;         ///< connection string
@@ -84,22 +78,7 @@ ZMEY_API zmConn zmCreateConnection(zmConfig, char* err /*sz 256*/);
 /// disconnect !!! zmConn after the call will be deleted !!! 
 /// @param[in] zmConn - object connect
 ZMEY_API void zmDisconnect(zmConn);
-
-/// create tables, will be created if not exist
-/// @param[in] zmConn - object connect
-/// @return true - ok
-ZMEY_API bool zmCreateTables(zmConn);
-
-typedef void* zmUData;                                     ///< user data    
-typedef void(*zmErrorCBack)(const char* mess, zmUData);    ///< error callback
-
-/// set error callback
-/// @param[in] zmConn - object connect
-/// @param[in] zmErrorCBack - error callback
-/// @param[in] zmUData - user data   
-/// @return true - ok 
-ZMEY_API bool zmSetErrorCBack(zmConn, zmErrorCBack, zmUData);
-
+            
 /// last error str
 /// @param[in] zmConn - object connect
 /// @param[out] err - error string. The memory is allocated by the user
@@ -346,6 +325,7 @@ struct zmTaskTime{
 ZMEY_API bool zmTimeOfTask(zmConn, int tId, zmTaskTime* outTTime);
 
 /// task state callback
+typedef void* zmUData;         
 typedef void(*zmChangeTaskStateCBack)(int tId, int progress, zmStateType prevState, zmStateType newState, zmUData);
 
 /// set change task state callback
@@ -382,7 +362,7 @@ ZMEY_API int zmGetInternErrors(zmConn, int sId, int wId, int mCnt, zmInternError
 ZMEY_API void zmFreeResources(zmConn);
 
 #if defined(__cplusplus)
-}}
+}
 #endif /* __cplusplus */
 
 #endif /* ZMEY_C_API_H_ */

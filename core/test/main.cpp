@@ -23,7 +23,8 @@
 // THE SOFTWARE.
 //
 
-#include "prepare.h"
+//#include "prepare.h"
+#include <gtest/gtest.h>
 
 
 int main(int argc, char* argv[]){

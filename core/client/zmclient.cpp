@@ -32,11 +32,9 @@
 #include <algorithm>
 #include <mutex>
 
-#define ZM_VERSION "1.0.0"
+#define ZM_VERSION "1.1.0"
 
 using namespace std;
-
-namespace zmey{
 
 struct AllocResource{
   vector<int*> id;
@@ -83,12 +81,6 @@ bool zmCreateTables(zmConn zo){
   if (!zo) return false;
 
   return static_cast<DB::DbProvider*>(zo)->createTables();
-}
-bool zmSetErrorCBack(zmConn zo, zmErrorCBack ecb, zmUData ud){
-  if (!zo) return false;
-
-  static_cast<DB::DbProvider*>(zo)->setErrorCBack(ecb, ud);
-  return true;
 }
 bool zmGetLastError(zmConn zo, char* err/*sz 256*/){
   if (zo && err){
@@ -531,5 +523,4 @@ void zmFreeResources(zmConn zo){
       strRes.clear(); 
     }
   }  
-}
 }
