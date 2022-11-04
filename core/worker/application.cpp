@@ -30,7 +30,7 @@
 
 using namespace std;
 
-misc::SignalConnector Application::SignalConnector;
+misc::Connector Application::Connector;
 
 void Application::statusMess(const string& mess){
   lock_guard<mutex> lock(m_mtxStatusMess);
@@ -80,10 +80,10 @@ bool Application::parseArgs(int argc, char* argv[], Config& outCng){
 
 void Application::loopNotify()
 {
-  Application::SignalConnector.emitSignalWithoutBlocking(Signals::SIGNAL_LOOP_NOTIFY);
+  Application::Connector.emit(Signals::SIGNAL_LOOP_NOTIFY);
 }
 
 void Application::loopStop()
 {
-  Application::SignalConnector.emitSignalWithoutBlocking(Signals::SIGNAL_LOOP_STOP);
+  Application::Connector.emit(Signals::SIGNAL_LOOP_STOP);
 }

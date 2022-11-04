@@ -43,7 +43,7 @@ public:
     SIGNAL_LOOP_NOTIFY = 0,
     SIGNAL_LOOP_STOP,
   };
-  static misc::SignalConnector SignalConnector;
+  static misc::Connector Connector;
 
   static void loopNotify();
   static void loopStop();

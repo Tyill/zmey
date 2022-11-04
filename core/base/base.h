@@ -30,7 +30,7 @@
 namespace base{
 
   enum class MessType{
-    UNDEFINED = -1,
+    UNDEFINED = 0,
     NEW_TASK,
     TASK_RUNNING,
     TASK_ERROR,
@@ -57,7 +57,7 @@ namespace base{
   };
   // tblState
   enum class StateType{
-    UNDEFINED = -1,
+    UNDEFINED = 0,
     READY,    // for task: can be taken to work
     START,    // for task: taken to work
     RUNNING,  // for task: running

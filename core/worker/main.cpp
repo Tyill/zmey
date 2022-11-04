@@ -87,12 +87,12 @@ int main(int argc, char* argv[]){
   // loop ///////////////////////////////////////////////////////////////////////
   Loop loop(cng, executor);
 
-  Application::SignalConnector.connectSlot(Application::SIGNAL_LOOP_NOTIFY, 
+  Application::Connector.connect(Application::SIGNAL_LOOP_NOTIFY, 
     std::function<void()>([&loop]() {
       loop.standUpNotify();
   }));
 
-  Application::SignalConnector.connectSlot(Application::SIGNAL_LOOP_STOP, 
+  Application::Connector.connect(Application::SIGNAL_LOOP_STOP, 
     std::function<void()>([&loop]() {
       loop.stop();
   }));
