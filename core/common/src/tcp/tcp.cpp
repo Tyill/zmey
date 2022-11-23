@@ -30,7 +30,7 @@
 
 namespace misc{
 
-TcpServer* pSrv = nullptr;
+static TcpServer* pSrv = nullptr;
 
 bool startServer(const std::string& connPnt, ReceiveDataCBack receiveDataCB, SendStatusCBack sendStatusCB,
  int innerThreadCnt, std::string& err)

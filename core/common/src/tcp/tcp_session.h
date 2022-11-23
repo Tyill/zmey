@@ -44,11 +44,12 @@ private:
   std::string m_connPnt;
   enum { MAX_LENGTH = 4096 };
   char m_data[MAX_LENGTH];
+
   struct Buffer{
     void setOffset(size_t offset){
       assert(offset <= m_csize);
       if (offset < m_csize){
-        memcpy(m_buff.data(), m_buff.data() + offset, m_csize - offset);
+        memmove(m_buff.data(), m_buff.data() + offset, m_csize - offset);
       }
       m_csize -= offset;
     }
