@@ -24,7 +24,7 @@
 //
 
 #include "worker/executor.h"
-#include "common/serial.h"
+#include "base/messages.h"
 
 using namespace std;
 

@@ -25,14 +25,12 @@
 #include "zmclient.h"
 #include "common/misc.h"
 #include "common/tcp.h"
-#include "common/serial.h"
+#include "base/messages.h"
 #include "db_provider/db_provider.h"
 
 #include <cstring>
 #include <algorithm>
 #include <mutex>
-
-#define ZM_VERSION "1.1.0"
 
 using namespace std;
 
@@ -43,11 +41,9 @@ struct AllocResource{
 static map<zmConn, AllocResource> m_resources;
 static mutex m_mtxResources;
 
-
-void zmVersionLib(char* outVersion /*sz 8*/){
-  if (outVersion){
-    strcpy(outVersion, ZM_VERSION);
-  }
+const char* zmVersionLib(){
+  static const char* ZM_VERSION = "1.1.0";
+  return ZM_VERSION;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -155,34 +151,25 @@ bool zmStartScheduler(zmConn zo, int sId){
   if (!zo) return false; 
     
   auto connCng = static_cast<DB::DbProvider*>(zo)->getConnectCng();  
-  map<string, string> data{
-            {"command", to_string((int)base::MessType::START_AFTER_PAUSE_SCHEDR)},
-            {"connectPnt", connCng.connectStr}
-          };
+  mess::InfoMess mess(base::MessType::START_AFTER_PAUSE_SCHEDR, connCng.connectStr);
   zmSchedr cng;  
-  return zmGetScheduler(zo, sId, &cng) && misc::syncSendData(cng.connectPnt, misc::serialn(data));
+  return zmGetScheduler(zo, sId, &cng) && misc::syncSendData(cng.connectPnt, mess.serialn());
 }
 bool zmPauseScheduler(zmConn zo, int sId){
   if (!zo) return false; 
   
   auto connCng = static_cast<DB::DbProvider*>(zo)->getConnectCng();  
-  map<string, string> data{
-            {"command", to_string((int)base::MessType::PAUSE_SCHEDR)},
-            {"connectPnt", connCng.connectStr}
-          };
+  mess::InfoMess mess(base::MessType::PAUSE_SCHEDR, connCng.connectStr);
   zmSchedr cng;  
-  return zmGetScheduler(zo, sId, &cng) && misc::syncSendData(cng.connectPnt, misc::serialn(data));
+  return zmGetScheduler(zo, sId, &cng) && misc::syncSendData(cng.connectPnt, mess.serialn());
 }
 bool zmPingScheduler(zmConn zo, int sId){
   if (!zo) return false; 
   
   auto connCng = static_cast<DB::DbProvider*>(zo)->getConnectCng();  
-  map<string, string> data{
-            {"command", to_string((int)base::MessType::PING_SCHEDR)},
-            {"connectPnt", connCng.connectStr}
-          };
+  mess::InfoMess mess(base::MessType::PING_SCHEDR, connCng.connectStr);
   zmSchedr cng;  
-  return zmGetScheduler(zo, sId, &cng) && misc::syncSendData(cng.connectPnt, misc::serialn(data));
+  return zmGetScheduler(zo, sId, &cng) && misc::syncSendData(cng.connectPnt, mess.serialn());
 }
 bool zmStateOfScheduler(zmConn zo, int sId, zmSchedulerState* outState){
   if (!zo) return false; 
@@ -285,17 +272,10 @@ bool zmDelWorker(zmConn zo, int wId){
 bool zmStartWorker(zmConn zo, int wId){
   if (!zo) return false; 
   
-  int sId = 0; 
   zmWorker wcng;  
-  zmSchedr scng; 
-  auto connCng = static_cast<DB::DbProvider*>(zo)->getConnectCng();  
-  if (zmGetWorker(zo, wId, &wcng) && zmGetScheduler(zo, wcng.sId, &scng)){
-    map<string, string> data{
-            {"command", to_string((int)base::MessType::START_AFTER_PAUSE_WORKER)},
-            {"connectPnt", connCng.connectStr},
-            {"workerConnPnt", wcng.connectPnt}
-          };
-    return misc::syncSendData(scng.connectPnt, misc::serialn(data));
+  if (zmGetWorker(zo, wId, &wcng)){
+    mess::InfoMess mess(base::MessType::START_AFTER_PAUSE_WORKER, wcng.connectPnt);
+    return misc::syncSendData(wcng.connectPnt, mess.serialn());
   }else{
     return false;
   } 
@@ -303,17 +283,10 @@ bool zmStartWorker(zmConn zo, int wId){
 bool zmPauseWorker(zmConn zo, int wId){
   if (!zo) return false; 
   
-  int sId = 0; 
   zmWorker wcng;  
-  zmSchedr scng; 
-  auto connCng = static_cast<DB::DbProvider*>(zo)->getConnectCng();  
-  if (zmGetWorker(zo, wId, &wcng) && zmGetScheduler(zo, wcng.sId, &scng)){
-    map<string, string> data{
-            {"command", to_string((int)base::MessType::PAUSE_WORKER)},
-            {"connectPnt", connCng.connectStr},
-            {"workerConnPnt", wcng.connectPnt}
-          };
-    return misc::syncSendData(scng.connectPnt, misc::serialn(data));
+  if (zmGetWorker(zo, wId, &wcng)){
+    mess::InfoMess mess(base::MessType::PAUSE_WORKER, wcng.connectPnt);
+    return misc::syncSendData(wcng.connectPnt, mess.serialn());
   }else{
     return false;
   } 
@@ -321,13 +294,13 @@ bool zmPauseWorker(zmConn zo, int wId){
 bool zmPingWorker(zmConn zo, int wId){
   if (!zo) return false; 
   
-  auto connCng = static_cast<DB::DbProvider*>(zo)->getConnectCng();  
-  map<string, string> data{
-            {"command", to_string((int)base::MessType::PING_WORKER)},
-            {"connectPnt", connCng.connectStr}
-          };
-  zmWorker cng;  
-  return zmGetWorker(zo, wId, &cng) && misc::syncSendData(cng.connectPnt, misc::serialn(data));
+  zmWorker wcng;  
+  if (zmGetWorker(zo, wId, &wcng)){
+    mess::InfoMess mess(base::MessType::PING_WORKER, wcng.connectPnt);
+    return misc::syncSendData(wcng.connectPnt, mess.serialn());
+  }else{
+    return false;
+  }
 }
 bool zmStateOfWorker(zmConn zo, int* pWId, int wCnt, zmWorkerState* outState){
   if (!zo) return false; 
@@ -387,14 +360,9 @@ bool zmStopTask(zmConn zo, int tId){
     
   base::Worker wcng;  
   if (static_cast<DB::DbProvider*>(zo)->getWorkerByTask(tId, wcng)){
-    auto connCng = static_cast<DB::DbProvider*>(zo)->getConnectCng();  
-    map<string, string> data{
-            {"command", to_string((int)base::MessType::TASK_STOP)},
-            {"connectPnt", connCng.connectStr},
-            {"taskId", to_string(tId)}
-          };
-
-    return misc::syncSendData(wcng.connectPnt, misc::serialn(data));
+    mess::TaskStatus mess(base::MessType::TASK_STOP, wcng.connectPnt);
+    mess.taskId = tId;
+    return misc::syncSendData(wcng.connectPnt, mess.serialn());
   }
   return false;
 }
@@ -408,30 +376,20 @@ bool zmPauseTask(zmConn zo, int tId){
     
   base::Worker wcng;  
   if (static_cast<DB::DbProvider*>(zo)->getWorkerByTask(tId, wcng)){
-    auto connCng = static_cast<DB::DbProvider*>(zo)->getConnectCng();  
-    map<string, string> data{
-            {"command", to_string((int)base::MessType::TASK_PAUSE)},
-            {"connectPnt", connCng.connectStr},
-            {"taskId", to_string(tId)}
-          };
-
-    return misc::syncSendData(wcng.connectPnt, misc::serialn(data));
+    mess::TaskStatus mess(base::MessType::TASK_PAUSE, wcng.connectPnt);
+    mess.taskId = tId;
+    return misc::syncSendData(wcng.connectPnt, mess.serialn());
   }
   return false;
 }
 bool zmContinueTask(zmConn zo, int tId){
   if (!zo) return false;
     
-  base::Worker wcng;
+  base::Worker wcng;  
   if (static_cast<DB::DbProvider*>(zo)->getWorkerByTask(tId, wcng)){
-    auto connCng = static_cast<DB::DbProvider*>(zo)->getConnectCng();  
-    map<string, string> data{
-            {"command", to_string((int)base::MessType::TASK_CONTINUE)},
-            {"connectPnt", connCng.connectStr},
-            {"taskId", to_string(tId)}
-          };
-
-    return misc::syncSendData(wcng.connectPnt, misc::serialn(data));
+    mess::TaskStatus mess(base::MessType::TASK_CONTINUE, wcng.connectPnt);
+    mess.taskId = tId;
+    return misc::syncSendData(wcng.connectPnt, mess.serialn());
   }
   return false;
 }

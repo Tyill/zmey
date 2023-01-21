@@ -26,7 +26,7 @@
 #pragma once
 
 #include "db_provider/db_provider.h"
-#include "common/signal_connector.h"
+#include "common/connector.h"
 
 class Application{
 public:

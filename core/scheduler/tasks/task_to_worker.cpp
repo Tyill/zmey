@@ -24,9 +24,8 @@
 //
 
 #include "scheduler/executor.h"
-#include "common/serial.h"
+#include "base/messages.h"
 #include "common/tcp.h"
-#include "base/link.h"
 
 using namespace std;
 

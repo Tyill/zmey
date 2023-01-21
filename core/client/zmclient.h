@@ -61,8 +61,8 @@ enum zmStateType{
 };
 
 /// version lib
-/// @param[out] outVersion. The memory is allocated by the user
-ZMEY_API void zmVersionLib(char* outVersion /*sz 8*/);
+/// @return outVersion
+ZMEY_API const char* zmVersionLib();
 
 /// connection config
 struct zmConfig{

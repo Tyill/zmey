@@ -24,9 +24,7 @@
 //
 
 #include "scheduler/executor.h"
-#include "common/serial.h"
-#include "common/json.h"
-#include "base/link.h"
+#include "base/messages.h"
 
 using namespace std;
 
@@ -34,46 +32,25 @@ using namespace std;
   m_messToDB.push(DB::MessSchedr::errorMess(wId, mess)); \
   m_app.statusMess(mess);
 
-#ifdef DEBUG
-  #define checkFieldNum(field) \
-    if (mess.find(field) == mess.end()){ \
-      ERROR_MESS(string("receiveHandler error mess.find ") + field + " from: " + cp, wId); \
-      return;  \
-    } \
-    if (!misc::isNumber(mess[field])){ \
-      ERROR_MESS(string("receiveHandler error !misc::isNumber ") + field + " " + mess[field] + " from: " + cp, wId); \
-      return; \
-    }
-  #define checkField(field) \
-    if (mess.find(field) == mess.end()){  \
-      ERROR_MESS(string("receiveHandler error mess.find ") + field + " from: " + cp, wId);  \
-      return;  \
-    }
-#else
-  #define checkFieldNum(field)
-  #define checkField(field)
-#endif
-
 void Executor::receiveHandler(const string& remcp, const string& data)
 {
-  auto mess = misc::deserialn(data);
-  if (mess.empty()){
-    ERROR_MESS("receiveHandler error deserialn data from: " + remcp, 0);    
+  auto mtype = mess::getMessType(data);
+
+  if (mtype == base::MessType::UNDEFINED){
+    ERROR_MESS("receiveHandler error mtype from: " + remcp, 0);    
     return;
   } 
 
-  int wId = 0;
-  string cp = remcp;
-  checkFieldNum(Link::command);
-  checkField(Link::connectPnt);
+  string cp = mess::getConnectPnt(data);
+  if (cp.empty()){
+    ERROR_MESS("receiveHandler error connectPnt from: " + remcp, 0);    
+    return;
+  }
        
-  cp = mess[Link::connectPnt];
-  base::MessType mtype = base::MessType(stoi(mess[Link::command]));
-  
   // from worker
   if(m_workers.find(cp) != m_workers.end()){
     auto& worker = m_workers[cp];
-    wId = worker.base.id;
+    int wId = worker.base.id;
     switch (mtype){
       case base::MessType::TASK_ERROR:
       case base::MessType::TASK_COMPLETED: 
@@ -81,46 +58,42 @@ void Executor::receiveHandler(const string& remcp, const string& data)
       case base::MessType::TASK_PAUSE:
       case base::MessType::TASK_CONTINUE:
       case base::MessType::TASK_STOP:{
-        checkFieldNum(Link::taskId);        
-        checkFieldNum(Link::load);
-        checkFieldNum(Link::activeTask);
-        worker.base.activeTask = stoi(mess[Link::activeTask]);
-        worker.base.load = stoi(mess[Link::load]);
-        int tid = stoi(mess[Link::taskId]); 
-        bool taskExist = false;       
+        mess::TaskStatus tm(mtype, cp);
+        if (!tm.deserialn(data)){
+          ERROR_MESS("receiveHandler error deserialn from: " + cp, wId);    
+          return;
+        }
+        worker.base.activeTask = tm.activeTaskCount;
+        worker.base.load = tm.loadCPU;
+        int tid = tm.taskId; 
+        bool isExist = false;       
         for(auto& t : worker.taskList){
           if (t == tid){
-            taskExist = true;
-            if ((mtype == base::MessType::TASK_ERROR) || (mtype == base::MessType::TASK_COMPLETED) ||
+            isExist = true;
+            if ((mtype == base::MessType::TASK_ERROR) || 
+                (mtype == base::MessType::TASK_COMPLETED) ||
                 (mtype == base::MessType::TASK_STOP)){
               t = 0;
             }
             break;
           }
         }   
-        if (taskExist){   
+        if (isExist){   
           m_messToDB.push(DB::MessSchedr(mtype, wId, tid));            
         }
         break;
       }        
       case base::MessType::TASK_PROGRESS:{
-        checkField(Link::tasks);
-        Json::Reader readerJs;
-        Json::Value obj;
-        readerJs.parse(mess[Link::tasks], obj); 
-
-        if (obj.isObject() && obj.isMember(Link::tasks) && obj[Link::tasks].isArray()){
-          Json::Value takskJs = obj[Link::tasks];
-          for (const auto& t : takskJs){
-            if (t.isMember(Link::taskId) && t[Link::taskId].isUInt64() &&
-                t.isMember(Link::progress) && t[Link::progress].isString()){
-              
-              if (find_if(worker.taskList.begin(), worker.taskList.end(), [t](int tId){
-                return tId == t[Link::taskId].asUInt64();
-              }) != worker.taskList.end())
-                m_messToDB.push(DB::MessSchedr(mtype, wId, t[Link::taskId].asUInt64(), t[Link::progress].asString()));
-            }
-          }
+        mess::TaskProgress tm(cp);
+        if (!tm.deserialn(data)){
+          ERROR_MESS("receiveHandler error deserialn from: " + cp, wId);    
+          return;
+        }
+        for (const auto& t : tm.taskProgress){
+          if (find_if(worker.taskList.begin(), worker.taskList.end(), [t](int tId){
+            return tId == t.first;
+          }) != worker.taskList.end())
+            m_messToDB.push(DB::MessSchedr(mtype, wId, t.first, to_string(t.second)));
         }
         break;
       }
@@ -139,20 +112,21 @@ void Executor::receiveHandler(const string& remcp, const string& data)
             t = 0;
         }
         break;
-      case base::MessType::INTERN_ERROR:
-        checkField(Link::message);
-        m_messToDB.push(DB::MessSchedr::errorMess(wId, mess[Link::message]));
+      case base::MessType::INTERN_ERROR:{
+          mess::InternError tm(cp);
+          if (!tm.deserialn(data)){
+            ERROR_MESS("receiveHandler error deserialn from: " + cp, wId);    
+            return;
+          }
+          m_messToDB.push(DB::MessSchedr::errorMess(wId, tm.message));
+        }
         break;
       case base::MessType::PING_WORKER:
-        checkFieldNum(Link::load);
-        checkFieldNum(Link::activeTask);
-        worker.base.activeTask = stoi(mess[Link::activeTask]);
-        worker.base.load = stoi(mess[Link::load]);
-        m_messToDB.push(DB::MessSchedr(mtype, wId, 0, mess[Link::activeTask] + '\t' + mess[Link::load]));
+        m_messToDB.push(DB::MessSchedr(mtype, wId, 0, ""));
         break;
       default:
-        ERROR_MESS("receiveHandler unknown command from worker: " + mess[Link::command], wId);
-        break;
+        ERROR_MESS("receiveHandler unknown command from worker: ", wId);
+        return;
     }
 
     if (mtype == base::MessType::STOP_WORKER){
@@ -176,53 +150,56 @@ void Executor::receiveHandler(const string& remcp, const string& data)
                                         worker.base.id});
       }
     }
+    Application::loopNotify();
+    return;
   }
+
   // from manager
-  else{
-    switch (mtype){
-      case base::MessType::PING_SCHEDR:     // only check
-        break;
-      case base::MessType::PAUSE_SCHEDR:
-        if (m_schedr.state != base::StateType::PAUSE){
-          m_messToDB.push(DB::MessSchedr{mtype});
-        }
-        m_schedr.state = base::StateType::PAUSE;
-        break;
-      case base::MessType::START_AFTER_PAUSE_SCHEDR:
-        if (m_schedr.state != base::StateType::RUNNING){
-          m_messToDB.push(DB::MessSchedr{mtype});
-        }
-        m_schedr.state = base::StateType::RUNNING;
-        break;
-      case base::MessType::PAUSE_WORKER:{
-        checkField(Link::workerConnPnt);
-        if (mess.count(Link::workerConnPnt)){ 
-          auto& worker = m_workers[mess[Link::workerConnPnt]];
-          if ((worker.base.state != base::StateType::NOT_RESPONDING) &&
-              (worker.base.state != base::StateType::STOP)){
-            if (worker.base.state != base::StateType::PAUSE){
-              m_messToDB.push(DB::MessSchedr{mtype, worker.base.id});
-            }
-            worker.base.state = worker.stateMem = base::StateType::PAUSE;
-        }}}
-        break;
-      case base::MessType::START_AFTER_PAUSE_WORKER:{
-        checkField(Link::workerConnPnt);
-        if (mess.count(Link::workerConnPnt)){ 
-          auto& worker = m_workers[mess[Link::workerConnPnt]]; 
-          if ((worker.base.state != base::StateType::NOT_RESPONDING) &&
-              (worker.base.state != base::StateType::STOP)){
-            if (worker.base.state != base::StateType::RUNNING){
-              m_messToDB.push(DB::MessSchedr{mtype, worker.base.id});
-            }
-            worker.base.state = worker.stateMem = base::StateType::RUNNING;
-        }}} 
-        break;
-      default:
-        ERROR_MESS("receiveHandler unknown worker: " + cp, 0);
-        break;
-    }
+  switch (mtype){
+    case base::MessType::PING_SCHEDR:     // only check
+      break;
+    case base::MessType::PAUSE_SCHEDR:
+      if (m_schedr.state != base::StateType::PAUSE){
+        m_messToDB.push(DB::MessSchedr{mtype});
+      }
+      m_schedr.state = base::StateType::PAUSE;
+      break;
+    case base::MessType::START_AFTER_PAUSE_SCHEDR:
+      if (m_schedr.state != base::StateType::RUNNING){
+        m_messToDB.push(DB::MessSchedr{mtype});
+      }
+      m_schedr.state = base::StateType::RUNNING;
+      break;
+    case base::MessType::PAUSE_WORKER:{
+      // checkField(Link::workerConnPnt);
+      // if (mess.count(Link::workerConnPnt)){ 
+      //   auto& worker = m_workers[mess[Link::workerConnPnt]];
+      //   if ((worker.base.state != base::StateType::NOT_RESPONDING) &&
+      //       (worker.base.state != base::StateType::STOP)){
+      //     if (worker.base.state != base::StateType::PAUSE){
+      //       m_messToDB.push(DB::MessSchedr{mtype, worker.base.id});
+      //     }
+      //     worker.base.state = worker.stateMem = base::StateType::PAUSE;
+      // }}}
+      }
+      break;
+    case base::MessType::START_AFTER_PAUSE_WORKER:{
+      // checkField(Link::workerConnPnt);
+      // if (mess.count(Link::workerConnPnt)){ 
+      //   auto& worker = m_workers[mess[Link::workerConnPnt]]; 
+      //   if ((worker.base.state != base::StateType::NOT_RESPONDING) &&
+      //       (worker.base.state != base::StateType::STOP)){
+      //     if (worker.base.state != base::StateType::RUNNING){
+      //       m_messToDB.push(DB::MessSchedr{mtype, worker.base.id});
+      //     }
+      //     worker.base.state = worker.stateMem = base::StateType::RUNNING;
+      // }}} 
+      }
+      break;
+    default:
+      ERROR_MESS("receiveHandler unknown worker: " + cp, 0);
+      return;
   }
-  
+    
   Application::loopNotify();  
 }
