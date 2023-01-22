@@ -32,54 +32,34 @@ using namespace std;
   m_app.statusMess(mstr); \
   m_errMess.push(mstr);   \
 
-#ifdef DEBUG
-  #define checkFieldNum(field) \
-    if (mess.find(field) == mess.end()){ \
-      ERROR_MESS(string("receiveHandler error mess.find ") + field + " from: " + cp); \
-      return;  \
-    } \
-    if (!misc::isNumber(mess[field])){ \
-      ERROR_MESS("receiveHandler error !misc::isNumber " + mess[field] + " from: " + cp); \
-      return; \
-    }
-  #define checkField(field) \
-    if (mess.find(field) == mess.end()){  \
-      ERROR_MESS(string("receiveHandler error mess.find ") + field + " from: " + cp); \
-      return;  \
-    }
-#else
-  #define checkFieldNum(field)
-  #define checkField(field)
-#endif
-
 void Executor::receiveHandler(const string& remcp, const string& data)
 {
-  auto mess = misc::deserialn(data);
-  if (mess.empty()){
-    ERROR_MESS("receiveHandler error deserialn data from: " + remcp);
+  auto mtype = mess::getMessType(data);
+  if (mtype == base::MessType::UNDEFINED){
+    ERROR_MESS("receiveHandler error mtype from: " + remcp);    
     return;
-  }  
+  } 
 
-  string cp = remcp;
-  checkField(Link::connectPnt);
-  cp = mess[Link::connectPnt];
-  checkFieldNum(Link::command);
-  base::MessType mtype = base::MessType(stoi(mess[Link::command]));  
+  string cp = mess::getConnectPnt(data);
+  if (cp.empty()){
+    ERROR_MESS("receiveHandler error connectPnt from: " + remcp);    
+    return;
+  }
+ 
   if (mtype == base::MessType::NEW_TASK){
-    checkFieldNum(Link::taskId);
-    checkField(Link::params);
-    checkField(Link::scriptPath);
-    checkField(Link::resultPath);
-    checkFieldNum(Link::averDurationSec);
-    checkFieldNum(Link::maxDurationSec);
+    mess::NewTask tm(cp);
+    if (!tm.deserialn(data)){
+      ERROR_MESS("receiveHandler error deserialn MessType::NEW_TASK from: " + cp);    
+      return;
+    }
     base::Task t;
-    t.id = stoi(mess[Link::taskId]);
-    t.averDurationSec = stoi(mess[Link::averDurationSec]);
-    t.maxDurationSec = stoi(mess[Link::maxDurationSec]);
-    t.scriptPath = mess[Link::scriptPath];
-    t.resultPath = mess[Link::resultPath];
+    t.id = tm.taskId;
+    t.averDurationSec = tm.averDurationSec;
+    t.maxDurationSec = tm.maxDurationSec;
+    t.scriptPath = tm.scriptPath;
+    t.resultPath = tm.resultPath;
     t.state = base::StateType::READY;
-    t.params = mess[Link::params];
+    t.params = tm.params;
     m_newTasks.push(move(t)); 
     Application::loopNotify();
   }
@@ -87,8 +67,12 @@ void Executor::receiveHandler(const string& remcp, const string& data)
     return;
   }
   else{
-    checkFieldNum(Link::taskId);
-    int tId = stoi(mess[Link::taskId]);
+    mess::TaskStatus tm(mtype, cp);
+    if (!tm.deserialn(data)){
+      ERROR_MESS("receiveHandler error deserialn MessType::TASK_STATUS from: " + cp);    
+      return;
+    }
+    int tId = tm.taskId;
     { std::lock_guard<std::mutex> lock(m_mtxProcess);
       
       auto iPrc = find_if(m_procs.begin(), m_procs.end(), [tId](const Process& p){
@@ -100,12 +84,12 @@ void Executor::receiveHandler(const string& remcp, const string& data)
           case base::MessType::TASK_CONTINUE: iPrc->continueTask(); break;
           case base::MessType::TASK_STOP:     iPrc->stop(); break;
           default:{
-            ERROR_MESS("receiveHandler wrong command: " + mess[Link::command]);
+            ERROR_MESS("receiveHandler wrong task status");
           }
           break;
         }
       }else{
-        ERROR_MESS("receiveHandler iPrc == _procs.end() for taskId: " + mess[Link::taskId]);
+        ERROR_MESS("receiveHandler iPrc == _procs.end() for taskId: " + to_string(tId);
       }
     }
   }  

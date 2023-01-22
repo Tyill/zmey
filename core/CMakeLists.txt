@@ -20,6 +20,7 @@ if(WIN32)
 endif()
 
 add_subdirectory(common)
+add_subdirectory(base)
 add_subdirectory(db_provider)
 add_subdirectory(scheduler)
 add_subdirectory(worker)
