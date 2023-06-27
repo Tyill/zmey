@@ -71,10 +71,10 @@ namespace base{
   
   // task object
   struct Task{
-    int id;                   // id tblTaskQueue
-    int wId;                  // preset worker id tblWorker. Default 0 - not set
-    int averDurationSec;      // estimated lead time
-    int maxDurationSec;       // maximum lead time  
+    int id{};                   // id tblTaskQueue
+    int wId{};                  // preset worker id tblWorker. Default 0 - not set
+    int averDurationSec{};      // estimated lead time
+    int maxDurationSec{};       // maximum lead time  
     std::string params;
     std::string scriptPath;  
     std::string resultPath;  
@@ -83,23 +83,23 @@ namespace base{
  
   // tblScheduler
   struct Scheduler{
-    int id;                   // id tblScheduler
-    StateType state;
-    int capacityTask;         // the number of tasks that can be performed simultaneously  
-    int activeTask;           // number of running tasks (approximate quantity)
-    std::string connectPnt;   // connection point: IP or DNS ':' port
+    int id{};                   // id tblScheduler
+    StateType state{};
+    int capacityTask{};         // the number of tasks that can be performed simultaneously  
+    int activeTask{};           // number of running tasks (approximate quantity)
+    std::string connectPnt;     // connection point: IP or DNS ':' port
     std::string name;
     std::string description;
   };
   // tblWorker
   struct Worker{
-    int id;              // id tblWorker
-    int sId;             // id tblScheduler
-    StateType state;  
-    int capacityTask;         // the number of tasks that can be performed simultaneously  
-    int activeTask;           // number of running tasks (approximate quantity)
-    int load;                 // current load [0..100]
-    std::string connectPnt;   // connection point: IP or DNS ':' port
+    int id{};                   // id tblWorker
+    int sId{};                  // id tblScheduler
+    StateType state{};  
+    int capacityTask{};         // the number of tasks that can be performed simultaneously  
+    int activeTask{};           // number of running tasks (approximate quantity)
+    int load{};                 // current load [0..100]
+    std::string connectPnt;     // connection point: IP or DNS ':' port
     std::string name;
     std::string description;
   };

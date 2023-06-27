@@ -57,9 +57,9 @@ public:
 private:
   struct SWorker{
     base::Worker base;
-    base::StateType stateMem;
+    base::StateType stateMem{};
     std::vector<int> taskList;
-    bool isActive;
+    bool isActive{};
   };
 
   Application& m_app;

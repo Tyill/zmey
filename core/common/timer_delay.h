@@ -32,13 +32,13 @@ namespace misc{
 
 class TimerDelay {
   struct tmBase{
-    int cDelay;            
-    bool isActive;            
+    int cDelay{};            
+    bool isActive{};            
   };
   std::vector<tmBase> _tmrs;
-  int _tmCnt;  
-  int64_t _prevTm;
-  int64_t _deltaTm;  
+  int _tmCnt{};  
+  int64_t _prevTm{};
+  int64_t _deltaTm{};  
 public:
   TimerDelay();
   void updateCycTime();

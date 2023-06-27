@@ -90,7 +90,7 @@ ZMEY_API bool zmGetLastError(zmConn, char* err/*sz 256*/);
 
 /// scheduler config
 struct zmSchedr{
-  int capacityTask = 10000; ///< permissible simultaneous number of tasks 
+  int capacityTask = 10000;      ///< permissible simultaneous number of tasks 
   char connectPnt[256];          ///< remote connection point: IP or DNS:port  
   char name[256];                ///< scheduler name. Optional.
   char* description;             ///< description of schedr. The memory is allocated by the user. May be NULL 
@@ -167,8 +167,8 @@ ZMEY_API int zmGetAllSchedulers(zmConn, zmStateType state, int** outSchId);
 
 /// worker config
 struct zmWorker{
-  int sId;               ///< scheduler id 
-  int capacityTask = 10; ///< permissible simultaneous number of tasks
+  int sId;                    ///< scheduler id 
+  int capacityTask = 10;      ///< permissible simultaneous number of tasks
   char connectPnt[256];       ///< remote connection point: IP or DNS:port  
   char name[256];             ///< worker name. Optional.
   char* description;          ///< description of worker. The memory is allocated by the user. May be NULL 
@@ -249,10 +249,10 @@ ZMEY_API int zmGetAllWorkers(zmConn, int sId, zmStateType state, int** outWId);
 
 /// task config
 struct zmTask{
-  int schedrPresetId;  ///< schedr preset id. Default 0
-  int workerPresetId;  ///< worker preset id. Default 0
-  int averDurationSec; ///< estimated lead time, sec. Default 0
-  int maxDurationSec;  ///< maximum lead time, sec. Default 0
+  int schedrPresetId;       ///< schedr preset id. Default 0
+  int workerPresetId;       ///< worker preset id. Default 0
+  int averDurationSec;      ///< estimated lead time, sec. Default 0
+  int maxDurationSec;       ///< maximum lead time, sec. Default 0
   char* params;             ///< CLI params for script. May be NULL
   char* scriptPath;         ///< Script path. Necessarily
   char* resultPath;         ///< Result path. Necessarily

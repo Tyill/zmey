@@ -48,7 +48,7 @@ int main(int argc, char* argv[])
 
   Application::Config cng;
   if (!app.parseArgs(argc, argv, cng)){
-    return 0;
+    return 1;
   }
   
   if (cng.remoteConnPnt.empty()){  // when without NAT
