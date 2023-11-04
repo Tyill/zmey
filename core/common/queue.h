@@ -34,70 +34,70 @@ namespace misc{
 
 template<typename T>
 class Queue{
-  struct node{
+  struct Node{
     std::shared_ptr<T> data;
-    std::unique_ptr<node> next;
+    std::unique_ptr<Node> next;
   };
-  std::mutex _headMtx, _tailMtx;
-  std::unique_ptr<node> _head;
-  node* _tail;  
-  int _sz = 0;
+  std::mutex headMtx_, tailMtx_;
+  std::unique_ptr<Node> head_;
+  Node* tail_{};  
+  int sz_ = 0;
       
-  std::unique_ptr<node> tryPopHead(T& value){
-    std::lock_guard<std::mutex> lock(_headMtx);
-    if(_head.get() == getTailAndModifySize()){
-      return std::unique_ptr<node>();
+  std::unique_ptr<Node> tryPopHead(T& value){
+    std::lock_guard<std::mutex> lock(headMtx_);
+    if(head_.get() == getTailAndModifySize()){
+      return std::unique_ptr<Node>();
     }
-    value = std::move(*_head->data);
-    std::unique_ptr<node> oldHead = std::move(_head);
-    _head = std::move(oldHead->next);   
+    value = std::move(*head_->data);
+    std::unique_ptr<Node> oldHead = std::move(head_);
+    head_ = std::move(oldHead->next);   
     return oldHead;
   }      
-  node* getTail(){
-    std::lock_guard<std::mutex> lock(_tailMtx);
-    return _tail;
+  Node* getTail(){
+    std::lock_guard<std::mutex> lock(tailMtx_);
+    return tail_;
   }
-  node* getTailAndModifySize(){
-    std::lock_guard<std::mutex> lock(_tailMtx);
-    _sz = std::max(0, --_sz);
-    return _tail;
+  Node* getTailAndModifySize(){
+    std::lock_guard<std::mutex> lock(tailMtx_);
+    sz_ = std::max(0, --sz_);
+    return tail_;
   }
 public:
-  Queue() : _head(new node), _tail(_head.get()), _sz(0){};
+  Queue() : head_(new Node), tail_(head_.get()), sz_(0){};
   Queue(const Queue& other) = delete;
   Queue& operator=(const Queue& other) = delete;
 
   void push(T&& newValue){
     std::shared_ptr<T> newData(std::make_shared<T>(std::move(newValue)));
-    std::unique_ptr<node> p(new node);
+    std::unique_ptr<Node> p(new Node);
     {
-      std::lock_guard<std::mutex> lock(_tailMtx);
-      _tail->data = newData;
-      node* const newTail = p.get();
-      _tail->next = std::move(p);
-      _tail = newTail;
-      ++_sz;
+      std::lock_guard<std::mutex> lock(tailMtx_);
+      tail_->data = newData;
+      Node* const newTail = p.get();
+      tail_->next = std::move(p);
+      tail_ = newTail;
+      ++sz_;
     }
   }
   bool tryPop(T& value){
-    std::unique_ptr<node> const oldHead = tryPopHead(value);    
+    std::unique_ptr<Node> const oldHead = tryPopHead(value);    
     return oldHead.get() != nullptr;
   }
   bool front(T& value){
-    std::lock_guard<std::mutex> lock(_headMtx);
-    bool isExist = (_head.get() != getTail());
+    std::lock_guard<std::mutex> lock(headMtx_);
+    bool isExist = (head_.get() != getTail());
     if (isExist){
-      value = *_head->data;
+      value = *head_->data;
     }
     return isExist;
   }
   int size(){
-    std::lock_guard<std::mutex> lock(_tailMtx);
-    return _sz;
+    std::lock_guard<std::mutex> lock(tailMtx_);
+    return sz_;
   }
   bool empty(){
-    std::lock_guard<std::mutex> lock(_headMtx);
-    return (_head.get() == getTail());
+    std::lock_guard<std::mutex> lock(headMtx_);
+    return (head_.get() == getTail());
   }
 };   
 }

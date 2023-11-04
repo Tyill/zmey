@@ -117,16 +117,6 @@ bool zmGetScheduler(zmConn zo, int sId, zmSchedr* outCng){
   if (static_cast<DB::DbProvider*>(zo)->getSchedr(sId, scng)){    
     outCng->capacityTask = scng.capacityTask;
     strcpy(outCng->connectPnt, scng.connectPnt.c_str());
-    strncpy(outCng->name, scng.name.c_str(), 255);
-    if (!scng.description.empty()){
-      outCng->description = (char*)realloc(outCng->description, scng.description.size() + 1);
-      {lock_guard<mutex> lk(m_mtxResources);
-        m_resources[zo].str.push_back(outCng->description);
-      }
-      strcpy(outCng->description, scng.description.c_str());
-    }else{
-      outCng->description = nullptr;
-    }
     return true;
   }
   return false;
@@ -151,7 +141,7 @@ bool zmStartScheduler(zmConn zo, int sId){
   if (!zo) return false; 
     
   auto connCng = static_cast<DB::DbProvider*>(zo)->getConnectCng();  
-  mess::InfoMess mess(base::MessType::START_AFTER_PAUSE_SCHEDR, connCng.connectStr);
+  mess::InfoMess mess(mess::MessType::START_AFTER_PAUSE_SCHEDR, connCng.connectStr);
   zmSchedr cng;  
   return zmGetScheduler(zo, sId, &cng) && misc::syncSendData(cng.connectPnt, mess.serialn());
 }
@@ -159,7 +149,7 @@ bool zmPauseScheduler(zmConn zo, int sId){
   if (!zo) return false; 
   
   auto connCng = static_cast<DB::DbProvider*>(zo)->getConnectCng();  
-  mess::InfoMess mess(base::MessType::PAUSE_SCHEDR, connCng.connectStr);
+  mess::InfoMess mess(mess::MessType::PAUSE_SCHEDR, connCng.connectStr);
   zmSchedr cng;  
   return zmGetScheduler(zo, sId, &cng) && misc::syncSendData(cng.connectPnt, mess.serialn());
 }
@@ -167,7 +157,7 @@ bool zmPingScheduler(zmConn zo, int sId){
   if (!zo) return false; 
   
   auto connCng = static_cast<DB::DbProvider*>(zo)->getConnectCng();  
-  mess::InfoMess mess(base::MessType::PING_SCHEDR, connCng.connectStr);
+  mess::InfoMess mess(mess::MessType::PING_SCHEDR, connCng.connectStr);
   zmSchedr cng;  
   return zmGetScheduler(zo, sId, &cng) && misc::syncSendData(cng.connectPnt, mess.serialn());
 }
@@ -238,16 +228,6 @@ bool zmGetWorker(zmConn zo, int wId, zmWorker* outWCng){
     outWCng->sId = wcng.sId;
     outWCng->capacityTask = wcng.capacityTask;
     strncpy(outWCng->connectPnt, wcng.connectPnt.c_str(), 255);
-    strncpy(outWCng->name, wcng.name.c_str(), 255);
-    if (!wcng.description.empty()){
-      outWCng->description = (char*)realloc(outWCng->description, wcng.description.size() + 1);
-      {lock_guard<mutex> lk(m_mtxResources);
-        m_resources[zo].str.push_back(outWCng->description);
-      }
-      strcpy(outWCng->description, wcng.description.c_str());
-    }else{
-      outWCng->description = nullptr;
-    }
     return true;
   }
   return false;
@@ -274,7 +254,7 @@ bool zmStartWorker(zmConn zo, int wId){
   
   zmWorker wcng;  
   if (zmGetWorker(zo, wId, &wcng)){
-    mess::InfoMess mess(base::MessType::START_AFTER_PAUSE_WORKER, wcng.connectPnt);
+    mess::InfoMess mess(mess::MessType::START_AFTER_PAUSE_WORKER, wcng.connectPnt);
     return misc::syncSendData(wcng.connectPnt, mess.serialn());
   }else{
     return false;
@@ -285,7 +265,7 @@ bool zmPauseWorker(zmConn zo, int wId){
   
   zmWorker wcng;  
   if (zmGetWorker(zo, wId, &wcng)){
-    mess::InfoMess mess(base::MessType::PAUSE_WORKER, wcng.connectPnt);
+    mess::InfoMess mess(mess::MessType::PAUSE_WORKER, wcng.connectPnt);
     return misc::syncSendData(wcng.connectPnt, mess.serialn());
   }else{
     return false;
@@ -296,7 +276,7 @@ bool zmPingWorker(zmConn zo, int wId){
   
   zmWorker wcng;  
   if (zmGetWorker(zo, wId, &wcng)){
-    mess::InfoMess mess(base::MessType::PING_WORKER, wcng.connectPnt);
+    mess::InfoMess mess(mess::MessType::PING_WORKER, wcng.connectPnt);
     return misc::syncSendData(wcng.connectPnt, mess.serialn());
   }else{
     return false;
@@ -360,7 +340,7 @@ bool zmStopTask(zmConn zo, int tId){
     
   base::Worker wcng;  
   if (static_cast<DB::DbProvider*>(zo)->getWorkerByTask(tId, wcng)){
-    mess::TaskStatus mess(base::MessType::TASK_STOP, wcng.connectPnt);
+    mess::TaskStatus mess(mess::MessType::TASK_STOP, wcng.connectPnt);
     mess.taskId = tId;
     return misc::syncSendData(wcng.connectPnt, mess.serialn());
   }
@@ -376,7 +356,7 @@ bool zmPauseTask(zmConn zo, int tId){
     
   base::Worker wcng;  
   if (static_cast<DB::DbProvider*>(zo)->getWorkerByTask(tId, wcng)){
-    mess::TaskStatus mess(base::MessType::TASK_PAUSE, wcng.connectPnt);
+    mess::TaskStatus mess(mess::MessType::TASK_PAUSE, wcng.connectPnt);
     mess.taskId = tId;
     return misc::syncSendData(wcng.connectPnt, mess.serialn());
   }
@@ -387,7 +367,7 @@ bool zmContinueTask(zmConn zo, int tId){
     
   base::Worker wcng;  
   if (static_cast<DB::DbProvider*>(zo)->getWorkerByTask(tId, wcng)){
-    mess::TaskStatus mess(base::MessType::TASK_CONTINUE, wcng.connectPnt);
+    mess::TaskStatus mess(mess::MessType::TASK_CONTINUE, wcng.connectPnt);
     mess.taskId = tId;
     return misc::syncSendData(wcng.connectPnt, mess.serialn());
   }

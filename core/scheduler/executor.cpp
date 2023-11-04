@@ -27,8 +27,14 @@
 #include "application.h"
   
 Executor::Executor(Application& app, DB::DbProvider& db):
-  m_app(app), m_db(db)
+  m_app(app),
+  m_db(db)
 {
+}
+
+void Executor::loopStandUpNotify(std::function<void()> notify)
+{
+  m_loopStandUpNotify = notify;
 }
 
 void Executor::addMessToDB(DB::MessSchedr mess)

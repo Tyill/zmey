@@ -35,20 +35,21 @@ using namespace std;
 
 bool Executor::sendTaskToWorker()
 {    
-  if (m_workersCpy.empty()){
+  if (m_workersList.empty()){
     for (auto& w : m_workers){
-      m_workersCpy.push_back(w.second.base);
+      m_workersList.push_back(w.second.base);
     }
-    for (auto& w : m_workersCpy){
+    for (auto& w : m_workersList){
       m_refWorkers.push_back(&w);
     }
-  } 
+  }
+  
   auto iw = m_workers.cbegin();
-  auto iwcp = m_workersCpy.begin();
+  auto iwcp = m_workersList.begin();
   for (; iw != m_workers.cend(); ++iw, ++iwcp){
     iwcp->activeTask = iw->second.base.activeTask;
     iwcp->load = iw->second.base.load;
-    iwcp->state = iw->second.base.state;
+    iwcp->state = iw->second.base.state;   
   }
   int cycleCount = 0;
   while (!m_tasks.empty()){
@@ -73,19 +74,19 @@ bool Executor::sendTaskToWorker()
       }); 
     
     if(iWr != m_refWorkers.end()){
-      m_tasks.tryPop(task);
       map<string, string> data{
-        {Link::command,         to_string((int)base::MessType::NEW_TASK)},
+        {Link::command,         to_string((int)mess::MessType::NEW_TASK)},
         {Link::connectPnt,      m_schedr.connectPnt},
         {Link::taskId,          to_string(task.id)},
         {Link::params,          task.params}, 
         {Link::scriptPath,      task.scriptPath},
         {Link::resultPath,      task.resultPath},
         {Link::averDurationSec, to_string(task.averDurationSec)}, 
-        {Link::maxDurationSec,  to_string(task.maxDurationSec)}        
+        {Link::maxDurationSec,  to_string(task.maxDurationSec)}             
       };
       const string& wConnPnt = (*iWr)->connectPnt;
       if (misc::asyncSendData(wConnPnt, misc::serialn(data))){
+        m_tasks.tryPop(task);
         ++(*iWr)->activeTask;
         m_workers[wConnPnt].base.activeTask = (*iWr)->activeTask; 
        
@@ -101,8 +102,7 @@ bool Executor::sendTaskToWorker()
       if (task.wId != 0){ 
         m_tasks.tryPop(task);     // transfer task to end 
         m_tasks.push(move(task)); 
-      }
-      else{
+      }else{
         return false;
       }
       ++cycleCount;

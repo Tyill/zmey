@@ -35,7 +35,8 @@ class Executor{
 public:  
   Executor(Application&, DB::DbProvider& db);
 
-public:
+  void loopStandUpNotify(std::function<void()> notify);
+
   void addMessToDB(DB::MessSchedr);
   bool appendNewTaskAvailable();
   bool isTasksEmpty();
@@ -66,7 +67,7 @@ private:
   DB::DbProvider& m_db;
 
   std::map<std::string, SWorker> m_workers;   // key - connectPnt  
-  std::vector<base::Worker> m_workersCpy;
+  std::vector<base::Worker> m_workersList;
   std::vector<base::Worker*> m_refWorkers;
   misc::Queue<base::Task> m_tasks;
   misc::Queue<DB::MessSchedr> m_messToDB;
@@ -74,4 +75,6 @@ private:
 
   misc::CounterTick m_ctickNewTask;
   misc::CounterTick m_ctickMessToDB;
+
+  std::function<void()> m_loopStandUpNotify{};
 };

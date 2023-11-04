@@ -24,21 +24,20 @@
 //
 #pragma once
 
-#include <ctime>
 #include <vector>
-#include <cstdint>
+#include <stdint.h>
 
 namespace misc{
 
 class TimerDelay {
-  struct tmBase{
+  struct TmBase{
     int cDelay{};            
     bool isActive{};            
   };
-  std::vector<tmBase> _tmrs;
-  int _tmCnt{};  
-  int64_t _prevTm{};
-  int64_t _deltaTm{};  
+  std::vector<TmBase> tmrs_;
+  int tmCnt_{};  
+  int64_t prevTm_{};
+  int64_t deltaTm_{};  
 public:
   TimerDelay();
   void updateCycTime();

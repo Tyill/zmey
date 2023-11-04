@@ -29,32 +29,6 @@
 
 namespace base{
 
-  enum class MessType{
-    UNDEFINED = 0,
-    NEW_TASK,
-    TASK_RUNNING,
-    TASK_ERROR,
-    TASK_COMPLETED,
-    TASK_PAUSE,
-    TASK_START,
-    TASK_STOP,
-    TASK_CONTINUE,
-    TASK_CANCEL, // when not yet taken to work
-    TASK_PROGRESS,    
-    START_WORKER,
-    START_SCHEDR, 
-    STOP_WORKER,
-    STOP_SCHEDR,
-    PAUSE_WORKER,
-    PAUSE_SCHEDR, 
-    START_AFTER_PAUSE_WORKER,
-    START_AFTER_PAUSE_SCHEDR,  
-    PING_WORKER,
-    PING_SCHEDR,
-    JUST_START_WORKER,
-    WORKER_NOT_RESPONDING,
-    INTERN_ERROR,      
-  };
   // tblState
   enum class StateType{
     UNDEFINED = 0,
@@ -74,7 +48,7 @@ namespace base{
     int id{};                   // id tblTaskQueue
     int wId{};                  // preset worker id tblWorker. Default 0 - not set
     int averDurationSec{};      // estimated lead time
-    int maxDurationSec{};       // maximum lead time  
+    int maxDurationSec{};       // maximum lead time
     std::string params;
     std::string scriptPath;  
     std::string resultPath;  
@@ -88,8 +62,6 @@ namespace base{
     int capacityTask{};         // the number of tasks that can be performed simultaneously  
     int activeTask{};           // number of running tasks (approximate quantity)
     std::string connectPnt;     // connection point: IP or DNS ':' port
-    std::string name;
-    std::string description;
   };
   // tblWorker
   struct Worker{
@@ -98,9 +70,7 @@ namespace base{
     StateType state{};  
     int capacityTask{};         // the number of tasks that can be performed simultaneously  
     int activeTask{};           // number of running tasks (approximate quantity)
-    int load{};                 // current load [0..100]
+    int load{}; 
     std::string connectPnt;     // connection point: IP or DNS ':' port
-    std::string name;
-    std::string description;
   };
 }

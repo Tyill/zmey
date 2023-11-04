@@ -35,7 +35,7 @@ using namespace std;
 void Executor::receiveHandler(const string& remcp, const string& data)
 {
   auto mtype = mess::getMessType(data);
-  if (mtype == base::MessType::UNDEFINED){
+  if (mtype == mess::MessType::UNDEFINED){
     ERROR_MESS("receiveHandler error mtype from: " + remcp);    
     return;
   } 
@@ -46,7 +46,7 @@ void Executor::receiveHandler(const string& remcp, const string& data)
     return;
   }
  
-  if (mtype == base::MessType::NEW_TASK){
+  if (mtype == mess::MessType::NEW_TASK){
     mess::NewTask tm(cp);
     if (!tm.deserialn(data)){
       ERROR_MESS("receiveHandler error deserialn MessType::NEW_TASK from: " + cp);    
@@ -63,7 +63,7 @@ void Executor::receiveHandler(const string& remcp, const string& data)
     m_newTasks.push(move(t)); 
     Application::loopNotify();
   }
-  else if (mtype == base::MessType::PING_WORKER){  // only check
+  else if (mtype == mess::MessType::PING_WORKER){  // only check
     return;
   }
   else{
@@ -80,9 +80,9 @@ void Executor::receiveHandler(const string& remcp, const string& data)
       });
       if (iPrc != m_procs.end()){
         switch (mtype){
-          case base::MessType::TASK_PAUSE:    iPrc->pause(); break;
-          case base::MessType::TASK_CONTINUE: iPrc->continueTask(); break;
-          case base::MessType::TASK_STOP:     iPrc->stop(); break;
+          case mess::MessType::TASK_PAUSE:    iPrc->pause(); break;
+          case mess::MessType::TASK_CONTINUE: iPrc->continueTask(); break;
+          case mess::MessType::TASK_STOP:     iPrc->stop(); break;
           default:{
             ERROR_MESS("receiveHandler wrong task status");
           }

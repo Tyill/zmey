@@ -92,8 +92,6 @@ ZMEY_API bool zmGetLastError(zmConn, char* err/*sz 256*/);
 struct zmSchedr{
   int capacityTask = 10000;      ///< permissible simultaneous number of tasks 
   char connectPnt[256];          ///< remote connection point: IP or DNS:port  
-  char name[256];                ///< scheduler name. Optional.
-  char* description;             ///< description of schedr. The memory is allocated by the user. May be NULL 
 };
 /// add new scheduler
 /// @param[in] zmConn - object connect
@@ -169,9 +167,7 @@ ZMEY_API int zmGetAllSchedulers(zmConn, zmStateType state, int** outSchId);
 struct zmWorker{
   int sId;                    ///< scheduler id 
   int capacityTask = 10;      ///< permissible simultaneous number of tasks
-  char connectPnt[256];       ///< remote connection point: IP or DNS:port  
-  char name[256];             ///< worker name. Optional.
-  char* description;          ///< description of worker. The memory is allocated by the user. May be NULL 
+  char connectPnt[256];       ///< remote connection point: IP or DNS:port
 };
   
 /// add new worker
@@ -303,19 +299,12 @@ struct zmTaskState{
 /// @return true - ok
 ZMEY_API bool zmStateOfTask(zmConn, int* tId, int tCnt, zmTaskState* outTState);
 
-/// get task result
-/// @param[in] zmConn - object connect
-/// @param[in] tId - task object id
-/// @param[out] outTResult - task object result. Pass NULL, no need to free memory
-/// @return true - ok
-ZMEY_API bool zmResultOfTask(zmConn, int tId, char** outTResult);
-
 /// task time
 struct zmTaskTime{
   char createTime[32];
   char takeInWorkTime[32];        
   char startTime[32]; 
-  char stopTime[32]; 
+  char stopTime[32];
 };
 /// get task time
 /// @param[in] zmConn - object connect

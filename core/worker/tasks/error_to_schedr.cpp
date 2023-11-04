@@ -35,7 +35,7 @@ void Executor::errorToSchedr(const std::string& schedrConnPnt)
   bool isSendOk = true;
   while(isSendOk && m_errMess.tryPop(mess)){
     map<string, string> data{
-      {Link::command, to_string((int)base::MessType::INTERN_ERROR)},
+      {Link::command, to_string((int)mess::MessType::INTERN_ERROR)},
       {Link::connectPnt, m_worker.connectPnt},
       {Link::message,  misc::replace(mess, "'", "''")}
     };      

@@ -37,12 +37,12 @@ struct ConnectCng{
   std::string connectStr;
 };
 struct MessSchedr{
-  base::MessType type = base::MessType::INTERN_ERROR;
+  mess::MessType type = mess::MessType::INTERN_ERROR;
   int workerId = 0;
   int taskId = 0;
   std::string data;
   
-  MessSchedr(base::MessType _type = base::MessType::INTERN_ERROR, int _workerId = 0, int _taskId = 0, const std::string& _data = "") :
+  MessSchedr(mess::MessType _type = mess::MessType::INTERN_ERROR, int _workerId = 0, int _taskId = 0, const std::string& _data = "") :
     type(_type),
     workerId(_workerId),
     taskId(_taskId),
@@ -50,7 +50,7 @@ struct MessSchedr{
 
   static MessSchedr errorMess(int _workerId, const std::string& _err){
     MessSchedr mess;{
-      mess.type = base::MessType::INTERN_ERROR;
+      mess.type = mess::MessType::INTERN_ERROR;
       mess.workerId = _workerId;
       mess.data = _err;
     }

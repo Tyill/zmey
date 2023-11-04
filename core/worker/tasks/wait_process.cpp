@@ -62,16 +62,16 @@ void Executor::waitProcess()
     // completed or error
     if (WIFEXITED(sts) || WIFSIGNALED(sts)){
                
-      base::MessType mt = base::MessType::TASK_COMPLETED;
+      mess::MessType mt = mess::MessType::TASK_COMPLETED;
       base::StateType st = base::StateType::COMPLETED;
       if (WIFEXITED(sts)){
         sts = WEXITSTATUS(sts);
         if (sts != 0){
-          mt = base::MessType::TASK_ERROR;
+          mt = mess::MessType::TASK_ERROR;
           st = base::StateType::ERRORT;
         }
       }else{
-        mt = base::MessType::TASK_ERROR;
+        mt = mess::MessType::TASK_ERROR;
         st = base::StateType::ERRORT;
       }
       itPrc->setTaskState(st);
@@ -83,13 +83,13 @@ void Executor::waitProcess()
     else if (WIFSTOPPED(sts)){
       itPrc->setTaskState(base::StateType::PAUSE);
       m_listMessForSchedr.push(MessForSchedr{itPrc->getTask().id,
-                                          base::MessType::TASK_PAUSE});
+                                          mess::MessType::TASK_PAUSE});
     } 
     // continue
     else if (WIFCONTINUED(sts)){
       itPrc->setTaskState(base::StateType::RUNNING);
       m_listMessForSchedr.push(MessForSchedr{itPrc->getTask().id,
-                                          base::MessType::TASK_CONTINUE});    
+                                          mess::MessType::TASK_CONTINUE});    
     } 
   }  
   
@@ -133,7 +133,7 @@ void Executor::waitProcess()
 
     p.closeHandle();   
   
-    base::MessType mt = status == 0 ? base::MessType::TASK_COMPLETED : base::MessType::TASK_ERROR;
+    mess::MessType mt = status == 0 ? mess::MessType::TASK_COMPLETED : mess::MessType::TASK_ERROR;
     base::StateType st = status == 0 ? base::StateType::COMPLETED : base::StateType::ERRORT;
 
     p.setTaskState(st);

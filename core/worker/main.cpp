@@ -70,7 +70,7 @@ int main(int argc, char* argv[]){
   Executor executor(app, cng.remoteConnPnt);
  
   // on start
-  executor.addMessForSchedr(Executor::MessForSchedr{0, base::MessType::JUST_START_WORKER});
+  executor.addMessForSchedr(Executor::MessForSchedr{0, mess::MessType::JUST_START_WORKER});
 
   // TCP server
   misc::ReceiveDataCBack receiveDataCB = [&executor](const string& cp, const string& data){

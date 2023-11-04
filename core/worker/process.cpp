@@ -299,7 +299,7 @@ void Process::pause(){
     m_executor.addErrMess(m_err);
   }
   else {
-      m_executor.addMessForSchedr(Executor::MessForSchedr{ m_task.id, base::MessType::TASK_PAUSE });
+      m_executor.addMessForSchedr(Executor::MessForSchedr{ m_task.id, mess::MessType::TASK_PAUSE });
       setTaskState(base::StateType::PAUSE);
   }
 }
@@ -310,7 +310,7 @@ void Process::continueTask(){
     m_executor.addErrMess(m_err);
   }
   else {
-      m_executor.addMessForSchedr(Executor::MessForSchedr{ m_task.id, base::MessType::TASK_CONTINUE });
+      m_executor.addMessForSchedr(Executor::MessForSchedr{ m_task.id, mess::MessType::TASK_CONTINUE });
       setTaskState(base::StateType::RUNNING);
   }
 }

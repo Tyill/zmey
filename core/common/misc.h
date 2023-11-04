@@ -77,26 +77,26 @@ class CPUData{
     S_GUEST_NICE,
     NUM_STATES
   };
-  int _prevActiveTime = 0,
-      _prevIdleTime = 0;
+  int prevActiveTime_ = 0,
+      prevIdleTime_ = 0;
 public:
   CPUData();
   int load();
 };
 
 class CounterTick{
-  int _valmem = -1;
+  int tick_ = -1;
 public:
-  bool operator()(int val){
-    if (_valmem >= val){
-      _valmem = 0;
+  bool operator()(int setTick){
+    if (tick_ >= setTick){
+      tick_ = 0;
       return true;
     }
-    ++_valmem;
-    return _valmem == 0;
+    ++tick_;
+    return tick_ == 0;
   };
   void reset(){
-    _valmem = -1;
+    tick_ = -1;
   };
 };
 }

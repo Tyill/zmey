@@ -34,11 +34,11 @@ void Executor::updateListTasks()
 
   base::Task tsk;
   while(m_newTasks.tryPop(tsk)){
-    m_listMessForSchedr.push(MessForSchedr{tsk.id, base::MessType::TASK_RUNNING});
+    m_listMessForSchedr.push(MessForSchedr{tsk.id, mess::MessType::TASK_RUNNING});
     Process prc(m_app, *this, tsk);
     if (prc.getPid() == -1){
       m_listMessForSchedr.push(MessForSchedr{ tsk.id,
-                                              base::MessType::TASK_ERROR,
+                                              mess::MessType::TASK_ERROR,
                                               prc.getErrorStr() });
       continue;
     }

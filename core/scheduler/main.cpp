@@ -23,6 +23,7 @@
 // THE SOFTWARE.
 //
 #include "common/tcp.h"
+#include "base/messages.h"
 #include "application.h"
 #include "executor.h"
 #include "loop.h"
@@ -39,7 +40,7 @@ createDbProvider(const Application::Config& cng, string& err);
 #define CHECK_RETURN(fun, mess) \
   if (fun){                     \
     app.statusMess(mess);       \
-    return -1;                  \
+    return 1;                  \
   }
 
 int main(int argc, char* argv[])
@@ -95,20 +96,11 @@ int main(int argc, char* argv[])
   app.statusMess("Schedr running: " + cng.localConnPnt);
   
   // on start
-  executor.addMessToDB(DB::MessSchedr{ base::MessType::START_SCHEDR });
+  executor.addMessToDB(DB::MessSchedr{ mess::MessType::START_SCHEDR });
 
   // loop ///////////////////////////////////////////////////////////////////////
   Loop loop(cng, executor, *dbNewTask, *dbSendMess);
-
-  Application::Connector.connect(Application::SIGNAL_LOOP_NOTIFY, 
-    std::function<void()>([&loop]() {
-      loop.standUpNotify();
-  }));
-
-  Application::Connector.connect(Application::SIGNAL_LOOP_STOP, 
-    std::function<void()>([&loop]() {
-      loop.stop();
-  }));
+ 
 
   try{
     loop.run();

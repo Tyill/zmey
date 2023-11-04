@@ -62,9 +62,9 @@ void Executor::sendNotifyHandler(const string& cp, const string& data, const std
   if (ec && (m_workers.find(cp) != m_workers.end())){
     auto& worker = m_workers[cp];
     wId = worker.base.id;
-    base::MessType mtype = base::MessType(stoi(mess[Link::command]));
+    mess::MessType mtype = mess::MessType(stoi(mess[Link::command]));
     switch (mtype){
-      case base::MessType::NEW_TASK:{
+      case mess::MessType::NEW_TASK:{
         checkFieldNum(Link::taskId);
         checkField(Link::params);
         checkField(Link::scriptPath);
