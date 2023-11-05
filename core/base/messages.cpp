@@ -8,40 +8,113 @@
 
 namespace mess
 {
+template<typename... Fields>
+class SerialReader{
+public: 
+    SerialReader(const std::string& m, int mtype, Fields&... fields):
+      in_(m){        
+        const int allSz = intSz_,
+                  typeSz = intSz_;
+        inSize_ = int(m.size());         
+        char* pData = (char*)m.data();
+        if (inSize_ < (allSz + typeSz) || 
+            inSize_ != *(int*)(pData) || 
+            (mtype > 0 && *(int*)(pData + allSz) != mtype)){
+            ok_ = false;
+            return;
+        }
+        mtype_ = *(int*)(pData + allSz);
+        offs_ = allSz + typeSz;
+        (readField(fields), ...);
+    } 
+    int mtype()const{
+        return mtype_;
+    }
+    bool ok()const{
+        return ok_;
+    }
+private:
+    bool checkFieldSize(int fieldSize){
+        if (offs_ + fieldSize > inSize_){
+            ok_ = false;
+        }
+        return ok_;        
+    }
+    void readField(std::string& s){ 
+        if (ok_){
+            if (!checkFieldSize(intSz_)) return;
+            const char* pData = in_.data();
+            int strSz = *((int*)(pData + offs_));  offs_ += intSz_;
+            
+            if (!checkFieldSize(strSz)) return;
+            s = std::string(pData + offs_, strSz);  offs_ += strSz;
+        }        
+    }
+    void readField(int& v){
+        if (ok_){
+            if (!checkFieldSize(intSz_)) return;
+            const char* pData = in_.data();
+            v = *((int*)(pData + offs_));  offs_ += intSz_;
+        }
+    }
+    const int intSz_ = 4;
+    int inSize_{};    
+    int offs_ = 0;
+    int mtype_ = 0;
+    bool ok_ = true;   
+    const std::string& in_;
+};
 
-#define CHECK_MSIZE_RETURN(step) \
-  if (offs + step > msz) return false;
+template<typename... Fields>
+class SerialWriter{
+public: 
+    SerialWriter(const Fields&... fields){
+        (fieldSize(fields), ...);
+
+        outSize_ += intSz_;
+        out_.resize(outSize_);
+        writeField(outSize_);
+
+        (writeField(fields), ...);
+    } 
+    std::string out(){
+        return out_;
+    }
+private:
+    void fieldSize(const std::string& s){
+        outSize_ += intSz_ + s.size();
+    }
+    void fieldSize(int){
+        outSize_ += intSz_;
+    }
+    void writeField(const std::string& s){ 
+        char* pOut = out_.data();
+        const auto ssz = s.size();
+        *((int*)(pOut + offs_)) = ssz;        offs_ += intSz_;
+        memcpy(pOut + offs_, s.data(), ssz);  offs_ += ssz;
+    }
+    void writeField(int v){
+        char* pOut = out_.data();
+        *((int*)(pOut + offs_)) = v; offs_ += intSz_;
+    }
+    const int intSz_ = 4;
+    int outSize_{};    
+    int offs_ = 0;
+    std::string out_;        
+};
+
 
 mess::MessType getMessType(const std::string& m){
-  const int intSz = 4,
-            allSz = intSz,
-            typeSz = intSz,
-            msz = int(m.size()); 
-  char* pData = (char*)m.data();
-  if (msz < (allSz + typeSz) || 
-      msz != *(int*)(pData)){
-    return mess::MessType::UNDEFINED;
+  const auto r = SerialReader(m, 0);
+  if (r.ok()){
+    return mess::MessType(r.mtype());
   }
-  return mess::MessType(*(int*)(pData + allSz));
+  return mess::MessType::UNDEFINED;
 }
 std::string getConnectPnt(const std::string& m){
-  const int intSz = 4,
-            allSz = intSz,
-            typeSz = intSz,
-            msz = int(m.size()); 
-  char* pData = (char*)m.data();
-  if (msz < (allSz + typeSz) || 
-      msz != *(int*)(pData)){
-    return std::string();
-  }
-  int offs = allSz + typeSz;
-  if (offs + intSz > msz) return std::string();
-  
-  int valSz = *((int*)(pData + offs));            
-  offs += intSz;
-  if (offs + valSz > msz) return std::string();
-  
-  return std::string(pData + offs, valSz);
+  std::string connectPnt;
+  SerialReader(m, 0, connectPnt);
+  return connectPnt;
 }
 
 NewTask::NewTask(const std::string& connPnt):
@@ -49,110 +122,26 @@ NewTask::NewTask(const std::string& connPnt):
 {
 }
 
-
-
-template<typename... Fields>
-void writeMessage(Fields... fields){
-  auto t = std::make_tuple(std::forward<Args>(fields)...);  
-  
-  const int intSz = 4;
-  int outSz = 0;
-  for (int i = 0; i < std::tuple_size_v<t>; ++i){
-    auto v = std::get<i>(t);
-    if constexpr (std::is_same<std::decltype(v), std::string>){
-      outSz += v.size();
-    } 
-    if constexpr (std::is_same<std::decltype(v), int>){
-      outSz += intSz;
-    } 
-  }
-  char out[outSz];  
-  
-  int offs = 0;
-  *((int*)(pOut + offs)) = connectPntSz;                 offs += intSz_;
-  memcpy(pOut + offs, connectPnt.data(), connectPntSz);  offs += connectPntSz;
-
-  
-
- 
-}
-
 std::string NewTask::serialn(){
-  const int intSz = 4,
-            connectPntSz = connectPnt.size(),
-            paramsSz = params.size(),
-            scriptPathSz = scriptPath.size(),
-            resultPathSz = resultPath.size(),
-            taskIdSz = intSz,
-            averDurationSecSz = intSz,
-            maxDurationSecSz = intSz,
-            //      allSz   mtype             
-            allSz = intSz + intSz + connectPntSz + intSz
-                                  + paramsSz + intSz
-                                  + scriptPathSz + intSz
-                                  + resultPathSz + intSz
-                                  + taskIdSz
-                                  + averDurationSecSz
-                                  + maxDurationSecSz;
-  int offs = 0,
-      inx = 0;
-  std::string out;
-  out.resize(allSz);
-  char* pOut = (char*)out.data();
-  *((int*)pOut) = allSz;                                 offs += intSz;                  
-  *((int*)pOut) = int(mtype);                            offs += intSz;                  
-  
-  *((int*)(pOut + offs)) = connectPntSz;                 offs += intSz;
-  memcpy(pOut + offs, connectPnt.data(), connectPntSz);  offs += connectPntSz;
-
-  *((int*)(pOut + offs)) = paramsSz;                     offs += intSz;
-  memcpy(pOut + offs, params.data(), paramsSz);          offs += paramsSz;
-
-  *((int*)(pOut + offs)) = scriptPathSz;                 offs += intSz;
-  memcpy(pOut + offs, scriptPath.data(), scriptPathSz);  offs += scriptPathSz;
-
-  *((int*)(pOut + offs)) = resultPathSz;                 offs += intSz;
-  memcpy(pOut + offs, resultPath.data(), resultPathSz);  offs += resultPathSz;
-
-  *((int*)(pOut + offs)) = taskId;                       offs += intSz;
-  *((int*)(pOut + offs)) = averDurationSec;              offs += intSz;
-  *((int*)(pOut + offs)) = maxDurationSec;               offs += intSz;
-
+  const auto out = SerialWriter(int(mtype), connectPnt, 
+                                params,
+                                scriptPath,
+                                resultPath,
+                                taskId,
+                                averDurationSec,
+                                maxDurationSec).out();
   return out;
 }
 
 bool NewTask::deserialn(const std::string& m){
-
-  const int intSz = 4,
-            allSz = intSz,
-            typeSz = intSz,
-            msz = int(m.size()); 
-  char* pData = (char*)m.data();
-  if (msz < (allSz + typeSz) || 
-      msz != *(int*)(pData) || 
-      *(int*)(pData + allSz) != int(mtype)){
-    return false;
-  }  
-  
-  int offs = allSz + typeSz;                                     CHECK_MSIZE_RETURN(intSz)
-  
-  int valSz = *((int*)(pData + offs));            offs += intSz; CHECK_MSIZE_RETURN(valSz)
-  connectPnt = std::string(pData + offs, valSz);  offs += valSz; CHECK_MSIZE_RETURN(intSz)
-
-  valSz = *((int*)(pData + offs));                offs += intSz; CHECK_MSIZE_RETURN(valSz)
-  params = std::string(pData + offs, valSz);      offs += valSz; CHECK_MSIZE_RETURN(intSz)
-
-  valSz = *((int*)(pData + offs));                offs += intSz; CHECK_MSIZE_RETURN(valSz)
-  scriptPath = std::string(pData + offs, valSz);  offs += valSz; CHECK_MSIZE_RETURN(intSz)
-
-  valSz = *((int*)(pData + offs));                offs += intSz; CHECK_MSIZE_RETURN(valSz)
-  resultPath = std::string(pData + offs, valSz);  offs += valSz; CHECK_MSIZE_RETURN(intSz)
-
-  taskId = *((int*)(pData + offs));               offs += intSz; CHECK_MSIZE_RETURN(intSz)
-  averDurationSec = *((int*)(pData + offs));      offs += intSz; CHECK_MSIZE_RETURN(intSz)
-  maxDurationSec = *((int*)(pData + offs));       offs += intSz; 
-
-  return true;
+  const auto ok = SerialReader(m, int(mtype), connectPnt, 
+                               params,
+                               scriptPath,
+                               resultPath,
+                               taskId,
+                               averDurationSec,
+                               maxDurationSec).ok();
+  return ok;
 }        
 
 TaskStatus::TaskStatus(mess::MessType _mtype, const std::string& connPnt):
@@ -162,58 +151,21 @@ TaskStatus::TaskStatus(mess::MessType _mtype, const std::string& connPnt):
 }  
 
 std::string TaskStatus::serialn(){
-  const int intSz = 4,
-            connectPntSz = connectPnt.size(),
-            taskIdSz = intSz,
-            activeTaskCountSz = intSz,
-            loadCPUSz = intSz,
-            //      allSz   mtype             
-            allSz = intSz + intSz + connectPntSz + intSz 
-                                  + taskIdSz
-                                  + activeTaskCountSz
-                                  + loadCPUSz;
-  int offs = 0,
-      inx = 0;
-  std::string out;
-  out.resize(allSz);
-  char* pOut = (char*)out.data();
-
-  *((int*)pOut) = allSz;                                 offs += intSz;                  
-  *((int*)pOut) = int(mtype);                            offs += intSz;                  
-  
-  *((int*)(pOut + offs)) = connectPntSz;                 offs += intSz;
-  memcpy(pOut + offs, connectPnt.data(), connectPntSz);  offs += connectPntSz;
-
-  *((int*)(pOut + offs)) = taskId;                       offs += intSz;
-  *((int*)(pOut + offs)) = activeTaskCount;              offs += intSz;
-  *((int*)(pOut + offs)) = loadCPU;                      offs += intSz;
+  const auto out = SerialWriter(int(mtype), connectPnt, 
+                                taskId,
+                                activeTaskCount,
+                                loadCPU).out();
+  return out;
 
   return out;
 }
 
 bool TaskStatus::deserialn(const std::string& m){
-
-  const int intSz = 4,
-            allSz = intSz,
-            typeSz = intSz,
-            msz = int(m.size()); 
-  char* pData = (char*)m.data();
-  if (msz < (allSz + typeSz) || 
-      msz != *(int*)(pData) || 
-      *(int*)(pData + allSz) != int(mtype)){
-    return false;
-  }  
-
-  int offs = allSz + typeSz;                                     CHECK_MSIZE_RETURN(intSz)
-  
-  int valSz = *((int*)(pData + offs));            offs += intSz; CHECK_MSIZE_RETURN(valSz)
-  connectPnt = std::string(pData + offs, valSz);  offs += valSz; CHECK_MSIZE_RETURN(intSz)
-
-  taskId = *((int*)(pData + offs));               offs += intSz; CHECK_MSIZE_RETURN(intSz)
-  activeTaskCount = *((int*)(pData + offs));      offs += intSz; CHECK_MSIZE_RETURN(intSz)
-  loadCPU = *((int*)(pData + offs));            
-      
-  return true;
+  const auto ok = SerialReader(m, int(mtype), connectPnt, 
+                               taskId,
+                               activeTaskCount,
+                               loadCPU).ok();
+  return ok;
 }     
 
 TaskProgress::TaskProgress(const std::string& connPnt, const std::vector<std::pair<int,int>>& progress):
@@ -223,69 +175,19 @@ TaskProgress::TaskProgress(const std::string& connPnt, const std::vector<std::pa
 }
 
 std::string TaskProgress::serialn(){
-  const int intSz = 4,
-            connectPntSz = connectPnt.size(),
-            taskIdSz = intSz,
-            taskProgressSz = intSz,
-            taskCount = taskProgress.size(),
-            taskCountSz = intSz,
-            //      allSz   mtype             
-            allSz = intSz + intSz + connectPntSz + taskCountSz 
-                                  + taskIdSz * taskCount
-                                  + taskProgressSz * taskCount;
-  int offs = 0,
-      inx = 0;
-  std::string out;
-  out.resize(allSz);
-  char* pOut = (char*)out.data();
-
-  *((int*)pOut) = allSz;                                 offs += intSz;                  
-  *((int*)pOut) = int(mtype);                            offs += intSz;                  
-  
-  *((int*)(pOut + offs)) = connectPntSz;                 offs += intSz;
-  memcpy(pOut + offs, connectPnt.data(), connectPntSz);  offs += connectPntSz;
-
-  *((int*)(pOut + offs)) = taskCount;                    offs += intSz;
-
-  for (const auto& t : taskProgress){
-    *((int*)(pOut + offs)) = t.first;                    offs += intSz;
-    *((int*)(pOut + offs)) = t.second;                   offs += intSz;
-  }
+  const auto out = SerialWriter(int(mtype), connectPnt, 
+                                taskId,
+                                activeTaskCount,
+                                loadCPU).out();
   return out;
 }
 
 bool TaskProgress::deserialn(const std::string& m){
-
-  const int intSz = 4,
-            allSz = intSz,
-            typeSz = intSz,
-            msz = int(m.size()); 
-  char* pData = (char*)m.data();
-  if (msz < (allSz + typeSz) || 
-      msz != *(int*)(pData) || 
-      *(int*)(pData + allSz) != int(mtype)){
-    return false;
-  }  
-  
-  int offs = allSz + typeSz;                                     CHECK_MSIZE_RETURN(intSz)
-  
-  int valSz = *((int*)(pData + offs));            offs += intSz; CHECK_MSIZE_RETURN(valSz)
-  connectPnt = std::string(pData + offs, valSz);  offs += valSz; CHECK_MSIZE_RETURN(intSz)
-
-  int taskCount = *((int*)(pData + offs));        offs += intSz; CHECK_MSIZE_RETURN(intSz)
-  
-  for (int i = 0; i < taskCount; ++i){
-    int taskId = *((int*)(pData + offs));         offs += intSz; CHECK_MSIZE_RETURN(intSz)
-    int taskPrss = *((int*)(pData + offs));       offs += intSz; 
-    
-    taskProgress.push_back({taskId, taskPrss});
-
-    if (i < taskCount - 1){
-      CHECK_MSIZE_RETURN(intSz)
-    }
-  }        
-      
-  return true;
+  const auto ok = SerialReader(m, int(mtype), connectPnt, 
+                               taskId,
+                               activeTaskCount,
+                               loadCPU).ok();
+  return ok;
 }     
   
 InfoMess::InfoMess(mess::MessType _mtype, const std::string& connPnt):
@@ -295,45 +197,19 @@ InfoMess::InfoMess(mess::MessType _mtype, const std::string& connPnt):
 } 
 
 std::string InfoMess::serialn(){
-  const int intSz = 4,
-            connectPntSz = connectPnt.size(),
-            //      allSz   mtype             
-            allSz = intSz + intSz + connectPntSz + intSz;
-
-  int offs = 0,
-      inx = 0;
-  std::string out;
-  out.resize(allSz);
-  char* pOut = (char*)out.data();
-
-  *((int*)pOut) = allSz;                                 offs += intSz;                  
-  *((int*)pOut) = int(mtype);                            offs += intSz;                  
-  
-  *((int*)(pOut + offs)) = connectPntSz;                 offs += intSz;
-  memcpy(pOut + offs, connectPnt.data(), connectPntSz);  offs += connectPntSz;
-
+  const auto out = SerialWriter(int(mtype), connectPnt, 
+                                taskId,
+                                activeTaskCount,
+                                loadCPU).out();
   return out;
 }
 
 bool InfoMess::deserialn(const std::string& m){
-
-  const int intSz = 4,
-            allSz = intSz,
-            typeSz = intSz,
-            msz = int(m.size()); 
-  char* pData = (char*)m.data();
-  if (msz < (allSz + typeSz) || 
-      msz != *(int*)(pData) || 
-      *(int*)(pData + allSz) != int(mtype)){
-    return false;
-  }  
-
-  int offs = allSz + typeSz;                                     CHECK_MSIZE_RETURN(intSz)
-  
-  int valSz = *((int*)(pData + offs));            offs += intSz; CHECK_MSIZE_RETURN(valSz)
-  connectPnt = std::string(pData + offs, valSz);  offs += valSz;
-      
-  return true;
+  const auto ok = SerialReader(m, int(mtype), connectPnt, 
+                               taskId,
+                               activeTaskCount,
+                               loadCPU).ok();
+  return ok;
 }       
 
 InternError::InternError(const std::string& connPnt, const std::string& mess):
@@ -343,55 +219,17 @@ InternError::InternError(const std::string& connPnt, const std::string& mess):
 }
   
 std::string InternError::serialn(){
-  const int intSz = 4,
-            connectPntSz = connectPnt.size(),
-            messageSz = message.size(),
-            //      allSz   mtype             
-            allSz = intSz + intSz + connectPntSz + intSz
-                                  + messageSz + intSz;
-
-  int offs = 0,
-      inx = 0;
-  std::string out;
-  out.resize(allSz);
-  char* pOut = (char*)out.data();
-
-  *((int*)pOut) = allSz;                                 offs += intSz;                  
-  *((int*)pOut) = int(mtype);                            offs += intSz;                  
-  
-  *((int*)(pOut + offs)) = connectPntSz;                 offs += intSz;
-  memcpy(pOut + offs, connectPnt.data(), connectPntSz);  offs += connectPntSz;
-
-  *((int*)(pOut + offs)) = messageSz;                    offs += intSz;
-  memcpy(pOut + offs, message.data(), messageSz);        offs += messageSz;
-
+  const auto out = SerialWriter(int(mtype), connectPnt, 
+                                taskId,
+                                activeTaskCount,
+                                loadCPU).out();
   return out;
 }
 
 bool InternError::deserialn(const std::string& m){
-
-  const int intSz = 4,
-            allSz = intSz,
-            typeSz = intSz,
-            msz = int(m.size()); 
-  char* pData = (char*)m.data();
-  if (msz < (allSz + typeSz) || 
-      msz != *(int*)(pData) || 
-      *(int*)(pData + allSz) != int(mtype)){
-    return false;
-  }  
-
-  int offs = allSz + typeSz;                                     CHECK_MSIZE_RETURN(intSz)
-  
-  int valSz = *((int*)(pData + offs));            offs += intSz; CHECK_MSIZE_RETURN(valSz)
-  connectPnt = std::string(pData + offs, valSz);  offs += valSz; CHECK_MSIZE_RETURN(intSz)
-
-  valSz = *((int*)(pData + offs));                offs += intSz; CHECK_MSIZE_RETURN(valSz)
-  message = std::string(pData + offs, valSz); 
-      
-  return true;
-}     
-
-#undef CHECK_MSIZE_RETURN
-} // namespace mess
-      
+  const auto ok = SerialReader(m, int(mtype), connectPnt, 
+                               taskId,
+                               activeTaskCount,
+                               loadCPU).ok();
+  return ok;
+}
