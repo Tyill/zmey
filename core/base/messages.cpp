@@ -3,6 +3,8 @@
 
 #include <cstring>
 #include <vector>
+#include <tuple>
+#include <type_traits>
 
 namespace mess
 {
@@ -45,6 +47,34 @@ std::string getConnectPnt(const std::string& m){
 NewTask::NewTask(const std::string& connPnt):
   connectPnt(connPnt)
 {
+}
+
+
+
+template<typename... Fields>
+void writeMessage(Fields... fields){
+  auto t = std::make_tuple(std::forward<Args>(fields)...);  
+  
+  const int intSz = 4;
+  int outSz = 0;
+  for (int i = 0; i < std::tuple_size_v<t>; ++i){
+    auto v = std::get<i>(t);
+    if constexpr (std::is_same<std::decltype(v), std::string>){
+      outSz += v.size();
+    } 
+    if constexpr (std::is_same<std::decltype(v), int>){
+      outSz += intSz;
+    } 
+  }
+  char out[outSz];  
+  
+  int offs = 0;
+  *((int*)(pOut + offs)) = connectPntSz;                 offs += intSz_;
+  memcpy(pOut + offs, connectPnt.data(), connectPntSz);  offs += connectPntSz;
+
+  
+
+ 
 }
 
 std::string NewTask::serialn(){
