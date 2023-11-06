@@ -90,4 +90,4 @@ public:
   }
 };
 }
-#define _pg m_impl->m_db
+#define pg_ m_impl->m_db

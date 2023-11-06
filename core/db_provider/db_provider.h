@@ -30,6 +30,7 @@
 #include <functional>
 
 #include "base/base.h"
+#include "base/messages.h"
 
 namespace DB{
 
@@ -64,7 +65,6 @@ struct MessError{
   std::string message;
 };
 struct TaskState{
-  int progress;
   base::StateType state;
 };
 struct TaskTime{
@@ -76,7 +76,7 @@ struct TaskTime{
 
 struct SchedulerState{
   base::StateType state;
-  int activeTask;
+  int activeTaskCount;
   std::string startTime;
   std::string stopTime;
   std::string pingTime;
@@ -84,7 +84,7 @@ struct SchedulerState{
 
 struct WorkerState{
   base::StateType state;
-  int activeTask;
+  int activeTaskCount;
   int load;
   std::string startTime;
   std::string stopTime;
@@ -117,9 +117,7 @@ public:
   ConnectCng getConnectCng(){
     return m_connCng;
   }
-  
-  bool createTables();
-  
+    
   bool addSchedr(const base::Scheduler& schedl, int& outSchId);
   bool getSchedr(int sId, base::Scheduler& outCng);
   bool changeSchedr(int sId, const base::Scheduler& newCng);

@@ -5,7 +5,7 @@
 import psycopg2
 
 def createTables():
-  with psycopg2.connect(dbname='passdb', user='postgres', password='postgres', host='localhost') as pg:
+  with psycopg2.connect(dbname='zmeydb', user='postgres', password='postgres', host='localhost') as pg:
     csr = pg.cursor()
     csr.execute(
 
@@ -65,8 +65,7 @@ def createTables():
 
       "CREATE TABLE IF NOT EXISTS tblTaskState("
         "qtask        INT PRIMARY KEY REFERENCES tblTaskQueue,"        
-        "state        INT NOT NULL REFERENCES tblState,"
-        "progress     INT NOT NULL DEFAULT 0 CHECK (progress BETWEEN 0 AND 100));"
+        "state        INT NOT NULL REFERENCES tblState);"
 
       "CREATE TABLE IF NOT EXISTS tblTaskTime("
         "qtask          INT PRIMARY KEY REFERENCES tblTaskQueue,"        
@@ -77,8 +76,6 @@ def createTables():
   
       "CREATE TABLE IF NOT EXISTS tblTaskParam("
         "qtask           INT PRIMARY KEY REFERENCES tblTaskQueue,"
-        "averDurationSec INT NOT NULL CHECK (averDurationSec >= 0),"
-        "maxDurationSec  INT NOT NULL CHECK (maxDurationSec >= 0),"
         "schedrPreset    INT REFERENCES tblScheduler,"
         "workerPreset    INT REFERENCES tblWorker," 
         "params          TEXT NOT NULL,"
@@ -96,7 +93,7 @@ def createTables():
 ### FUNCTIONS
      
       "CREATE OR REPLACE FUNCTION "
-        "funcStartTask(averDurationSec int, maxDurationSec int, schedrPreset int, workerPreset int, params TEXT, scriptPath TEXT, resultPath TEXT) "
+        "funcStartTask(schedrPreset int, workerPreset int, params TEXT, scriptPath TEXT, resultPath TEXT) "
         "RETURNS int AS $$ "
         "DECLARE "
         "  qId int := 0;"
@@ -109,10 +106,8 @@ def createTables():
         "  INSERT INTO tblTaskTime (qtask) VALUES("
         "    qId);"
 
-        "  INSERT INTO tblTaskParam (qtask, averDurationSec, maxDurationSec, schedrPreset, workerPreset, params, scriptPath, resultPath) VALUES("
+        "  INSERT INTO tblTaskParam (qtask, schedrPreset, workerPreset, params, scriptPath, resultPath) VALUES("
         "    qId,"
-        "    averDurationSec,"
-        "    maxDurationSec,"
         "    NULLIF(schedrPreset, 0),"
         "    NULLIF(workerPreset, 0),"
         "    params,"
@@ -121,7 +116,7 @@ def createTables():
                             
         "  INSERT INTO tblTaskState (qtask, state) VALUES("
         "    qId,"
-        "" << int(base::StateType::READY) << ");"
+        "    1);" # ready
 
         "  RETURN qId;"
         "END;"
@@ -131,7 +126,7 @@ def createTables():
         "funcStartTaskNotify() "
         "RETURNS trigger AS $$ "
         "BEGIN "
-        " NOTIFY " << m_impl->NOTIFY_NAME_NEW_TASK << ";"
+        " NOTIFY newtasknotify;"
         " RETURN NEW;"
         "END; "
         "$$ LANGUAGE plpgsql;"
@@ -140,7 +135,7 @@ def createTables():
         "funcChangeTaskNotify() "
         "RETURNS trigger AS $$ "
         "BEGIN "
-        " NOTIFY " << m_impl->NOTIFY_NAME_CHANGE_TASK << ";"
+        " NOTIFY changetaskstate;"
         " RETURN NEW;"
         "END; "
         "$$ LANGUAGE plpgsql;"
@@ -150,21 +145,19 @@ def createTables():
         "RETURNS TABLE("
         "  qid int,"
         "  workerPreset int,"
-        "  averDurSec int,"
-        "  maxDurSec int,"        
         "  params text,"
         "  scriptPath text,"        
         "  resultPath text) AS $$ "
         "DECLARE "
         "  t int;"
         "BEGIN"
-        "  FOR qid, workerPreset, averDurSec, maxDurSec, params, scriptPath, resultPath IN"
-        "    SELECT tq.id, COALESCE(tp.workerPreset, 0), tp.averDurationSec, tp.maxDurationSec,"
+        "  FOR qid, workerPreset, params, scriptPath, resultPath IN"
+        "    SELECT tq.id, COALESCE(tp.workerPreset, 0),"
         "           tp.params, tp.scriptPath, tp.resultPath"
         "    FROM tblTaskQueue tq "
         "    JOIN tblTaskParam tp ON tp.qtask = tq.id "
         "    JOIN tblTaskState ts ON ts.qtask = tq.id "
-        "    WHERE ts.state = " << int(base::StateType::READY) << ""
+        "    WHERE ts.state = 1" # ready
         "      AND tq.schedr IS NULL "
         "      AND (tp.schedrPreset IS NULL OR tp.schedrPreset = sId) ORDER BY tq.id"
         "    LIMIT maxTaskCnt "
@@ -175,7 +168,7 @@ def createTables():
         "    WHERE id = qid;"
         
         "    UPDATE tblTaskState SET"
-        "      state = " << int(base::StateType::START) << ""
+        "      state = 2" #start
         "    WHERE qtask = qid;"
         
         "    UPDATE tblTaskTime SET"

@@ -167,7 +167,7 @@ bool zmStateOfScheduler(zmConn zo, int sId, zmSchedulerState* outState){
   DB::SchedulerState state;
   if (static_cast<DB::DbProvider*>(zo)->schedrState(sId, state)){ 
     outState->state = (zmStateType)state.state;
-    outState->activeTask = state.activeTask;
+    outState->activeTaskCount = state.activeTaskCount;
     strncpy(outState->startTime, state.startTime.c_str(), 31);
     strncpy(outState->stopTime, state.stopTime.c_str(), 31);
     strncpy(outState->pingTime, state.pingTime.c_str(), 31);
@@ -287,8 +287,7 @@ bool zmStateOfWorker(zmConn zo, int* pWId, int wCnt, zmWorkerState* outState){
   if (static_cast<DB::DbProvider*>(zo)->workerState(wId, state)){
     for (size_t i = 0; i < state.size(); ++i){
       outState[i].state = (zmStateType)state[i].state;
-      outState[i].activeTask = state[i].activeTask;
-      outState[i].load = state[i].load;
+      outState[i].activeTaskCount = state[i].activeTaskCount;
       strncpy(outState[i].startTime, state[i].startTime.c_str(), 31);
       strncpy(outState[i].stopTime, state[i].stopTime.c_str(), 31);
       strncpy(outState[i].pingTime, state[i].pingTime.c_str(), 31);

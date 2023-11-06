@@ -140,7 +140,7 @@ ZMEY_API bool zmPingScheduler(zmConn, int sId);
 
 struct zmSchedulerState{
   zmStateType state;
-  int activeTask;
+  int activeTaskCount;
   char startTime[32];
   char stopTime[32];
   char pingTime[32];
@@ -217,8 +217,7 @@ ZMEY_API bool zmPingWorker(zmConn, int wId);
 
 struct zmWorkerState{
   zmStateType state;
-  int activeTask;
-  int load;
+  int activeTaskCount;
   char startTime[32];
   char stopTime[32];
   char pingTime[32];
