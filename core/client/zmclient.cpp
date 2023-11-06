@@ -101,8 +101,6 @@ bool zmAddScheduler(zmConn zo, zmSchedr cng, int* outSchId){
   scng.capacityTask = cng.capacityTask;
   scng.connectPnt = cng.connectPnt;
   scng.state = base::StateType::STOP;
-  scng.name = cng.name;
-  scng.description = cng.description ? cng.description : "";
 
   return static_cast<DB::DbProvider*>(zo)->addSchedr(scng, *outSchId);
 }
@@ -127,8 +125,6 @@ bool zmChangeScheduler(zmConn zo, int sId, zmSchedr newCng){
   base::Scheduler scng;
   scng.capacityTask = newCng.capacityTask;
   scng.connectPnt = newCng.connectPnt;
-  scng.name = newCng.name;
-  scng.description = newCng.description ? newCng.description : "";
 
   return static_cast<DB::DbProvider*>(zo)->changeSchedr(sId, scng);
 }
@@ -211,8 +207,6 @@ bool zmAddWorker(zmConn zo, zmWorker cng, int* outWId){
   wcng.connectPnt = cng.connectPnt;
   wcng.state = base::StateType::STOP;
   wcng.sId = cng.sId;
-  wcng.name = cng.name;
-  wcng.description = cng.description ? cng.description : "";
 
   return static_cast<DB::DbProvider*>(zo)->addWorker(wcng, *outWId);
 }
@@ -239,8 +233,6 @@ bool zmChangeWorker(zmConn zo, int wId, zmWorker newCng){
   wcng.sId = newCng.sId;
   wcng.capacityTask = newCng.capacityTask;
   wcng.connectPnt = newCng.connectPnt;
-  wcng.name = newCng.name;
-  wcng.description = newCng.description ? newCng.description : "";
   
   return static_cast<DB::DbProvider*>(zo)->changeWorker(wId, wcng);
 }
@@ -327,8 +319,6 @@ bool zmStartTask(zmConn zo, zmTask cng, int* tId){
 
   base::Task task;
   task.wId = cng.workerPresetId;
-  task.averDurationSec = cng.averDurationSec;
-  task.maxDurationSec = cng.maxDurationSec;
   task.params = cng.params ? cng.params : "";
   task.scriptPath = cng.scriptPath;
   task.resultPath = cng.resultPath;
@@ -385,7 +375,6 @@ bool zmStateOfTask(zmConn zo, int* qtId, int tCnt, zmTaskState* outQTState){
   vector<DB::TaskState> state;
   if (static_cast<DB::DbProvider*>(zo)->taskState(qtaskId, state)){  
     for (size_t i = 0; i < tCnt; ++i){
-      outQTState[i].progress = state[i].progress;
       outQTState[i].state = (zmStateType)state[i].state;
     }    
     return true;

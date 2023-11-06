@@ -47,8 +47,6 @@ namespace base{
   struct Task{
     int id{};                   // id tblTaskQueue
     int wId{};                  // preset worker id tblWorker. Default 0 - not set
-    int averDurationSec{};      // estimated lead time
-    int maxDurationSec{};       // maximum lead time
     std::string params;
     std::string scriptPath;  
     std::string resultPath;  

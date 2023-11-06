@@ -67,19 +67,6 @@ public:
   std::string serialn();
   bool deserialn(const std::string& m); 
 };
-class TaskProgress{
-public:  
-  TaskProgress(const std::string& connPnt, const std::vector<std::pair<int,int>>& progress = {});
-
-  std::string connectPnt;
-  std::vector<std::pair<int,int>> taskProgress; // first - tId, second - progress
-  
-  std::string serialn();
-  bool deserialn(const std::string& m);
-
-private:
-  MessType mtype = MessType::TASK_PROGRESS;
-};
     
 class InfoMess{
 public:  

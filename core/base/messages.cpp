@@ -168,28 +168,6 @@ bool TaskStatus::deserialn(const std::string& m){
   return ok;
 }     
 
-TaskProgress::TaskProgress(const std::string& connPnt, const std::vector<std::pair<int,int>>& progress):
-  connectPnt(connPnt),
-  taskProgress(progress)
-{
-}
-
-std::string TaskProgress::serialn(){
-  const auto out = SerialWriter(int(mtype), connectPnt, 
-                                taskId,
-                                activeTaskCount,
-                                loadCPU).out();
-  return out;
-}
-
-bool TaskProgress::deserialn(const std::string& m){
-  const auto ok = SerialReader(m, int(mtype), connectPnt, 
-                               taskId,
-                               activeTaskCount,
-                               loadCPU).ok();
-  return ok;
-}     
-  
 InfoMess::InfoMess(mess::MessType _mtype, const std::string& connPnt):
   mtype(_mtype),
   connectPnt(connPnt)
@@ -197,18 +175,12 @@ InfoMess::InfoMess(mess::MessType _mtype, const std::string& connPnt):
 } 
 
 std::string InfoMess::serialn(){
-  const auto out = SerialWriter(int(mtype), connectPnt, 
-                                taskId,
-                                activeTaskCount,
-                                loadCPU).out();
+  const auto out = SerialWriter(int(mtype), connectPnt).out();
   return out;
 }
 
 bool InfoMess::deserialn(const std::string& m){
-  const auto ok = SerialReader(m, int(mtype), connectPnt, 
-                               taskId,
-                               activeTaskCount,
-                               loadCPU).ok();
+  const auto ok = SerialReader(m, int(mtype), connectPnt).ok();
   return ok;
 }       
 
@@ -220,16 +192,13 @@ InternError::InternError(const std::string& connPnt, const std::string& mess):
   
 std::string InternError::serialn(){
   const auto out = SerialWriter(int(mtype), connectPnt, 
-                                taskId,
-                                activeTaskCount,
-                                loadCPU).out();
+                                message).out();
   return out;
 }
 
 bool InternError::deserialn(const std::string& m){
   const auto ok = SerialReader(m, int(mtype), connectPnt, 
-                               taskId,
-                               activeTaskCount,
-                               loadCPU).ok();
+                               message).ok();
   return ok;
+}
 }
