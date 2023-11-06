@@ -23,38 +23,17 @@
 // THE SOFTWARE.
 //
 
-#include "../front.h"
+#include "scheduler/executor.h"
+#include "base/messages.h"
 
-namespace misc {
+using namespace std;
 
-Front::Front() : oncSz_(0) {
-}
-bool Front::posFront(bool en, int id){
-  if (oncSz_ <= id) {
-    onc_.resize(id + 1, true);
-    oncSz_ = id + 1;
-  }
-  if (!onc_[id] && en) {
-    onc_[id] = true;
-    return true;
-  } 
-  else if (!en){
-    onc_[id] = false;
-  }
-  return false;
-}
-bool Front::negFront(bool en, int id){
-  if (oncSz_ <= id){
-    onc_.resize(id + 1, true);
-    oncSz_ = id + 1;
-  }
-  if (!onc_[id] && !en) {
-    onc_[id] = true;
-    return true;
-  } 
-  else if (en){
-    onc_[id] = false;      
-  }
-  return false;
-}
+void Executor::errorNotifyHandler(const string& cp, const std::error_code& ec)
+{      
+  if (ec && m_workers.count(cp)){
+    workerNotResponding(m_db, &m_workers[cp]);
+    errorMessage("errorNotifyHandler worker not response, cp: " + cp, m_workers[cp].base.id);
+  } else {
+    errorMessage("errorNotifyHandler wrong receiver: " + cp, 0);
+  }  
 }

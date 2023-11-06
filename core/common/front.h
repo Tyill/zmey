@@ -30,8 +30,8 @@
 namespace misc {
 
 class Front{
-  std::vector<bool> _onc;
-  int _oncSz = 0;
+  std::vector<bool> onc_;
+  int oncSz_ = 0;
 public:
   Front();
   bool posFront(bool en, int id);

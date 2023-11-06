@@ -35,10 +35,10 @@ public:
 
   void start(int innerThreadCnt);
   void stop();
-  bool asyncSendData(const std::string& connPnt, const std::string& data, bool isCBackIfError);
+  bool asyncSendData(const std::string& connPnt, std::string&& data);
   
   misc::ReceiveDataCBack ReceiveDataCB = nullptr;
-  misc::SendStatusCBack SendStatusCB = nullptr;   
+  misc::ErrorStatusCBack ErrorStatusCB = nullptr;   
 
 private:
   void accept();

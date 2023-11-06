@@ -44,8 +44,6 @@ public:
   std::string scriptPath;     
   std::string resultPath;     
   int taskId{};
-  int averDurationSec{};
-  int maxDurationSec{};
 
   std::string serialn();
   bool deserialn(const std::string& m);

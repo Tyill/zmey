@@ -35,7 +35,7 @@ public:
   TcpSession(TcpServer& server, asio::ip::tcp::socket socket);
 
   void read(); 
-  void write(const std::string& msg, bool isCBackIfError);
+  void write(std::string&& msg);
   bool isConnect();
 
 private:

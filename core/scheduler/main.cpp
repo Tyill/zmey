@@ -88,10 +88,10 @@ int main(int argc, char* argv[])
   misc::ReceiveDataCBack receiveDataCB = [&executor](const string& cp, const string& data){
     executor.receiveHandler(cp, data);
   };
-  misc::SendStatusCBack sendStatusCB = [&executor](const string& cp, const string& data, const error_code& ec){
-    executor.sendNotifyHandler(cp, data, ec);
+  misc::ErrorStatusCBack errorStatusCB = [&executor](const string& cp, const error_code& ec){
+    executor.errorNotifyHandler(cp, ec);
   };  
-  CHECK_RETURN(!misc::startServer(cng.localConnPnt, receiveDataCB, sendStatusCB, 0, err), 
+  CHECK_RETURN(!misc::startServer(cng.localConnPnt, receiveDataCB, errorStatusCB, 0, err), 
     "Schedr error: " + cng.localConnPnt + " " + err);
   app.statusMess("Schedr running: " + cng.localConnPnt);
   

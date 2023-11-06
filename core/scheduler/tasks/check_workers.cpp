@@ -42,28 +42,36 @@ void Executor::checkStatusWorkers(DB::DbProvider& db)
   }
   if (wkrNotResp.size() <= round(m_workers.size() * 0.75)){ 
     for(auto w : wkrNotResp){
-      if (w->base.state != base::StateType::NOT_RESPONDING){
-        m_messToDB.push(DB::MessSchedr(mess::MessType::WORKER_NOT_RESPONDING, w->base.id));
-        m_messToDB.push(DB::MessSchedr::errorMess(w->base.id, "checkStatusWorkers worker not responding"));          
-        w->stateMem = w->base.state;
-        w->base.state = base::StateType::NOT_RESPONDING;
-        
-        vector<base::Task> tasks;
-        if (db.getTasksById(m_schedr.id, w->taskList, tasks)){
-          for(auto& t : tasks){
-            m_tasks.push(move(t));
-          }
-        }else{
-          m_app.statusMess("getTasksById db error: " + db.getLastError());
-        }        
-        for(auto& t : w->taskList){
-          t = 0;
-        }
-      } 
+      workerNotResponding(db, w);
     }
   }else{
     string mess = "checkStatusWorkers error all workers are not available";
     m_messToDB.push(DB::MessSchedr::errorMess(0, mess));                                     
     m_app.statusMess(mess);
+  }
+}
+
+void Executor::workerNotResponding(DB::DbProvider& db, SWorker* w)
+{
+  if (w->base.state != base::StateType::NOT_RESPONDING){
+    m_messToDB.push(DB::MessSchedr(mess::MessType::WORKER_NOT_RESPONDING, w->base.id));
+    m_messToDB.push(DB::MessSchedr::errorMess(w->base.id, "worker not responding"));          
+    w->stateMem = w->base.state;
+    w->base.state = base::StateType::NOT_RESPONDING;
+  }
+  std::vector<int> taskList;
+  std::copy_if (w->taskList.begin(), w->taskList.end(), std::back_inserter(taskList), [](int i){return i > 0;} );
+  if (!taskList.empty()){
+    vector<base::Task> tasks;
+    if (db.getTasksById(m_schedr.id, taskList, tasks)){
+      for(auto& t : tasks){
+        m_tasks.push(move(t));
+      }
+    }else{
+      m_app.statusMess("workerNotResponding db error: " + db.getLastError());
+    }        
+    for(auto& t : w->taskList){
+      t = 0;
+    } 
   }
 }

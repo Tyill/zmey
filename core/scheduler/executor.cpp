@@ -66,3 +66,9 @@ bool Executor::listenNewTask(DB::DbProvider& db, bool on)
 {
   return db.setListenNewTaskNotify(on);
 }
+
+void Executor::errorMessage(const std::string& mess, int wId)
+{
+  m_messToDB.push(DB::MessSchedr::errorMess(wId, mess));
+  m_app.statusMess(mess);
+}

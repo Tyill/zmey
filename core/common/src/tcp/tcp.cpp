@@ -32,7 +32,7 @@ namespace misc{
 
 static TcpServer* pSrv = nullptr;
 
-bool startServer(const std::string& connPnt, ReceiveDataCBack receiveDataCB, SendStatusCBack sendStatusCB,
+bool startServer(const std::string& connPnt, ReceiveDataCBack receiveDataCB, ErrorStatusCBack errorStatusCB,
  int innerThreadCnt, std::string& err)
 {
   if (pSrv) return true;
@@ -42,7 +42,7 @@ bool startServer(const std::string& connPnt, ReceiveDataCBack receiveDataCB, Sen
     pSrv = new TcpServer(cp[0], stoi(cp[1]));
 
     pSrv->ReceiveDataCB = receiveDataCB;
-    pSrv->SendStatusCB = sendStatusCB;
+    pSrv->ErrorStatusCB = errorStatusCB;
 
     pSrv->start(innerThreadCnt);
   }catch (std::exception& e){
@@ -53,16 +53,17 @@ bool startServer(const std::string& connPnt, ReceiveDataCBack receiveDataCB, Sen
 };
 
 void stopServer(){
-  if (pSrv)
+  if (pSrv){
     pSrv->stop();
+  }
 };
 
-bool asyncSendData(const std::string& connPnt, const std::string& data, bool isCBackIfError)
+bool asyncSendData(const std::string& connPnt, std::string&& data)
 {
-  return pSrv ? pSrv->asyncSendData(connPnt, data, isCBackIfError) : false;
+  return pSrv ? pSrv->asyncSendData(connPnt, std::move(data)) : false;
 };
 
-bool syncSendData(const std::string& connPnt, const std::string& data)
+bool syncSendData(const std::string& connPnt, std::string&& data)
 {  
   using namespace asio::ip;
   
@@ -73,8 +74,9 @@ bool syncSendData(const std::string& connPnt, const std::string& data)
   auto cp = misc::split(connPnt, ':');
   asio::error_code ec;
   asio::connect(s, resolver.resolve(cp[0], cp[1]), ec);
-  if (!ec)
+  if (!ec){
     asio::write(s, asio::buffer(data.data(), data.size() + 1), ec);
+  }
   return !ec;
 };
 

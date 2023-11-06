@@ -212,14 +212,14 @@ int CPUData::load(){
         int idleTime = stoi(times[(int)States::S_IDLE]) +
                        stoi(times[(int)States::S_IOWAIT]);   
 
-        int activeTimeTotal = activeTime - _prevActiveTime,
-            idleTimeTotal = idleTime - _prevIdleTime,
+        int activeTimeTotal = activeTime - prevActiveTime_,
+            idleTimeTotal = idleTime - prevIdleTime_,
             totalTime = activeTimeTotal + idleTimeTotal;
   
         if (totalTime == 0) totalTime = 1;  
 
-        _prevActiveTime = activeTime;
-        _prevIdleTime = idleTime;
+        prevActiveTime_ = activeTime;
+        prevIdleTime_ = idleTime;
 
         return bound(0, (100 * activeTimeTotal) / totalTime, 100);
       }

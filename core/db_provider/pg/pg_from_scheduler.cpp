@@ -35,9 +35,9 @@ bool DbProvider::setListenNewTaskNotify(bool on){
   string cmd = on ? "LISTEN " : "UNLISTEN ";
   cmd += m_impl->NOTIFY_NAME_NEW_TASK;
 
-  PGres pgr(PQexec(_pg, cmd.c_str()));
+  PGres pgr(PQexec(pg_, cmd.c_str()));
   if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
-    errorMess(string("setListenNewTaskNotify: ") + PQerrorMessage(_pg));
+    errorMess(string("setListenNewTaskNotify: ") + PQerrorMessage(pg_));
     return false;
   }
   return true;
@@ -51,9 +51,9 @@ bool DbProvider::getSchedr(const std::string& connPnt, base::Scheduler& outCng){
         "FROM tblScheduler "
         "WHERE connPnt = '" << connPnt << "' AND isDelete = 0;";
 
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("getSchedr: ") + PQerrorMessage(_pg));
+    errorMess(string("getSchedr: ") + PQerrorMessage(pg_));
     return false;
   }
   if (PQntuples(pgr.res) == 0){
@@ -76,16 +76,16 @@ bool DbProvider::getTasksById(int sId, const std::vector<int>& tasksId, std::vec
                   return s.empty() ? to_string(v) : s + "," + to_string(v);
                 }); 
   stringstream ss;
-  ss << "SELECT tq.id, COALESCE(tp.workerPreset, 0), tp.averDurationSec, tp.maxDurationSec, "
+  ss << "SELECT tq.id, COALESCE(tp.workerPreset, 0), "
         "       tp.params, tp.scriptPath, tp.resultPath "
         "FROM tblTaskQueue tq "
         "JOIN tblTaskState ts ON ts.qtask = tq.id "
         "JOIN tblTaskParam tp ON tp.qtask = tq.id "
         "WHERE tq.schedr = " << sId << " AND tq.id IN (" << tId << ") AND (ts.state BETWEEN " << (int)base::StateType::START << " AND " << (int)base::StateType::PAUSE << ")";
 
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("getTasksById: ") + PQerrorMessage(_pg));
+    errorMess(string("getTasksById: ") + PQerrorMessage(pg_));
     return false;
   }
 
@@ -94,11 +94,9 @@ bool DbProvider::getTasksById(int sId, const std::vector<int>& tasksId, std::vec
     out.push_back(base::Task {
       stoi(PQgetvalue(pgr.res, i, 0)),
       stoi(PQgetvalue(pgr.res, i, 1)),
-      atoi(PQgetvalue(pgr.res, i, 2)),
-      atoi(PQgetvalue(pgr.res, i, 3)),
-      PQgetvalue(pgr.res, i, 4),
-      PQgetvalue(pgr.res, i, 5),
-      PQgetvalue(pgr.res, i, 6)
+      PQgetvalue(pgr.res, i, 2),
+      PQgetvalue(pgr.res, i, 3),
+      PQgetvalue(pgr.res, i, 4)
     });
   }
   return true;
@@ -106,16 +104,16 @@ bool DbProvider::getTasksById(int sId, const std::vector<int>& tasksId, std::vec
 bool DbProvider::getTasksOfSchedr(int sId, std::vector<base::Task>& out){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
-  ss << "SELECT tq.id, COALESCE(tp.workerPreset, 0), tp.averDurationSec, tp.maxDurationSec, "
+  ss << "SELECT tq.id, COALESCE(tp.workerPreset, 0), "
         "       tp.params, tp.scriptPath, tp.resultPath "
         "FROM tblTaskQueue tq "
         "JOIN tblTaskState ts ON ts.qtask = tq.id "
         "JOIN tblTaskParam tp ON tp.qtask = tq.id "
         "WHERE tq.schedr = " << sId << " AND tq.worker IS NULL AND (ts.state BETWEEN " << (int)base::StateType::START << " AND " << (int)base::StateType::PAUSE << ")";
 
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("getTasksOfSchedr: ") + PQerrorMessage(_pg));
+    errorMess(string("getTasksOfSchedr: ") + PQerrorMessage(pg_));
     return false;
   }
   int tsz = PQntuples(pgr.res);
@@ -123,11 +121,9 @@ bool DbProvider::getTasksOfSchedr(int sId, std::vector<base::Task>& out){
     out.push_back(base::Task {
       stoi(PQgetvalue(pgr.res, i, 0)),
       stoi(PQgetvalue(pgr.res, i, 1)),
-      atoi(PQgetvalue(pgr.res, i, 2)),
-      atoi(PQgetvalue(pgr.res, i, 3)),
-      PQgetvalue(pgr.res, i, 4),
-      PQgetvalue(pgr.res, i, 5),
-      PQgetvalue(pgr.res, i, 6)
+      PQgetvalue(pgr.res, i, 2),
+      PQgetvalue(pgr.res, i, 3),
+      PQgetvalue(pgr.res, i, 4)
     });
   }
   return true;
@@ -140,9 +136,9 @@ bool DbProvider::getTasksOfWorker(int sId, int wId, std::vector<int>& outTasksId
         "JOIN tblTaskState ts ON ts.qtask = tq.id "
         "WHERE tq.schedr = " << sId << " AND tq.worker = " << wId << " AND (ts.state BETWEEN " << (int)base::StateType::START << " AND " << (int)base::StateType::PAUSE << ")";
 
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("getTasksOfWorker: ") + PQerrorMessage(_pg));
+    errorMess(string("getTasksOfWorker: ") + PQerrorMessage(pg_));
     return false;
   }
   int tsz = PQntuples(pgr.res);
@@ -154,13 +150,13 @@ bool DbProvider::getTasksOfWorker(int sId, int wId, std::vector<int>& outTasksId
 bool DbProvider::getWorkersOfSchedr(int sId, std::vector<base::Worker>& out){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
-  ss << "SELECT id, state, capacityTask, activeTask, connPnt, name, description "
+  ss << "SELECT id, state, capacityTask, activeTask, connPnt "
         "FROM tblWorker "
         "WHERE schedr = " << sId << " AND isDelete = 0;";
 
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("getWorkersOfSchedr: ") + PQerrorMessage(_pg));
+    errorMess(string("getWorkersOfSchedr: ") + PQerrorMessage(pg_));
     return false;
   }
   int wsz = PQntuples(pgr.res);
@@ -171,34 +167,34 @@ bool DbProvider::getWorkersOfSchedr(int sId, std::vector<base::Worker>& out){
                                    atoi(PQgetvalue(pgr.res, i, 2)),
                                    atoi(PQgetvalue(pgr.res, i, 3)),
                                    0,
-                                   PQgetvalue(pgr.res, i, 4),
-                                   PQgetvalue(pgr.res, i, 5),
-                                   PQgetvalue(pgr.res, i, 6)});
+                                   PQgetvalue(pgr.res, i, 4)});
   }
   return true;
 }
 bool DbProvider::getNewTasksForSchedr(int sId, int maxTaskCnt, std::vector<base::Task>& out){
   lock_guard<mutex> lk(m_impl->m_mtx);  
   
-  PQconsumeInput(_pg);
+  PQconsumeInput(pg_);
   m_impl->m_notifyAuxCheckTOut.updateCycTime();
   
   bool isNewTask = false;
-  PGnotify* notify = PQnotifies(_pg);
+  PGnotify* notify = PQnotifies(pg_);
   if (notify){
     isNewTask = std::string(notify->relname) == m_impl->NOTIFY_NAME_NEW_TASK;
     PQfreemem(notify);
   }
   bool auxCheckTimeout = m_impl->m_notifyAuxCheckTOut.onDelayOncSec(true, 10, 0);
-  if (!isNewTask && m_impl->m_firstReqNewTasks && !auxCheckTimeout) return true;
+  if (!isNewTask && m_impl->m_firstReqNewTasks && !auxCheckTimeout){
+    return true;
+  }
   m_impl->m_firstReqNewTasks = true;
   
   stringstream ss;
   ss << "SELECT * FROM funcNewTasksForSchedr(" << sId << "," << maxTaskCnt << ");";
 
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("getNewTasksForSchedr ") + PQerrorMessage(_pg));
+    errorMess(string("getNewTasksForSchedr ") + PQerrorMessage(pg_));
     return false;
   }
   int tsz = PQntuples(pgr.res);
@@ -206,15 +202,13 @@ bool DbProvider::getNewTasksForSchedr(int sId, int maxTaskCnt, std::vector<base:
     out.push_back(base::Task {
       stoi(PQgetvalue(pgr.res, i, 0)),
       stoi(PQgetvalue(pgr.res, i, 1)),
-      atoi(PQgetvalue(pgr.res, i, 2)),
-      atoi(PQgetvalue(pgr.res, i, 3)),
-      PQgetvalue(pgr.res, i, 4),
-      PQgetvalue(pgr.res, i, 5),
-      PQgetvalue(pgr.res, i, 6)
+      PQgetvalue(pgr.res, i, 2),
+      PQgetvalue(pgr.res, i, 3),
+      PQgetvalue(pgr.res, i, 4)
     });
   }
   int cnt = 1;
-  while ((cnt < tsz) && ((notify = PQnotifies(_pg)) != nullptr)){
+  while ((cnt < tsz) && ((notify = PQnotifies(pg_)) != nullptr)){
     PQfreemem(notify);
     ++cnt;
   }
@@ -278,11 +272,6 @@ bool DbProvider::sendAllMessFromSchedr(int sId, std::vector<DB::MessSchedr>& mes
               "UPDATE tblTaskState SET "
               "state = " << (int)base::StateType::STOP << " "
               "WHERE qtask = " << m.taskId << ";"; 
-        break;
-       case base::MessType::TASK_PROGRESS:
-        ss << "UPDATE tblTaskState SET "
-              "progress = " << stoi(m.data) << " "
-              "WHERE qtask = " << m.taskId << ";";
         break;
       case base::MessType::PAUSE_SCHEDR:
         ss << "UPDATE tblScheduler SET "
@@ -370,9 +359,9 @@ bool DbProvider::sendAllMessFromSchedr(int sId, std::vector<DB::MessSchedr>& mes
         break;
     }    
   }
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
-    errorMess(string("sendAllMessFromSchedr: ") + PQerrorMessage(_pg));
+    errorMess(string("sendAllMessFromSchedr: ") + PQerrorMessage(pg_));
     return false;
   }
   return true;

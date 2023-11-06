@@ -45,7 +45,7 @@ public:
   bool listenNewTask(DB::DbProvider& db, bool on);
   
   void receiveHandler(const std::string& cp, const std::string& data);
-  void sendNotifyHandler(const std::string& cp, const std::string& data, const std::error_code& ec);
+  void errorNotifyHandler(const std::string& cp, const std::error_code& ec);
   void getNewTaskFromDB(DB::DbProvider& db);
   void sendAllMessToDB(DB::DbProvider& db);
   bool sendTaskToWorker();
@@ -63,12 +63,14 @@ private:
     bool isActive{};
   };
 
+  void workerNotResponding(DB::DbProvider& db, SWorker*);
+  void errorMessage(const std::string& mess, int wId);
+
   Application& m_app;
   DB::DbProvider& m_db;
 
   std::map<std::string, SWorker> m_workers;   // key - connectPnt  
   std::vector<base::Worker> m_workersList;
-  std::vector<base::Worker*> m_refWorkers;
   misc::Queue<base::Task> m_tasks;
   misc::Queue<DB::MessSchedr> m_messToDB;
   base::Scheduler m_schedr;

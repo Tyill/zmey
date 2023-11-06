@@ -30,13 +30,11 @@
 
 namespace misc{
 
-/// status send data to receiver 
+/// error status send data to receiver 
 /// [in] connPnt - connection point: IP or DNS ':' port
-/// [in] data - data for send
 /// [in] ec - system error code 
-using SendStatusCBack = std::function<void(const std::string& connPnt,                           
-                                           const std::string& data,
-                                           const std::error_code& ec)>;
+using ErrorStatusCBack = std::function<void(const std::string& connPnt, 
+                                            const std::error_code& ec)>;
 
 /// received data from sender
 /// [in] connPnt - connection point: IP or DNS ':' port
@@ -51,7 +49,7 @@ using ReceiveDataCBack = std::function<void(const std::string& connPnt,
 /// [in] innerThreadCnt - the number of internal threads to run, 0 - std::thread::hardware_concurrency()
 /// [inout] err - error
 /// return true - ok 
-bool startServer(const std::string& connPnt, ReceiveDataCBack, SendStatusCBack,
+bool startServer(const std::string& connPnt, ReceiveDataCBack, ErrorStatusCBack,
  int innerThreadCnt, std::string& err);
 
 void stopServer();
@@ -60,11 +58,11 @@ void stopServer();
 /// [in] connPnt - connection point: IP or DNS ':' port
 /// [in] data - data for send
 /// [in] stsCBackError - status send call back only if an error
-bool asyncSendData(const std::string& connPnt, const std::string& data, bool stsCBackError = true);
+bool asyncSendData(const std::string& connPnt, std::string&& data);
 
 /// synchronous data sending once to receiver whithout answer
 /// [in] connPnt - connection point of receiver: IP or DNS ':' port
 /// [in] data - data for send
 /// return true - ok
-bool syncSendData(const std::string& connPnt, const std::string& data);
+bool syncSendData(const std::string& connPnt, std::string&& data);
 }

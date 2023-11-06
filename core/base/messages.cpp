@@ -127,9 +127,7 @@ std::string NewTask::serialn(){
                                 params,
                                 scriptPath,
                                 resultPath,
-                                taskId,
-                                averDurationSec,
-                                maxDurationSec).out();
+                                taskId).out();
   return out;
 }
 
@@ -138,9 +136,7 @@ bool NewTask::deserialn(const std::string& m){
                                params,
                                scriptPath,
                                resultPath,
-                               taskId,
-                               averDurationSec,
-                               maxDurationSec).ok();
+                               taskId).ok();
   return ok;
 }        
 
