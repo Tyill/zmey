@@ -31,8 +31,6 @@
 
 using namespace std;
 
-misc::Connector Application::Connector;
-
 void Application::statusMess(const string& mess){
   std::lock_guard<mutex> lock(m_mtxStatusMess);
   cout << misc::currDateTimeMs() << " " << mess << std::endl;

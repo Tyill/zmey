@@ -36,9 +36,9 @@ bool DbProvider::getWorkerByTask(int tId, base::Worker& wcng){
         "JOIN tblWorker wkr ON wkr.id = tq.worker "      
         "WHERE tq.id = " << tId << ";";
 
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("getWorkerByTask: ") + PQerrorMessage(_pg));
+    errorMess(string("getWorkerByTask: ") + PQerrorMessage(pg_));
     return false;
   }
   if (PQntuples(pgr.res) != 1){
@@ -62,9 +62,9 @@ vector<DB::MessError> DbProvider::getInternErrors(int sId, int wId, int mCnt){
         "WHERE (schedr = " << sId << " OR " << sId << " = 0)" << " AND "
         "      (worker = " << wId << " OR " << wId << " = 0) ORDER BY createTime LIMIT " << mCnt << ";";
 
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("getInternErrors: ") + PQerrorMessage(_pg));
+    errorMess(string("getInternErrors: ") + PQerrorMessage(pg_));
     return vector<DB::MessError>();
   }  
   int rows = PQntuples(pgr.res);
@@ -78,26 +78,4 @@ vector<DB::MessError> DbProvider::getInternErrors(int sId, int wId, int mCnt){
   return ret;
 }
 
-// for test
-bool DbProvider::delAllTables(){
-  lock_guard<mutex> lk(m_impl->m_mtx);
-  stringstream ss;
-  ss << "DROP TABLE IF EXISTS tblTaskState CASCADE; "
-        "DROP TABLE IF EXISTS tblTaskTime CASCADE; "
-        "DROP TABLE IF EXISTS tblTaskParam CASCADE; "
-        "DROP TABLE IF EXISTS tblTaskQueue CASCADE; "
-        "DROP TABLE IF EXISTS tblScheduler CASCADE; "
-        "DROP TABLE IF EXISTS tblWorker CASCADE; "
-        "DROP TABLE IF EXISTS tblState CASCADE; "
-        "DROP TABLE IF EXISTS tblInternError CASCADE; "
-        "DROP FUNCTION IF EXISTS funcstarttask(integer,text);"
-        "DROP FUNCTION IF EXISTS funcnewtasksforschedr(integer,integer);";
-  
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
-  if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
-      errorMess(PQerrorMessage(_pg));
-      return false;
-  }
-  return true;
-}
 }

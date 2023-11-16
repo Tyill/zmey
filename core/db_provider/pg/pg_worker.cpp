@@ -36,17 +36,15 @@ bool DbProvider::addWorker(const base::Worker& worker, int& outWkrId){
     return false;
   }
   stringstream ss;
-  ss << "INSERT INTO tblWorker (connPnt, schedr, state, capacityTask, name, description) VALUES("
+  ss << "INSERT INTO tblWorker (connPnt, schedr, state, capacityTask) VALUES("
         "'" << worker.connectPnt << "',"
         "'" << (int)worker.sId << "',"
         "'" << (int)worker.state << "',"
-        "'" << worker.capacityTask << "',"
-        "'" << worker.name << "',"
-        "'" << worker.description << "') RETURNING id;";
+        "'" << worker.capacityTask << "') RETURNING id;";
 
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-      errorMess(string("addWorker: ") + PQerrorMessage(_pg));
+      errorMess(string("addWorker: ") + PQerrorMessage(pg_));
       return false;
   }
   outWkrId = stoi(PQgetvalue(pgr.res, 0, 0));
@@ -55,13 +53,13 @@ bool DbProvider::addWorker(const base::Worker& worker, int& outWkrId){
 bool DbProvider::getWorker(int wId, base::Worker& cng){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
-  ss << "SELECT connPnt, schedr, state, capacityTask, name, description "
+  ss << "SELECT connPnt, schedr, state, capacityTask "
         "FROM tblWorker "
         "WHERE id = " << wId << " AND isDelete = 0;";
 
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("getWorker: ") + PQerrorMessage(_pg));
+    errorMess(string("getWorker: ") + PQerrorMessage(pg_));
     return false;
   }
   if (PQntuples(pgr.res) != 1){
@@ -72,8 +70,6 @@ bool DbProvider::getWorker(int wId, base::Worker& cng){
   cng.sId = stoi(PQgetvalue(pgr.res, 0, 1));
   cng.state = (base::StateType)atoi(PQgetvalue(pgr.res, 0, 2));
   cng.capacityTask = atoi(PQgetvalue(pgr.res, 0, 3));
-  cng.name = PQgetvalue(pgr.res, 0, 4);
-  cng.description = PQgetvalue(pgr.res, 0, 5);
   return true;
 }
 bool DbProvider::changeWorker(int wId, const base::Worker& newCng){
@@ -87,14 +83,12 @@ bool DbProvider::changeWorker(int wId, const base::Worker& newCng){
   ss << "UPDATE tblWorker SET "
         "schedr = '" << (int)newCng.sId << "',"
         "capacityTask = '" << newCng.capacityTask << "',"
-        "connPnt = '" << newCng.connectPnt << "',"
-        "name = '" << newCng.name << "',"
-        "description = '" << newCng.description << "' "
+        "connPnt = '" << newCng.connectPnt << "' "
         "WHERE id = " << wId << " AND isDelete = 0;";
 
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
-    errorMess(string("changeWorker: ") + PQerrorMessage(_pg));
+    errorMess(string("changeWorker: ") + PQerrorMessage(pg_));
     return false;
   }  
   return true;
@@ -106,9 +100,9 @@ bool DbProvider::delWorker(int wId){
         "isDelete = 1 "
         "WHERE id = " << wId << ";";
 
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
-    errorMess(string("delWorker: ") + PQerrorMessage(_pg));
+    errorMess(string("delWorker: ") + PQerrorMessage(pg_));
     return false;
   }  
   return true;
@@ -126,9 +120,9 @@ bool DbProvider::workerState(const std::vector<int>& wId, std::vector<WorkerStat
         "FROM tblWorker "
         "WHERE id IN (" << swId << ")  AND isDelete = 0 ORDER BY id;";
 
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("workerState: ") + PQerrorMessage(_pg));
+    errorMess(string("workerState: ") + PQerrorMessage(pg_));
     return false;
   }
   size_t wsz = wId.size();
@@ -139,7 +133,7 @@ bool DbProvider::workerState(const std::vector<int>& wId, std::vector<WorkerStat
   out.resize(wsz);
   for (size_t i = 0; i < wsz; ++i){
     out[i].state = (base::StateType)atoi(PQgetvalue(pgr.res, (int)i, 0));
-    out[i].activeTask = atoi(PQgetvalue(pgr.res, (int)i, 1));
+    out[i].activeTaskCount = atoi(PQgetvalue(pgr.res, (int)i, 1));
     out[i].load = atoi(PQgetvalue(pgr.res, (int)i, 2));
     out[i].startTime = PQgetvalue(pgr.res, (int)i, 3);
     out[i].stopTime = PQgetvalue(pgr.res, (int)i, 4);
@@ -155,9 +149,9 @@ std::vector<int> DbProvider::getAllWorkers(int sId, base::StateType state){
         "AND schedr = " << sId << " "
         "AND isDelete = 0;";
 
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("getAllWorkers: ") + PQerrorMessage(_pg));
+    errorMess(string("getAllWorkers: ") + PQerrorMessage(pg_));
     return std::vector<int>();
   }  
   int rows = PQntuples(pgr.res);

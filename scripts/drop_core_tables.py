@@ -26,8 +26,8 @@ def dropTables():
         "DROP FUNCTION IF EXISTS funcChangeTaskNotify cascade;"
         "DROP FUNCTION IF EXISTS funcNewTasksForSchedr cascade;"
         
-        "DROP TRIGGER IF EXISTS trgNewTask cascade;"
-        "DROP TRIGGER IF EXISTS trgTaskChange cascade;"
+        "DROP TRIGGER IF EXISTS trgNewTask ON tblTaskQueue cascade;"
+        "DROP TRIGGER IF EXISTS trgTaskChange ON tblTaskState cascade;"
     )
     csr.close()
 

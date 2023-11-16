@@ -93,7 +93,7 @@ struct WorkerState{
 
 typedef void* UData;
 typedef std::function<void(const char* mess, UData)> ErrCBack;
-typedef void(*ChangeTaskStateCBack)(int qtId, int progress, base::StateType prevState, base::StateType newState, UData);
+typedef void(*ChangeTaskStateCBack)(int qtId, base::StateType prevState, base::StateType newState, UData);
 
 class DbProvider{  
 public: 
@@ -151,10 +151,7 @@ public:
   bool getWorkersOfSchedr(int sId, std::vector<base::Worker>& out);
   bool getNewTasksForSchedr(int sId, int maxTaskCnt, std::vector<base::Task>& out);
   bool sendAllMessFromSchedr(int sId, std::vector<MessSchedr>& out);
-
-  // for test
-  bool delAllTables();  
-
+  
 private:
   std::string m_err;
   ErrCBack m_errCBack = nullptr;

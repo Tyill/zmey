@@ -34,8 +34,8 @@ DbProvider::DbProvider(const DB::ConnectCng& cng) :
   m_connCng(cng){ 
 
   m_impl->m_db = (PGconn*)PQconnectdb(cng.connectStr.c_str());
-  if (PQstatus(_pg) != CONNECTION_OK){
-    errorMess(PQerrorMessage(_pg));
+  if (PQstatus(pg_) != CONNECTION_OK){
+    errorMess(PQerrorMessage(pg_));
     return;
   }
 }
@@ -44,8 +44,8 @@ DbProvider::~DbProvider(){
     m_impl->m_fClose = true; 
     m_impl->m_thrEndTask.join();
   }
-  if (_pg){
-    PQfinish(_pg);
+  if (pg_){
+    PQfinish(pg_);
   }
   delete m_impl;
 }

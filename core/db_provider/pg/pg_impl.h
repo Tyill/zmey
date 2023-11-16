@@ -46,10 +46,9 @@ public:
   std::thread m_thrEndTask;
 
   struct NotifyTaskStateCBack{
-    base::StateType state;
-    int progress;
-    ChangeTaskStateCBack cback;
-    UData ud;
+    base::StateType state{};
+    ChangeTaskStateCBack cback{};
+    UData ud{};
   };
 
   std::map<int, NotifyTaskStateCBack> m_notifyTaskStateCBack;

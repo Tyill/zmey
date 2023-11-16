@@ -9,7 +9,7 @@ def createTables():
     csr = pg.cursor()
     csr.execute(
 
-      "SELECT pg_catalog.set_config('search_path', 'public', false)"
+      "SELECT pg_catalog.set_config('search_path', 'public', false);"
 
       "CREATE TABLE IF NOT EXISTS tblState("
       "id           SERIAL PRIMARY KEY,"

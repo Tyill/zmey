@@ -35,27 +35,27 @@ bool DbProvider::setChangeTaskStateCBack(int tId, ChangeTaskStateCBack cback, UD
     return false;
   {
     lock_guard<mutex> lk(m_impl->m_mtxNotifyTask);  
-    m_impl->m_notifyTaskStateCBack[tId] = {base::StateType::UNDEFINED, 0, cback, ud };
+    m_impl->m_notifyTaskStateCBack[tId] = {base::StateType::UNDEFINED, cback, ud };
   }  
   if (!m_impl->m_thrEndTask.joinable()){
     m_impl->m_thrEndTask = thread([this](){
       
       auto cmd = "LISTEN " + m_impl->NOTIFY_NAME_CHANGE_TASK;
-      PGres pgr(PQexec(_pg, cmd.c_str()));
+      PGres pgr(PQexec(pg_, cmd.c_str()));
       if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
-        errorMess(string("endTaskCBack LISTEN: ") + PQerrorMessage(_pg));
+        errorMess(string("endTaskCBack LISTEN: ") + PQerrorMessage(pg_));
       }
 
       int maxElapseTimeMS = 10;
       while (!m_impl->m_fClose){
         
-        PQconsumeInput(_pg);
+        PQconsumeInput(pg_);
         m_impl->m_notifyAuxCheckTOut.updateCycTime();
         
         bool isChangeState = false;
         PGnotify* notify = nullptr;
-        while ((notify = PQnotifies(_pg)) != nullptr){
-          isChangeState |= std::string(notify->relname) == m_impl->NOTIFY_NAME_CHANGE_TASK;
+        while ((notify = PQnotifies(pg_)) != nullptr){
+          isChangeState = std::string(notify->relname) == m_impl->NOTIFY_NAME_CHANGE_TASK;
           PQfreemem(notify);
         }
         bool auxCheckTimeout = m_impl->m_notifyAuxCheckTOut.onDelayOncSec(true, 10, 1);
@@ -81,7 +81,7 @@ bool DbProvider::setChangeTaskStateCBack(int tId, ChangeTaskStateCBack cback, UD
                     return s.empty() ? to_string(v.first) : s + "," + to_string(v.first);
                   });       
         stringstream ss;
-        ss << "SELECT qtask, state, progress "
+        ss << "SELECT qtask, state "
               "FROM tblTaskState ts "
               "WHERE qtask IN (" << stId << ");"; 
         
@@ -90,31 +90,29 @@ bool DbProvider::setChangeTaskStateCBack(int tId, ChangeTaskStateCBack cback, UD
         struct TState{
           int id;
           base::StateType state;
-          int progress;
         };
         vector<TState> notifyRes;
         { 
           lock_guard<mutex> lk(m_impl->m_mtx);
-          PGres pgr(PQexec(_pg, ss.str().c_str()));
+          PGres pgr(PQexec(pg_, ss.str().c_str()));
           if (PQresultStatus(pgr.res) == PGRES_TUPLES_OK){
             size_t tsz = PQntuples(pgr.res);
             for (size_t i = 0; i < tsz; ++i){
               int tId = stoi(PQgetvalue(pgr.res, (int)i, 0));
               base::StateType state = (base::StateType)atoi(PQgetvalue(pgr.res, (int)i, 1));
-              int progress = atoi(PQgetvalue(pgr.res, (int)i, 2));
-              if ((state != notifyTasks[tId].state) || (progress != notifyTasks[tId].progress)){
-                notifyRes.push_back(TState{tId, state, progress});
+              if (state != notifyTasks[tId].state){
+                notifyRes.push_back(TState{tId, state});
               }
             }
           }else{
-            errorMess(string("endTaskCBack: ") + PQerrorMessage(_pg));
+            errorMess(string("endTaskCBack: ") + PQerrorMessage(pg_));
           } 
         }
         if (!notifyRes.empty()){
           for (auto& t : notifyRes){
             base::StateType prevState = notifyTasks[t.id].state,
-                               newState = t.state;
-            notifyTasks[t.id].cback(t.id, t.progress, prevState, newState, notifyTasks[t.id].ud);
+                            newState = t.state;
+            notifyTasks[t.id].cback(t.id, prevState, newState, notifyTasks[t.id].ud);
           }
           { 
             lock_guard<mutex> lk(m_impl->m_mtxNotifyTask);  
@@ -124,7 +122,6 @@ bool DbProvider::setChangeTaskStateCBack(int tId, ChangeTaskStateCBack cback, UD
                 m_impl->m_notifyTaskStateCBack.erase(t.id);
               }else{
                 m_impl->m_notifyTaskStateCBack[t.id].state = newState;
-                m_impl->m_notifyTaskStateCBack[t.id].progress = t.progress;
               }
             }    
           }

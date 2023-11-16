@@ -36,7 +36,6 @@
 #include "client/zmclient.h"
 
 using namespace std;
-using namespace ddag;
 
 class APITest : public ::testing::Test {
 public:

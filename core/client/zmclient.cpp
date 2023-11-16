@@ -73,11 +73,6 @@ void zmDisconnect(zmConn zo){
     delete static_cast<DB::DbProvider*>(zo);
   }
 }
-bool zmCreateTables(zmConn zo){
-  if (!zo) return false;
-
-  return static_cast<DB::DbProvider*>(zo)->createTables();
-}
 bool zmGetLastError(zmConn zo, char* err/*sz 256*/){
   if (zo && err){
     strncpy(err, static_cast<DB::DbProvider*>(zo)->getLastError().c_str(), 255);

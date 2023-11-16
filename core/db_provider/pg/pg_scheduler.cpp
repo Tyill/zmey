@@ -37,13 +37,11 @@ bool DbProvider::addSchedr(const base::Scheduler& schedl, int& outSchId){
   ss << "INSERT INTO tblScheduler (connPnt, state, capacityTask, name, description) VALUES("
         "'" << schedl.connectPnt << "',"
         "'" << (int)schedl.state << "',"
-        "'" << schedl.capacityTask << "',"
-        "'" << schedl.name << "',"
-        "'" << schedl.description << "') RETURNING id;";
+        "'" << schedl.capacityTask << "') RETURNING id;";
 
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("addSchedr: ") + PQerrorMessage(_pg));
+    errorMess(string("addSchedr: ") + PQerrorMessage(pg_));
     return false;
   }
   outSchId = stoi(PQgetvalue(pgr.res, 0, 0));
@@ -52,13 +50,13 @@ bool DbProvider::addSchedr(const base::Scheduler& schedl, int& outSchId){
 bool DbProvider::getSchedr(int sId, base::Scheduler& cng){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
-  ss << "SELECT connPnt, state, capacityTask, name, description "
+  ss << "SELECT connPnt, state, capacityTask "
         "FROM tblScheduler "
         "WHERE id = " << sId << " AND isDelete = 0;";
 
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("getSchedr: ") + PQerrorMessage(_pg));
+    errorMess(string("getSchedr: ") + PQerrorMessage(pg_));
     return false;
   }
   if (PQntuples(pgr.res) != 1){
@@ -68,8 +66,6 @@ bool DbProvider::getSchedr(int sId, base::Scheduler& cng){
   cng.connectPnt = PQgetvalue(pgr.res, 0, 0);
   cng.state = (base::StateType)atoi(PQgetvalue(pgr.res, 0, 1));
   cng.capacityTask = atoi(PQgetvalue(pgr.res, 0, 2));
-  cng.name = PQgetvalue(pgr.res, 0, 3);
-  cng.description = PQgetvalue(pgr.res, 0, 4);
   return true;
 }
 bool DbProvider::changeSchedr(int sId, const base::Scheduler& newCng){  
@@ -78,14 +74,12 @@ bool DbProvider::changeSchedr(int sId, const base::Scheduler& newCng){
   stringstream ss;
   ss << "UPDATE tblScheduler SET "
         "capacityTask = '" << newCng.capacityTask << "', "
-        "connPnt = '" << newCng.connectPnt << "', "
-        "name = '" << newCng.name << "', "
-        "description = '" << newCng.description << "' "
+        "connPnt = '" << newCng.connectPnt << "' "
         "WHERE id = " << sId << " AND isDelete = 0;";
       
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
-    errorMess(string("changeSchedr: ") + PQerrorMessage(_pg));
+    errorMess(string("changeSchedr: ") + PQerrorMessage(pg_));
     return false;
   }  
   return true;
@@ -97,9 +91,9 @@ bool DbProvider::delSchedr(int sId){
         "isDelete = 1 "
         "WHERE id = " << sId << ";";
 
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
-    errorMess(string("delSchedr: ") + PQerrorMessage(_pg));
+    errorMess(string("delSchedr: ") + PQerrorMessage(pg_));
     return false;
   }  
   return true;
@@ -112,13 +106,13 @@ bool DbProvider::schedrState(int sId, SchedulerState& out){
         "FROM tblScheduler "
         "WHERE id = " << sId << " AND isDelete = 0;";
 
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  PGres pgr(PQexec(pg_, ss.str().c_str()));
   if ((PQresultStatus(pgr.res) != PGRES_TUPLES_OK) || (PQntuples(pgr.res) != 1)){
-    errorMess(string("schedrState: ") + PQerrorMessage(_pg));
+    errorMess(string("schedrState: ") + PQerrorMessage(pg_));
     return false;
   }
   out.state = (base::StateType)atoi(PQgetvalue(pgr.res, 0, 0));
-  out.activeTask = atoi(PQgetvalue(pgr.res, 0, 1));
+  out.activeTaskCount = atoi(PQgetvalue(pgr.res, 0, 1));
   out.startTime = PQgetvalue(pgr.res, 0, 2);
   out.stopTime = PQgetvalue(pgr.res, 0, 3);
   out.pingTime = PQgetvalue(pgr.res, 0, 4);
@@ -130,9 +124,9 @@ std::vector<int> DbProvider::getAllSchedrs(base::StateType state){
   ss << "SELECT id FROM tblScheduler "
         "WHERE (state = " << (int)state << " OR " << (int)state << " = -1) AND isDelete = 0;";
 
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("getAllSchedrs: ") + PQerrorMessage(_pg));
+    errorMess(string("getAllSchedrs: ") + PQerrorMessage(pg_));
     return std::vector<int>();
   }  
   int rows = PQntuples(pgr.res);

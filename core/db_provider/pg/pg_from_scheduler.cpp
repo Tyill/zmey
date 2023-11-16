@@ -47,7 +47,7 @@ bool DbProvider::getSchedr(const std::string& connPnt, base::Scheduler& outCng){
   lock_guard<mutex> lk(m_impl->m_mtx);
   
   stringstream ss;
-  ss << "SELECT id, state, capacityTask, activeTask, internalData, name, description "
+  ss << "SELECT id, state, capacityTask, activeTask "
         "FROM tblScheduler "
         "WHERE connPnt = '" << connPnt << "' AND isDelete = 0;";
 
@@ -236,8 +236,7 @@ bool DbProvider::sendAllMessFromSchedr(int sId, std::vector<DB::MessSchedr>& mes
         }
         else if (m.type == mess::MessType::TASK_COMPLETED){                      
           ss << "UPDATE tblTaskState SET "
-                "state = " << (int)base::StateType::COMPLETED << ", "
-                "progress = 100 "
+                "state = " << (int)base::StateType::COMPLETED << " "
                 "WHERE qtask = " << m.taskId << ";";
         }
         break;                
@@ -273,7 +272,7 @@ bool DbProvider::sendAllMessFromSchedr(int sId, std::vector<DB::MessSchedr>& mes
               "state = " << (int)base::StateType::STOP << " "
               "WHERE qtask = " << m.taskId << ";"; 
         break;
-      case base::MessType::PAUSE_SCHEDR:
+      case mess::MessType::PAUSE_SCHEDR:
         ss << "UPDATE tblScheduler SET "
               "state = " << (int)base::StateType::PAUSE << " "
               "WHERE id = " << sId << ";";

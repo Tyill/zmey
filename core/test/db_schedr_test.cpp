@@ -44,10 +44,6 @@ public:
     DB::ConnectCng cng;
     cng.connectStr = "host=localhost port=5432 password=123 dbname=dagdb connect_timeout=10";
     _pDb = new DB::DbProvider(cng);
-    if (_pDb){
-      EXPECT_TRUE(_pDb->delAllTables())   << _pDb->getLastError();
-      EXPECT_TRUE(_pDb->createTables());
-    }
   }
   ~DBSchedrTest() {
     delete _pDb;

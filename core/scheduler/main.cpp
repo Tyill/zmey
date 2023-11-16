@@ -32,16 +32,14 @@
 
 using namespace std;
 
-void closeHandler(int sig);
-
 unique_ptr<DB::DbProvider> 
 createDbProvider(const Application::Config& cng, string& err);
 
-#define CHECK_RETURN(fun, mess) \
-  if (fun){                     \
-    app.statusMess(mess);       \
-    return 1;                  \
-  }
+Loop* pLoop;
+void closeHandler(int sig)
+{
+  if (pLoop) pLoop->stop();
+}
 
 int main(int argc, char* argv[])
 {
@@ -55,6 +53,12 @@ int main(int argc, char* argv[])
   if (cng.remoteConnPnt.empty()){  // when without NAT
     cng.remoteConnPnt = cng.localConnPnt;
   } 
+
+#define CHECK_RETURN(fun, mess) \
+  if (fun){                     \
+    app.statusMess(mess);       \
+    return 1;                   \
+  }
 
   CHECK_RETURN(cng.localConnPnt.empty() || (misc::split(cng.localConnPnt, ':').size() != 2), "Not set param '--localAddr[-la]' - scheduler local connection point: IP or DNS:port");
   CHECK_RETURN(cng.remoteConnPnt.empty() || (misc::split(cng.remoteConnPnt, ':').size() != 2), "Not set param '--remoteAddr[-ra]' - scheduler remote connection point: IP or DNS:port");
@@ -100,7 +104,7 @@ int main(int argc, char* argv[])
 
   // loop ///////////////////////////////////////////////////////////////////////
   Loop loop(cng, executor, *dbNewTask, *dbSendMess);
- 
+  pLoop = &loop;
 
   try{
     loop.run();
@@ -116,11 +120,6 @@ int main(int argc, char* argv[])
   misc::stopServer();
   executor.listenNewTask(*dbNewTask, false);
   executor.stopSchedr(*dbSendMess);
-}
-
-void closeHandler(int sig)
-{
-  Application::loopStop();
 }
 
 unique_ptr<DB::DbProvider> 

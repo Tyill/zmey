@@ -82,7 +82,7 @@ void Executor::receiveHandler(const string& remcp, const string& data)
         }
         break;
       }        
-      case base::MessType::TASK_PROGRESS:{
+      case mess::MessType::TASK_PROGRESS:{
         mess::TaskProgress tm(cp);
         if (!tm.deserialn(data)){
           ERROR_MESS("receiveHandler error deserialn from: " + cp, wId);    
@@ -96,8 +96,8 @@ void Executor::receiveHandler(const string& remcp, const string& data)
         }
         break;
       }
-      case base::MessType::JUST_START_WORKER:
-      case base::MessType::STOP_WORKER:{
+      case mess::MessType::JUST_START_WORKER:
+      case mess::MessType::STOP_WORKER:{
           m_messToDB.push(DB::MessSchedr(mtype, wId)); 
           vector<base::Task> tasks;
           if (m_db.getTasksById(m_schedr.id, worker.taskList, tasks)){

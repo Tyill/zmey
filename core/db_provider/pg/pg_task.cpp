@@ -32,17 +32,15 @@ bool DbProvider::startTask(int schedPresetId, base::Task& cng, int& tId){
   lock_guard<mutex> lk(m_impl->m_mtx);  
   
   stringstream ss;
-  ss << "SELECT * FROM funcStartTask(" << cng.averDurationSec <<  ","
-                                       << cng.maxDurationSec <<  ","
-                                       << schedPresetId <<  ","
+  ss << "SELECT * FROM funcStartTask(" << schedPresetId <<  ","
                                        << cng.wId <<  ","
                                        << "'" << cng.params << "',"
                                        << "'" << cng.scriptPath << "',"
                                        << "'" << cng.resultPath << "');";
 
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("startTask: ") + PQerrorMessage(_pg));
+    errorMess(string("startTask: ") + PQerrorMessage(pg_));
     return false;
   }
   tId = stoi(PQgetvalue(pgr.res, 0, 0));
@@ -63,13 +61,13 @@ bool DbProvider::cancelTask(int tId){
         "      ts.state = " << int(base::StateType::READY) << " "
         "RETURNING ts.qtask;";
         
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("cancelTask: ") + PQerrorMessage(_pg));
+    errorMess(string("cancelTask: ") + PQerrorMessage(pg_));
     return false;
   }  
   if (PQntuples(pgr.res) != 1){
-    errorMess(string("cancelTask error: task already take in work") + PQerrorMessage(_pg));
+    errorMess(string("cancelTask error: task already take in work") + PQerrorMessage(pg_));
     return false;
   }
   return true;
@@ -82,13 +80,13 @@ bool DbProvider::taskState(const std::vector<int>& tId, std::vector<DB::TaskStat
                   return s.empty() ? to_string(v) : s + "," + to_string(v);
                 }); 
   stringstream ss;
-  ss << "SELECT ts.state, ts.progress "
+  ss << "SELECT ts.state "
         "FROM tblTaskState ts "
         "WHERE ts.qtask IN (" << stId << ") ORDER BY ts.qtask;";
 
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("taskState: ") + PQerrorMessage(_pg));
+    errorMess(string("taskState: ") + PQerrorMessage(pg_));
     return false;
   }
   size_t tsz = tId.size();
@@ -99,7 +97,6 @@ bool DbProvider::taskState(const std::vector<int>& tId, std::vector<DB::TaskStat
   outState.resize(tsz);
   for (size_t i = 0; i < tsz; ++i){
     outState[i].state = (base::StateType)atoi(PQgetvalue(pgr.res, (int)i, 0));
-    outState[i].progress = atoi(PQgetvalue(pgr.res, (int)i, 1));
   }
   return true;
 }
@@ -110,9 +107,9 @@ bool DbProvider::taskTime(int tId, DB::TaskTime& out){
         "FROM tblTaskTime "
         "WHERE qtask = " << tId << ";";
 
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){      
-    errorMess(string("taskTime: ") + PQerrorMessage(_pg));
+    errorMess(string("taskTime: ") + PQerrorMessage(pg_));
     return false;
   } 
   if (PQntuples(pgr.res) != 1){
