@@ -31,14 +31,11 @@ using namespace std;
 
 void Executor::errorToSchedr(const std::string& schedrConnPnt)
 {
-  string mess;
+  string str;
   bool isSendOk = true;
-  while(isSendOk && m_errMess.tryPop(mess)){
-    map<string, string> data{
-      {Link::command, to_string((int)mess::MessType::INTERN_ERROR)},
-      {Link::connectPnt, m_worker.connectPnt},
-      {Link::message,  misc::replace(mess, "'", "''")}
-    };      
-    isSendOk = misc::asyncSendData(schedrConnPnt, misc::serialn(data));
+  while(isSendOk && m_errMess.tryPop(str)){
+    str = misc::replace(str, "'", "''");
+    mess::InternError m(m_worker.connectPnt, str);         
+    isSendOk = misc::asyncSendData(schedrConnPnt, m.serialn());
   }
 }

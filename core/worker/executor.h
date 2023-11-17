@@ -40,18 +40,12 @@ public:
   Executor(Application&, const std::string& connPnt);
 
 public:
-  struct MessForSchedr{
-    int taskId;
-    mess::MessType MessType;
-    std::string error;
-  };
-
+  
   void setLoop(Loop*);
   void loopNotify();
   void loopStop();
 
-
-  void addMessForSchedr(MessForSchedr);
+  void addMessForSchedr(mess::TaskStatus);
   void addErrMess(std::string);
   void setLoadCPU(int);
   bool isErrMessEmpty();
@@ -67,13 +61,16 @@ public:
   void errorToSchedr(const std::string& schedrConnPnt);
   void updateListTasks();
   void waitProcess();
-  
+
+private:  
+  void errorMessage(std::string mess);
+
 private:
   
   Application& m_app;  
   
   base::Worker m_worker;
-  misc::Queue<MessForSchedr> m_listMessForSchedr;
+  misc::Queue<mess::TaskStatus> m_messForSchedr;
   misc::Queue<base::Task> m_newTasks;
   misc::Queue<std::string> m_errMess;
   std::list<Process> m_procs;

@@ -25,6 +25,7 @@
 
 #include "executor.h"
 #include "application.h"
+#include "loop.h"
   
 Executor::Executor(Application& app, const std::string& connPnt):
   m_app(app)  
@@ -33,9 +34,22 @@ Executor::Executor(Application& app, const std::string& connPnt):
   m_worker.load = 0;
 }
 
-void Executor::addMessForSchedr(Executor::MessForSchedr mess)
+void Executor::setLoop(Loop* l)
 {
-  m_listMessForSchedr.push(std::move(mess));
+  m_loop = l;
+}
+void Executor::loopNotify()
+{
+  if (m_loop) m_loop->standUpNotify();
+}
+void Executor::loopStop()
+{
+  if (m_loop) m_loop->stop();
+}
+
+void Executor::addMessForSchedr(mess::TaskStatus mess)
+{
+  m_messForSchedr.push(std::move(mess));
 }
 
 void Executor::addErrMess(std::string mess)
@@ -60,5 +74,11 @@ bool Executor::isNewTasksEmpty()
 
 bool Executor::isMessForSchedrEmpty()
 {
-  return m_listMessForSchedr.empty();
+  return m_messForSchedr.empty();
+}
+
+void Executor::errorMessage(std::string mess)
+{
+  m_app.statusMess(mess);
+  m_errMess.push(move(mess)); 
 }

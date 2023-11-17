@@ -38,7 +38,7 @@ public:
   Executor(Application&, db::DbProvider& db);
 
   void setLoop(Loop* l);
-  void loopStandUpNotify();
+  void loopNotify();
   void loopStop();
 
   void addMessToDB(db::MessSchedr);

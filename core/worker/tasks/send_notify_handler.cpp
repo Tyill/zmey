@@ -30,15 +30,12 @@ using namespace std;
 
 void Executor::sendNotifyHandler(const string& cp, const string& data, const std::error_code& ec)
 {  
-  auto smess = misc::deserialn(data);  
-  mess::MessType messType = (mess::MessType)stoi(smess[Link::command]);
-  if (ec && (messType != mess::MessType::TASK_PROGRESS) &&
-            (messType != mess::MessType::INTERN_ERROR) &&
+  mess::MessType messType = mess::getMessType(data);
+  if (ec && (messType != mess::MessType::INTERN_ERROR) &&
             (messType != mess::MessType::PING_WORKER)){
-    MessForSchedr mess;
-    mess.MessType = messType;
-    mess.taskId = stoi(smess[Link::taskId]);
-    m_listMessForSchedr.push(move(mess));
+    mess::TaskStatus mess;
+    mess.deserialn(data);
+    m_messForSchedr.push(move(mess));
     if (m_ctickSendNotify(1000)){
       m_app.statusMess("sendNotifyHandler error send to schedr: " + ec.message());
     }

@@ -238,7 +238,6 @@ TEST_F(DBSchedrTest, sendAllMessFromSchedr){
   mess.push_back(db::MessSchedr{mess::MessType::TASK_PAUSE, wId, 0, "result"});
   mess.push_back(db::MessSchedr{mess::MessType::TASK_STOP, wId, 0, "result"});
   mess.push_back(db::MessSchedr{mess::MessType::JUST_START_WORKER, wId, 0, "result"});
-  mess.push_back(db::MessSchedr{mess::MessType::TASK_PROGRESS, wId, 0, "0"});
   mess.push_back(db::MessSchedr{mess::MessType::PAUSE_SCHEDR, wId, 0, "result"});
   mess.push_back(db::MessSchedr{mess::MessType::PAUSE_WORKER, wId, 0, "result"});
   mess.push_back(db::MessSchedr{mess::MessType::START_SCHEDR, wId, 0, "result"});

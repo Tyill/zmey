@@ -39,12 +39,7 @@
 
 
 using namespace std;
-
   
-#define ERROR_MESS(mstr)  \
-  m_app.statusMess(mstr); \
-  m_errMess.push(mstr);   \
-
 void Executor::waitProcess()
 {
   pid_t pid;
@@ -56,12 +51,11 @@ void Executor::waitProcess()
       return p.getPid() == pid;
     });    
     if (itPrc == m_procs.end()){
-      ERROR_MESS("waitProcess error not found process " + to_string(pid));
+      errorMessage("waitProcess error not found process " + to_string(pid));
       continue;
     }
     // completed or error
-    if (WIFEXITED(sts) || WIFSIGNALED(sts)){
-               
+    if (WIFEXITED(sts) || WIFSIGNALED(sts)){               
       mess::MessType mt = mess::MessType::TASK_COMPLETED;
       base::StateType st = base::StateType::COMPLETED;
       if (WIFEXITED(sts)){
@@ -74,32 +68,21 @@ void Executor::waitProcess()
         mt = mess::MessType::TASK_ERROR;
         st = base::StateType::ERRORT;
       }
-      itPrc->setTaskState(st);
-      
-      m_listMessForSchedr.push(MessForSchedr{itPrc->getTask().id,
-                                          mt});
+      itPrc->setTaskState(st);      
+      m_messForSchedr.push(mess::TaskStatus{itPrc->getTask().id, mt});
     }    
     // stop
     else if (WIFSTOPPED(sts)){
       itPrc->setTaskState(base::StateType::PAUSE);
-      m_listMessForSchedr.push(MessForSchedr{itPrc->getTask().id,
-                                          mess::MessType::TASK_PAUSE});
+      m_messForSchedr.push(mess::TaskStatus{itPrc->getTask().id, mess::MessType::TASK_PAUSE});
     } 
     // continue
     else if (WIFCONTINUED(sts)){
       itPrc->setTaskState(base::StateType::RUNNING);
-      m_listMessForSchedr.push(MessForSchedr{itPrc->getTask().id,
-                                          mess::MessType::TASK_CONTINUE});    
+      m_messForSchedr.push(mess::TaskStatus{itPrc->getTask().id, mess::MessType::TASK_CONTINUE});    
     } 
   }  
   
-  // check max run time
-  for(auto& p : m_procs){
-    if (p.checkMaxRunTime() && (p.getTask().state == base::StateType::RUNNING)){
-      p.stopByTimeout();
-    }
-  }
-
   { std::lock_guard<std::mutex> lock(m_mtxProcess);    
     for (auto p = m_procs.begin(); p != m_procs.end();){
       base::StateType TaskState = p->getTask().state;

@@ -42,13 +42,10 @@ public:
 
   base::Task getTask() const;
   pid_t getPid() const;
-  int getProgress();
-  bool checkMaxRunTime();
   void setTaskState(base::StateType);
   void pause();
   void continueTask();
   void stop();
-  void stopByTimeout();
   std::string getErrorStr() const {
       return m_err;
   }
@@ -63,10 +60,6 @@ private:
   Executor& m_executor;
   pid_t m_pid = 1; 
   base::Task m_task;
-  misc::TimerDelay m_timerProgress,
-                     m_timerDuration;
-  int m_cdeltaTimeProgress = 0,
-           m_cdeltaTimeDuration  = 0;
   bool m_isPause = false;
   std::string m_err;
 

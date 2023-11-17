@@ -32,17 +32,13 @@ using namespace std;
 void Executor::messageToSchedr(const std::string& schedrConnPnt)
 {  
   m_worker.activeTask = (int)m_newTasks.size() + (int)m_procs.size();
-  MessForSchedr mess; 
+  mess::TaskStatus m; 
   bool isSendOk = true;
-  while(isSendOk && m_listMessForSchedr.tryPop(mess)){
-    map<string, string> data{
-          {Link::command,    to_string((int)mess.MessType)},
-          {Link::connectPnt, m_worker.connectPnt},
-          {Link::taskId,     to_string(mess.taskId)},  
-          {Link::activeTask, to_string(m_worker.activeTask)},
-          {Link::load,       to_string(m_worker.load)}
-    };
-    isSendOk = misc::asyncSendData(schedrConnPnt, misc::serialn(data));
+  while(isSendOk && m_messForSchedr.tryPop(m)){
+    m.activeTaskCount = m_worker.activeTask;
+    m.loadCPU = m_worker.load;
+    m.connectPnt = m_worker.connectPnt;
+    isSendOk = misc::asyncSendData(schedrConnPnt, m.serialn());
   }
 }
 

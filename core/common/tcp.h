@@ -32,8 +32,10 @@ namespace misc{
 
 /// error status send data to receiver 
 /// [in] connPnt - connection point: IP or DNS ':' port
+/// [in] data - data from sender
 /// [in] ec - system error code 
-using ErrorStatusCBack = std::function<void(const std::string& connPnt, 
+using ErrorStatusCBack = std::function<void(const std::string& connPnt,
+                                            const std::string& data,
                                             const std::error_code& ec)>;
 
 /// received data from sender

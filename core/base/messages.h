@@ -16,7 +16,6 @@ enum class MessType{
   TASK_STOP,
   TASK_CONTINUE,
   TASK_CANCEL, // when not yet taken to work
-  TASK_PROGRESS,
   START_WORKER,
   START_SCHEDR, 
   STOP_WORKER,
@@ -55,6 +54,7 @@ private:
 class TaskStatus{
 public:  
   TaskStatus(MessType _mtype, const std::string& connPnt);
+  TaskStatus(int taskId = 0, MessType _mtype = MessType::UNDEFINED);
 
   MessType mtype = MessType::UNDEFINED;
   std::string connectPnt;

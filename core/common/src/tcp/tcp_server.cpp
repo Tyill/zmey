@@ -52,8 +52,9 @@ void TcpServer::accept(){
     [this](std::error_code ec, tcp::socket socket){
       if (!ec){
         auto session = std::make_shared<TcpSession>(*this, std::move(socket));
-        if (session->isConnect()) 
+        if (session->isConnect()){
           session->read();
+        }
       }
       accept();
     });
@@ -100,7 +101,7 @@ bool TcpServer::asyncSendData(const std::string& connPnt, std::string&& data)
       m_sessions[connPnt] = std::make_shared<TcpSession>(*this, connPnt, std::move(socket)); 
     }else{
       if (ErrorStatusCB){
-        ErrorStatusCB(connPnt, ec);
+        ErrorStatusCB(connPnt, data, ec);
       }
       return false;
     }

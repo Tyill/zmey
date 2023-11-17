@@ -86,8 +86,6 @@ Process::Process(Application& app, Executor& exr, const base::Task& tsk):
       break;
     // parent                
     default:
-      m_timerProgress.updateCycTime();
-      m_timerDuration.updateCycTime();
       m_task.state = base::StateType::RUNNING;
       break;
   }
@@ -98,22 +96,6 @@ base::Task Process::getTask() const{
 }
 pid_t Process::getPid() const{
   return m_pid;
-}
-int Process::getProgress(){
-  if (!m_isPause){
-    m_cdeltaTimeProgress += m_timerProgress.getDeltaTimeMS();
-  }
-  m_timerProgress.updateCycTime();
-  int dt = (int)m_cdeltaTimeProgress / 1000;
-  return min(100, dt * 100 / max(1, m_task.averDurationSec));
-}
-
-bool Process::checkMaxRunTime(){
-  if (!m_isPause){
-    m_cdeltaTimeDuration += m_timerDuration.getDeltaTimeMS();
-  }
-  m_timerDuration.updateCycTime();
-  return (m_task.maxDurationSec > 0) && (int(m_cdeltaTimeDuration / 1000) > m_task.maxDurationSec);
 }
 void Process::setTaskState(base::StateType st){
   m_task.state = st;
@@ -131,14 +113,6 @@ void Process::continueTask(){
     m_err = "Process error continue: " + string(strerror(errno));
     m_app.statusMess(m_err);
     m_executor.addErrMess(m_err);
-  }
-}
-void Process::stopByTimeout(){
-  m_err = "Stopping by timeout";
-  if (kill(m_pid, SIGTERM) == -1) {
-      m_err = "Process error stop: " + string(strerror(errno));
-      m_app.statusMess(m_err);
-      m_executor.addErrMess(m_err);
   }
 }
 void Process::stop(){
@@ -272,21 +246,6 @@ base::Task Process::getTask() const{
 pid_t Process::getPid() const{
   return m_pid;
 }
-int Process::getProgress(){
-  if (!m_isPause){
-    m_cdeltaTimeProgress += m_timerProgress.getDeltaTimeMS();
-  }
-  m_timerProgress.updateCycTime();
-  int dt = (int)m_cdeltaTimeProgress / 1000;
-  return std::min<int>(100, dt * 100 / std::max<int>(1, m_task.averDurationSec));
-}
-bool Process::checkMaxRunTime(){
-  if (!m_isPause){
-    m_cdeltaTimeDuration += m_timerDuration.getDeltaTimeMS();
-  }
-  m_timerDuration.updateCycTime();
-  return (m_task.maxDurationSec > 0) && (int(m_cdeltaTimeDuration / 1000) > m_task.maxDurationSec);
-}
 void Process::setTaskState(base::StateType st){
   m_task.state = st;
   m_isPause = (st == base::StateType::PAUSE);
@@ -299,7 +258,7 @@ void Process::pause(){
     m_executor.addErrMess(m_err);
   }
   else {
-      m_executor.addMessForSchedr(Executor::MessForSchedr{ m_task.id, mess::MessType::TASK_PAUSE });
+      m_executor.addMessForSchedr(mess::TaskStatus{ m_task.id, mess::MessType::TASK_PAUSE });
       setTaskState(base::StateType::PAUSE);
   }
 }
@@ -310,7 +269,7 @@ void Process::continueTask(){
     m_executor.addErrMess(m_err);
   }
   else {
-      m_executor.addMessForSchedr(Executor::MessForSchedr{ m_task.id, mess::MessType::TASK_CONTINUE });
+      m_executor.addMessForSchedr(mess::TaskStatus{ m_task.id, mess::MessType::TASK_CONTINUE });
       setTaskState(base::StateType::RUNNING);
   }
 }

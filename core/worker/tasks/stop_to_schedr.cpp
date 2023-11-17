@@ -31,12 +31,10 @@ using namespace std;
 
 void Executor::stopToSchedr(const std::string& schedrConnPnt){
   m_worker.activeTask = (int)m_newTasks.size() + (int)m_procs.size();
-  map<string, string> data{
-    {Link::command, to_string((int)mess::MessType::STOP_WORKER)},
-    {Link::connectPnt, m_worker.connectPnt},
-    {Link::activeTask, to_string(m_worker.activeTask)},
-    {Link::load, to_string(m_worker.load)}
-  };      
-  misc::asyncSendData(schedrConnPnt, misc::serialn(data));
+  mess::TaskStatus m(0, mess::MessType::STOP_WORKER);
+  m.activeTaskCount = m_worker.activeTask;
+  m.loadCPU = m_worker.load;
+  m.connectPnt = m_worker.connectPnt;  
+  misc::asyncSendData(schedrConnPnt, m.serialn());
 }
 

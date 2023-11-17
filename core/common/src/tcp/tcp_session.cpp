@@ -73,7 +73,7 @@ void TcpSession::write(std::string&& msg)
   auto self(shared_from_this());
   if (m_ec){
     if (m_server.ErrorStatusCB){
-      m_server.ErrorStatusCB(m_connPnt, m_ec);
+      m_server.ErrorStatusCB(m_connPnt, msg, m_ec);
     }
     return;
   }    
@@ -83,7 +83,7 @@ void TcpSession::write(std::string&& msg)
       [this, self, pms](std::error_code ec, std::size_t /*length*/) {
       m_ec = ec;
       if (ec && m_server.ErrorStatusCB) {
-          m_server.ErrorStatusCB(m_connPnt, ec);
+          m_server.ErrorStatusCB(m_connPnt, *pms, ec);
       }
   });
 }

@@ -28,28 +28,24 @@
 
 using namespace std;
 
-#define ERROR_MESS(mstr)  \
-  m_app.statusMess(mstr); \
-  m_errMess.push(mstr);   \
-
 void Executor::receiveHandler(const string& remcp, const string& data)
 {
   auto mtype = mess::getMessType(data);
   if (mtype == mess::MessType::UNDEFINED){
-    ERROR_MESS("receiveHandler error mtype from: " + remcp);    
+    errorMessage("receiveHandler error mtype from: " + remcp);    
     return;
   } 
 
   string cp = mess::getConnectPnt(data);
   if (cp.empty()){
-    ERROR_MESS("receiveHandler error connectPnt from: " + remcp);    
+    errorMessage("receiveHandler error connectPnt from: " + remcp);    
     return;
   }
  
   if (mtype == mess::MessType::NEW_TASK){
     mess::NewTask tm(cp);
     if (!tm.deserialn(data)){
-      ERROR_MESS("receiveHandler error deserialn MessType::NEW_TASK from: " + cp);    
+      errorMessage("receiveHandler error deserialn MessType::NEW_TASK from: " + cp);    
       return;
     }
     base::Task t;
@@ -59,7 +55,7 @@ void Executor::receiveHandler(const string& remcp, const string& data)
     t.state = base::StateType::READY;
     t.params = tm.params;
     m_newTasks.push(move(t)); 
-    Application::loopNotify();
+    loopNotify();
   }
   else if (mtype == mess::MessType::PING_WORKER){  // only check
     return;
@@ -67,7 +63,7 @@ void Executor::receiveHandler(const string& remcp, const string& data)
   else{
     mess::TaskStatus tm(mtype, cp);
     if (!tm.deserialn(data)){
-      ERROR_MESS("receiveHandler error deserialn MessType::TASK_STATUS from: " + cp);    
+      errorMessage("receiveHandler error deserialn MessType::TASK_STATUS from: " + cp);    
       return;
     }
     int tId = tm.taskId;
@@ -82,12 +78,12 @@ void Executor::receiveHandler(const string& remcp, const string& data)
           case mess::MessType::TASK_CONTINUE: iPrc->continueTask(); break;
           case mess::MessType::TASK_STOP:     iPrc->stop(); break;
           default:{
-            ERROR_MESS("receiveHandler wrong task status");
+            errorMessage("receiveHandler wrong task status");
           }
           break;
         }
       }else{
-        ERROR_MESS("receiveHandler iPrc == _procs.end() for taskId: " + to_string(tId);
+        errorMessage("receiveHandler iPrc == _procs.end() for taskId: " + to_string(tId));
       }
     }
   }  

@@ -146,6 +146,12 @@ TaskStatus::TaskStatus(mess::MessType _mtype, const std::string& connPnt):
 {
 }  
 
+TaskStatus::TaskStatus(int tId, mess::MessType _mtype):
+  taskId(tId),
+  mtype(_mtype)
+{
+}
+
 std::string TaskStatus::serialn(){
   const auto out = SerialWriter(int(mtype), connectPnt, 
                                 taskId,

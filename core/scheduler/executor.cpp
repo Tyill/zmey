@@ -37,7 +37,7 @@ void Executor::setLoop(Loop* l)
 {
   m_loop = l;
 }
-void Executor::loopStandUpNotify()
+void Executor::loopNotify()
 {
   if (m_loop) m_loop->standUpNotify();
 }

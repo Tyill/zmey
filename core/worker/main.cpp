@@ -50,7 +50,7 @@ int main(int argc, char* argv[]){
 
   Application::Config cng;
   if (!app.parseArgs(argc, argv, cng)){
-    return 0;
+    return 1;
   }
 
   if (cng.remoteConnPnt.empty()){  // when without NAT
@@ -60,7 +60,7 @@ int main(int argc, char* argv[]){
 #define CHECK_RETURN(fun, mess) \
   if (fun){                     \
     app.statusMess(mess);       \
-    return -1;                  \
+    return 2;                   \
   }
   CHECK_RETURN(cng.localConnPnt.empty() || (misc::split(cng.localConnPnt, ':').size() != 2), "Not set param '--localAddr[-la]' - worker local connection point: IP or DNS:port");
   CHECK_RETURN(cng.remoteConnPnt.empty() || (misc::split(cng.remoteConnPnt, ':').size() != 2), "Not set param '--remoteAddr[-ra]' - worker remote connection point: IP or DNS:port");
@@ -77,14 +77,14 @@ int main(int argc, char* argv[]){
   Executor executor(app, cng.remoteConnPnt);
  
   // on start
-  executor.addMessForSchedr(Executor::MessForSchedr{0, mess::MessType::JUST_START_WORKER});
+  executor.addMessForSchedr(mess::TaskStatus{0, mess::MessType::JUST_START_WORKER});
 
   // TCP server
   misc::ReceiveDataCBack receiveDataCB = [&executor](const string& cp, const string& data){
     executor.receiveHandler(cp, data);
   };
-  misc::ErrorStatusCBack sendStatusCB = [&executor](const string& cp, const error_code& ec){
-    executor.sendNotifyHandler(cp, ec);
+  misc::ErrorStatusCBack sendStatusCB = [&executor](const string& cp, const string& data, const error_code& ec){
+    executor.sendNotifyHandler(cp, data, ec);
   };
   string err;
   CHECK_RETURN(!misc::startServer(cng.localConnPnt, receiveDataCB, sendStatusCB, 1, err),

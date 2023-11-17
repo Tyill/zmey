@@ -46,8 +46,7 @@ void Executor::checkStatusWorkers(db::DbProvider& db)
     }
   }else{
     string mess = "checkStatusWorkers error all workers are not available";
-    m_messToDB.push(db::MessSchedr::errorMess(0, mess));                                     
-    m_app.statusMess(mess);
+    errorMessage(mess, 0);
   }
 }
 
