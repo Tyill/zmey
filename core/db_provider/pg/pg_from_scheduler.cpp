@@ -27,7 +27,7 @@
 
 using namespace std;
 
-namespace DB{
+namespace db{
 
 bool DbProvider::setListenNewTaskNotify(bool on){
   lock_guard<mutex> lk(m_impl->m_mtx);
@@ -214,7 +214,7 @@ bool DbProvider::getNewTasksForSchedr(int sId, int maxTaskCnt, std::vector<base:
   }
   return true;
 }
-bool DbProvider::sendAllMessFromSchedr(int sId, std::vector<DB::MessSchedr>& mess){
+bool DbProvider::sendAllMessFromSchedr(int sId, std::vector<db::MessSchedr>& mess){
   lock_guard<mutex> lk(m_impl->m_mtx);
   
   if(mess.empty()){

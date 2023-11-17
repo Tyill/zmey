@@ -30,7 +30,7 @@
 using namespace std;
 
 #define ERROR_MESS(mess, wId)                               \
-  m_messToDB.push(DB::MessSchedr::errorMess(wId, mess)); \
+  m_messToDB.push(db::MessSchedr::errorMess(wId, mess)); \
   m_app.statusMess(mess);
 
 bool Executor::sendTaskToWorker()

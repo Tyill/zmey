@@ -27,7 +27,7 @@
 
 using namespace std;
 
-void Executor::getNewTaskFromDB(DB::DbProvider& db)
+void Executor::getNewTaskFromDB(db::DbProvider& db)
 {  
   int actSz = 0,
       capSz = m_schedr.capacityTask,

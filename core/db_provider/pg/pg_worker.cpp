@@ -26,7 +26,7 @@
 
 using namespace std;
 
-namespace DB{
+namespace db{
   
 bool DbProvider::addWorker(const base::Worker& worker, int& outWkrId){
   lock_guard<mutex> lk(m_impl->m_mtx);

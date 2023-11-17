@@ -40,15 +40,6 @@ public:
     std::string remoteConnPnt;
     std::string schedrConnPnt;
   };  
-
-  enum Signals{
-    SIGNAL_LOOP_NOTIFY = 0,
-    SIGNAL_LOOP_STOP,
-  };
-  static misc::Connector Connector;
-
-  static void loopNotify();
-  static void loopStop();
   
   void statusMess(const std::string& mess);
 

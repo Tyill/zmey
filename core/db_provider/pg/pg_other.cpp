@@ -26,7 +26,7 @@
 
 using namespace std;
 
-namespace DB{
+namespace db{
   
 bool DbProvider::getWorkerByTask(int tId, base::Worker& wcng){
   lock_guard<mutex> lk(m_impl->m_mtx);
@@ -51,7 +51,7 @@ bool DbProvider::getWorkerByTask(int tId, base::Worker& wcng){
   return true;
 }
 
-vector<DB::MessError> DbProvider::getInternErrors(int sId, int wId, int mCnt){
+vector<db::MessError> DbProvider::getInternErrors(int sId, int wId, int mCnt){
   lock_guard<mutex> lk(m_impl->m_mtx);
   if (mCnt == 0){
     mCnt = INT32_MAX;
@@ -65,10 +65,10 @@ vector<DB::MessError> DbProvider::getInternErrors(int sId, int wId, int mCnt){
   PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
     errorMess(string("getInternErrors: ") + PQerrorMessage(pg_));
-    return vector<DB::MessError>();
+    return vector<db::MessError>();
   }  
   int rows = PQntuples(pgr.res);
-  std::vector<DB::MessError> ret(rows);
+  std::vector<db::MessError> ret(rows);
   for (int i = 0; i < rows; ++i){
     ret[i].schedrId = stoi(PQgetvalue(pgr.res, i, 0));
     ret[i].workerId = stoi(PQgetvalue(pgr.res, i, 1));

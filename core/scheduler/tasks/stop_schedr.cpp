@@ -27,9 +27,9 @@
 
 using namespace std;
 
-void Executor::stopSchedr(DB::DbProvider& db)
+void Executor::stopSchedr(db::DbProvider& db)
 {  
-  DB::MessSchedr mess;{
+  db::MessSchedr mess;{
     mess.type = mess::MessType::STOP_SCHEDR;
   }
   addMessToDB(mess);

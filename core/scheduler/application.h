@@ -26,7 +26,8 @@
 #pragma once
 
 #include "db_provider/db_provider.h"
-#include "common/connector.h"
+
+#include <mutex>
 
 class Application{
 public:
@@ -36,7 +37,7 @@ public:
     int pingToDBSec = 20;
     std::string localConnPnt;
     std::string remoteConnPnt;
-    DB::ConnectCng dbConnCng;
+    db::ConnectCng dbConnCng;
   };
    
   void statusMess(const std::string& mess);

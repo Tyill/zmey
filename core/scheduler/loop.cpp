@@ -34,7 +34,7 @@
 
 using namespace std;
  
-Loop::Loop(const Application::Config& cng, Executor& exr, DB::DbProvider& dbNewTask, DB::DbProvider& dbSendMess):
+Loop::Loop(const Application::Config& cng, Executor& exr, db::DbProvider& dbNewTask, db::DbProvider& dbSendMess):
   m_cng(cng),
   m_executor(exr),
   m_dbNewTask(dbNewTask),

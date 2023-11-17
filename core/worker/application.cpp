@@ -30,8 +30,6 @@
 
 using namespace std;
 
-misc::Connector Application::Connector;
-
 void Application::statusMess(const string& mess){
   lock_guard<mutex> lock(m_mtxStatusMess);
   cout << misc::currDateTimeMs() << " " << mess << std::endl;
@@ -76,14 +74,4 @@ bool Application::parseArgs(int argc, char* argv[], Config& outCng){
   m_cng = outCng;
 
   return true;
-}
-
-void Application::loopNotify()
-{
-  Application::Connector.emit(Signals::SIGNAL_LOOP_NOTIFY);
-}
-
-void Application::loopStop()
-{
-  Application::Connector.emit(Signals::SIGNAL_LOOP_STOP);
 }

@@ -37,7 +37,7 @@
 #include <thread>
 #include <condition_variable>
 
-namespace DB{
+namespace db{
 
 class DbProvider::Impl{
 public:

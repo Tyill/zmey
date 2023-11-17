@@ -27,10 +27,13 @@
 #include "common/queue.h"
 #include "common/misc.h"
 #include "base/base.h"
+#include "base/messages.h"
 #include "worker/application.h"
 #include "worker/process.h" 
 
 #include <list>
+
+class Loop;
 
 class Executor{
 public:  
@@ -42,6 +45,11 @@ public:
     mess::MessType MessType;
     std::string error;
   };
+
+  void setLoop(Loop*);
+  void loopNotify();
+  void loopStop();
+
 
   void addMessForSchedr(MessForSchedr);
   void addErrMess(std::string);
@@ -72,4 +80,6 @@ private:
   std::mutex m_mtxProcess;  
   
   misc::CounterTick m_ctickSendNotify;
+
+  Loop* m_loop{};
 };

@@ -33,14 +33,16 @@
 
 using namespace std;
 
-void closeHandler(int sig);
-void loopNotify(int sig);
+static Loop* pLoop;
+static void closeHandler(int sig)
+{
+  if (pLoop) pLoop->stop();
+}
 
-#define CHECK_RETURN(fun, mess) \
-  if (fun){                     \
-    app.statusMess(mess);       \
-    return -1;                  \
-  }
+static void loopNotify(int sig)
+{
+  if (pLoop) pLoop->standUpNotify();
+}
 
 int main(int argc, char* argv[]){
 
@@ -55,6 +57,11 @@ int main(int argc, char* argv[]){
     cng.remoteConnPnt = cng.localConnPnt;
   } 
 
+#define CHECK_RETURN(fun, mess) \
+  if (fun){                     \
+    app.statusMess(mess);       \
+    return -1;                  \
+  }
   CHECK_RETURN(cng.localConnPnt.empty() || (misc::split(cng.localConnPnt, ':').size() != 2), "Not set param '--localAddr[-la]' - worker local connection point: IP or DNS:port");
   CHECK_RETURN(cng.remoteConnPnt.empty() || (misc::split(cng.remoteConnPnt, ':').size() != 2), "Not set param '--remoteAddr[-ra]' - worker remote connection point: IP or DNS:port");
   CHECK_RETURN(cng.schedrConnPnt.empty() || (misc::split(cng.schedrConnPnt, ':').size() != 2), "Not set param '--schedrAddr[-sa]' - scheduler connection point: IP or DNS:port");
@@ -76,8 +83,8 @@ int main(int argc, char* argv[]){
   misc::ReceiveDataCBack receiveDataCB = [&executor](const string& cp, const string& data){
     executor.receiveHandler(cp, data);
   };
-  misc::SendStatusCBack sendStatusCB = [&executor](const string& cp, const string& data, const error_code& ec){
-    executor.sendNotifyHandler(cp, data, ec);
+  misc::ErrorStatusCBack sendStatusCB = [&executor](const string& cp, const error_code& ec){
+    executor.sendNotifyHandler(cp, ec);
   };
   string err;
   CHECK_RETURN(!misc::startServer(cng.localConnPnt, receiveDataCB, sendStatusCB, 1, err),
@@ -86,38 +93,13 @@ int main(int argc, char* argv[]){
   
   // loop ///////////////////////////////////////////////////////////////////////
   Loop loop(cng, executor);
+  executor.setLoop(&loop);
 
-  Application::Connector.connect(Application::SIGNAL_LOOP_NOTIFY, 
-    std::function<void()>([&loop]() {
-      loop.standUpNotify();
-  }));
-
-  Application::Connector.connect(Application::SIGNAL_LOOP_STOP, 
-    std::function<void()>([&loop]() {
-      loop.stop();
-  }));
-
-  try{
-    loop.run();
-  }
-  catch(exception& e){
-    string mess = "loop exeption: " + string(e.what());
-    app.statusMess(mess);  
-  }
-
+  loop.run();
+  
   /////////////////////////////////////////////////////////////////////////
   
   executor.stopToSchedr(cng.schedrConnPnt);
 
   misc::stopServer();
-}
-
-void closeHandler(int sig)
-{
-  Application::loopStop();
-}
-
-void loopNotify(int sig)
-{
-  Application::loopNotify();
 }

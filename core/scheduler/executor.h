@@ -29,31 +29,35 @@
 #include "common/misc.h"
 #include "base/base.h"
 #include "db_provider/db_provider.h"
-#include "scheduler/application.h"
+#include "application.h"
+
+class Loop;
 
 class Executor{
 public:  
-  Executor(Application&, DB::DbProvider& db);
+  Executor(Application&, db::DbProvider& db);
 
-  void loopStandUpNotify(std::function<void()> notify);
+  void setLoop(Loop* l);
+  void loopStandUpNotify();
+  void loopStop();
 
-  void addMessToDB(DB::MessSchedr);
+  void addMessToDB(db::MessSchedr);
   bool appendNewTaskAvailable();
   bool isTasksEmpty();
   bool isMessToDBEmpty();
-  bool getSchedrFromDB(const std::string& connPnt, DB::DbProvider& db); 
-  bool listenNewTask(DB::DbProvider& db, bool on);
+  bool getSchedrFromDB(const std::string& connPnt, db::DbProvider& db); 
+  bool listenNewTask(db::DbProvider& db, bool on);
   
   void receiveHandler(const std::string& cp, const std::string& data);
   void errorNotifyHandler(const std::string& cp, const std::error_code& ec);
-  void getNewTaskFromDB(DB::DbProvider& db);
-  void sendAllMessToDB(DB::DbProvider& db);
+  void getNewTaskFromDB(db::DbProvider& db);
+  void sendAllMessToDB(db::DbProvider& db);
   bool sendTaskToWorker();
-  void checkStatusWorkers(DB::DbProvider& db);
-  void getPrevTaskFromDB(DB::DbProvider& db);
-  void getPrevWorkersFromDB(DB::DbProvider& db);
+  void checkStatusWorkers(db::DbProvider& db);
+  void getPrevTaskFromDB(db::DbProvider& db);
+  void getPrevWorkersFromDB(db::DbProvider& db);
   void pingToDB();
-  void stopSchedr(DB::DbProvider& db);  
+  void stopSchedr(db::DbProvider& db);  
   
 private:
   struct SWorker{
@@ -63,20 +67,20 @@ private:
     bool isActive{};
   };
 
-  void workerNotResponding(DB::DbProvider& db, SWorker*);
+  void workerNotResponding(db::DbProvider& db, SWorker*);
   void errorMessage(const std::string& mess, int wId);
 
   Application& m_app;
-  DB::DbProvider& m_db;
+  db::DbProvider& m_db;
 
   std::map<std::string, SWorker> m_workers;   // key - connectPnt  
   std::vector<base::Worker> m_workersList;
   misc::Queue<base::Task> m_tasks;
-  misc::Queue<DB::MessSchedr> m_messToDB;
+  misc::Queue<db::MessSchedr> m_messToDB;
   base::Scheduler m_schedr;
 
   misc::CounterTick m_ctickNewTask;
   misc::CounterTick m_ctickMessToDB;
 
-  std::function<void()> m_loopStandUpNotify{};
+  Loop* m_loop{};
 };

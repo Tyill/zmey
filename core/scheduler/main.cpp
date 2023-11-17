@@ -32,11 +32,11 @@
 
 using namespace std;
 
-unique_ptr<DB::DbProvider> 
-createDbProvider(const Application::Config& cng, string& err);
+unique_ptr<db::DbProvider> 
+static createDbProvider(const Application::Config& cng, string& err);
 
-Loop* pLoop;
-void closeHandler(int sig)
+static Loop* pLoop;
+static void closeHandler(int sig)
 {
   if (pLoop) pLoop->stop();
 }
@@ -76,12 +76,12 @@ int main(int argc, char* argv[])
   string err;
   auto dbNewTask = createDbProvider(cng, err);
   auto dbSendMess = dbNewTask ? createDbProvider(cng, err) : nullptr;
-  CHECK_RETURN(!dbNewTask || !dbSendMess, "Schedr DB connect error " + err + ": " + cng.dbConnCng.connectStr); 
+  CHECK_RETURN(!dbNewTask || !dbSendMess, "Schedr db connect error " + err + ": " + cng.dbConnCng.connectStr); 
     
   Executor executor(app, *dbNewTask);
   
-  // schedr from DB
-  CHECK_RETURN(!executor.getSchedrFromDB(cng.remoteConnPnt, *dbNewTask), "Schedr not found in DB for connectPnt " + cng.remoteConnPnt);
+  // schedr from db
+  CHECK_RETURN(!executor.getSchedrFromDB(cng.remoteConnPnt, *dbNewTask), "Schedr not found in db for connectPnt " + cng.remoteConnPnt);
      
   // prev tasks and workers
   executor.getPrevTaskFromDB(*dbNewTask);
@@ -100,21 +100,15 @@ int main(int argc, char* argv[])
   app.statusMess("Schedr running: " + cng.localConnPnt);
   
   // on start
-  executor.addMessToDB(DB::MessSchedr{ mess::MessType::START_SCHEDR });
+  executor.addMessToDB(db::MessSchedr{ mess::MessType::START_SCHEDR });
 
   // loop ///////////////////////////////////////////////////////////////////////
   Loop loop(cng, executor, *dbNewTask, *dbSendMess);
-  pLoop = &loop;
+  pLoop = &loop;  
+  executor.setLoop(&loop);
 
-  try{
-    loop.run();
-  }
-  catch(exception& e){
-    string mess = "loop exeption: " + string(e.what());
-    executor.addMessToDB(DB::MessSchedr::errorMess(0, mess));
-    app.statusMess(mess);  
-  }
-
+  loop.run();
+  
   /////////////////////////////////////////////////////////////////////////
   
   misc::stopServer();
@@ -122,10 +116,10 @@ int main(int argc, char* argv[])
   executor.stopSchedr(*dbSendMess);
 }
 
-unique_ptr<DB::DbProvider> 
+unique_ptr<db::DbProvider> 
 createDbProvider(const Application::Config& cng, string& err)
 {
-  unique_ptr<DB::DbProvider> db(new DB::DbProvider(cng.dbConnCng));
+  unique_ptr<db::DbProvider> db(new db::DbProvider(cng.dbConnCng));
   err = db->getLastError();
   if (err.empty()){
     return db;

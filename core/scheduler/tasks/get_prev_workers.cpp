@@ -28,7 +28,7 @@
 
 using namespace std;
 
-void Executor::getPrevWorkersFromDB(DB::DbProvider& db)
+void Executor::getPrevWorkersFromDB(db::DbProvider& db)
 {   
   vector<base::Worker> workers; 
   if (db.getWorkersOfSchedr(m_schedr.id, workers)){

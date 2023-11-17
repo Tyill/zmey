@@ -28,7 +28,7 @@
 
 using namespace std;
 
-namespace DB{
+namespace db{
 
 bool DbProvider::setChangeTaskStateCBack(int tId, ChangeTaskStateCBack cback, UData ud){
   if (!cback)

@@ -30,7 +30,7 @@
 
 using namespace std;
 
-void Executor::checkStatusWorkers(DB::DbProvider& db)
+void Executor::checkStatusWorkers(db::DbProvider& db)
 {
   vector<SWorker*> wkrNotResp;
   for(auto& w : m_workers){
@@ -46,16 +46,16 @@ void Executor::checkStatusWorkers(DB::DbProvider& db)
     }
   }else{
     string mess = "checkStatusWorkers error all workers are not available";
-    m_messToDB.push(DB::MessSchedr::errorMess(0, mess));                                     
+    m_messToDB.push(db::MessSchedr::errorMess(0, mess));                                     
     m_app.statusMess(mess);
   }
 }
 
-void Executor::workerNotResponding(DB::DbProvider& db, SWorker* w)
+void Executor::workerNotResponding(db::DbProvider& db, SWorker* w)
 {
   if (w->base.state != base::StateType::NOT_RESPONDING){
-    m_messToDB.push(DB::MessSchedr(mess::MessType::WORKER_NOT_RESPONDING, w->base.id));
-    m_messToDB.push(DB::MessSchedr::errorMess(w->base.id, "worker not responding"));          
+    m_messToDB.push(db::MessSchedr(mess::MessType::WORKER_NOT_RESPONDING, w->base.id));
+    m_messToDB.push(db::MessSchedr::errorMess(w->base.id, "worker not responding"));          
     w->stateMem = w->base.state;
     w->base.state = base::StateType::NOT_RESPONDING;
   }

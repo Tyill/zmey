@@ -27,9 +27,9 @@
 
 using namespace std;
 
-namespace DB{
+namespace db{
 
-DbProvider::DbProvider(const DB::ConnectCng& cng) :
+DbProvider::DbProvider(const db::ConnectCng& cng) :
   m_impl(new DbProvider::Impl),
   m_connCng(cng){ 
 

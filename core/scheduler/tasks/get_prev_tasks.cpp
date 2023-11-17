@@ -27,7 +27,7 @@
 
 using namespace std;
 
-void Executor::getPrevTaskFromDB(DB::DbProvider& db)
+void Executor::getPrevTaskFromDB(db::DbProvider& db)
 {
   vector<base::Task> tasks;
   if (db.getTasksOfSchedr(m_schedr.id, tasks)){

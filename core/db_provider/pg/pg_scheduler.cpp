@@ -28,7 +28,7 @@
 
 using namespace std;
 
-namespace DB{
+namespace db{
 
 bool DbProvider::addSchedr(const base::Scheduler& schedl, int& outSchId){    
   lock_guard<mutex> lk(m_impl->m_mtx);

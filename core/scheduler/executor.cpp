@@ -25,19 +25,28 @@
 
 #include "executor.h"
 #include "application.h"
+#include "loop.h"
   
-Executor::Executor(Application& app, DB::DbProvider& db):
+Executor::Executor(Application& app, db::DbProvider& db):
   m_app(app),
   m_db(db)
 {
 }
 
-void Executor::loopStandUpNotify(std::function<void()> notify)
+void Executor::setLoop(Loop* l)
 {
-  m_loopStandUpNotify = notify;
+  m_loop = l;
+}
+void Executor::loopStandUpNotify()
+{
+  if (m_loop) m_loop->standUpNotify();
+}
+void Executor::loopStop()
+{
+  if (m_loop) m_loop->stop();
 }
 
-void Executor::addMessToDB(DB::MessSchedr mess)
+void Executor::addMessToDB(db::MessSchedr mess)
 {
   m_messToDB.push(std::move(mess));
 }
@@ -57,18 +66,18 @@ bool Executor::isMessToDBEmpty()
   return m_messToDB.empty();
 }
 
-bool Executor::getSchedrFromDB(const std::string& connPnt, DB::DbProvider& db)
+bool Executor::getSchedrFromDB(const std::string& connPnt, db::DbProvider& db)
 {
   return db.getSchedr(connPnt, m_schedr);
 }
 
-bool Executor::listenNewTask(DB::DbProvider& db, bool on)
+bool Executor::listenNewTask(db::DbProvider& db, bool on)
 {
   return db.setListenNewTaskNotify(on);
 }
 
 void Executor::errorMessage(const std::string& mess, int wId)
 {
-  m_messToDB.push(DB::MessSchedr::errorMess(wId, mess));
+  m_messToDB.push(db::MessSchedr::errorMess(wId, mess));
   m_app.statusMess(mess);
 }

@@ -26,7 +26,7 @@
 
 using namespace std;
 
-namespace DB{
+namespace db{
 
 bool DbProvider::startTask(int schedPresetId, base::Task& cng, int& tId){
   lock_guard<mutex> lk(m_impl->m_mtx);  
@@ -72,7 +72,7 @@ bool DbProvider::cancelTask(int tId){
   }
   return true;
 }
-bool DbProvider::taskState(const std::vector<int>& tId, std::vector<DB::TaskState>& outState){
+bool DbProvider::taskState(const std::vector<int>& tId, std::vector<db::TaskState>& outState){
   lock_guard<mutex> lk(m_impl->m_mtx);
   string stId;
   stId = accumulate(tId.begin(), tId.end(), stId,
@@ -100,7 +100,7 @@ bool DbProvider::taskState(const std::vector<int>& tId, std::vector<DB::TaskStat
   }
   return true;
 }
-bool DbProvider::taskTime(int tId, DB::TaskTime& out){
+bool DbProvider::taskTime(int tId, db::TaskTime& out){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
   ss << "SELECT createTime, takeInWorkTime, startTime, stopTime "

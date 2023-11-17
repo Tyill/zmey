@@ -53,9 +53,9 @@ public:
       TEST_COUT << mess << endl;
     }, nullptr); 
 
-    DB::ConnectCng cng;
+    db::ConnectCng cng;
     cng.connectStr = connStr;
-    DB::DbProvider dbp(cng);
+    db::DbProvider dbp(cng);
     EXPECT_TRUE(dbp.delAllTables()) << dbp.getLastError();
     
     EXPECT_TRUE(ddag::ddCreateTables(_zc));

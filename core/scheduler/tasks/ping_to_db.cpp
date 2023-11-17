@@ -29,7 +29,7 @@ using namespace std;
 
 void Executor::pingToDB()
 {
-  DB::MessSchedr mess;{
+  db::MessSchedr mess;{
     mess.type = mess::MessType::PING_SCHEDR;
     mess.data = to_string(m_schedr.activeTask);
   }

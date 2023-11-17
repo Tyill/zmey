@@ -32,7 +32,7 @@
 #include "base/base.h"
 #include "base/messages.h"
 
-namespace DB{
+namespace db{
 
 struct ConnectCng{
   std::string connectStr;
@@ -156,7 +156,7 @@ private:
   std::string m_err;
   ErrCBack m_errCBack = nullptr;
   UData m_errUData = nullptr;
-  DB::ConnectCng m_connCng;
+  db::ConnectCng m_connCng;
   
   class Impl;
   Impl* m_impl = nullptr;

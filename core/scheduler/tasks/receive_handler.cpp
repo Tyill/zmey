@@ -25,11 +25,13 @@
 
 #include "scheduler/executor.h"
 #include "base/messages.h"
+#include "db_provider/db_provider.h"
+#include "../application.h"
 
 using namespace std;
 
 #define ERROR_MESS(mess, wId)                               \
-  m_messToDB.push(DB::MessSchedr::errorMess(wId, mess)); \
+  m_messToDB.push(db::MessSchedr::errorMess(wId, mess)); \
   m_app.statusMess(mess);
 
 void Executor::receiveHandler(const string& remcp, const string& data)
@@ -78,27 +80,13 @@ void Executor::receiveHandler(const string& remcp, const string& data)
           }
         }   
         if (isExist){   
-          m_messToDB.push(DB::MessSchedr(mtype, wId, tid));            
-        }
-        break;
-      }        
-      case mess::MessType::TASK_PROGRESS:{
-        mess::TaskProgress tm(cp);
-        if (!tm.deserialn(data)){
-          ERROR_MESS("receiveHandler error deserialn from: " + cp, wId);    
-          return;
-        }
-        for (const auto& t : tm.taskProgress){
-          if (find_if(worker.taskList.begin(), worker.taskList.end(), [t](int tId){
-            return tId == t.first;
-          }) != worker.taskList.end())
-            m_messToDB.push(DB::MessSchedr(mtype, wId, t.first, to_string(t.second)));
+          m_messToDB.push(db::MessSchedr(mtype, wId, tid));            
         }
         break;
       }
       case mess::MessType::JUST_START_WORKER:
       case mess::MessType::STOP_WORKER:{
-          m_messToDB.push(DB::MessSchedr(mtype, wId)); 
+          m_messToDB.push(db::MessSchedr(mtype, wId)); 
           vector<base::Task> tasks;
           if (m_db.getTasksById(m_schedr.id, worker.taskList, tasks)){
             for(auto& t : tasks){
@@ -118,11 +106,11 @@ void Executor::receiveHandler(const string& remcp, const string& data)
             ERROR_MESS("receiveHandler error deserialn from: " + cp, wId);    
             return;
           }
-          m_messToDB.push(DB::MessSchedr::errorMess(wId, tm.message));
+          m_messToDB.push(db::MessSchedr::errorMess(wId, tm.message));
         }
         break;
       case mess::MessType::PING_WORKER:
-        m_messToDB.push(DB::MessSchedr(mtype, wId, 0, ""));
+        m_messToDB.push(db::MessSchedr(mtype, wId, 0, ""));
         break;
       default:
         ERROR_MESS("receiveHandler unknown command from worker: ", wId);
@@ -137,7 +125,7 @@ void Executor::receiveHandler(const string& remcp, const string& data)
       worker.isActive = true;
       if (worker.base.state == base::StateType::STOP){
         worker.base.state = worker.stateMem = base::StateType::RUNNING;
-        m_messToDB.push(DB::MessSchedr{mess::MessType::START_WORKER,
+        m_messToDB.push(db::MessSchedr{mess::MessType::START_WORKER,
                                         worker.base.id});
       }
       else if (worker.base.state == base::StateType::NOT_RESPONDING){
@@ -146,11 +134,11 @@ void Executor::receiveHandler(const string& remcp, const string& data)
         }else{
           worker.base.state = worker.stateMem = base::StateType::RUNNING;
         }
-        m_messToDB.push(DB::MessSchedr{mess::MessType::START_WORKER,
+        m_messToDB.push(db::MessSchedr{mess::MessType::START_WORKER,
                                         worker.base.id});
       }
     }
-    if (m_loopStandUpNotify) m_loopStandUpNotify();
+    loopStandUpNotify();
     return;
   }
 
@@ -160,13 +148,13 @@ void Executor::receiveHandler(const string& remcp, const string& data)
       break;
     case mess::MessType::PAUSE_SCHEDR:
       if (m_schedr.state != base::StateType::PAUSE){
-        m_messToDB.push(DB::MessSchedr{mtype});
+        m_messToDB.push(db::MessSchedr{mtype});
       }
       m_schedr.state = base::StateType::PAUSE;
       break;
     case mess::MessType::START_AFTER_PAUSE_SCHEDR:
       if (m_schedr.state != base::StateType::RUNNING){
-        m_messToDB.push(DB::MessSchedr{mtype});
+        m_messToDB.push(db::MessSchedr{mtype});
       }
       m_schedr.state = base::StateType::RUNNING;
       break;
@@ -177,7 +165,7 @@ void Executor::receiveHandler(const string& remcp, const string& data)
       //   if ((worker.base.state != base::StateType::NOT_RESPONDING) &&
       //       (worker.base.state != base::StateType::STOP)){
       //     if (worker.base.state != base::StateType::PAUSE){
-      //       m_messToDB.push(DB::MessSchedr{mtype, worker.base.id});
+      //       m_messToDB.push(db::MessSchedr{mtype, worker.base.id});
       //     }
       //     worker.base.state = worker.stateMem = base::StateType::PAUSE;
       // }}}
@@ -190,7 +178,7 @@ void Executor::receiveHandler(const string& remcp, const string& data)
       //   if ((worker.base.state != base::StateType::NOT_RESPONDING) &&
       //       (worker.base.state != base::StateType::STOP)){
       //     if (worker.base.state != base::StateType::RUNNING){
-      //       m_messToDB.push(DB::MessSchedr{mtype, worker.base.id});
+      //       m_messToDB.push(db::MessSchedr{mtype, worker.base.id});
       //     }
       //     worker.base.state = worker.stateMem = base::StateType::RUNNING;
       // }}} 
@@ -201,5 +189,5 @@ void Executor::receiveHandler(const string& remcp, const string& data)
       return;
   }
     
-  if (m_loopStandUpNotify) m_loopStandUpNotify();  
+  loopStandUpNotify();  
 }

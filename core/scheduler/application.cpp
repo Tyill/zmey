@@ -45,7 +45,7 @@ bool Application::parseArgs(int argc, char* argv[], Config& outCng){
          << "       --remoteAddr[-ra] schedr remote connection point (if from NAT): IP or DNS:port. Optional\n"
          << "       --dbConnStr[-db] database connection string\n"
          << "       --checkWorkerTOutSec[-cw] check ping from workers, sec. Default 60 sec\n"
-         << "       --pingToDBSec[-pb] ping to DB, sec. Default 20 sec\n";
+         << "       --pingToDBSec[-pb] ping to db, sec. Default 20 sec\n";
     return false; 
   }
   
@@ -73,14 +73,4 @@ bool Application::parseArgs(int argc, char* argv[], Config& outCng){
   SET_PARAM_NUM(pb, pingToDBSec, pingToDBSec);
 
   return true;
-}
-
-void Application::loopNotify()
-{
-  Application::Connector.emit(Signals::SIGNAL_LOOP_NOTIFY);
-}
-
-void Application::loopStop()
-{
-  Application::Connector.emit(Signals::SIGNAL_LOOP_STOP);
 }

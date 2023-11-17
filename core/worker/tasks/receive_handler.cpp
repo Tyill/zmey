@@ -54,8 +54,6 @@ void Executor::receiveHandler(const string& remcp, const string& data)
     }
     base::Task t;
     t.id = tm.taskId;
-    t.averDurationSec = tm.averDurationSec;
-    t.maxDurationSec = tm.maxDurationSec;
     t.scriptPath = tm.scriptPath;
     t.resultPath = tm.resultPath;
     t.state = base::StateType::READY;
