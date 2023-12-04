@@ -101,23 +101,12 @@ public:
   ~DbProvider(); 
   DbProvider(const DbProvider& other) = delete;
   DbProvider& operator=(const DbProvider& other) = delete;
-  std::string getLastError() const{
-    return m_err;
-  }  
-  void setErrorCBack(ErrCBack ecb, UData ud){
-    m_errCBack = ecb;
-    m_errUData = ud;
-  }
-  void errorMess(const std::string& mess){
-    m_err = mess;
-    if (m_errCBack){
-      m_errCBack(mess.c_str(), m_errUData);
-    } 
-  }
+  
+  std::string getLastError() const;
+  void setErrorCBack(ErrCBack ecb, UData ud);
   ConnectCng getConnectCng(){
     return m_connCng;
-  }
-    
+  }    
   bool addSchedr(const base::Scheduler& schedl, int& outSchId);
   bool getSchedr(int sId, base::Scheduler& outCng);
   bool changeSchedr(int sId, const base::Scheduler& newCng);
@@ -145,14 +134,15 @@ public:
   // for schedr
   bool setListenNewTaskNotify(bool on);
   bool getSchedr(const std::string& connPnt, base::Scheduler& outSchedl);
-  bool getTasksById(int sId, const std::vector<int>& tasksId, std::vector<base::Task>& out);
   bool getTasksOfSchedr(int sId, std::vector<base::Task>& out);
-  bool getTasksOfWorker(int sId, int workerId, std::vector<int>& outTasksId);
+  bool getTasksOfWorker(int sId, int workerId, std::vector<base::Task>& out);
   bool getWorkersOfSchedr(int sId, std::vector<base::Worker>& out);
   bool getNewTasksForSchedr(int sId, int maxTaskCnt, std::vector<base::Task>& out);
   bool sendAllMessFromSchedr(int sId, std::vector<MessSchedr>& out);
   
 private:
+  void errorMess(const std::string& mess);
+
   std::string m_err;
   ErrCBack m_errCBack = nullptr;
   UData m_errUData = nullptr;
@@ -160,5 +150,7 @@ private:
   
   class Impl;
   Impl* m_impl = nullptr;
+
+  std::mutex m_mtx;
 };
 }

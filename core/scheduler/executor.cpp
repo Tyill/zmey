@@ -53,7 +53,7 @@ void Executor::addMessToDB(db::MessSchedr mess)
 
 bool Executor::appendNewTaskAvailable()
 {
-  return (m_schedr.state != base::StateType::PAUSE);
+  return (m_schedr.sState != int(base::StateType::PAUSE));
 }
 
 bool Executor::isTasksEmpty()

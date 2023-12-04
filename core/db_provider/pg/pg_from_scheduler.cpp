@@ -60,47 +60,13 @@ bool DbProvider::getSchedr(const std::string& connPnt, base::Scheduler& outCng){
     errorMess("getSchedr error: such schedr does not exist");
     return false;
   }
-  outCng.id = stoi(PQgetvalue(pgr.res, 0, 0));
-  outCng.connectPnt = connPnt;
-  outCng.state = (base::StateType)atoi(PQgetvalue(pgr.res, 0, 1));
-  outCng.capacityTask = atoi(PQgetvalue(pgr.res, 0, 2));
-  outCng.activeTask = atoi(PQgetvalue(pgr.res, 0, 3));
+  outCng.sId = stoi(PQgetvalue(pgr.res, 0, 0));
+  outCng.sConnectPnt = connPnt;
+  outCng.sState = atoi(PQgetvalue(pgr.res, 0, 1));
+  outCng.sCapacityTaskCount = atoi(PQgetvalue(pgr.res, 0, 2));
+  outCng.sActiveTaskCount = atoi(PQgetvalue(pgr.res, 0, 3));
   return true;
 }
-bool DbProvider::getTasksById(int sId, const std::vector<int>& tasksId, std::vector<base::Task>& out){
-  lock_guard<mutex> lk(m_impl->m_mtx);
-
-  string tId;
-  tId = accumulate(tasksId.begin(), tasksId.end(), tId,
-                [](string& s, int v){
-                  return s.empty() ? to_string(v) : s + "," + to_string(v);
-                }); 
-  stringstream ss;
-  ss << "SELECT tq.id, COALESCE(tp.workerPreset, 0), "
-        "       tp.params, tp.scriptPath, tp.resultPath "
-        "FROM tblTaskQueue tq "
-        "JOIN tblTaskState ts ON ts.qtask = tq.id "
-        "JOIN tblTaskParam tp ON tp.qtask = tq.id "
-        "WHERE tq.schedr = " << sId << " AND tq.id IN (" << tId << ") AND (ts.state BETWEEN " << (int)base::StateType::START << " AND " << (int)base::StateType::PAUSE << ")";
-
-  PGres pgr(PQexec(pg_, ss.str().c_str()));
-  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("getTasksById: ") + PQerrorMessage(pg_));
-    return false;
-  }
-
-  int tsz = PQntuples(pgr.res);
-  for (int i = 0; i < tsz; ++i){
-    out.push_back(base::Task {
-      stoi(PQgetvalue(pgr.res, i, 0)),
-      stoi(PQgetvalue(pgr.res, i, 1)),
-      PQgetvalue(pgr.res, i, 2),
-      PQgetvalue(pgr.res, i, 3),
-      PQgetvalue(pgr.res, i, 4)
-    });
-  }
-  return true;
-}  
 bool DbProvider::getTasksOfSchedr(int sId, std::vector<base::Task>& out){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
@@ -128,12 +94,13 @@ bool DbProvider::getTasksOfSchedr(int sId, std::vector<base::Task>& out){
   }
   return true;
 }
-bool DbProvider::getTasksOfWorker(int sId, int wId, std::vector<int>& outTasksId){
+bool DbProvider::getTasksOfWorker(int sId, int wId, std::vector<base::Task>& out){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
-  ss << "SELECT tq.id "
+  ss << "SELECT tq.id, tp.params, tp.scriptPath, tp.resultPath "
         "FROM tblTaskQueue tq "
         "JOIN tblTaskState ts ON ts.qtask = tq.id "
+        "JOIN tblTaskParam tp ON tp.qtask = tq.id "
         "WHERE tq.schedr = " << sId << " AND tq.worker = " << wId << " AND (ts.state BETWEEN " << (int)base::StateType::START << " AND " << (int)base::StateType::PAUSE << ")";
 
   PGres pgr(PQexec(pg_, ss.str().c_str()));
@@ -143,7 +110,13 @@ bool DbProvider::getTasksOfWorker(int sId, int wId, std::vector<int>& outTasksId
   }
   int tsz = PQntuples(pgr.res);
   for (int i = 0; i < tsz; ++i){
-    outTasksId.push_back(stoi(PQgetvalue(pgr.res, i, 0)));
+    out.push_back(base::Task {
+      stoi(PQgetvalue(pgr.res, i, 0)),
+      wId,
+      PQgetvalue(pgr.res, i, 1),
+      PQgetvalue(pgr.res, i, 2),
+      PQgetvalue(pgr.res, i, 3)
+    });
   }
   return true;
 }
@@ -161,13 +134,16 @@ bool DbProvider::getWorkersOfSchedr(int sId, std::vector<base::Worker>& out){
   }
   int wsz = PQntuples(pgr.res);
   for(int i =0; i < wsz; ++i){
-    out.push_back(base::Worker{ stoi(PQgetvalue(pgr.res, i, 0)),
-                                   sId,
-                                   (base::StateType)atoi(PQgetvalue(pgr.res, i, 1)),
-                                   atoi(PQgetvalue(pgr.res, i, 2)),
-                                   atoi(PQgetvalue(pgr.res, i, 3)),
-                                   0,
-                                   PQgetvalue(pgr.res, i, 4)});
+    base::Worker w;{ 
+      w.wId = atoi(PQgetvalue(pgr.res, i, 0));
+      w.sId = sId;
+      w.wState = w.wStateMem = atoi(PQgetvalue(pgr.res, i, 1)),
+      w.wCapacityTaskCount = atoi(PQgetvalue(pgr.res, i, 2)),
+      w.wActiveTaskCount = atoi(PQgetvalue(pgr.res, i, 3)),
+      w.wConnectPnt = PQgetvalue(pgr.res, i, 4);
+      w.wIsActive = w.wState != int(base::StateType::NOT_RESPONDING);
+    }
+    out.push_back(w);
   }
   return true;
 }

@@ -105,9 +105,10 @@ private:
 
 
 mess::MessType getMessType(const std::string& m){
-  const auto r = SerialReader(m, 0);
+  int mtype;
+  const auto r = SerialReader(m, 0, mtype);
   if (r.ok()){
-    return mess::MessType(r.mtype());
+    return mess::MessType(mtype);
   }
   return mess::MessType::UNDEFINED;
 }

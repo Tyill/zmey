@@ -29,6 +29,7 @@
 
 #include <mutex>
 #include <condition_variable>
+#include <atomic>
 
 class Executor;
 
@@ -51,5 +52,5 @@ private:
 
   std::mutex m_mtxNotify;
   std::condition_variable m_cvStandUp;
-  bool m_fClose = false;
+  std::atomic_bool m_fClose = false;
 };

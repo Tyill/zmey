@@ -88,14 +88,13 @@ bool zmAddScheduler(zmConn zo, zmSchedr cng, int* outSchId){
   if (!zo) return false;
   
   if (!outSchId){
-     static_cast<db::DbProvider*>(zo)->errorMess("zmAddScheduler error: !outSchId");
-     return false;
+    return false;
   }
   base::Scheduler scng;
-  scng.activeTask = 0;
-  scng.capacityTask = cng.capacityTask;
-  scng.connectPnt = cng.connectPnt;
-  scng.state = base::StateType::STOP;
+  scng.sActiveTaskCount= 0;
+  scng.sCapacityTaskCount = cng.capacityTask;
+  scng.sConnectPnt = cng.connectPnt;
+  scng.sState = int(base::StateType::STOP);
 
   return static_cast<db::DbProvider*>(zo)->addSchedr(scng, *outSchId);
 }
@@ -103,13 +102,12 @@ bool zmGetScheduler(zmConn zo, int sId, zmSchedr* outCng){
   if (!zo) return false; 
 
   if (!outCng){
-     static_cast<db::DbProvider*>(zo)->errorMess("zmGetSchedulerCng error: !outCng");
-     return false;
+    return false;
   }
   base::Scheduler scng;
   if (static_cast<db::DbProvider*>(zo)->getSchedr(sId, scng)){    
-    outCng->capacityTask = scng.capacityTask;
-    strcpy(outCng->connectPnt, scng.connectPnt.c_str());
+    outCng->capacityTask = scng.sCapacityTaskCount;
+    strcpy(outCng->connectPnt, scng.sConnectPnt.c_str());
     return true;
   }
   return false;
@@ -118,8 +116,8 @@ bool zmChangeScheduler(zmConn zo, int sId, zmSchedr newCng){
   if (!zo) return false; 
   
   base::Scheduler scng;
-  scng.capacityTask = newCng.capacityTask;
-  scng.connectPnt = newCng.connectPnt;
+  scng.sCapacityTaskCount = newCng.capacityTask;
+  scng.sConnectPnt = newCng.connectPnt;
 
   return static_cast<db::DbProvider*>(zo)->changeSchedr(sId, scng);
 }
@@ -156,8 +154,7 @@ bool zmStateOfScheduler(zmConn zo, int sId, zmSchedulerState* outState){
   if (!zo) return false; 
 
   if (!outState){
-     static_cast<db::DbProvider*>(zo)->errorMess("zmStateOfScheduler error: !outState");
-     return false;
+    return false;
   }
   db::SchedulerState state;
   if (static_cast<db::DbProvider*>(zo)->schedrState(sId, state)){ 
@@ -194,13 +191,12 @@ bool zmAddWorker(zmConn zo, zmWorker cng, int* outWId){
   if (!zo) return false;
 
   if (!outWId){
-     static_cast<db::DbProvider*>(zo)->errorMess("zmAddWorker error: !outWId");
-     return false;
+    return false;
   }
   base::Worker wcng;
-  wcng.capacityTask = cng.capacityTask;
-  wcng.connectPnt = cng.connectPnt;
-  wcng.state = base::StateType::STOP;
+  wcng.wCapacityTaskCount = cng.capacityTask;
+  wcng.wConnectPnt = cng.connectPnt;
+  wcng.wState = int(base::StateType::STOP);
   wcng.sId = cng.sId;
 
   return static_cast<db::DbProvider*>(zo)->addWorker(wcng, *outWId);
@@ -209,14 +205,13 @@ bool zmGetWorker(zmConn zo, int wId, zmWorker* outWCng){
   if (!zo) return false; 
 
   if (!outWCng){
-     static_cast<db::DbProvider*>(zo)->errorMess("zmGetWorkerCng error: !outWCng");
-     return false;
+    return false;
   }
   base::Worker wcng;
   if (static_cast<db::DbProvider*>(zo)->getWorker(wId, wcng)){    
     outWCng->sId = wcng.sId;
-    outWCng->capacityTask = wcng.capacityTask;
-    strncpy(outWCng->connectPnt, wcng.connectPnt.c_str(), 255);
+    outWCng->capacityTask = wcng.wCapacityTaskCount;
+    strncpy(outWCng->connectPnt, wcng.wConnectPnt.c_str(), 255);
     return true;
   }
   return false;
@@ -226,8 +221,8 @@ bool zmChangeWorker(zmConn zo, int wId, zmWorker newCng){
 
   base::Worker wcng;
   wcng.sId = newCng.sId;
-  wcng.capacityTask = newCng.capacityTask;
-  wcng.connectPnt = newCng.connectPnt;
+  wcng.wCapacityTaskCount= newCng.capacityTask;
+  wcng.wConnectPnt = newCng.connectPnt;
   
   return static_cast<db::DbProvider*>(zo)->changeWorker(wId, wcng);
 }
@@ -273,8 +268,7 @@ bool zmStateOfWorker(zmConn zo, int* pWId, int wCnt, zmWorkerState* outState){
   if (!zo) return false; 
 
   if (!outState){
-     static_cast<db::DbProvider*>(zo)->errorMess("zmWorkerState error: !outState");
-     return false;
+    return false;
   }
   vector<int> wId(wCnt);
   memcpy(wId.data(), pWId, wCnt * sizeof(int));
@@ -313,9 +307,9 @@ bool zmStartTask(zmConn zo, zmTask cng, int* tId){
 
   base::Task task;
   task.wId = cng.workerPresetId;
-  task.params = cng.params ? cng.params : "";
-  task.scriptPath = cng.scriptPath;
-  task.resultPath = cng.resultPath;
+  task.tParams = cng.params ? cng.params : "";
+  task.tScriptPath = cng.scriptPath;
+  task.tResultPath = cng.resultPath;
 
   return static_cast<db::DbProvider*>(zo)->startTask(cng.schedrPresetId, task, *tId);
 }
@@ -324,9 +318,9 @@ bool zmStopTask(zmConn zo, int tId){
     
   base::Worker wcng;  
   if (static_cast<db::DbProvider*>(zo)->getWorkerByTask(tId, wcng)){
-    mess::TaskStatus mess(mess::MessType::TASK_STOP, wcng.connectPnt);
+    mess::TaskStatus mess(mess::MessType::TASK_STOP, wcng.wConnectPnt);
     mess.taskId = tId;
-    return misc::syncSendData(wcng.connectPnt, mess.serialn());
+    return misc::syncSendData(wcng.wConnectPnt, mess.serialn());
   }
   return false;
 }
@@ -340,9 +334,9 @@ bool zmPauseTask(zmConn zo, int tId){
     
   base::Worker wcng;  
   if (static_cast<db::DbProvider*>(zo)->getWorkerByTask(tId, wcng)){
-    mess::TaskStatus mess(mess::MessType::TASK_PAUSE, wcng.connectPnt);
+    mess::TaskStatus mess(mess::MessType::TASK_PAUSE, wcng.wConnectPnt);
     mess.taskId = tId;
-    return misc::syncSendData(wcng.connectPnt, mess.serialn());
+    return misc::syncSendData(wcng.wConnectPnt, mess.serialn());
   }
   return false;
 }
@@ -351,9 +345,9 @@ bool zmContinueTask(zmConn zo, int tId){
     
   base::Worker wcng;  
   if (static_cast<db::DbProvider*>(zo)->getWorkerByTask(tId, wcng)){
-    mess::TaskStatus mess(mess::MessType::TASK_CONTINUE, wcng.connectPnt);
+    mess::TaskStatus mess(mess::MessType::TASK_CONTINUE, wcng.wConnectPnt);
     mess.taskId = tId;
-    return misc::syncSendData(wcng.connectPnt, mess.serialn());
+    return misc::syncSendData(wcng.wConnectPnt, mess.serialn());
   }
   return false;
 }
@@ -361,7 +355,6 @@ bool zmStateOfTask(zmConn zo, int* qtId, int tCnt, zmTaskState* outQTState){
   if (!zo) return false;
   
   if (!qtId || !outQTState){
-    static_cast<db::DbProvider*>(zo)->errorMess("zmTaskState error: !qtId || !outQTState");
     return false;
   }
   vector<int> qtaskId(tCnt);
@@ -379,7 +372,6 @@ bool zmTimeOfTask(zmConn zo, int tId, zmTaskTime* outTTime){
   if (!zo) return false;
   
   if (!outTTime){
-    static_cast<db::DbProvider*>(zo)->errorMess("zmTaskTime error: !outTTime");
     return false;
   }
   db::TaskTime tskTime;

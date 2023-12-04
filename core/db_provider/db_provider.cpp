@@ -49,4 +49,23 @@ DbProvider::~DbProvider(){
   }
   delete m_impl;
 }
+
+void DbProvider::setErrorCBack(ErrCBack ecb, UData ud){
+  lock_guard<mutex> lk(m_mtx);
+  m_errCBack = ecb;
+  m_errUData = ud;
+}
+std::string DbProvider::getLastError() const{
+  lock_guard<mutex> lk(m_mtx);
+  return m_err;
+}
+
+void DbProvider::errorMess(const std::string& mess){
+  lock_guard<mutex> lk(m_mtx);
+  m_err = mess;
+  if (m_errCBack){
+    m_errCBack(mess.c_str(), m_errUData);
+  } 
+}
+
 }

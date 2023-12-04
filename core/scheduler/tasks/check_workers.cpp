@@ -32,12 +32,12 @@ using namespace std;
 
 void Executor::checkStatusWorkers(db::DbProvider& db)
 {
-  vector<SWorker*> wkrNotResp;
+  vector<base::Worker*> wkrNotResp;
   for(auto& w : m_workers){
-    if (!w.second.isActive && (w.second.base.state != base::StateType::STOP)){            
-      wkrNotResp.push_back(&w.second);
+    if (!w.second->wIsActive && (w.second->wState != int(base::StateType::STOP))){            
+      wkrNotResp.push_back(w.second);
     }else{
-      w.second.isActive = false;
+      w.second->wIsActive = false;
     }
   }
   if (wkrNotResp.size() <= round(m_workers.size() * 0.75)){ 
@@ -50,27 +50,21 @@ void Executor::checkStatusWorkers(db::DbProvider& db)
   }
 }
 
-void Executor::workerNotResponding(db::DbProvider& db, SWorker* w)
+void Executor::workerNotResponding(db::DbProvider& db, base::Worker* w)
 {
-  if (w->base.state != base::StateType::NOT_RESPONDING){
-    m_messToDB.push(db::MessSchedr(mess::MessType::WORKER_NOT_RESPONDING, w->base.id));
-    m_messToDB.push(db::MessSchedr::errorMess(w->base.id, "worker not responding"));          
-    w->stateMem = w->base.state;
-    w->base.state = base::StateType::NOT_RESPONDING;
+  if (w->wState != int(base::StateType::NOT_RESPONDING)){
+    m_messToDB.push(db::MessSchedr(mess::MessType::WORKER_NOT_RESPONDING, w->wId));
+    m_messToDB.push(db::MessSchedr::errorMess(w->wId, "worker not responding"));          
+    w->wStateMem = +w->wState;
+    w->wState = int(base::StateType::NOT_RESPONDING);
   }
-  std::vector<int> taskList;
-  std::copy_if (w->taskList.begin(), w->taskList.end(), std::back_inserter(taskList), [](int i){return i > 0;} );
-  if (!taskList.empty()){
-    vector<base::Task> tasks;
-    if (db.getTasksById(m_schedr.id, taskList, tasks)){
-      for(auto& t : tasks){
-        m_tasks.push(move(t));
-      }
-    }else{
-      m_app.statusMess("workerNotResponding db error: " + db.getLastError());
-    }        
-    for(auto& t : w->taskList){
-      t = 0;
-    } 
+  
+  vector<base::Task> tasks;
+  if (db.getTasksOfWorker(m_schedr.sId, w->wId, tasks)){
+    for(auto& t : tasks){
+      m_tasks.push(move(t));
+    }
+  }else{
+    m_app.statusMess("workerNotResponding db error: " + db.getLastError());
   }
 }

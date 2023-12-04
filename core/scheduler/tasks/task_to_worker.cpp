@@ -29,71 +29,37 @@
 
 using namespace std;
 
-#define ERROR_MESS(mess, wId)                               \
-  m_messToDB.push(db::MessSchedr::errorMess(wId, mess)); \
-  m_app.statusMess(mess);
 
 bool Executor::sendTaskToWorker()
-{    
-  if (m_workersList.empty()){
-    for (auto& w : m_workers){
-      m_workersList.push_back(w.second.base);
-    }
-  }
-  
+{   
   std::vector<base::Worker*> refWorkers;
-  auto iw = m_workers.cbegin();
-  auto iwcp = m_workersList.begin();
-  for (; iw != m_workers.cend(); ++iw, ++iwcp){
-    iwcp->activeTask = iw->second.base.activeTask;
-    iwcp->load = iw->second.base.load;
-    iwcp->state = iw->second.base.state;
-    refWorkers.push_back(iwcp.base());  
+  for (auto w : m_workers){
+     refWorkers.push_back(w.second);
   }
   int cycleCount = 0;
   while (!m_tasks.empty()){
     base::Task task;
     m_tasks.front(task);
     sort(refWorkers.begin(), refWorkers.end(), [](const base::Worker* l, const base::Worker* r){
-      return float(l->activeTask + l->load / 10.f) < float(r->activeTask + r->load / 10.f);
+      return l->wActiveTaskCount + l->wLoadCPU / 10.f < r->wActiveTaskCount + r->wLoadCPU / 10.f;
     });
-    auto iWr = find_if(refWorkers.begin(), refWorkers.end(),
-      [this, &task](const base::Worker* w){                
-        bool isSpare = false;
-        if (((task.wId == 0) || (task.wId == w->id)) && (w->state == base::StateType::RUNNING) && 
-            (w->activeTask < w->capacityTask)){ 
-          for(auto& wt : m_workers[w->connectPnt].taskList){
-            if (wt == 0){
-              isSpare = true;
-              break;
-            }
-          } 
-        }
-        return isSpare;
-      }); 
-    
+    auto iWr = find_if(refWorkers.begin(), refWorkers.end(), [this, task](const base::Worker* w){                
+      return (((task.wId == 0) || (task.wId == w->wId)) && (w->wState == int(base::StateType::RUNNING)) && 
+                (w->wActiveTaskCount < w->wCapacityTaskCount));         
+    });
     if(iWr != refWorkers.end()){
-      mess::NewTask messNewTask(m_schedr.connectPnt);{
-        messNewTask.taskId = task.id;
-        messNewTask.params = task.params;
-        messNewTask.scriptPath = task.scriptPath;
-        messNewTask.resultPath = task.resultPath;        
+      mess::NewTask messNewTask(m_schedr.sConnectPnt);{
+        messNewTask.taskId = task.tId;
+        messNewTask.params = task.tParams;
+        messNewTask.scriptPath = task.tScriptPath;
+        messNewTask.resultPath = task.tResultPath;        
       } 
-      const string& wConnPnt = (*iWr)->connectPnt;
+      const string& wConnPnt = (*iWr)->wConnectPnt;
       if (misc::asyncSendData(wConnPnt, messNewTask.serialn())){
         m_tasks.tryPop(task);
-        ++(*iWr)->activeTask;
-        m_workers[wConnPnt].base.activeTask = (*iWr)->activeTask; 
-
-        for(auto& wt : m_workers[wConnPnt].taskList){
-          if (wt == 0){
-            wt = task.id;
-            break;
-          }
-        } 
+        ++(*iWr)->wActiveTaskCount; 
       }     
-    }
-    else{
+    }else{
       ++cycleCount;
       if (task.wId == 0 || cycleCount >= m_tasks.size()){
         return false;

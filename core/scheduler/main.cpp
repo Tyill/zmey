@@ -92,7 +92,7 @@ int main(int argc, char* argv[])
   misc::ReceiveDataCBack receiveDataCB = [&executor](const string& cp, const string& data){
     executor.receiveHandler(cp, data);
   };
-  misc::ErrorStatusCBack errorStatusCB = [&executor](const string& cp, const error_code& ec){
+  misc::ErrorStatusCBack errorStatusCB = [&executor](const string& cp, const std::string& data, const error_code& ec){
     executor.errorNotifyHandler(cp, ec);
   };  
   CHECK_RETURN(!misc::startServer(cng.localConnPnt, receiveDataCB, errorStatusCB, 0, err), 

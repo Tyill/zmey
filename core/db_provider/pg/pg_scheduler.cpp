@@ -35,9 +35,9 @@ bool DbProvider::addSchedr(const base::Scheduler& schedl, int& outSchId){
   
   stringstream ss;
   ss << "INSERT INTO tblScheduler (connPnt, state, capacityTask, name, description) VALUES("
-        "'" << schedl.connectPnt << "',"
-        "'" << (int)schedl.state << "',"
-        "'" << schedl.capacityTask << "') RETURNING id;";
+        "'" << schedl.sConnectPnt << "',"
+        "'" << (int)schedl.sState << "',"
+        "'" << schedl.sCapacityTaskCount << "') RETURNING id;";
 
   PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
@@ -63,9 +63,9 @@ bool DbProvider::getSchedr(int sId, base::Scheduler& cng){
     errorMess(string("getSchedr error: such schedr does not exist"));
     return false;
   }
-  cng.connectPnt = PQgetvalue(pgr.res, 0, 0);
-  cng.state = (base::StateType)atoi(PQgetvalue(pgr.res, 0, 1));
-  cng.capacityTask = atoi(PQgetvalue(pgr.res, 0, 2));
+  cng.sConnectPnt = PQgetvalue(pgr.res, 0, 0);
+  cng.sState = atoi(PQgetvalue(pgr.res, 0, 1));
+  cng.sCapacityTaskCount = atoi(PQgetvalue(pgr.res, 0, 2));
   return true;
 }
 bool DbProvider::changeSchedr(int sId, const base::Scheduler& newCng){  
@@ -73,8 +73,8 @@ bool DbProvider::changeSchedr(int sId, const base::Scheduler& newCng){
  
   stringstream ss;
   ss << "UPDATE tblScheduler SET "
-        "capacityTask = '" << newCng.capacityTask << "', "
-        "connPnt = '" << newCng.connectPnt << "' "
+        "capacityTask = '" << newCng.sCapacityTaskCount << "', "
+        "connPnt = '" << newCng.sConnectPnt << "' "
         "WHERE id = " << sId << " AND isDelete = 0;";
       
   PGres pgr(PQexec(pg_, ss.str().c_str()));

@@ -31,16 +31,20 @@ using namespace std;
 void Executor::getPrevWorkersFromDB(db::DbProvider& db)
 {   
   vector<base::Worker> workers; 
-  if (db.getWorkersOfSchedr(m_schedr.id, workers)){
+  if (db.getWorkersOfSchedr(m_schedr.sId, workers)){
     for(auto& w : workers){
-      m_workers[w.connectPnt] = SWorker{w, w.state, vector<int>(), 
-                                        w.state != base::StateType::NOT_RESPONDING};
-
-      if (db.getTasksOfWorker(m_schedr.id, w.id, m_workers[w.connectPnt].taskList)){
-        m_workers[w.connectPnt].taskList.resize(size_t(w.capacityTask * 1.5));
+      base::Worker* pw = new base::Worker();{
+        pw->wActiveTaskCount = +w.wActiveTaskCount;
+        pw->wLoadCPU = +w.wLoadCPU;
+        pw->wCapacityTaskCount = w.wCapacityTaskCount;
+        pw->wConnectPnt = w.wConnectPnt;
+        pw->wId = w.wId;
+        pw->sId = w.sId;
+        pw->wState = +w.wState;
+        pw->wStateMem = +w.wState;
+        pw->wIsActive = w.wState != int(base::StateType::NOT_RESPONDING);
       }
-      else
-        m_app.statusMess("getTasksOfWorker db error: " + db.getLastError());
+      m_workers[w.wConnectPnt] = pw;
     }
   }
   else{

@@ -59,22 +59,14 @@ public:
   void pingToDB();
   void stopSchedr(db::DbProvider& db);  
   
-private:
-  struct SWorker{
-    base::Worker base;
-    base::StateType stateMem{};
-    std::vector<int> taskList;
-    bool isActive{};
-  };
-
-  void workerNotResponding(db::DbProvider& db, SWorker*);
+private: 
+  void workerNotResponding(db::DbProvider& db, base::Worker*);
   void errorMessage(const std::string& mess, int wId);
 
   Application& m_app;
   db::DbProvider& m_db;
 
-  std::map<std::string, SWorker> m_workers;   // key - connectPnt  
-  std::vector<base::Worker> m_workersList;
+  std::map<std::string, base::Worker*> m_workers;   // key - connectPnt  
   misc::Queue<base::Task> m_tasks;
   misc::Queue<db::MessSchedr> m_messToDB;
   base::Scheduler m_schedr;

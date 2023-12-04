@@ -26,6 +26,7 @@
 #pragma once
         
 #include <string>
+#include <atomic>
 
 namespace base{
 
@@ -45,30 +46,32 @@ namespace base{
   
   // task object
   struct Task{
-    int id{};                   // id tblTaskQueue
+    int tId{};                   // id tblTaskQueue
     int wId{};                  // preset worker id tblWorker. Default 0 - not set
-    std::string params;
-    std::string scriptPath;  
-    std::string resultPath;  
-    StateType state;
+    std::string tParams;
+    std::string tScriptPath;  
+    std::string tResultPath;  
+    StateType tState;
   };  
  
   // tblScheduler
   struct Scheduler{
-    int id{};                   // id tblScheduler
-    StateType state{};
-    int capacityTask{};         // the number of tasks that can be performed simultaneously  
-    int activeTask{};           // number of running tasks (approximate quantity)
-    std::string connectPnt;     // connection point: IP or DNS ':' port
+    int sId{};                          // id tblScheduler
+    int sCapacityTaskCount{};           // the number of tasks that can be performed simultaneously  
+    std::atomic_int sState{};
+    std::atomic_int sActiveTaskCount{}; // number of running tasks (approximate quantity)
+    std::string sConnectPnt;            // connection point: IP or DNS ':' port
   };
   // tblWorker
   struct Worker{
-    int id{};                   // id tblWorker
-    int sId{};                  // id tblScheduler
-    StateType state{};  
-    int capacityTask{};         // the number of tasks that can be performed simultaneously  
-    int activeTask{};           // number of running tasks (approximate quantity)
-    int load{}; 
-    std::string connectPnt;     // connection point: IP or DNS ':' port
+    int wId{};                          // id tblWorker
+    int sId{};                          // id tblScheduler
+    int wCapacityTaskCount{};           // the number of tasks that can be performed simultaneously  
+    std::atomic_int wState{};  
+    std::atomic_int wStateMem{};
+    std::atomic_int wActiveTaskCount{}; // number of running tasks (approximate quantity)
+    std::atomic_int wLoadCPU{};
+    std::atomic_bool wIsActive{};  
+    std::string wConnectPnt;            // connection point: IP or DNS ':' port
   };
 }
