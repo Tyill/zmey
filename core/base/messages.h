@@ -1,3 +1,5 @@
+#pragma once
+
 #include "base.h"
 
 #include <cstring>
@@ -16,6 +18,7 @@ enum class MessType{
   TASK_STOP,
   TASK_CONTINUE,
   TASK_CANCEL, // when not yet taken to work
+  TASK_PROGRESS,
   START_WORKER,
   START_SCHEDR, 
   STOP_WORKER,

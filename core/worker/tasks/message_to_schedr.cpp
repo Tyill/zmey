@@ -31,13 +31,13 @@ using namespace std;
 
 void Executor::messageToSchedr(const std::string& schedrConnPnt)
 {  
-  m_worker.activeTask = (int)m_newTasks.size() + (int)m_procs.size();
+  m_worker.wActiveTaskCount = (int)m_newTasks.size() + (int)m_procs.size();
   mess::TaskStatus m; 
   bool isSendOk = true;
   while(isSendOk && m_messForSchedr.tryPop(m)){
-    m.activeTaskCount = m_worker.activeTask;
-    m.loadCPU = m_worker.load;
-    m.connectPnt = m_worker.connectPnt;
+    m.activeTaskCount = m_worker.wActiveTaskCount;
+    m.loadCPU = m_worker.wLoadCPU;
+    m.connectPnt = m_worker.wConnectPnt;
     isSendOk = misc::asyncSendData(schedrConnPnt, m.serialn());
   }
 }

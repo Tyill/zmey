@@ -307,6 +307,8 @@ bool zmStartTask(zmConn zo, zmTask cng, int* tId){
 
   base::Task task;
   task.wId = cng.workerPresetId;
+  task.tAverDurationSec = cng.averDurationSec;
+  task.tMaxDurationSec = cng.maxDurationSec;
   task.tParams = cng.params ? cng.params : "";
   task.tScriptPath = cng.scriptPath;
   task.tResultPath = cng.resultPath;

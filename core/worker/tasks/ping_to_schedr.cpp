@@ -30,11 +30,11 @@
 using namespace std;
 
 void Executor::pingToSchedr(const std::string& schedrConnPnt){
-  m_worker.activeTask = (int)m_newTasks.size() + (int)m_procs.size();
+  m_worker.wActiveTaskCount = (int)m_newTasks.size() + (int)m_procs.size();
   mess::TaskStatus m(0, mess::MessType::PING_WORKER);
-  m.activeTaskCount = m_worker.activeTask;
-  m.loadCPU = m_worker.load;
-  m.connectPnt = m_worker.connectPnt;    
+  m.activeTaskCount = m_worker.wActiveTaskCount;
+  m.loadCPU = m_worker.wLoadCPU;
+  m.connectPnt = m_worker.wConnectPnt;    
   
   misc::asyncSendData(schedrConnPnt, m.serialn());
 }

@@ -61,7 +61,7 @@ void Executor::receiveHandler(const string& remcp, const string& data)
       m_schedr.sState = int(base::StateType::RUNNING);
       break;
     case mess::MessType::PING_WORKER:
-      m_messToDB.push(db::MessSchedr(mtype, w->wId, 0, ""));
+      m_messToDB.push(db::MessSchedr(mtype, w->wId));
       break;      
     case mess::MessType::PAUSE_WORKER:
       if (w->wState != int(base::StateType::NOT_RESPONDING) &&

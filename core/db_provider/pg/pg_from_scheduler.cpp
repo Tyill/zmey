@@ -70,8 +70,8 @@ bool DbProvider::getSchedr(const std::string& connPnt, base::Scheduler& outCng){
 bool DbProvider::getTasksOfSchedr(int sId, std::vector<base::Task>& out){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
-  ss << "SELECT tq.id, COALESCE(tp.workerPreset, 0), "
-        "       tp.params, tp.scriptPath, tp.resultPath "
+  ss << "SELECT tq.id, COALESCE(tp.workerPreset, 0), tp.averDurationSec, tp.maxDurationSec,"
+        "       tp.params, tp.scriptPath, tp.resultPath, ts.state "
         "FROM tblTaskQueue tq "
         "JOIN tblTaskState ts ON ts.qtask = tq.id "
         "JOIN tblTaskParam tp ON tp.qtask = tq.id "
@@ -87,9 +87,12 @@ bool DbProvider::getTasksOfSchedr(int sId, std::vector<base::Task>& out){
     out.push_back(base::Task {
       stoi(PQgetvalue(pgr.res, i, 0)),
       stoi(PQgetvalue(pgr.res, i, 1)),
-      PQgetvalue(pgr.res, i, 2),
-      PQgetvalue(pgr.res, i, 3),
-      PQgetvalue(pgr.res, i, 4)
+      stoi(PQgetvalue(pgr.res, i, 2)),
+      stoi(PQgetvalue(pgr.res, i, 3)),
+      PQgetvalue(pgr.res, i, 4),
+      PQgetvalue(pgr.res, i, 5),
+      PQgetvalue(pgr.res, i, 6),
+      base::StateType(stoi(PQgetvalue(pgr.res, i, 7)))
     });
   }
   return true;
@@ -97,7 +100,7 @@ bool DbProvider::getTasksOfSchedr(int sId, std::vector<base::Task>& out){
 bool DbProvider::getTasksOfWorker(int sId, int wId, std::vector<base::Task>& out){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
-  ss << "SELECT tq.id, tp.params, tp.scriptPath, tp.resultPath "
+  ss << "SELECT tq.id, tp.params, tp.scriptPath, tp.resultPath, tp.averDurationSec, tp.maxDurationSec, ts.state "
         "FROM tblTaskQueue tq "
         "JOIN tblTaskState ts ON ts.qtask = tq.id "
         "JOIN tblTaskParam tp ON tp.qtask = tq.id "
@@ -113,9 +116,12 @@ bool DbProvider::getTasksOfWorker(int sId, int wId, std::vector<base::Task>& out
     out.push_back(base::Task {
       stoi(PQgetvalue(pgr.res, i, 0)),
       wId,
-      PQgetvalue(pgr.res, i, 1),
-      PQgetvalue(pgr.res, i, 2),
-      PQgetvalue(pgr.res, i, 3)
+      stoi(PQgetvalue(pgr.res, i, 1)),
+      stoi(PQgetvalue(pgr.res, i, 2)),
+      PQgetvalue(pgr.res, i, 3),
+      PQgetvalue(pgr.res, i, 4),
+      PQgetvalue(pgr.res, i, 5),
+      base::StateType(stoi(PQgetvalue(pgr.res, i, 6)))
     });
   }
   return true;
@@ -178,9 +184,11 @@ bool DbProvider::getNewTasksForSchedr(int sId, int maxTaskCnt, std::vector<base:
     out.push_back(base::Task {
       stoi(PQgetvalue(pgr.res, i, 0)),
       stoi(PQgetvalue(pgr.res, i, 1)),
-      PQgetvalue(pgr.res, i, 2),
-      PQgetvalue(pgr.res, i, 3),
-      PQgetvalue(pgr.res, i, 4)
+      stoi(PQgetvalue(pgr.res, i, 2)),
+      stoi(PQgetvalue(pgr.res, i, 3)),
+      PQgetvalue(pgr.res, i, 4),
+      PQgetvalue(pgr.res, i, 5),
+      PQgetvalue(pgr.res, i, 6)
     });
   }
   int cnt = 1;

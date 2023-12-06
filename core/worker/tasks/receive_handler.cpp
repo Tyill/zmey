@@ -49,11 +49,11 @@ void Executor::receiveHandler(const string& remcp, const string& data)
       return;
     }
     base::Task t;
-    t.id = tm.taskId;
-    t.scriptPath = tm.scriptPath;
-    t.resultPath = tm.resultPath;
-    t.state = base::StateType::READY;
-    t.params = tm.params;
+    t.tId = tm.taskId;
+    t.tScriptPath = tm.scriptPath;
+    t.tResultPath = tm.resultPath;
+    t.tState = base::StateType::READY;
+    t.tParams = tm.params;
     m_newTasks.push(move(t)); 
     loopNotify();
   }
@@ -70,7 +70,7 @@ void Executor::receiveHandler(const string& remcp, const string& data)
     { std::lock_guard<std::mutex> lock(m_mtxProcess);
       
       auto iPrc = find_if(m_procs.begin(), m_procs.end(), [tId](const Process& p){
-        return p.getTask().id == tId;
+        return p.getTask().tId == tId;
       });
       if (iPrc != m_procs.end()){
         switch (mtype){

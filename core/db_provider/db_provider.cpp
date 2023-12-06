@@ -55,7 +55,7 @@ void DbProvider::setErrorCBack(ErrCBack ecb, UData ud){
   m_errCBack = ecb;
   m_errUData = ud;
 }
-std::string DbProvider::getLastError() const{
+std::string DbProvider::getLastError(){
   lock_guard<mutex> lk(m_mtx);
   return m_err;
 }

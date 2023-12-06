@@ -63,30 +63,30 @@ Process::Process(Application& app, Executor& exr, const base::Task& tsk):
                   _exit(127);  \
                 }  
                 
-      misc::createSubDirectory(tsk.resultPath);
-      string resultPath = tsk.resultPath + to_string(tsk.id) + ".dat";
+      misc::createSubDirectory(tsk.tResultPath);
+      string resultPath = tsk.tResultPath + to_string(tsk.tId) + ".dat";
       int fdRes = open(resultPath.c_str(), O_CREAT | O_TRUNC | O_RDWR, S_IRUSR | S_IWUSR);
       CHECK(fdRes, "create");
       CHECK(dup2(fdRes, 1), "dup2(fdRes, 1)");// stdout -> fdRes
       CHECK(dup2(1, 2), "dup2(1, 2)");        // stderr -> stdout
      
-      char** argVec = new char*[!tsk.params.empty() ? 3 : 2];
-      argVec[0] = (char*)tsk.scriptPath.c_str();
-      if (!tsk.params.empty()){
-        argVec[1] = (char*)tsk.params.data();
+      char** argVec = new char*[!tsk.tParams.empty() ? 3 : 2];
+      argVec[0] = (char*)tsk.tScriptPath.c_str();
+      if (!tsk.tParams.empty()){
+        argVec[1] = (char*)tsk.tParams.data();
         argVec[2] = NULL;
       }
       else{
         argVec[1] = NULL;
       }
-      execv(tsk.scriptPath.c_str(), argVec);
+      execv(tsk.tScriptPath.c_str(), argVec);
       perror("execv");
       _exit(127);
     }
       break;
     // parent                
     default:
-      m_task.state = base::StateType::RUNNING;
+      m_task.tState = base::StateType::RUNNING;
       break;
   }
 }
@@ -98,7 +98,7 @@ pid_t Process::getPid() const{
   return m_pid;
 }
 void Process::setTaskState(base::StateType st){
-  m_task.state = st;
+  m_task.tState = st;
   m_isPause = (st == base::StateType::PAUSE);
 }
 void Process::pause(){

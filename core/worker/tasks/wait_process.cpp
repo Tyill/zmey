@@ -69,23 +69,23 @@ void Executor::waitProcess()
         st = base::StateType::ERRORT;
       }
       itPrc->setTaskState(st);      
-      m_messForSchedr.push(mess::TaskStatus{itPrc->getTask().id, mt});
+      m_messForSchedr.push(mess::TaskStatus{itPrc->getTask().tId, mt});
     }    
     // stop
     else if (WIFSTOPPED(sts)){
       itPrc->setTaskState(base::StateType::PAUSE);
-      m_messForSchedr.push(mess::TaskStatus{itPrc->getTask().id, mess::MessType::TASK_PAUSE});
+      m_messForSchedr.push(mess::TaskStatus{itPrc->getTask().tId, mess::MessType::TASK_PAUSE});
     } 
     // continue
     else if (WIFCONTINUED(sts)){
       itPrc->setTaskState(base::StateType::RUNNING);
-      m_messForSchedr.push(mess::TaskStatus{itPrc->getTask().id, mess::MessType::TASK_CONTINUE});    
+      m_messForSchedr.push(mess::TaskStatus{itPrc->getTask().tId, mess::MessType::TASK_CONTINUE});    
     } 
   }  
   
   { std::lock_guard<std::mutex> lock(m_mtxProcess);    
     for (auto p = m_procs.begin(); p != m_procs.end();){
-      base::StateType TaskState = p->getTask().state;
+      base::StateType TaskState = p->getTask().tState;
       if ((TaskState == base::StateType::COMPLETED) ||
           (TaskState == base::StateType::ERRORT)){
         p = m_procs.erase(p);

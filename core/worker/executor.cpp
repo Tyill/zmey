@@ -30,8 +30,8 @@
 Executor::Executor(Application& app, const std::string& connPnt):
   m_app(app)  
 {
-  m_worker.connectPnt = connPnt;
-  m_worker.load = 0;
+  m_worker.wConnectPnt = connPnt;
+  m_worker.wLoadCPU = 0;
 }
 
 void Executor::setLoop(Loop* l)
@@ -59,7 +59,7 @@ void Executor::addErrMess(std::string mess)
 
 void Executor::setLoadCPU(int load)
 {
-  m_worker.load = load;
+  m_worker.wLoadCPU = load;
 }
 
 bool Executor::isErrMessEmpty()

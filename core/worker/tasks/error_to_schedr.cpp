@@ -35,7 +35,7 @@ void Executor::errorToSchedr(const std::string& schedrConnPnt)
   bool isSendOk = true;
   while(isSendOk && m_errMess.tryPop(str)){
     str = misc::replace(str, "'", "''");
-    mess::InternError m(m_worker.connectPnt, str);         
+    mess::InternError m(m_worker.wConnectPnt, str);         
     isSendOk = misc::asyncSendData(schedrConnPnt, m.serialn());
   }
 }

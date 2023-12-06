@@ -45,8 +45,8 @@ bool DbProvider::getWorkerByTask(int tId, base::Worker& wcng){
     errorMess(string("getWorkerByTask error: task delete OR not taken to work"));
     return false;
   }
-  wcng.id = stoi(PQgetvalue(pgr.res, 0, 0));
-  wcng.connectPnt = PQgetvalue(pgr.res, 0, 1);
+  wcng.wId = stoi(PQgetvalue(pgr.res, 0, 0));
+  wcng.wConnectPnt = PQgetvalue(pgr.res, 0, 1);
 
   return true;
 }

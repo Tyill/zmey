@@ -246,6 +246,8 @@ ZMEY_API int zmGetAllWorkers(zmConn, int sId, zmStateType state, int** outWId);
 struct zmTask{
   int schedrPresetId;       ///< schedr preset id. Default 0
   int workerPresetId;       ///< worker preset id. Default 0
+  int averDurationSec;      ///< estimated lead time, sec 
+  int maxDurationSec;       ///< maximum lead time, sec
   char* params;             ///< CLI params for script. May be NULL
   char* scriptPath;         ///< Script path. Necessarily
   char* resultPath;         ///< Result path. Necessarily
@@ -284,6 +286,7 @@ ZMEY_API bool zmContinueTask(zmConn, int tId);
 
 /// task state
 struct zmTaskState{
+  int progress;      ///< [0..100]
   zmStateType state;
 };
 

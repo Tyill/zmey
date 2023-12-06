@@ -28,6 +28,7 @@
 #include <vector>
 #include <map>
 #include <functional>
+#include <mutex>
 
 #include "base/base.h"
 #include "base/messages.h"
@@ -59,13 +60,14 @@ struct MessSchedr{
   };
 };
 struct MessError{
-  int schedrId;
-  int workerId;
+  int schedrId{};
+  int workerId{};
   std::string createTime;
   std::string message;
 };
 struct TaskState{
-  base::StateType state;
+  base::StateType state{};
+  int progress{};
 };
 struct TaskTime{
   std::string createTime;
@@ -75,17 +77,17 @@ struct TaskTime{
 };
 
 struct SchedulerState{
-  base::StateType state;
-  int activeTaskCount;
+  base::StateType state{};
+  int activeTaskCount{};
   std::string startTime;
   std::string stopTime;
   std::string pingTime;
 };
 
 struct WorkerState{
-  base::StateType state;
-  int activeTaskCount;
-  int load;
+  base::StateType state{};
+  int activeTaskCount{};
+  int load{};
   std::string startTime;
   std::string stopTime;
   std::string pingTime;
@@ -102,7 +104,7 @@ public:
   DbProvider(const DbProvider& other) = delete;
   DbProvider& operator=(const DbProvider& other) = delete;
   
-  std::string getLastError() const;
+  std::string getLastError();
   void setErrorCBack(ErrCBack ecb, UData ud);
   ConnectCng getConnectCng(){
     return m_connCng;

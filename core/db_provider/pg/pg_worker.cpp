@@ -30,17 +30,17 @@ namespace db{
   
 bool DbProvider::addWorker(const base::Worker& worker, int& outWkrId){
   lock_guard<mutex> lk(m_impl->m_mtx);
-  auto connPnt = misc::split(worker.connectPnt, ':');
+  auto connPnt = misc::split(worker.wConnectPnt, ':');
   if (connPnt.size() != 2){
     errorMess("addWorker error: connectPnt not correct");
     return false;
   }
   stringstream ss;
   ss << "INSERT INTO tblWorker (connPnt, schedr, state, capacityTask) VALUES("
-        "'" << worker.connectPnt << "',"
+        "'" << worker.wConnectPnt << "',"
         "'" << (int)worker.sId << "',"
-        "'" << (int)worker.state << "',"
-        "'" << worker.capacityTask << "') RETURNING id;";
+        "'" << (int)worker.wState << "',"
+        "'" << worker.wCapacityTaskCount << "') RETURNING id;";
 
   PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
@@ -66,15 +66,15 @@ bool DbProvider::getWorker(int wId, base::Worker& cng){
     errorMess(string("getWorker error: such worker does not exist"));
     return false;
   }
-  cng.connectPnt = PQgetvalue(pgr.res, 0, 0);
+  cng.wConnectPnt = PQgetvalue(pgr.res, 0, 0);
   cng.sId = stoi(PQgetvalue(pgr.res, 0, 1));
-  cng.state = (base::StateType)atoi(PQgetvalue(pgr.res, 0, 2));
-  cng.capacityTask = atoi(PQgetvalue(pgr.res, 0, 3));
+  cng.wState = atoi(PQgetvalue(pgr.res, 0, 2));
+  cng.wCapacityTaskCount = atoi(PQgetvalue(pgr.res, 0, 3));
   return true;
 }
 bool DbProvider::changeWorker(int wId, const base::Worker& newCng){
   lock_guard<mutex> lk(m_impl->m_mtx);
-  auto connPnt = misc::split(newCng.connectPnt, ':');
+  auto connPnt = misc::split(newCng.wConnectPnt, ':');
   if (connPnt.size() != 2){
     errorMess("changeWorker error: connectPnt not correct");
     return false;
@@ -82,8 +82,8 @@ bool DbProvider::changeWorker(int wId, const base::Worker& newCng){
   stringstream ss;
   ss << "UPDATE tblWorker SET "
         "schedr = '" << (int)newCng.sId << "',"
-        "capacityTask = '" << newCng.capacityTask << "',"
-        "connPnt = '" << newCng.connectPnt << "' "
+        "capacityTask = '" << newCng.wCapacityTaskCount << "',"
+        "connPnt = '" << newCng.wConnectPnt << "' "
         "WHERE id = " << wId << " AND isDelete = 0;";
 
   PGres pgr(PQexec(pg_, ss.str().c_str()));

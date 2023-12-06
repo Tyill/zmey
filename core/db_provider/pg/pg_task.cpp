@@ -34,9 +34,11 @@ bool DbProvider::startTask(int schedPresetId, base::Task& cng, int& tId){
   stringstream ss;
   ss << "SELECT * FROM funcStartTask(" << schedPresetId <<  ","
                                        << cng.wId <<  ","
-                                       << "'" << cng.params << "',"
-                                       << "'" << cng.scriptPath << "',"
-                                       << "'" << cng.resultPath << "');";
+                                       << cng.tAverDurationSec <<  ","
+                                       << cng.tMaxDurationSec <<  ","
+                                       << "'" << cng.tParams << "',"
+                                       << "'" << cng.tScriptPath << "',"
+                                       << "'" << cng.tResultPath << "');";
 
   PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
@@ -80,7 +82,7 @@ bool DbProvider::taskState(const std::vector<int>& tId, std::vector<db::TaskStat
                   return s.empty() ? to_string(v) : s + "," + to_string(v);
                 }); 
   stringstream ss;
-  ss << "SELECT ts.state "
+  ss << "SELECT ts.state, ts.progress "
         "FROM tblTaskState ts "
         "WHERE ts.qtask IN (" << stId << ") ORDER BY ts.qtask;";
 
@@ -97,6 +99,7 @@ bool DbProvider::taskState(const std::vector<int>& tId, std::vector<db::TaskStat
   outState.resize(tsz);
   for (size_t i = 0; i < tsz; ++i){
     outState[i].state = (base::StateType)atoi(PQgetvalue(pgr.res, (int)i, 0));
+    outState[i].progress = atoi(PQgetvalue(pgr.res, (int)i, 1));
   }
   return true;
 }
