@@ -23,56 +23,27 @@
 // THE SOFTWARE.
 //
 
-#pragma once
-
-#include "common/timer_delay.h"
+#include "worker/executor.h"
+#include "common/tcp.h"
+#include "base/messages.h"
 #include "base/base.h"
 
-#ifdef _WIN32 
-typedef void* HANDLE; 
-typedef int pid_t;
-#endif 
+using namespace std;
 
-class Application;
-class Executor;
-
-class Process{
-public:
-  Process(Application&, Executor&, const base::Task&);
-
-  base::Task getTask() const;
-  pid_t getPid() const;
-  int getProgress();
-  bool checkMaxRunTime();
-  void setTaskState(base::StateType);
-  void pause();
-  void continueTask();
-  void stop();
-  void stopByTimeout();
-  std::string getErrorStr() const {
-      return m_err;
-  }
-
-#ifdef _WIN32 
-  HANDLE getHandle() const;
-  void closeHandle();
-#endif
-
-private:
-  Application& m_app;  
-  Executor& m_executor;
-  pid_t m_pid = 1; 
-  base::Task m_task;
-  misc::TimerDelay m_timerProgress,
-                    m_timerDuration;
-  int m_cdeltaTimeProgress = 0,
-      m_cdeltaTimeDuration  = 0;
-  bool m_isPause = false;
-  std::string m_err;
-
-#ifdef _WIN32 
-  HANDLE m_hProcess = nullptr;
-  HANDLE m_hThread = nullptr;
-  HANDLE m_hResFile = nullptr;
-#endif
-};
+void Executor::progressToSchedr(const std::string& schedrConnPnt)
+{   
+  std::vector<int> taskIds;
+  std::vector<int> taskProgress;
+  for(auto& p : m_procs){
+    auto t = p.getTask();
+    taskIds.push_back(t.tId);
+    taskProgress.push_back(p.getProgress());
+  } 
+  m_worker.wActiveTaskCount = (int)m_newTasks.size() + (int)m_procs.size();
+  mess::TaskProgress m(taskIds, taskProgress, mess::MessType::TASK_PROGRESS);
+  m.activeTaskCount = m_worker.wActiveTaskCount;
+  m.loadCPU = m_worker.wLoadCPU;
+  m.connectPnt = m_worker.wConnectPnt;    
+  
+  misc::asyncSendData(schedrConnPnt, m.serialn());
+}

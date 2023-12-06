@@ -68,6 +68,22 @@ public:
   std::string serialn();
   bool deserialn(const std::string& m); 
 };
+
+class TaskProgress{
+public:  
+  TaskProgress(MessType _mtype, const std::string& connPnt);
+  TaskProgress(const std::vector<int>& taskIds, const std::vector<int>& taskProgress, MessType _mtype = MessType::UNDEFINED);
+
+  MessType mtype = MessType::UNDEFINED;
+  std::string connectPnt;
+  std::vector<int> taskIds;
+  std::vector<int> taskProgress;
+  int activeTaskCount{};
+  int loadCPU{};
+  
+  std::string serialn();
+  bool deserialn(const std::string& m); 
+};
     
 class InfoMess{
 public:  

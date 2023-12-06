@@ -82,6 +82,12 @@ void Executor::waitProcess()
       m_messForSchedr.push(mess::TaskStatus{itPrc->getTask().tId, mess::MessType::TASK_CONTINUE});    
     } 
   }  
+  // check max run time
+  for(auto& p : m_procs){
+    if (p.checkMaxRunTime() && (p.getTask().tState == base::StateType::RUNNING)){
+      p.stopByTimeout();
+    }
+  }
   
   { std::lock_guard<std::mutex> lock(m_mtxProcess);    
     for (auto p = m_procs.begin(); p != m_procs.end();){

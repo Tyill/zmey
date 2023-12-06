@@ -57,6 +57,19 @@ private:
             v = *((int*)(pData + offs_));  offs_ += intSz_;
         }
     }
+    void readField(std::vector<int>& out){
+        if (ok_){
+            if (!checkFieldSize(intSz_)) return;
+            const char* pData = in_.data();
+            int vsz = *((int*)(pData + offs_));  offs_ += intSz_;
+            out.reserve(vsz);
+            for(int i = 0; i < vsz; ++i){
+              if (!checkFieldSize(intSz_)) return;
+              int val = *((int*)(pData + offs_));  offs_ += intSz_;
+              out.push_back(val);
+            } 
+        }
+    }
     const int intSz_ = 4;
     int inSize_{};    
     int offs_ = 0;
@@ -87,6 +100,9 @@ private:
     void fieldSize(int){
         outSize_ += intSz_;
     }
+    void fieldSize(const std::vector<int>& v){
+        outSize_ += intSz_ + int(v.size()) * intSz_;
+    }
     void writeField(const std::string& s){ 
         char* pOut = out_.data();
         const auto ssz = s.size();
@@ -96,6 +112,13 @@ private:
     void writeField(int v){
         char* pOut = out_.data();
         *((int*)(pOut + offs_)) = v; offs_ += intSz_;
+    }
+     void writeField(const std::vector<int>& v){
+        char* pOut = out_.data();
+        *((int*)(pOut + offs_)) = int(v.size()); offs_ += intSz_;
+        for (int item : v){
+          *((int*)(pOut + offs_)) = item; offs_ += intSz_;
+        }
     }
     const int intSz_ = 4;
     int outSize_{};    
@@ -159,8 +182,6 @@ std::string TaskStatus::serialn(){
                                 activeTaskCount,
                                 loadCPU).out();
   return out;
-
-  return out;
 }
 
 bool TaskStatus::deserialn(const std::string& m){
@@ -169,7 +190,38 @@ bool TaskStatus::deserialn(const std::string& m){
                                activeTaskCount,
                                loadCPU).ok();
   return ok;
-}     
+}   
+
+TaskProgress::TaskProgress(mess::MessType _mtype, const std::string& connPnt):
+  mtype(_mtype),
+  connectPnt(connPnt)
+{
+}  
+
+TaskProgress::TaskProgress(const std::vector<int>& _taskIds, const std::vector<int>& _taskProgress, mess::MessType _mtype):
+  taskIds(_taskIds),
+  taskProgress(_taskProgress),
+  mtype(_mtype)
+{
+}
+
+std::string TaskProgress::serialn(){
+  const auto out = SerialWriter(int(mtype), connectPnt, 
+                                taskIds,
+                                taskProgress,
+                                activeTaskCount,
+                                loadCPU).out();
+  return out;
+}
+
+bool TaskProgress::deserialn(const std::string& m){
+  const auto ok = SerialReader(m, int(mtype), connectPnt, 
+                               taskIds,
+                               taskProgress,
+                               activeTaskCount,
+                               loadCPU).ok();
+  return ok;
+}   
 
 InfoMess::InfoMess(mess::MessType _mtype, const std::string& connPnt):
   mtype(_mtype),

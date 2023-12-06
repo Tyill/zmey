@@ -31,7 +31,8 @@ using namespace std;
 void Executor::sendNotifyHandler(const string& cp, const string& data, const std::error_code& ec)
 {  
   mess::MessType messType = mess::getMessType(data);
-  if (ec && (messType != mess::MessType::INTERN_ERROR) &&
+  if (ec && (messType != mess::MessType::TASK_PROGRESS) &&
+            (messType != mess::MessType::INTERN_ERROR) &&
             (messType != mess::MessType::PING_WORKER)){
     mess::TaskStatus mess;
     mess.deserialn(data);
