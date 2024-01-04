@@ -59,32 +59,35 @@ void Executor::receiveHandler(const string& remcp, const string& data)
         m_messToDB.push(db::MessSchedr{mtype});
       }
       m_schedr.sState = int(base::StateType::RUNNING);
-      break;
-    case mess::MessType::PING_WORKER:
-      m_messToDB.push(db::MessSchedr(mtype, w->wId));
-      break;      
+      break;          
     case mess::MessType::PAUSE_WORKER:
-      if (w->wState != int(base::StateType::NOT_RESPONDING) &&
-          w->wState != int(base::StateType::STOP)){
-        if (w->wState != int(base::StateType::PAUSE)){
-          m_messToDB.push(db::MessSchedr{mtype, w->wId});
+      if (m_workers.count(cp)){
+        auto w = m_workers[cp];   
+        if (w->wState != int(base::StateType::NOT_RESPONDING) &&
+            w->wState != int(base::StateType::STOP)){
+          if (w->wState != int(base::StateType::PAUSE)){
+            m_messToDB.push(db::MessSchedr{mtype, w->wId});
+          }
+          w->wState = w->wStateMem = int(base::StateType::PAUSE);
         }
-        w->wState = w->wStateMem = int(base::StateType::PAUSE);
       }
       break;
     case mess::MessType::START_AFTER_PAUSE_WORKER:
-      if (w->wState != int(base::StateType::NOT_RESPONDING) &&
-          w->wState != int(base::StateType::STOP)){
-        if (w->wState != int(base::StateType::RUNNING)){
-          m_messToDB.push(db::MessSchedr{mtype, w->wId});
-        }
-        w->wState = w->wStateMem = int(base::StateType::RUNNING);
-      } 
+      if (m_workers.count(cp)){
+        auto w = m_workers[cp]; 
+        if (w->wState != int(base::StateType::NOT_RESPONDING) &&
+            w->wState != int(base::StateType::STOP)){
+          if (w->wState != int(base::StateType::RUNNING)){
+            m_messToDB.push(db::MessSchedr{mtype, w->wId});
+          }
+          w->wState = w->wStateMem = int(base::StateType::RUNNING);
+        } 
+      }
       break;
     default: break;      
   }  
 
-  if(m_workers.find(cp) != m_workers.end()){
+  if(m_workers.count(cp)){
     auto w = m_workers[cp];     
     switch (mtype){
       case mess::MessType::TASK_ERROR:
@@ -135,7 +138,9 @@ void Executor::receiveHandler(const string& remcp, const string& data)
       w->wState = w->wStateMem = int(base::StateType::STOP);
     }
     else{
-      w->wIsActive = true;
+      if (w->wStateMem != int(base::StateType::RUNNING)){
+        w->wIsActive = true;
+      }
       if (w->wState == int(base::StateType::STOP)){
         w->wState = w->wStateMem = int(base::StateType::RUNNING);
         m_messToDB.push(db::MessSchedr{mess::MessType::START_WORKER, w->wId});

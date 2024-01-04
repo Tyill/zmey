@@ -44,7 +44,7 @@ bool Executor::sendTaskToWorker()
       return l->wActiveTaskCount + l->wLoadCPU / 10.f < r->wActiveTaskCount + r->wLoadCPU / 10.f;
     });
     auto iWr = find_if(refWorkers.begin(), refWorkers.end(), [this, task](const base::Worker* w){                
-      return (((task.wId == 0) || (task.wId == w->wId)) && (w->wState == int(base::StateType::RUNNING)) && 
+      return (((task.tWId == 0) || (task.tWId == w->wId)) && (w->wState == int(base::StateType::RUNNING)) && 
                 (w->wActiveTaskCount < w->wCapacityTaskCount));         
     });
     if(iWr != refWorkers.end()){
@@ -61,7 +61,7 @@ bool Executor::sendTaskToWorker()
       }     
     }else{
       ++cycleCount;
-      if (task.wId == 0 || cycleCount >= m_tasks.size()){
+      if (task.tWId == 0 || cycleCount >= m_tasks.size()){
         return false;
       }
     }

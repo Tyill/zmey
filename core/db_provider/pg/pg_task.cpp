@@ -33,7 +33,7 @@ bool DbProvider::startTask(int schedPresetId, base::Task& cng, int& tId){
   
   stringstream ss;
   ss << "SELECT * FROM funcStartTask(" << schedPresetId <<  ","
-                                       << cng.wId <<  ","
+                                       << cng.tWId <<  ","
                                        << cng.tAverDurationSec <<  ","
                                        << cng.tMaxDurationSec <<  ","
                                        << "'" << cng.tParams << "',"

@@ -234,10 +234,11 @@ bool zmDelWorker(zmConn zo, int wId){
 bool zmStartWorker(zmConn zo, int wId){
   if (!zo) return false; 
   
-  zmWorker wcng;  
-  if (zmGetWorker(zo, wId, &wcng)){
+  zmWorker wcng;   
+  zmSchedr scng; 
+  if (zmGetWorker(zo, wId, &wcng) && zmGetScheduler(zo, wcng.sId, &scng)){
     mess::InfoMess mess(mess::MessType::START_AFTER_PAUSE_WORKER, wcng.connectPnt);
-    return misc::syncSendData(wcng.connectPnt, mess.serialn());
+    return misc::syncSendData(scng.connectPnt, mess.serialn());
   }else{
     return false;
   } 
@@ -246,9 +247,10 @@ bool zmPauseWorker(zmConn zo, int wId){
   if (!zo) return false; 
   
   zmWorker wcng;  
-  if (zmGetWorker(zo, wId, &wcng)){
+  zmSchedr scng;  
+  if (zmGetWorker(zo, wId, &wcng) && zmGetScheduler(zo, wcng.sId, &scng)){
     mess::InfoMess mess(mess::MessType::PAUSE_WORKER, wcng.connectPnt);
-    return misc::syncSendData(wcng.connectPnt, mess.serialn());
+    return misc::syncSendData(scng.connectPnt, mess.serialn());
   }else{
     return false;
   } 
@@ -306,7 +308,7 @@ bool zmStartTask(zmConn zo, zmTask cng, int* tId){
   if (!zo || !tId || !cng.scriptPath || !cng.resultPath) return false;
 
   base::Task task;
-  task.wId = cng.workerPresetId;
+  task.tWId= cng.workerPresetId;
   task.tAverDurationSec = cng.averDurationSec;
   task.tMaxDurationSec = cng.maxDurationSec;
   task.tParams = cng.params ? cng.params : "";

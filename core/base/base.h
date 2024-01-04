@@ -47,7 +47,7 @@ enum class StateType{
 // task object
 struct Task{
   int tId{};                   // id tblTaskQueue
-  int wId{};                   // preset worker id tblWorker. Default 0 - not set
+  int tWId{};                  // preset worker id tblWorker. Default 0 - not set
   int tAverDurationSec{};      // estimated lead time, sec 
   int tMaxDurationSec{};       // maximum lead time, sec
   std::string tParams;
