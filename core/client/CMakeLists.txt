@@ -14,4 +14,4 @@ endif(WIN32)
 
 add_library(zmclient SHARED ${SRC_zmCln})
 
-target_link_libraries(zmclient PRIVATE common db_provider)
+target_link_libraries(zmclient PRIVATE common base db_provider)

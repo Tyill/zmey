@@ -34,7 +34,7 @@ bool DbProvider::addSchedr(const base::Scheduler& schedl, int& outSchId){
   lock_guard<mutex> lk(m_impl->m_mtx);
   
   stringstream ss;
-  ss << "INSERT INTO tblScheduler (connPnt, state, capacityTask, name, description) VALUES("
+  ss << "INSERT INTO tblScheduler (connPnt, state, capacityTask) VALUES("
         "'" << schedl.sConnectPnt << "',"
         "'" << (int)schedl.sState << "',"
         "'" << schedl.sCapacityTaskCount << "') RETURNING id;";
