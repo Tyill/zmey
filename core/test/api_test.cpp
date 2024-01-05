@@ -23,9 +23,6 @@
 // THE SOFTWARE.
 //
 
-#define APITEST
-#ifdef APITEST
-
 #include <vector>
 #include <algorithm>
 #include <memory>
@@ -374,5 +371,3 @@ TEST_F(APITest, getAllTask){
   int tId2 = 0;  
   EXPECT_TRUE(ddStartTask(_zc, task, &tId2));    
 }
-
-#endif //APITEST
