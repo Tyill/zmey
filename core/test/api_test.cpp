@@ -116,14 +116,20 @@ TEST_F(APITest, schedrState){
   int sId = 0;  
   EXPECT_TRUE(zmAddScheduler(zc_, schedr, &sId) && (sId > 0));
 
-  ddSchedulerState state;
-  EXPECT_TRUE(zmStateOfScheduler(zc_, sId, &state) && 
-             (state.state == zmStateType::ddSTATE_STOP));                                                      
+  zmSchedulerState state;
+  EXPECT_TRUE(zmStateOfScheduler(zc_, sId, &state));   
+
+  EXPECT_TRUE(state.state == zmStateType::zmSTATE_STOP);                                                  
 }
 TEST_F(APITest, getAllSchedrs){  
   int* pSId = nullptr;
-  auto sCnt = zmGetAllSchedulers(zc_, zmStateType::ddSTATE_UNDEFINED, &pSId);
-  EXPECT_TRUE((sCnt == 0) && !pSId);   
+  auto sCnt = zmGetAllSchedulers(zc_, zmStateType::zmSTATE_UNDEFINED, &pSId);
+  if (sCnt > 0){
+    EXPECT_TRUE(pSId);
+    for (int i = 0; i < sCnt; ++i){
+      EXPECT_TRUE(zmDelScheduler(zc_, pSId[i]));
+    }
+  }   
 
   zmSchedr schedr{0};
   schedr.capacityTask = 10000;
@@ -136,13 +142,13 @@ TEST_F(APITest, getAllSchedrs){
   int sId2 = 0;  
   EXPECT_TRUE(zmAddScheduler(zc_, schedr, &sId2) && (sId2 > 0)); 
 
-  sCnt = zmGetAllSchedulers(zc_, zmStateType::ddSTATE_STOP, &pSId);
+  sCnt = zmGetAllSchedulers(zc_, zmStateType::zmSTATE_STOP, &pSId);
   EXPECT_TRUE((sCnt == 2) && (pSId[0] == sId1) && (pSId[1] == sId2)); 
 
-  sCnt = zmGetAllSchedulers(zc_, zmStateType::ddSTATE_UNDEFINED, &pSId);
+  sCnt = zmGetAllSchedulers(zc_, zmStateType::zmSTATE_UNDEFINED, &pSId);
   EXPECT_TRUE((sCnt == 2) && (pSId[0] == sId1) && (pSId[1] == sId2));   
 
-  sCnt = zmGetAllSchedulers(zc_, zmStateType::ddSTATE_START, &pSId);
+  sCnt = zmGetAllSchedulers(zc_, zmStateType::zmSTATE_START, &pSId);
   EXPECT_TRUE(sCnt == 0);                     
 }
 
@@ -259,13 +265,13 @@ TEST_F(APITest, workerState){
 
   zmWorkerState* wstate = new zmWorkerState[2];
   int* pWId = new int[2]{ wId1, wId2};
-  EXPECT_TRUE(ddStateOfWorker(zc_, pWId, 2, wstate) &&
-              (wstate[0].state == zmStateType::ddSTATE_STOP) && 
-              (wstate[1].state == zmStateType::ddSTATE_STOP));                                                      
+  EXPECT_TRUE(zmStateOfWorker(zc_, pWId, 2, wstate) &&
+              (wstate[0].state == zmStateType::zmSTATE_STOP) && 
+              (wstate[1].state == zmStateType::zmSTATE_STOP));                                                      
 }
 TEST_F(APITest, getAllWorkers){  
   int* pWId = nullptr;
-  auto wCnt = zmGetAllWorkers(zc_, 1, zmStateType::ddSTATE_UNDEFINED, &pWId);
+  auto wCnt = zmGetAllWorkers(zc_, 1, zmStateType::zmSTATE_UNDEFINED, &pWId);
   EXPECT_TRUE((wCnt == 0) && !pWId);   
 
   zmSchedr schedr{0};
@@ -287,16 +293,16 @@ TEST_F(APITest, getAllWorkers){
   int wId2 = 0;  
   EXPECT_TRUE(zmAddWorker(zc_, worker, &wId2) && (wId2 > 0));
     
-  wCnt = zmGetAllWorkers(zc_, sId, zmStateType::ddSTATE_STOP, &pWId);
+  wCnt = zmGetAllWorkers(zc_, sId, zmStateType::zmSTATE_STOP, &pWId);
   EXPECT_TRUE((wCnt == 2) && (pWId[0] == wId1) && (pWId[1] == wId2)); 
 
-  wCnt = zmGetAllWorkers(zc_, sId, zmStateType::ddSTATE_UNDEFINED, &pWId);
+  wCnt = zmGetAllWorkers(zc_, sId, zmStateType::zmSTATE_UNDEFINED, &pWId);
   EXPECT_TRUE((wCnt == 2) && (pWId[0] == wId1) && (pWId[1] == wId2));   
 
-  wCnt = zmGetAllWorkers(zc_, sId, zmStateType::ddSTATE_START, &pWId);
+  wCnt = zmGetAllWorkers(zc_, sId, zmStateType::zmSTATE_START, &pWId);
   EXPECT_TRUE(wCnt == 0);        
 
-  wCnt = zmGetAllWorkers(zc_, sId + 1, zmStateType::ddSTATE_UNDEFINED, &pWId);
+  wCnt = zmGetAllWorkers(zc_, sId + 1, zmStateType::zmSTATE_UNDEFINED, &pWId);
   EXPECT_TRUE(wCnt == 0);                  
 }
 
@@ -306,10 +312,12 @@ TEST_F(APITest, startTask){
   char path[256]{0};
   task.scriptPath = path; 
   task.resultPath = path;
-  EXPECT_TRUE(ddStartTask(zc_, task, &tId1)); 
+  EXPECT_TRUE(zmStartTask(zc_, task, &tId1));
+  EXPECT_TRUE(zmCancelTask(zc_, tId1));       
 
   int tId2 = 0;  
-  EXPECT_TRUE(ddStartTask(zc_, task, &tId2));           
+  EXPECT_TRUE(zmStartTask(zc_, task, &tId2));  
+  EXPECT_TRUE(zmCancelTask(zc_, tId2));                
 }
 TEST_F(APITest, cancelTask){
   zmTask task{0};
@@ -317,8 +325,7 @@ TEST_F(APITest, cancelTask){
   task.scriptPath = path; 
   task.resultPath = path;
   int tId1 = 0;  
-  EXPECT_TRUE(zmStartTask(zc_, task, &tId1));        
-
+  EXPECT_TRUE(zmStartTask(zc_, task, &tId1));   
   EXPECT_TRUE(zmCancelTask(zc_, tId1));           
 }
 TEST_F(APITest, taskState){
@@ -334,11 +341,14 @@ TEST_F(APITest, taskState){
   
   int* tIds = new int[2] {tId1, tId2};
   zmTaskState* tState = new zmTaskState[2];
-  EXPECT_TRUE(zmStateOfTask(zc_, tIds, 2, tState) && 
-              (tState[0].progress == 0) &&
-              (tState[0].state == zmStateType::ddSTATE_READY) &&
-              (tState[1].progress == 0) &&
-              (tState[1].state == zmStateType::ddSTATE_READY)); 
+  EXPECT_TRUE(zmStateOfTask(zc_, tIds, 2, tState));
+  EXPECT_TRUE(tState[0].progress == 0);
+  EXPECT_TRUE(tState[0].state == zmStateType::zmSTATE_READY);
+  EXPECT_TRUE(tState[1].progress == 0);
+  EXPECT_TRUE(tState[1].state == zmStateType::zmSTATE_READY); 
+
+  EXPECT_TRUE(zmCancelTask(zc_, tId1));       
+  EXPECT_TRUE(zmCancelTask(zc_, tId2));       
 }
 TEST_F(APITest, TaskTime){
   zmTask task{0};
@@ -350,15 +360,6 @@ TEST_F(APITest, TaskTime){
 
   zmTaskTime result;
   EXPECT_TRUE(zmTimeOfTask(zc_, tId1, &result));
-}
-TEST_F(APITest, getAllTask){
-  zmTask task{0};
-  char path[256]{0};
-  task.scriptPath = path; 
-  task.resultPath = path;
-  int tId1 = 0;  
-  EXPECT_TRUE(zmStartTask(zc_, task, &tId1));  
- 
-  int tId2 = 0;  
-  EXPECT_TRUE(zmStartTask(zc_, task, &tId2));    
+
+  EXPECT_TRUE(zmCancelTask(zc_, tId1));       
 }

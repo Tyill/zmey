@@ -367,6 +367,7 @@ bool zmStateOfTask(zmConn zo, int* qtId, int tCnt, zmTaskState* outQTState){
   if (static_cast<db::DbProvider*>(zo)->taskState(qtaskId, state)){  
     for (size_t i = 0; i < tCnt; ++i){
       outQTState[i].state = (zmStateType)state[i].state;
+      outQTState[i].progress = state[i].progress;
     }    
     return true;
   }

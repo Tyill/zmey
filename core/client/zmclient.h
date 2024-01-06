@@ -48,7 +48,7 @@ typedef void* zmConn;
 
 /// state
 enum zmStateType{
-  zmSTATE_UNDEFINED = -1,
+  zmSTATE_UNDEFINED = 0,
   zmSTATE_READY,
   zmSTATE_START,
   zmSTATE_RUNNING,

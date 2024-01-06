@@ -145,7 +145,7 @@ std::vector<int> DbProvider::getAllWorkers(int sId, base::StateType state){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
   ss << "SELECT id FROM tblWorker "
-        "WHERE (state = " << (int)state << " OR " << (int)state << " = -1) "
+        "WHERE (state = " << (int)state << " OR " << (int)state << " = 0) "
         "AND schedr = " << sId << " "
         "AND isDelete = 0;";
 

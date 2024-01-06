@@ -71,6 +71,13 @@ base::Task newTask(){
 }
 
 TEST_F(DBSchedrTest, getSchedrByCP){
+
+  int* pSId = nullptr;
+  auto schedrs = pDb_->getAllSchedrs(base::StateType::UNDEFINED);
+  for (int i = 0; i < schedrs.size(); ++i){
+    EXPECT_TRUE(pDb_->delSchedr(schedrs[i]));
+  }
+
   auto schedr = newSchedr();
   int sId = 0;  
   EXPECT_TRUE(pDb_->addSchedr(schedr, sId) && (sId > 0)) << pDb_->getLastError(); 
@@ -86,9 +93,10 @@ TEST_F(DBSchedrTest, getSchedrByCP){
   schedr.sState = int(base::StateType::ERRORT);
   schedr.sConnectPnt = ""; 
   schedr.sCapacityTaskCount = 1;
-  EXPECT_TRUE(!pDb_->getSchedr(schedr.sConnectPnt, schedr) && (schedr.sState == int(base::StateType::ERRORT)) &&
-                              (schedr.sConnectPnt == "") &&
-                              (schedr.sCapacityTaskCount == 1)) << pDb_->getLastError();                                                      
+  EXPECT_TRUE(!pDb_->getSchedr(schedr.sConnectPnt, schedr));
+  EXPECT_TRUE(schedr.sState == int(base::StateType::ERRORT));
+  EXPECT_TRUE(schedr.sConnectPnt == "");
+  EXPECT_TRUE(schedr.sCapacityTaskCount == 1);                                                      
 }
 TEST_F(DBSchedrTest, getTaskOfSchedr){
   auto schedr = newSchedr();

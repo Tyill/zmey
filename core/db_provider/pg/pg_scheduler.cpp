@@ -122,7 +122,7 @@ std::vector<int> DbProvider::getAllSchedrs(base::StateType state){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
   ss << "SELECT id FROM tblScheduler "
-        "WHERE (state = " << (int)state << " OR " << (int)state << " = -1) AND isDelete = 0;";
+        "WHERE (state = " << (int)state << " OR " << (int)state << " = 0) AND isDelete = 0;";
 
   PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
