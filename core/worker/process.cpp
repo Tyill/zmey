@@ -64,7 +64,10 @@ Process::Process(Application& app, Executor& exr, const base::Task& tsk):
                 }  
                 
       misc::createSubDirectory(tsk.tResultPath);
-      string resultPath = tsk.tResultPath + to_string(tsk.tId) + ".dat";
+      string resultPath = tsk.tResultPath + to_string(tsk.tId);
+      if (tsk.tResultPath.back() != '/'){
+        resultPath = tsk.tResultPath + '/' + to_string(tsk.tId);
+      }
       int fdRes = open(resultPath.c_str(), O_CREAT | O_TRUNC | O_RDWR, S_IRUSR | S_IWUSR);
       CHECK(fdRes, "create");
       CHECK(dup2(fdRes, 1), "dup2(fdRes, 1)");// stdout -> fdRes

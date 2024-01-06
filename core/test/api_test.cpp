@@ -160,13 +160,13 @@ TEST_F(APITest, addWorker){
   EXPECT_TRUE(zmAddScheduler(zc_, schedr, &sId) && (sId > 0));  
   
   zmWorker worker{0};
-  worker.sId = sId;
+  worker.schedrId = sId;
   worker.capacityTask = 10;
   strcpy(worker.connectPnt, "localhost:4445");  
   int wId = 0;  
   EXPECT_TRUE(zmAddWorker(zc_, worker, &wId) && (wId > 0));  
 
-  worker.sId = sId + 1;
+  worker.schedrId = sId + 1;
   worker.capacityTask = 10;
   strcpy(worker.connectPnt, "localhost:4446");  
   wId = 0;  
@@ -180,7 +180,7 @@ TEST_F(APITest, getWorker){
   EXPECT_TRUE(zmAddScheduler(zc_, schedr, &sId) && (sId > 0));  
   
   zmWorker worker{0};
-  worker.sId = sId;
+  worker.schedrId = sId;
   worker.capacityTask = 10;
   strcpy(worker.connectPnt, "localhost:4445");  
   int wId = 0;  
@@ -206,7 +206,7 @@ TEST_F(APITest, changeWorker){
   EXPECT_TRUE(zmAddScheduler(zc_, schedr, &sId) && (sId > 0));  
   
   zmWorker worker{0};
-  worker.sId = sId;
+  worker.schedrId = sId;
   worker.capacityTask = 10;
   strcpy(worker.connectPnt, "localhost:4445");  
   int wId = 0;  
@@ -222,7 +222,7 @@ TEST_F(APITest, changeWorker){
              (strcmp(worker.connectPnt, "localhost:1234") == 0) &&
              (worker.capacityTask == 100)); 
 
-  worker.sId = sId + 1;
+  worker.schedrId = sId + 1;
   EXPECT_TRUE(!zmChangeWorker(zc_, wId, worker)); 
 }
 TEST_F(APITest, delWorker){    
@@ -233,7 +233,7 @@ TEST_F(APITest, delWorker){
   EXPECT_TRUE(zmAddScheduler(zc_, schedr, &sId) && (sId > 0));  
   
   zmWorker worker{0};
-  worker.sId = sId;
+  worker.schedrId = sId;
   worker.capacityTask = 10;
   strcpy(worker.connectPnt, "localhost:4445");  
   int wId = 0;  
@@ -251,13 +251,13 @@ TEST_F(APITest, workerState){
   EXPECT_TRUE(zmAddScheduler(zc_, schedr, &sId) && (sId > 0));  
   
   zmWorker worker{0};
-  worker.sId = sId;
+  worker.schedrId = sId;
   worker.capacityTask = 10;
   strcpy(worker.connectPnt, "localhost:4445");  
   int wId1 = 0;  
   EXPECT_TRUE(zmAddWorker(zc_, worker, &wId1) && (wId1 > 0)); 
 
-  worker.sId = sId;
+  worker.schedrId = sId;
   worker.capacityTask = 10;
   strcpy(worker.connectPnt, "localhost:4446");  
   int wId2 = 0;  
@@ -281,13 +281,13 @@ TEST_F(APITest, getAllWorkers){
   EXPECT_TRUE(zmAddScheduler(zc_, schedr, &sId) && (sId > 0));  
   
   zmWorker worker{0};
-  worker.sId = sId;
+  worker.schedrId = sId;
   worker.capacityTask = 10;
   strcpy(worker.connectPnt, "localhost:4445");  
   int wId1 = 0;  
   EXPECT_TRUE(zmAddWorker(zc_, worker, &wId1) && (wId1 > 0)); 
 
-  worker.sId = sId;
+  worker.schedrId = sId;
   worker.capacityTask = 10;
   strcpy(worker.connectPnt, "localhost:4446");  
   int wId2 = 0;  

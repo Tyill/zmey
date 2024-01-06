@@ -52,7 +52,9 @@ bool Executor::sendTaskToWorker()
         messNewTask.taskId = task.tId;
         messNewTask.params = task.tParams;
         messNewTask.scriptPath = task.tScriptPath;
-        messNewTask.resultPath = task.tResultPath;        
+        messNewTask.resultPath = task.tResultPath;
+        messNewTask.averDurationSec = task.tAverDurationSec;
+        messNewTask.maxDurationSec = task.tMaxDurationSec;        
       } 
       const string& wConnPnt = (*iWr)->wConnectPnt;
       if (misc::asyncSendData(wConnPnt, messNewTask.serialn())){

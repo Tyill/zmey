@@ -1,20 +1,11 @@
 
-
+import os
 import sys
-
-import clearDB
-
-sys.path.append('c:/cpp/other/zmey/web/server/')
+sys.path.append(os.path.expanduser("~") + '/projects/zmey/web/server/')
 import zm_client as zm
 
-#clearDB.clearDB()
-
-zm.loadLib('c:/cpp/other/zmey/build/Release/zmclient.dll')
-zo = zm.Connection("host=localhost port=5432 password=123 dbname=zmeydb connect_timeout=10")
-
-zo.setErrorCBack(lambda err: print(err))
-
-zo.createTables()
+zm.loadLib(os.path.expanduser("~") + '/projects/zmey/build/Debug/libzmclient.so')
+zo = zm.Connection("host=localhost port=5432 user=postgres dbname=zmeydb connect_timeout=10")
 
 sCnt = 1
 wCnt = 1

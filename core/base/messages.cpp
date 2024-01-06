@@ -74,7 +74,7 @@ private:
     int inSize_{};    
     int offs_ = 0;
     int mtype_ = 0;
-    bool ok_ = true;   
+    bool ok_ = true;
     const std::string& in_;
 };
 
@@ -128,10 +128,9 @@ private:
 
 
 mess::MessType getMessType(const std::string& m){
-  int mtype;
-  const auto r = SerialReader(m, 0, mtype);
+  SerialReader r(m, 0);
   if (r.ok()){
-    return mess::MessType(mtype);
+    return (mess::MessType)r.mtype();
   }
   return mess::MessType::UNDEFINED;
 }
@@ -151,7 +150,9 @@ std::string NewTask::serialn(){
                                 params,
                                 scriptPath,
                                 resultPath,
-                                taskId).out();
+                                taskId,
+                                averDurationSec,
+                                maxDurationSec).out();
   return out;
 }
 
@@ -160,7 +161,9 @@ bool NewTask::deserialn(const std::string& m){
                                params,
                                scriptPath,
                                resultPath,
-                               taskId).ok();
+                               taskId,
+                               averDurationSec,
+                               maxDurationSec).ok();
   return ok;
 }        
 

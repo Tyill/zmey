@@ -95,7 +95,8 @@ void Executor::receiveHandler(const string& remcp, const string& data)
       case mess::MessType::TASK_RUNNING:        
       case mess::MessType::TASK_PAUSE:
       case mess::MessType::TASK_CONTINUE:
-      case mess::MessType::TASK_STOP:{
+      case mess::MessType::TASK_STOP:
+      case mess::MessType::PING_WORKER:{
           mess::TaskStatus tm(mtype, cp);
           if (!tm.deserialn(data)){
             errorMessage("receiveHandler error deserialn from: " + cp, w->wId);    
@@ -103,8 +104,25 @@ void Executor::receiveHandler(const string& remcp, const string& data)
           }
           w->wActiveTaskCount = tm.activeTaskCount;
           w->wLoadCPU = tm.loadCPU;
-          int tid = tm.taskId;          
-          m_messToDB.push(db::MessSchedr(mtype, w->wId, tid));
+          int tid = tm.taskId;
+          if (mtype != mess::MessType::PING_WORKER){
+            m_messToDB.push(db::MessSchedr(mtype, w->wId, tid));
+          }else{
+            m_messToDB.push(db::MessSchedr::pingWorkerMess(w->wId, tm.activeTaskCount, tm.loadCPU));
+          }
+        }
+        break;
+      case mess::MessType::TASK_PROGRESS:{
+          mess::TaskProgress tm(mtype, cp);
+          if (!tm.deserialn(data)){
+            errorMessage("receiveHandler error deserialn from: " + cp, w->wId);    
+            return;
+          }
+          w->wActiveTaskCount = tm.activeTaskCount;
+          w->wLoadCPU = tm.loadCPU;
+          for (int i = 0; i < tm.taskProgress.size() && i < tm.taskIds.size(); ++i){
+            m_messToDB.push(db::MessSchedr::taskProgressMess(w->wId, tm.taskIds[i], tm.taskProgress[i]));
+          }
         }
         break;
       case mess::MessType::JUST_START_WORKER:

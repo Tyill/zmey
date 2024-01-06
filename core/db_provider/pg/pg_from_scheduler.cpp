@@ -100,7 +100,7 @@ bool DbProvider::getTasksOfSchedr(int sId, std::vector<base::Task>& out){
 bool DbProvider::getTasksOfWorker(int sId, int wId, std::vector<base::Task>& out){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
-  ss << "SELECT tq.id, tp.params, tp.scriptPath, tp.resultPath, tp.averDurationSec, tp.maxDurationSec, ts.state "
+  ss << "SELECT tq.id, tp.averDurationSec, tp.maxDurationSec, tp.params, tp.scriptPath, tp.resultPath, ts.state "
         "FROM tblTaskQueue tq "
         "JOIN tblTaskState ts ON ts.qtask = tq.id "
         "JOIN tblTaskParam tp ON tp.qtask = tq.id "
@@ -256,6 +256,11 @@ bool DbProvider::sendAllMessFromSchedr(int sId, std::vector<db::MessSchedr>& mes
               "state = " << (int)base::StateType::STOP << " "
               "WHERE qtask = " << m.taskId << ";"; 
         break;
+      case mess::MessType::TASK_PROGRESS:
+        ss << "UPDATE tblTaskState SET "
+              "progress = " << m.taskProgress << " "
+              "WHERE qtask = " << m.taskId << ";";
+        break;
       case mess::MessType::PAUSE_SCHEDR:
         ss << "UPDATE tblScheduler SET "
               "state = " << (int)base::StateType::PAUSE << " "
@@ -281,7 +286,7 @@ bool DbProvider::sendAllMessFromSchedr(int sId, std::vector<db::MessSchedr>& mes
       case mess::MessType::PING_SCHEDR:{
         ss << "UPDATE tblScheduler SET "
               "state = " << (int)base::StateType::RUNNING << ", "
-              "activeTask = " << stoi(m.data) << ", "
+              "activeTask = " << m.activeTaskCount << ", "
               "pingTime = current_timestamp "
               "WHERE id = " << sId << ";";
         break;
@@ -303,11 +308,10 @@ bool DbProvider::sendAllMessFromSchedr(int sId, std::vector<db::MessSchedr>& mes
               "WHERE id = " << m.workerId << ";";
         break;
       case mess::MessType::PING_WORKER:{
-        auto data = misc::split(m.data, '\t');
         ss << "UPDATE tblWorker SET "
-              "activeTask = " << stoi(data[0]) << ", "
+              "activeTask = " << m.activeTaskCount << ", "
               "pingTime = current_timestamp, "
-              "load = " << stoi(data[1]) << " "
+              "load = " << m.workerLoad << " "
               "WHERE id = " << m.workerId << ";";
         break;
       }        
@@ -333,11 +337,11 @@ bool DbProvider::sendAllMessFromSchedr(int sId, std::vector<db::MessSchedr>& mes
           ss << "INSERT INTO tblInternError (schedr, worker, message) VALUES("
                 "'" << sId << "',"
                 "'" << m.workerId << "',"
-                "'" << m.data << "');";
+                "'" << m.message << "');";
         }else{
           ss << "INSERT INTO tblInternError (schedr, message) VALUES("
                 "'" << sId << "',"
-                "'" << m.data << "');";
+                "'" << m.message << "');";
         }
         break;
     }    

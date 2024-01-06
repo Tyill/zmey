@@ -55,20 +55,16 @@ string currDateTime() {
 }
 // %Y-%m-%d %H:%M:%S:%MS
 string currDateTimeMs() {
-
   time_t ct;
   time (&ct);
   tm* lct = localtime (&ct);
 
   int64_t ms = chrono::time_point_cast<chrono::milliseconds>(chrono::system_clock::now()).time_since_epoch().count() % 1000;
 
-  char curDate[20];
-  strftime(curDate, 20, "%Y-%m-%d %H:%M:%S:", lct);
-
-  char curDateWithMS[24];
-  (sprintf)(curDateWithMS, "%s%03d", curDate, int(ms));
-
-  return curDateWithMS;
+  char curDate[24];
+  strftime(curDate, 24, "%Y-%m-%d %H:%M:%S:", lct);
+   
+  return string(curDate) + to_string(ms);
 } 
 vector<string> split(const string& str, char sep) {  
   vector<string> res;

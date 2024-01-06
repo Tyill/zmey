@@ -44,8 +44,10 @@ public:
   std::string connectPnt;
   std::string params;
   std::string scriptPath;     
-  std::string resultPath;     
+  std::string resultPath;
   int taskId{};
+  int averDurationSec{}; 
+  int maxDurationSec{};
 
   std::string serialn();
   bool deserialn(const std::string& m);

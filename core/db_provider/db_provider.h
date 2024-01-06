@@ -42,19 +42,46 @@ struct MessSchedr{
   mess::MessType type = mess::MessType::INTERN_ERROR;
   int workerId = 0;
   int taskId = 0;
-  std::string data;
+  int taskProgress = 0;
+  int activeTaskCount = 0;
+  int workerLoad = 0;
+  std::string message;
   
-  MessSchedr(mess::MessType _type = mess::MessType::INTERN_ERROR, int _workerId = 0, int _taskId = 0, const std::string& _data = "") :
+  MessSchedr(mess::MessType _type = mess::MessType::INTERN_ERROR, int _workerId = 0, int _taskId = 0) :
     type(_type),
     workerId(_workerId),
-    taskId(_taskId),
-    data(_data){}
+    taskId(_taskId){}
 
   static MessSchedr errorMess(int _workerId, const std::string& _err){
     MessSchedr mess;{
       mess.type = mess::MessType::INTERN_ERROR;
       mess.workerId = _workerId;
-      mess.data = _err;
+      mess.message = _err;
+    }
+    return mess;
+  };
+  static MessSchedr taskProgressMess(int _workerId, int _taskId, int _progress){
+    MessSchedr mess;{
+      mess.type = mess::MessType::TASK_PROGRESS;
+      mess.workerId = _workerId;
+      mess.taskId = _taskId;
+      mess.taskProgress = _progress;
+    }
+    return mess;
+  };
+  static MessSchedr pingWorkerMess(int _workerId, int _activeTaskCount, int _workerload){
+    MessSchedr mess;{
+      mess.type = mess::MessType::PING_WORKER;
+      mess.workerId = _workerId;
+      mess.activeTaskCount = _activeTaskCount;
+      mess.workerLoad = _workerload;
+    }
+    return mess;
+  };
+  static MessSchedr pingSchedrMess(int _workerId, int _activeTaskCount){
+    MessSchedr mess;{
+      mess.type = mess::MessType::PING_SCHEDR;
+      mess.activeTaskCount = _activeTaskCount;
     }
     return mess;
   };

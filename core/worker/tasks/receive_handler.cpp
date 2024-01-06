@@ -54,6 +54,8 @@ void Executor::receiveHandler(const string& remcp, const string& data)
     t.tResultPath = tm.resultPath;
     t.tState = base::StateType::READY;
     t.tParams = tm.params;
+    t.tAverDurationSec = tm.averDurationSec;
+    t.tMaxDurationSec = tm.maxDurationSec;
     m_newTasks.push(move(t)); 
     loopNotify();
   }

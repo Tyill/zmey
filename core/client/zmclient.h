@@ -165,7 +165,7 @@ ZMEY_API int zmGetAllSchedulers(zmConn, zmStateType state, int** outSchId);
 
 /// worker config
 struct zmWorker{
-  int sId;                    ///< scheduler id 
+  int schedrId;               ///< scheduler id 
   int capacityTask = 10;      ///< permissible simultaneous number of tasks
   char connectPnt[256];       ///< remote connection point: IP or DNS:port
 };
@@ -218,6 +218,7 @@ ZMEY_API bool zmPingWorker(zmConn, int wId);
 struct zmWorkerState{
   zmStateType state;
   int activeTaskCount;
+  int load;
   char startTime[32];
   char stopTime[32];
   char pingTime[32];
@@ -329,8 +330,8 @@ ZMEY_API bool zmSetChangeTaskStateCBack(zmConn, int tId, zmChangeTaskStateCBack 
 
 /// error
 struct zmInternError{
-  int sId;        ///< scheduler id 
-  int wId;        ///< worker id 
+  int schedrId;        ///< scheduler id 
+  int workerId;        ///< worker id 
   char createTime[32];
   char message[256];
 };

@@ -31,7 +31,7 @@ void Executor::pingToDB()
 {
   db::MessSchedr mess;{
     mess.type = mess::MessType::PING_SCHEDR;
-    mess.data = to_string(m_schedr.sActiveTaskCount);
+    mess.activeTaskCount = m_schedr.sActiveTaskCount;
   }
   m_messToDB.push(move(mess));
 }

@@ -39,8 +39,7 @@ class Executor{
 public:  
   Executor(Application&, const std::string& connPnt);
 
-public:
-  
+public:  
   void setLoop(Loop*);
   void loopNotify();
   void loopStop();

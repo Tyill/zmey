@@ -197,7 +197,7 @@ bool zmAddWorker(zmConn zo, zmWorker cng, int* outWId){
   wcng.wCapacityTaskCount = cng.capacityTask;
   wcng.wConnectPnt = cng.connectPnt;
   wcng.wState = int(base::StateType::STOP);
-  wcng.sId = cng.sId;
+  wcng.sId = cng.schedrId;
 
   return static_cast<db::DbProvider*>(zo)->addWorker(wcng, *outWId);
 }
@@ -209,7 +209,7 @@ bool zmGetWorker(zmConn zo, int wId, zmWorker* outWCng){
   }
   base::Worker wcng;
   if (static_cast<db::DbProvider*>(zo)->getWorker(wId, wcng)){    
-    outWCng->sId = wcng.sId;
+    outWCng->schedrId = wcng.sId;
     outWCng->capacityTask = wcng.wCapacityTaskCount;
     strncpy(outWCng->connectPnt, wcng.wConnectPnt.c_str(), 255);
     return true;
@@ -220,7 +220,7 @@ bool zmChangeWorker(zmConn zo, int wId, zmWorker newCng){
   if (!zo) return false; 
 
   base::Worker wcng;
-  wcng.sId = newCng.sId;
+  wcng.sId = newCng.schedrId;
   wcng.wCapacityTaskCount= newCng.capacityTask;
   wcng.wConnectPnt = newCng.connectPnt;
   
@@ -236,7 +236,7 @@ bool zmStartWorker(zmConn zo, int wId){
   
   zmWorker wcng;   
   zmSchedr scng; 
-  if (zmGetWorker(zo, wId, &wcng) && zmGetScheduler(zo, wcng.sId, &scng)){
+  if (zmGetWorker(zo, wId, &wcng) && zmGetScheduler(zo, wcng.schedrId, &scng)){
     mess::InfoMess mess(mess::MessType::START_AFTER_PAUSE_WORKER, wcng.connectPnt);
     return misc::syncSendData(scng.connectPnt, mess.serialn());
   }else{
@@ -248,7 +248,7 @@ bool zmPauseWorker(zmConn zo, int wId){
   
   zmWorker wcng;  
   zmSchedr scng;  
-  if (zmGetWorker(zo, wId, &wcng) && zmGetScheduler(zo, wcng.sId, &scng)){
+  if (zmGetWorker(zo, wId, &wcng) && zmGetScheduler(zo, wcng.schedrId, &scng)){
     mess::InfoMess mess(mess::MessType::PAUSE_WORKER, wcng.connectPnt);
     return misc::syncSendData(scng.connectPnt, mess.serialn());
   }else{
@@ -279,6 +279,7 @@ bool zmStateOfWorker(zmConn zo, int* pWId, int wCnt, zmWorkerState* outState){
     for (size_t i = 0; i < state.size(); ++i){
       outState[i].state = (zmStateType)state[i].state;
       outState[i].activeTaskCount = state[i].activeTaskCount;
+      outState[i].load = state[i].load;
       strncpy(outState[i].startTime, state[i].startTime.c_str(), 31);
       strncpy(outState[i].stopTime, state[i].stopTime.c_str(), 31);
       strncpy(outState[i].pingTime, state[i].pingTime.c_str(), 31);
@@ -406,8 +407,8 @@ int zmGetInternErrors(zmConn zo, int sId, int wId, int mCnt, zmInternError* outE
   size_t esz = errs.size();
   if ((esz > 0) && (esz <= mCnt)){
     for(int i = 0; i < esz; ++i){
-      outErrors[i].sId = sId;
-      outErrors[i].wId = wId;
+      outErrors[i].schedrId = sId;
+      outErrors[i].workerId = wId;  
       strncpy(outErrors[i].createTime, errs[i].createTime.c_str(), 31);
       strncpy(outErrors[i].message, errs[i].message.c_str(), 255);
     }    
