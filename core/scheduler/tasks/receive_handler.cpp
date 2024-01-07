@@ -44,50 +44,27 @@ void Executor::receiveHandler(const string& remcp, const string& data)
     return;
   }
 
-   // from manager
-  switch (mtype){
-    case mess::MessType::PING_SCHEDR:     // only check
-      break;
-    case mess::MessType::PAUSE_SCHEDR:
-      if (m_schedr.sState != int(base::StateType::PAUSE)){
-        m_messToDB.push(db::MessSchedr{mtype});
-      }
-      m_schedr.sState = int(base::StateType::PAUSE);
-      break;
-    case mess::MessType::START_AFTER_PAUSE_SCHEDR:
-      if (m_schedr.sState != int(base::StateType::RUNNING)){
-        m_messToDB.push(db::MessSchedr{mtype});
-      }
-      m_schedr.sState = int(base::StateType::RUNNING);
-      break;          
-    case mess::MessType::PAUSE_WORKER:
-      if (m_workers.count(cp)){
-        auto w = m_workers[cp];   
-        if (w->wState != int(base::StateType::NOT_RESPONDING) &&
-            w->wState != int(base::StateType::STOP)){
-          if (w->wState != int(base::StateType::PAUSE)){
-            m_messToDB.push(db::MessSchedr{mtype, w->wId});
-          }
-          w->wState = w->wStateMem = int(base::StateType::PAUSE);
+  // from manager
+  if(!m_workers.count(cp)){
+    switch (mtype){
+      case mess::MessType::PING_SCHEDR:     // only check
+        break;
+      case mess::MessType::PAUSE_SCHEDR:
+        if (m_schedr.sState != int(base::StateType::PAUSE)){
+          m_messToDB.push(db::MessSchedr{mtype});
         }
-      }
-      break;
-    case mess::MessType::START_AFTER_PAUSE_WORKER:
-      if (m_workers.count(cp)){
-        auto w = m_workers[cp]; 
-        if (w->wState != int(base::StateType::NOT_RESPONDING) &&
-            w->wState != int(base::StateType::STOP)){
-          if (w->wState != int(base::StateType::RUNNING)){
-            m_messToDB.push(db::MessSchedr{mtype, w->wId});
-          }
-          w->wState = w->wStateMem = int(base::StateType::RUNNING);
-        } 
-      }
-      break;
-    default: break;      
-  }  
-
-  if(m_workers.count(cp)){
+        m_schedr.sState = int(base::StateType::PAUSE);
+        break;
+      case mess::MessType::START_AFTER_PAUSE_SCHEDR:
+        if (m_schedr.sState != int(base::StateType::RUNNING)){
+          m_messToDB.push(db::MessSchedr{mtype});
+        }
+        m_schedr.sState = int(base::StateType::RUNNING);
+        break;    
+      default: break;
+    }
+  }
+  else{
     auto w = m_workers[cp];     
     switch (mtype){
       case mess::MessType::TASK_ERROR:
@@ -136,6 +113,24 @@ void Executor::receiveHandler(const string& remcp, const string& data)
           }else{
             m_app.statusMess("getTasksById db error: " + m_db.getLastError());
           }         
+        }
+        break;
+      case mess::MessType::PAUSE_WORKER:
+        if (w->wState != int(base::StateType::NOT_RESPONDING) &&
+            w->wState != int(base::StateType::STOP)){
+          if (w->wState != int(base::StateType::PAUSE)){
+            m_messToDB.push(db::MessSchedr{mtype, w->wId});
+          }
+          w->wState = w->wStateMem = int(base::StateType::PAUSE);
+        }
+        break;
+      case mess::MessType::START_AFTER_PAUSE_WORKER:
+        if (w->wState != int(base::StateType::NOT_RESPONDING) &&
+            w->wState != int(base::StateType::STOP)){
+          if (w->wState != int(base::StateType::RUNNING)){
+            m_messToDB.push(db::MessSchedr{mtype, w->wId});
+          }
+          w->wState = w->wStateMem = int(base::StateType::RUNNING);
         }
         break;
       case mess::MessType::INTERN_ERROR:{
