@@ -61,7 +61,9 @@ void Executor::receiveHandler(const string& remcp, const string& data)
         }
         m_schedr.sState = int(base::StateType::RUNNING);
         break;    
-      default: break;
+      default: 
+        errorMessage("receiveHandler unknown command", 0);
+        return;
     }
   }
   else{
