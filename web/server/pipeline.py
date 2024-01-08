@@ -64,7 +64,7 @@ def delete(pplId) -> bool:
       with closing(g.db.cursor()) as cr:
         cr.execute(
           "UPDATE tblPipeline SET "
-          "isDelete = 1 "
+          "isDeleted = TRUE "
           f"WHERE id = {pplId};" 
         )
         g.db.commit()
@@ -81,7 +81,7 @@ def all() -> List[Pipeline]:
         cr.execute(
           "SELECT id, name, description, setts "
           "FROM tblPipeline "
-          "WHERE isDelete = 0;"
+          "WHERE isDeleted = FALSE;"
         )
         rows = cr.fetchall()
         for row in rows:

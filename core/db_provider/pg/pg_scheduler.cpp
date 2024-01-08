@@ -52,7 +52,7 @@ bool DbProvider::getSchedr(int sId, base::Scheduler& cng){
   stringstream ss;
   ss << "SELECT connPnt, state, capacityTask "
         "FROM tblScheduler "
-        "WHERE id = " << sId << " AND isDelete = 0;";
+        "WHERE id = " << sId << " AND isDeleted = FALSE;";
 
   PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
@@ -75,7 +75,7 @@ bool DbProvider::changeSchedr(int sId, const base::Scheduler& newCng){
   ss << "UPDATE tblScheduler SET "
         "capacityTask = '" << newCng.sCapacityTaskCount << "', "
         "connPnt = '" << newCng.sConnectPnt << "' "
-        "WHERE id = " << sId << " AND isDelete = 0;";
+        "WHERE id = " << sId << " AND isDeleted = FALSE;";
       
   PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
@@ -88,7 +88,7 @@ bool DbProvider::delSchedr(int sId){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
   ss << "UPDATE tblScheduler SET "
-        "isDelete = 1 "
+        "isDeleted = TRUE "
         "WHERE id = " << sId << ";";
 
   PGres pgr(PQexec(pg_, ss.str().c_str()));
@@ -104,7 +104,7 @@ bool DbProvider::schedrState(int sId, SchedulerState& out){
   stringstream ss;
   ss << "SELECT state, activeTask, startTime, stopTime, pingTime "
         "FROM tblScheduler "
-        "WHERE id = " << sId << " AND isDelete = 0;";
+        "WHERE id = " << sId << " AND isDeleted = FALSE;";
 
   PGres pgr(PQexec(pg_, ss.str().c_str()));
   if ((PQresultStatus(pgr.res) != PGRES_TUPLES_OK) || (PQntuples(pgr.res) != 1)){
@@ -122,7 +122,7 @@ std::vector<int> DbProvider::getAllSchedrs(base::StateType state){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
   ss << "SELECT id FROM tblScheduler "
-        "WHERE (state = " << (int)state << " OR " << (int)state << " = 0) AND isDelete = 0;";
+        "WHERE (state = " << (int)state << " OR " << (int)state << " = 0) AND isDeleted = FALSE;";
 
   PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){

@@ -87,7 +87,7 @@ def delete(evId) -> bool:
       with closing(g.db.cursor()) as cr:
         cr.execute(
           "UPDATE tblEvent SET "
-          "isDelete = 1 "
+          "isDeleted = TRUE "
           f"WHERE id = {evId};" 
         )
         g.db.commit()
@@ -122,7 +122,7 @@ def allWithDB(db) -> List[Event]:
         "SELECT id, isEnabled, timeStartEverySec, timeLastStartEverySec,"
         "timeStartOnceOfDay, timeLastStartOnceOfDay, tasksForStart, name, description "
         "FROM tblEvent "
-        "WHERE isDelete = 0;"
+        "WHERE isDeleted = FALSE;"
       )
       rows = cr.fetchall()
       for row in rows:

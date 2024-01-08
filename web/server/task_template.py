@@ -75,7 +75,7 @@ def delete(ttId : int) -> bool:
         with closing(g.db.cursor()) as cr:
           cr.execute(
             "UPDATE tblTaskTemplate SET "
-            "isDelete = 1 "
+            "isDeleted = TRUE "
             f"WHERE id = {ttId};" 
           )
           g.db.commit()
@@ -92,7 +92,7 @@ def all() -> List[TaskTemplate]:
         cr.execute(
           "SELECT id, name, description, script, averDurationSec, maxDurationSec "
           "FROM tblTaskTemplate "
-          "WHERE isDelete = 0;"
+          "WHERE isDeleted = FALSE;"
         )
         rows = cr.fetchall()
         for row in rows:

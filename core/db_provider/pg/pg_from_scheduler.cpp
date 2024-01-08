@@ -49,7 +49,7 @@ bool DbProvider::getSchedr(const std::string& connPnt, base::Scheduler& outCng){
   stringstream ss;
   ss << "SELECT id, state, capacityTask, activeTask "
         "FROM tblScheduler "
-        "WHERE connPnt = '" << connPnt << "' AND isDelete = 0;";
+        "WHERE connPnt = '" << connPnt << "' AND isDeleted = FALSE;";
 
   PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
@@ -131,7 +131,7 @@ bool DbProvider::getWorkersOfSchedr(int sId, std::vector<base::Worker>& out){
   stringstream ss;
   ss << "SELECT id, state, capacityTask, activeTask, connPnt "
         "FROM tblWorker "
-        "WHERE schedr = " << sId << " AND isDelete = 0;";
+        "WHERE schedr = " << sId << " AND isDeleted = FALSE;";
 
   PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){

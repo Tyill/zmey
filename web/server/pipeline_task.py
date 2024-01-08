@@ -190,7 +190,7 @@ def delete(ptId) -> bool:
       with closing(g.db.cursor()) as cr:
         cr.execute(
           "UPDATE tblPipelineTask SET "
-          "isDelete = 1 "
+          "isDeleted = TRUE "
           f"WHERE id = {ptId};" 
         )
         g.db.commit()
@@ -208,7 +208,7 @@ def all() -> List[PipelineTask]:
           "SELECT id, pplId, ttId, params, isEnabled, setts,"
           "nextTasksId, prevTasksId, isStartNext, isSendResultToNext, conditionStartNext, name, description "
           "FROM tblPipelineTask "
-          "WHERE isDelete = 0;"
+          "WHERE isDeleted = FALSE;"
         )
         rows = cr.fetchall()
         for row in rows:

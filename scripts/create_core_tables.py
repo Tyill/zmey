@@ -8,9 +8,7 @@ def createTables():
   with psycopg2.connect(dbname='zmeydb', user='postgres', password='postgres', host='localhost') as pg:
     csr = pg.cursor()
     csr.execute(
-
-      "SELECT pg_catalog.set_config('search_path', 'public', false);"
-
+   
       "CREATE TABLE IF NOT EXISTS tblState("
       "id           SERIAL PRIMARY KEY,"
       "kind         TEXT NOT NULL CHECK (kind <> ''));"
@@ -32,11 +30,11 @@ def createTables():
         "state        INT NOT NULL REFERENCES tblState DEFAULT 5,"
         "capacityTask INT NOT NULL DEFAULT 10000 CHECK (capacityTask > 0),"
         "activeTask   INT NOT NULL DEFAULT 0 CHECK (activeTask >= 0),"
-        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1),"
         "startTime    TIMESTAMP NOT NULL DEFAULT current_timestamp,"
         "stopTime     TIMESTAMP NOT NULL DEFAULT current_timestamp,"
         "pingTime     TIMESTAMP NOT NULL DEFAULT current_timestamp,"
-        "connPnt      TEXT NOT NULL);"
+        "connPnt      TEXT NOT NULL,"        
+        "isDeleted    BOOLEAN DEFAULT FALSE);"
      
       "CREATE TABLE IF NOT EXISTS tblWorker("
         "id           SERIAL PRIMARY KEY,"
@@ -45,11 +43,11 @@ def createTables():
         "capacityTask INT NOT NULL DEFAULT 10 CHECK (capacityTask > 0),"
         "activeTask   INT NOT NULL DEFAULT 0 CHECK (activeTask >= 0),"
         "load         INT NOT NULL DEFAULT 0 CHECK (load BETWEEN 0 AND 100),"
-        "isDelete     INT NOT NULL DEFAULT 0 CHECK (isDelete BETWEEN 0 AND 1),"
         "startTime    TIMESTAMP NOT NULL DEFAULT current_timestamp,"
         "stopTime     TIMESTAMP NOT NULL DEFAULT current_timestamp,"
         "pingTime     TIMESTAMP NOT NULL DEFAULT current_timestamp,"
-        "connPnt      TEXT NOT NULL);"
+        "connPnt      TEXT NOT NULL,"     
+        "isDeleted    BOOLEAN DEFAULT FALSE);"
 
       "CREATE TABLE IF NOT EXISTS tblInternError("
         "id           SERIAL PRIMARY KEY,"

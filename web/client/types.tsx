@@ -1,7 +1,7 @@
 
 export
 enum StateType{
-  UNDEFINED = -1,
+  UNDEFINED = 0,
   READY,
   START,
   RUNNING,

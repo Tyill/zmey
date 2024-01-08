@@ -55,7 +55,7 @@ bool DbProvider::getWorker(int wId, base::Worker& cng){
   stringstream ss;
   ss << "SELECT connPnt, schedr, state, capacityTask "
         "FROM tblWorker "
-        "WHERE id = " << wId << " AND isDelete = 0;";
+        "WHERE id = " << wId << " AND isDeleted = FALSE;";
 
   PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
@@ -84,7 +84,7 @@ bool DbProvider::changeWorker(int wId, const base::Worker& newCng){
         "schedr = '" << (int)newCng.sId << "',"
         "capacityTask = '" << newCng.wCapacityTaskCount << "',"
         "connPnt = '" << newCng.wConnectPnt << "' "
-        "WHERE id = " << wId << " AND isDelete = 0;";
+        "WHERE id = " << wId << " AND isDeleted = FALSE;";
 
   PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
@@ -97,7 +97,7 @@ bool DbProvider::delWorker(int wId){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
   ss << "UPDATE tblWorker SET "
-        "isDelete = 1 "
+        "isDeleted = TRUE "
         "WHERE id = " << wId << ";";
 
   PGres pgr(PQexec(pg_, ss.str().c_str()));
@@ -118,7 +118,7 @@ bool DbProvider::workerState(const std::vector<int>& wId, std::vector<WorkerStat
   stringstream ss;
   ss << "SELECT state, activeTask, load, startTime, stopTime, pingTime "
         "FROM tblWorker "
-        "WHERE id IN (" << swId << ")  AND isDelete = 0 ORDER BY id;";
+        "WHERE id IN (" << swId << ")  AND isDeleted = FALSE ORDER BY id;";
 
   PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
@@ -147,7 +147,7 @@ std::vector<int> DbProvider::getAllWorkers(int sId, base::StateType state){
   ss << "SELECT id FROM tblWorker "
         "WHERE (state = " << (int)state << " OR " << (int)state << " = 0) "
         "AND schedr = " << sId << " "
-        "AND isDelete = 0;";
+        "AND isDeleted = FALSE;";
 
   PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
