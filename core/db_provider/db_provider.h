@@ -122,7 +122,7 @@ struct WorkerState{
 
 typedef void* UData;
 typedef std::function<void(const char* mess, UData)> ErrCBack;
-typedef void(*ChangeTaskStateCBack)(int qtId, base::StateType prevState, base::StateType newState, UData);
+typedef void(*ChangeTaskStateCBack)(int qtId, int progress, base::StateType prevState, base::StateType newState, UData);
 
 class DbProvider{  
 public: 

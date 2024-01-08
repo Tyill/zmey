@@ -40,6 +40,10 @@ public:
     db::ConnectCng cng;
     cng.connectStr = "host=localhost user=postgres port=5432 dbname=zmeydb connect_timeout=10";
     pDb_ = new db::DbProvider(cng);
+
+    pDb_->setErrorCBack([](const char* mess, void*){
+      cout << mess << endl;
+    }, nullptr);  
   }
   ~DBSchedrTest() {
     delete pDb_;

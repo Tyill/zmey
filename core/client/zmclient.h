@@ -85,6 +85,16 @@ ZMEY_API void zmDisconnect(zmConn);
 /// @return true - ok
 ZMEY_API bool zmGetLastError(zmConn, char* err/*sz 256*/);
 
+typedef void* zmUData;                                     ///< user data    
+typedef void(*zmErrorCBack)(const char* mess, zmUData);    ///< error callback
+
+/// set error callback
+/// @param[in] zmConn - object connect
+/// @param[in] zmErrorCBack - error callback
+/// @param[in] zmUData - user data   
+/// @return true - ok 
+ZMEY_API bool zmSetErrorCBack(zmConn, zmErrorCBack, zmUData);
+
 ///////////////////////////////////////////////////////////////////////////////
 /// Scheduler
 
@@ -314,7 +324,6 @@ struct zmTaskTime{
 ZMEY_API bool zmTimeOfTask(zmConn, int tId, zmTaskTime* outTTime);
 
 /// task state callback
-typedef void* zmUData;         
 typedef void(*zmChangeTaskStateCBack)(int tId, int progress, zmStateType prevState, zmStateType newState, zmUData);
 
 /// set change task state callback

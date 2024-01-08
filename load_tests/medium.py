@@ -12,6 +12,8 @@ import zm_client as zm
 zm.loadLib(os.path.expanduser("~") + '/projects/zmey/build/Release/libzmclient.so')
 zo = zm.Connection("host=localhost port=5432 user=postgres dbname=zmeydb connect_timeout=10")
 
+zo.setErrorCBack(lambda err: print(err))
+
 # add and start schedulers and workers
 print('Add and start schedulers and workers')  
 sCnt = 3

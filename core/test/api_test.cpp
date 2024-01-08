@@ -38,15 +38,16 @@ using namespace std;
 class APITest : public ::testing::Test {
 public:
   APITest() { 
-
     string connStr = "host=localhost port=5432 user=postgres dbname=zmeydb connect_timeout=10";
     char err[256]{0};
     zc_ = zmCreateConnection(zmConfig{ (char*)connStr.c_str() }, err);
     if (strlen(err) > 0){    
       cout << err << endl;
       exit(-1);
-    } 
-   
+    }
+    zmSetErrorCBack(zc_, [](const char* mess, zmUData){
+      cout << mess << endl;
+    }, nullptr);    
   }
   ~APITest() {
     zmDisconnect(zc_);

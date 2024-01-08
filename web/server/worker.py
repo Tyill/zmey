@@ -9,31 +9,22 @@ class Worker(zm.Worker):
 
 def add(worker : Worker) -> bool:
   if zmConn and ('userId' in g):
-    
-    worker.name = worker.name.replace("'", "''")
-    worker.description = worker.description.replace("'", "''")
-    
     ok = zmConn.addWorker(worker)
     return ok
   return False
 
 def change(worker : Worker) -> bool:
   if zmConn and ('userId' in g):
-    worker.name = worker.name.replace("'", "''")
-    worker.description = worker.description.replace("'", "''")
-    
     return zmConn.changeWorker(worker)
   return False
 
 def delete(wId : int) -> bool:
   if zmConn and ('userId' in g):
-    
     return zmConn.delWorker(wId)
   return False
 
 def all(sId) -> List[Worker]:
   if zmConn and ('userId' in g):
-    
     workers = zmConn.getAllWorkers(sId)
     zmConn.workerState(workers)
     for w in workers:

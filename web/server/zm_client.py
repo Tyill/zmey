@@ -214,6 +214,7 @@ class Connection:
   """Connection object"""
   
   zmConn_ = None
+  userErrCBack_ : ctypes.CFUNCTYPE(None, ctypes.c_char_p, ctypes.c_void_p) = None
   changeTaskStateCBack_ : ctypes.CFUNCTYPE(None, ctypes.c_int32, ctypes.c_int32, ctypes.c_int32, ctypes.c_int32, ctypes.c_void_p) = None
   cerr_ : str = ""
   
@@ -252,6 +253,22 @@ class Connection:
       pfun(self.zmConn_, err)
       return err.value.decode("utf-8") 
     return self.cerr_
+  def setErrorCBack(self, ucb):
+    """
+    Set ERROR callback
+    :param ucb: def func(err : str)
+    """
+    if (self.zmConn_):      
+      def c_ecb(err: ctypes.c_char_p, udata: ctypes.c_void_p):
+        ucb(err.decode("utf-8"))
+      
+      errCBackType = ctypes.CFUNCTYPE(None, ctypes.c_char_p, ctypes.c_void_p)    
+      self.userErrCBack_ = errCBackType(c_ecb)
+
+      pfun = lib_.zmSetErrorCBack
+      pfun.restype = ctypes.c_bool
+      pfun.argtypes = (ctypes.c_void_p, errCBackType, ctypes.c_void_p)
+      return pfun(self.zmConn_, self.userErrCBack_, 0)
     
   #############################################################################
   ### Scheduler
@@ -740,7 +757,7 @@ class Connection:
   def setChangeTaskStateCBack(self, ucb):
     """
     Set change Task state callback
-    :param ucb: def func(tId : uint64, uId : uint64, progress : int, prevState : StateType, newState : StateType)
+    :param ucb: def func(tId : uint64, progress : int, prevState : StateType, newState : StateType)
     """
     if (self.zmConn_):   
       def c_ucb(tId: ctypes.c_int32, progress: ctypes.c_int32, prevState: ctypes.c_int32, newState: ctypes.c_int32, udata: ctypes.c_void_p):

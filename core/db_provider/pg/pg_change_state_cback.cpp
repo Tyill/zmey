@@ -55,7 +55,7 @@ bool DbProvider::setChangeTaskStateCBack(int tId, ChangeTaskStateCBack cback, UD
         bool isChangeState = false;
         PGnotify* notify = nullptr;
         while ((notify = PQnotifies(pg_)) != nullptr){
-          isChangeState = std::string(notify->relname) == m_impl->NOTIFY_NAME_CHANGE_TASK;
+          isChangeState |= std::string(notify->relname) == m_impl->NOTIFY_NAME_CHANGE_TASK;
           PQfreemem(notify);
         }
         bool auxCheckTimeout = m_impl->m_notifyAuxCheckTOut.onDelayOncSec(true, 10, 1);
@@ -81,7 +81,7 @@ bool DbProvider::setChangeTaskStateCBack(int tId, ChangeTaskStateCBack cback, UD
                     return s.empty() ? to_string(v.first) : s + "," + to_string(v.first);
                   });       
         stringstream ss;
-        ss << "SELECT qtask, state "
+        ss << "SELECT qtask, state, progress "
               "FROM tblTaskState ts "
               "WHERE qtask IN (" << stId << ");"; 
         
@@ -90,6 +90,7 @@ bool DbProvider::setChangeTaskStateCBack(int tId, ChangeTaskStateCBack cback, UD
         struct TState{
           int id;
           base::StateType state;
+          int progress;
         };
         vector<TState> notifyRes;
         { 
@@ -100,6 +101,7 @@ bool DbProvider::setChangeTaskStateCBack(int tId, ChangeTaskStateCBack cback, UD
             for (size_t i = 0; i < tsz; ++i){
               int tId = stoi(PQgetvalue(pgr.res, (int)i, 0));
               base::StateType state = (base::StateType)atoi(PQgetvalue(pgr.res, (int)i, 1));
+              int progress = atoi(PQgetvalue(pgr.res, (int)i, 2));
               if (state != notifyTasks[tId].state){
                 notifyRes.push_back(TState{tId, state});
               }
@@ -112,7 +114,7 @@ bool DbProvider::setChangeTaskStateCBack(int tId, ChangeTaskStateCBack cback, UD
           for (auto& t : notifyRes){
             base::StateType prevState = notifyTasks[t.id].state,
                             newState = t.state;
-            notifyTasks[t.id].cback(t.id, prevState, newState, notifyTasks[t.id].ud);
+            notifyTasks[t.id].cback(t.id, t.progress, prevState, newState, notifyTasks[t.id].ud);
           }
           { 
             lock_guard<mutex> lk(m_impl->m_mtxNotifyTask);  

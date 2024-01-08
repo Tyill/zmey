@@ -1,6 +1,7 @@
 from typing import List
 from contextlib import closing
 from flask import g
+import psycopg2
 
 from .core import zmConn, zmTaskWatch
 from . import zm_client as zm
@@ -22,27 +23,26 @@ class Task(zm.Task):
   def __str__(self):
     return self.__repr__()
 
-def start(db, userId, iot : Task) -> bool:
+def start(db, iot : Task) -> bool:
   params = iot.params
   iot.params = iot.params.replace("'", "''")
   if zmConn and zmConn.startTask(iot):  
     try:
-      with closing(db.cursor()) as cr:
-        cr.execute(
-          "INSERT INTO tblTask (id, state, pplTaskId, starterPplTaskId, starterEventId, ttlId, script, params) VALUES("
+      with psycopg2.connect(dbname='zmeydb', user='postgres', password='postgres', host='localhost') as pg:
+        csr = pg.cursor()
+        csr.execute(
+          "INSERT INTO tblTask (id, state, pplTaskId, starterPplTaskId, starterEventId, ttlId, scriptPath, params) VALUES("
           f"'{iot.id}',"
           f"'{zm.StateType.READY.value}',"
           f"'{iot.pplTaskId}',"
           f"'{iot.starterPplTaskId}',"
           f"'{iot.starterEventId}',"
-          f"'{iot.ttlId}',"
-          f"(SELECT script FROM tblTaskTemplate WHERE id = {iot.ttlId}),"
-          f"'{iot.params}');"
+          f"'{iot.ttlId}');"
         )
-        db.commit()
+        csr.close()
         iot.params = params
       
-      zmTaskWatch.addTaskForTracking(iot.id, userId)
+      zmTaskWatch.addTaskForTracking(iot.id)
 
       return True
     except Exception as err:

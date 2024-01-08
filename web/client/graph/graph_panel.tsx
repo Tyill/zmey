@@ -77,8 +77,6 @@ class GraphPanel extends React.Component<IProps, IState>{
              isPntIntoRect(mpos, pt.setts.socketInRect) && !task.nextTasksId.find(v=>v==pt.id)){
           task.nextTasksId.push(pt.id);
           task.isStartNext.push(1);
-          task.isSendResultToNext.push(1);
-          task.conditionStartNext.push("");
           PipelineTasks.upd(task);
           ServerAPI.changePipelineTask(task);
          
@@ -97,8 +95,6 @@ class GraphPanel extends React.Component<IProps, IState>{
           let prevTask = PipelineTasks.get(pt.id);
           prevTask.nextTasksId.push(task.id);
           prevTask.isStartNext.push(1);
-          prevTask.isSendResultToNext.push(1);
-          prevTask.conditionStartNext.push("");
           PipelineTasks.upd(prevTask);
           ServerAPI.changePipelineTask(prevTask);
         }

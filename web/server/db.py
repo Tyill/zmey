@@ -6,13 +6,10 @@ from flask import(
 )
 from . import zm_client as zm
 
-m_instance_path = ""
-
 def init(app):
   app.before_request(userDb)
   app.teardown_appcontext(closeUserDb)
   global m_instance_path
-  m_instance_path = app.instance_path
 
 def userDb():
   if ('db' not in g) and g.userName and g.userName != 'admin':

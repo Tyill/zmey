@@ -81,6 +81,13 @@ bool zmGetLastError(zmConn zo, char* err/*sz 256*/){
     return false;
   }
 }
+bool zmSetErrorCBack(zmConn zo, zmErrorCBack ecb, zmUData ud){
+  if (zo && ecb){
+    static_cast<db::DbProvider*>(zo)->setErrorCBack(ecb, ud);
+    return true;
+  }
+  return false;
+}
 ///////////////////////////////////////////////////////////////////////////////
 /// Scheduler
 

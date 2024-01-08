@@ -25,12 +25,12 @@ def init(instance_path):
   m_instance_path = instance_path
   if not os.path.exists(instance_path + '/users/users.ini'):
     os.makedirs(instance_path + '/users', exist_ok = True) 
-    addp(0, 'admin', 'p@ssw0rd', instance_path)
+    _add(0, 'admin', 'p@ssw0rd', instance_path)
 
 def calcHash(passw, salt):  
   return hashlib.sha256(salt.encode() + passw.encode()).hexdigest()
 
-def addp(id, name, passw, path) -> bool:
+def _add(id, name, passw, path) -> bool:
   salt = uuid.uuid4().hex
   hash = calcHash(passw, salt)
   if id < 0:
@@ -42,7 +42,7 @@ def addp(id, name, passw, path) -> bool:
   return True
 
 def add(name, passw) -> bool:
-  return addp(-1, name, passw, m_instance_path)
+  return _add(-1, name, passw, m_instance_path)
 
 def get(uname, passw) -> User:
   with open(m_instance_path + '/users/users.ini', 'r') as file:
