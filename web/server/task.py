@@ -1,7 +1,6 @@
 from typing import List
 from contextlib import closing
 from flask import g
-import psycopg2
 
 from .core import zmConn, zmTaskWatch
 from . import zm_client as zm
@@ -28,9 +27,8 @@ def start(db, iot : Task) -> bool:
   iot.params = iot.params.replace("'", "''")
   if zmConn and zmConn.startTask(iot):  
     try:
-      with psycopg2.connect(dbname='zmeydb', user='postgres', password='postgres', host='localhost') as pg:
-        csr = pg.cursor()
-        csr.execute(
+      with closing(db.cursor()) as cr:
+        cr.execute(
           "INSERT INTO tblTask (id, state, pplTaskId, starterPplTaskId, starterEventId, ttlId, scriptPath, params) VALUES("
           f"'{iot.id}',"
           f"'{zm.StateType.READY.value}',"
@@ -39,7 +37,6 @@ def start(db, iot : Task) -> bool:
           f"'{iot.starterEventId}',"
           f"'{iot.ttlId}');"
         )
-        csr.close()
         iot.params = params
       
       zmTaskWatch.addTaskForTracking(iot.id)

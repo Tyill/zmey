@@ -1,10 +1,5 @@
-import os
-import sqlite3
-from contextlib import closing
-from flask import(
-  g, current_app
-)
-from . import zm_client as zm
+from flask import g
+import psycopg2
 
 def init(app):
   app.before_request(userDb)
@@ -14,14 +9,7 @@ def init(app):
 def userDb():
   if ('db' not in g) and g.userName and g.userName != 'admin':
     try: 
-      dbPath = current_app.instance_path + '/users/{}.db'.format(g.userName)
-      isExist = os.path.exists(dbPath)
-      g.db = sqlite3.connect(
-        dbPath,
-        detect_types=sqlite3.PARSE_DECLTYPES,
-        check_same_thread = False
-      )    
-      g.db.row_factory = sqlite3.Row      
+      g.db = psycopg2.connect(dbname='zmeydb', user='postgres', password='postgres', host='localhost')
     except Exception as err:
       print('userDb failed: %s' % str(err))
 
@@ -30,21 +18,14 @@ def closeUserDb(e = None):
   if db is not None:
     db.close()
 
-def createDb(userName : str):
-  return createDbWithPath(m_instance_path, userName)
+def createDb():
+  db = None
+  try: 
+    db = psycopg2.connect(dbname='zmeydb', user='postgres', password='postgres', host='localhost')
+  except Exception as err:
+    print('userDb failed: %s' % str(err))
+  return db
   
-def createDbWithPath(path : str, userName : str):
-  dbPath = path + '/users/{}.db'.format(userName)
-  if os.path.exists(dbPath):
-    db = sqlite3.connect(
-      dbPath,
-      detect_types=sqlite3.PARSE_DECLTYPES,
-      check_same_thread = False
-    )    
-    db.row_factory = sqlite3.Row
-    return db
-  return None
-
 def closeDb(db):
   if db is not None:
     db.close()
