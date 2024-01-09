@@ -5,8 +5,18 @@ from flask import g
 from .core import zmConn
 from . import zm_client as zm 
 
-class TaskTemplate(zm.TaskTemplate):
-  None
+class TaskTemplate():
+  def __init__(self,
+               pplTaskId :  int = 0,
+               starterPplTaskId :  int = None,
+               starterEventId :  int = None):    
+    self.pplTaskId = pplTaskId
+    self.starterPplTaskId = starterPplTaskId
+    self.starterEventId = starterEventId
+  def __repr__(self):
+      return f"TaskTemplate: id {self.id} pplTaskId {self.pplTaskId} starterPplTaskId {self.starterPplTaskId} starterEventId {self.starterEventId} ttlId {self.ttlId} "
+  def __str__(self):
+    return self.__repr__()
 
 def add(iott : TaskTemplate) -> bool:
   if zmConn and g.userId and ('db' in g):
@@ -90,7 +100,7 @@ def all() -> List[TaskTemplate]:
       ttls = []
       with closing(g.db.cursor()) as cr:
         cr.execute(
-          "SELECT id, name, description, script, averDurationSec, maxDurationSec "
+          "SELECT id, name, description, scriptPath, averDurationSec, maxDurationSec "
           "FROM tblTaskTemplate "
           "WHERE isDeleted = FALSE;"
         )
