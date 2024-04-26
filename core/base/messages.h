@@ -51,9 +51,6 @@ public:
 
   std::string serialn();
   bool deserialn(const std::string& m);
-
-private:
-  MessType mtype = MessType::NEW_TASK;
 };
 
 class TaskStatus{
@@ -73,10 +70,9 @@ public:
 
 class TaskProgress{
 public:  
-  TaskProgress(MessType _mtype, const std::string& connPnt);
-  TaskProgress(const std::vector<int>& taskIds, const std::vector<int>& taskProgress, MessType _mtype = MessType::UNDEFINED);
+  TaskProgress();
+  TaskProgress(const std::vector<int>& taskIds, const std::vector<int>& taskProgress);
 
-  MessType mtype = MessType::UNDEFINED;
   std::string connectPnt;
   std::vector<int> taskIds;
   std::vector<int> taskProgress;
@@ -107,9 +103,6 @@ public:
   
   std::string serialn();
   bool deserialn(const std::string& m);
-
-private:
-  MessType mtype = MessType::INTERN_ERROR;
 };
 
 } // namespace mess

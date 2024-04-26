@@ -92,7 +92,7 @@ void Executor::receiveHandler(const string& remcp, const string& data)
         }
         break;
       case mess::MessType::TASK_PROGRESS:{
-          mess::TaskProgress tm(mtype, cp);
+          mess::TaskProgress tm;
           if (!tm.deserialn(data)){
             errorMessage("receiveHandler error deserialn from: " + cp, w->wId);    
             return;

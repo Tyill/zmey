@@ -11,25 +11,18 @@ namespace mess
 template<typename... Fields>
 class SerialReader{
 public: 
-    SerialReader(const std::string& m, int mtype, Fields&... fields):
+    SerialReader(const std::string& m, Fields&... fields):
       in_(m){        
-        const int allSz = intSz_,
-                  typeSz = intSz_;
+        const int allType = intSz_;
         inSize_ = int(m.size());         
         char* pData = (char*)m.data();
-        if (inSize_ < (allSz + typeSz) || 
-            inSize_ != *(int*)(pData) || 
-            (mtype > 0 && *(int*)(pData + allSz) != mtype)){
+        if (inSize_ < allType || inSize_ != *(int*)(pData)){
             ok_ = false;
             return;
         }
-        mtype_ = *(int*)(pData + allSz);
-        offs_ = allSz + typeSz;
+        offs_ = allType;
         (readField(fields), ...);
     } 
-    int mtype()const{
-        return mtype_;
-    }
     bool ok()const{
         return ok_;
     }
@@ -62,18 +55,15 @@ private:
             if (!checkFieldSize(intSz_)) return;
             const char* pData = in_.data();
             int vsz = *((int*)(pData + offs_));  offs_ += intSz_;
+            if (!checkFieldSize(vsz * intSz_)) return;
             out.reserve(vsz);
-            for(int i = 0; i < vsz; ++i){
-              if (!checkFieldSize(intSz_)) return;
-              int val = *((int*)(pData + offs_));  offs_ += intSz_;
-              out.push_back(val);
-            } 
+            memcpy(out.data(), pData + offs_, vsz * intSz_);
+            offs_ += vsz * intSz_;
         }
     }
     const int intSz_ = 4;
     int inSize_{};    
     int offs_ = 0;
-    int mtype_ = 0;
     bool ok_ = true;
     const std::string& in_;
 };
@@ -113,12 +103,12 @@ private:
         char* pOut = out_.data();
         *((int*)(pOut + offs_)) = v; offs_ += intSz_;
     }
-     void writeField(const std::vector<int>& v){
+     void writeField(const std::vector<int>& arr){
         char* pOut = out_.data();
-        *((int*)(pOut + offs_)) = int(v.size()); offs_ += intSz_;
-        for (int item : v){
-          *((int*)(pOut + offs_)) = item; offs_ += intSz_;
-        }
+        const int asz = int(arr.size());
+        *((int*)(pOut + offs_)) = asz; offs_ += intSz_;
+        memcpy(pOut + offs_, arr.data(), asz * intSz_);
+        offs_ += asz * intSz_;
     }
     const int intSz_ = 4;
     int outSize_{};    
@@ -128,15 +118,17 @@ private:
 
 
 mess::MessType getMessType(const std::string& m){
-  SerialReader r(m, 0);
+  int mtype{};
+  SerialReader r(m, mtype);
   if (r.ok()){
-    return (mess::MessType)r.mtype();
+    return (mess::MessType)mtype;
   }
   return mess::MessType::UNDEFINED;
 }
 std::string getConnectPnt(const std::string& m){
+  int mtype{};
   std::string connectPnt;
-  SerialReader(m, 0, connectPnt);
+  SerialReader(m, mtype, connectPnt);
   return connectPnt;
 }
 
@@ -146,7 +138,7 @@ NewTask::NewTask(const std::string& connPnt):
 }
 
 std::string NewTask::serialn(){
-  const auto out = SerialWriter(int(mtype), connectPnt, 
+  const auto out = SerialWriter(int(MessType::NEW_TASK), connectPnt, 
                                 params,
                                 scriptPath,
                                 resultPath,
@@ -157,7 +149,8 @@ std::string NewTask::serialn(){
 }
 
 bool NewTask::deserialn(const std::string& m){
-  const auto ok = SerialReader(m, int(mtype), connectPnt, 
+  int mtype{};
+  const auto ok = SerialReader(m, mtype, connectPnt, 
                                params,
                                scriptPath,
                                resultPath,
@@ -188,28 +181,27 @@ std::string TaskStatus::serialn(){
 }
 
 bool TaskStatus::deserialn(const std::string& m){
-  const auto ok = SerialReader(m, int(mtype), connectPnt, 
+  int _mtype{};
+  const auto ok = SerialReader(m, _mtype, connectPnt, 
                                taskId,
                                activeTaskCount,
                                loadCPU).ok();
+  mtype = MessType(_mtype);
   return ok;
 }   
 
-TaskProgress::TaskProgress(mess::MessType _mtype, const std::string& connPnt):
-  mtype(_mtype),
-  connectPnt(connPnt)
+TaskProgress::TaskProgress()
 {
 }  
 
-TaskProgress::TaskProgress(const std::vector<int>& _taskIds, const std::vector<int>& _taskProgress, mess::MessType _mtype):
+TaskProgress::TaskProgress(const std::vector<int>& _taskIds, const std::vector<int>& _taskProgress):
   taskIds(_taskIds),
-  taskProgress(_taskProgress),
-  mtype(_mtype)
+  taskProgress(_taskProgress)
 {
 }
 
 std::string TaskProgress::serialn(){
-  const auto out = SerialWriter(int(mtype), connectPnt, 
+  const auto out = SerialWriter(int(mess::MessType::TASK_PROGRESS), connectPnt, 
                                 taskIds,
                                 taskProgress,
                                 activeTaskCount,
@@ -218,7 +210,8 @@ std::string TaskProgress::serialn(){
 }
 
 bool TaskProgress::deserialn(const std::string& m){
-  const auto ok = SerialReader(m, int(mtype), connectPnt, 
+  int mtype{};
+  const auto ok = SerialReader(m, mtype, connectPnt, 
                                taskIds,
                                taskProgress,
                                activeTaskCount,
@@ -238,7 +231,9 @@ std::string InfoMess::serialn(){
 }
 
 bool InfoMess::deserialn(const std::string& m){
-  const auto ok = SerialReader(m, int(mtype), connectPnt).ok();
+  int _mtype{};
+  const auto ok = SerialReader(m, _mtype, connectPnt).ok();
+  mtype = MessType(_mtype);
   return ok;
 }       
 
@@ -249,13 +244,14 @@ InternError::InternError(const std::string& connPnt, const std::string& mess):
 }
   
 std::string InternError::serialn(){
-  const auto out = SerialWriter(int(mtype), connectPnt, 
+  const auto out = SerialWriter(int(MessType::INTERN_ERROR), connectPnt, 
                                 message).out();
   return out;
 }
 
 bool InternError::deserialn(const std::string& m){
-  const auto ok = SerialReader(m, int(mtype), connectPnt, 
+  int mtype{};
+  const auto ok = SerialReader(m, mtype, connectPnt, 
                                message).ok();
   return ok;
 }

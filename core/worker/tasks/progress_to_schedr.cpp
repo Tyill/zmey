@@ -40,7 +40,7 @@ void Executor::progressToSchedr(const std::string& schedrConnPnt)
     taskProgress.push_back(p.getProgress());
   } 
   m_worker.wActiveTaskCount = m_newTasks.size() + (int)m_procs.size();
-  mess::TaskProgress m(taskIds, taskProgress, mess::MessType::TASK_PROGRESS);
+  mess::TaskProgress m(taskIds, taskProgress);
   m.activeTaskCount = m_worker.wActiveTaskCount;
   m.loadCPU = m_worker.wLoadCPU;
   m.connectPnt = m_worker.wConnectPnt;    
