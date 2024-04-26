@@ -84,10 +84,12 @@ void Executor::receiveHandler(const string& remcp, const string& data)
           w->wActiveTaskCount = tm.activeTaskCount;
           w->wLoadCPU = tm.loadCPU;
           int tid = tm.taskId;
-          if (mtype != mess::MessType::PING_WORKER){
-            m_messToDB.push(db::MessSchedr(mtype, w->wId, tid));
-          }else{
-            m_messToDB.push(db::MessSchedr::pingWorkerMess(w->wId, tm.activeTaskCount, tm.loadCPU));
+          if (w->wState == int(base::StateType::RUNNING)){
+            if (mtype != mess::MessType::PING_WORKER){
+              m_messToDB.push(db::MessSchedr(mtype, w->wId, tid));
+            }else{
+              m_messToDB.push(db::MessSchedr::pingWorkerMess(w->wId, tm.activeTaskCount, tm.loadCPU));
+            }
           }
         }
         break;
@@ -99,8 +101,10 @@ void Executor::receiveHandler(const string& remcp, const string& data)
           }
           w->wActiveTaskCount = tm.activeTaskCount;
           w->wLoadCPU = tm.loadCPU;
-          for (int i = 0; i < tm.taskProgress.size() && i < tm.taskIds.size(); ++i){
-            m_messToDB.push(db::MessSchedr::taskProgressMess(w->wId, tm.taskIds[i], tm.taskProgress[i]));
+          if (w->wState == int(base::StateType::RUNNING)){
+            for (int i = 0; i < tm.taskProgress.size() && i < tm.taskIds.size(); ++i){
+              m_messToDB.push(db::MessSchedr::taskProgressMess(w->wId, tm.taskIds[i], tm.taskProgress[i]));
+            }
           }
         }
         break;
@@ -153,7 +157,7 @@ void Executor::receiveHandler(const string& remcp, const string& data)
       w->wState = w->wStateMem = int(base::StateType::STOP);
     }
     else{
-      if (w->wStateMem != int(base::StateType::RUNNING)){
+      if (!w->wIsActive){
         w->wIsActive = true;
       }
       if (w->wState == int(base::StateType::STOP)){
