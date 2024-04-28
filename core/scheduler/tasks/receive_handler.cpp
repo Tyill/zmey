@@ -86,10 +86,22 @@ void Executor::receiveHandler(const string& remcp, const string& data)
           int tid = tm.taskId;
           if (w->wState == int(base::StateType::RUNNING)){
             if (mtype != mess::MessType::PING_WORKER){
-              m_messToDB.push(db::MessSchedr(mtype, w->wId, tid));
+              const auto wtasks = getWorkerTasks(w->wId);
+              if (auto it = std::find_if(wtasks.begin(), wtasks.end(), [tid](const auto& t){
+                return t.tId == tid;
+              }); it != wtasks.end()){
+                m_messToDB.push(db::MessSchedr(mtype, w->wId, tid));
+
+                if (mtype == mess::MessType::TASK_COMPLETED || mtype == mess::MessType::TASK_ERROR){
+                  removeTaskForWorker(w->wId, *it);
+                }
+              }              
             }else{
               m_messToDB.push(db::MessSchedr::pingWorkerMess(w->wId, tm.activeTaskCount, tm.loadCPU));
-            }
+            }            
+          }else{
+            errorMessage("receiveHandler error not running worker from: " + cp, w->wId);    
+            return;
           }
         }
         break;
@@ -102,8 +114,14 @@ void Executor::receiveHandler(const string& remcp, const string& data)
           w->wActiveTaskCount = tm.activeTaskCount;
           w->wLoadCPU = tm.loadCPU;
           if (w->wState == int(base::StateType::RUNNING)){
+            const auto wtasks = getWorkerTasks(w->wId);
             for (int i = 0; i < tm.taskProgress.size() && i < tm.taskIds.size(); ++i){
-              m_messToDB.push(db::MessSchedr::taskProgressMess(w->wId, tm.taskIds[i], tm.taskProgress[i]));
+              int tid = tm.taskIds[i];
+              if (auto it = std::find_if(wtasks.begin(), wtasks.end(), [tid](const auto& t){
+                return t.tId == tid;
+              }); it != wtasks.end()){
+                m_messToDB.push(db::MessSchedr::taskProgressMess(w->wId, tid, tm.taskProgress[i]));
+              }
             }
           }
         }
@@ -111,14 +129,11 @@ void Executor::receiveHandler(const string& remcp, const string& data)
       case mess::MessType::JUST_START_WORKER:
       case mess::MessType::STOP_WORKER:{
           m_messToDB.push(db::MessSchedr(mtype, w->wId)); 
-          vector<base::Task> tasks;
-          if (m_db.getTasksOfWorker(m_schedr.sId, w->wId, tasks)){
-            for(auto& t : tasks){
-              m_tasks.push(move(t));
-            }
-          }else{
-            m_app.statusMess("getTasksById db error: " + m_db.getLastError());
-          }         
+          const auto wtasks = getWorkerTasks(w->wId);
+          for(auto t : wtasks){
+            m_tasks.push(move(t));
+          }          
+          clearWorkerTasks(w->wId); 
         }
         break;
       case mess::MessType::PAUSE_WORKER:

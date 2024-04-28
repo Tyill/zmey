@@ -58,13 +58,9 @@ void Executor::workerNotResponding(db::DbProvider& db, base::Worker* w)
     w->wStateMem = +w->wState;
     w->wState = int(base::StateType::NOT_RESPONDING);
   }
-  
-  vector<base::Task> tasks;
-  if (db.getTasksOfWorker(m_schedr.sId, w->wId, tasks)){
-    for(auto& t : tasks){
-      m_tasks.push(move(t));
-    }
-  }else{
-    m_app.statusMess("workerNotResponding db error: " + db.getLastError());
+  const auto wTasks = getWorkerTasks(w->wId);
+  for(auto t : wTasks){
+    m_tasks.push(move(t));
   }
+  clearWorkerTasks(w->wId);
 }

@@ -59,6 +59,7 @@ bool Executor::sendTaskToWorker()
       const string& wConnPnt = (*iWr)->wConnectPnt;
       if (misc::asyncSendData(wConnPnt, messNewTask.serialn())){
         m_tasks.tryPop(task);
+        addTaskForWorker((*iWr)->wId, task);
         ++(*iWr)->wActiveTaskCount; 
       }     
     }else{

@@ -58,6 +58,11 @@ public:
   void getPrevWorkersFromDB(db::DbProvider& db);
   void pingToDB();
   void stopSchedr(db::DbProvider& db);  
+
+  void addTaskForWorker(int wId, const base::Task&);
+  void removeTaskForWorker(int wId, const base::Task&);
+  std::vector<base::Task> getWorkerTasks(int wId);
+  void clearWorkerTasks(int wId);
   
 private: 
   void workerNotResponding(db::DbProvider& db, base::Worker*);
@@ -66,7 +71,9 @@ private:
   Application& m_app;
   db::DbProvider& m_db;
 
-  std::map<std::string, base::Worker*> m_workers;   // key - connectPnt  
+  std::map<std::string, base::Worker*> m_workers;       // key - worker connectPnt  
+  std::map<int, std::vector<base::Task>> m_workerTasks; // key - worker id
+  std::map<int, std::mutex*> m_workerLocks;
   misc::Queue<base::Task> m_tasks;
   misc::Queue<db::MessSchedr> m_messToDB;
   base::Scheduler m_schedr;

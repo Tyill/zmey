@@ -26,6 +26,8 @@
 #include "scheduler/executor.h"
 #include "common/tcp.h"
 
+#include <cassert>
+
 using namespace std;
 
 void Executor::getPrevWorkersFromDB(db::DbProvider& db)
@@ -44,10 +46,50 @@ void Executor::getPrevWorkersFromDB(db::DbProvider& db)
         pw->wStateMem = +w.wState;
         pw->wIsActive = w.wState != int(base::StateType::NOT_RESPONDING);
       }
-      m_workers[w.wConnectPnt] = pw;
+      vector<base::Task> tasks;
+      if (db.getTasksOfWorker(m_schedr.sId, w.wId, tasks)){
+        m_workers[w.wConnectPnt] = pw;
+        m_workerTasks[w.wId] = tasks;
+        m_workerLocks[w.wId] = new std::mutex;
+      }else{
+        m_app.statusMess("getTasksOfWorker db error: " + db.getLastError());
+      }      
     }
   }
   else{
     m_app.statusMess("getPrevWorkersFromDB db error: " + db.getLastError());
   }  
+}
+
+void Executor::addTaskForWorker(int wId, const base::Task& t)
+{
+  lock_guard<mutex> lk(*m_workerLocks[wId]);
+  assert(m_workerTasks.count(wId));
+
+  m_workerTasks[wId].push_back(t);
+}
+void Executor::removeTaskForWorker(int wId, const base::Task& t)
+{
+  lock_guard<mutex> lk(*m_workerLocks[wId]);
+  assert(m_workerTasks.count(wId));
+
+  if (auto it = std::find_if(m_workerTasks[wId].begin(), m_workerTasks[wId].end(), [tid = t.tId](const auto& t){
+    return t.tId == tid;
+  }); it != m_workerTasks[wId].end()){
+    m_workerTasks[wId].erase(it);
+  }
+}
+std::vector<base::Task> Executor::getWorkerTasks(int wId)
+{
+  lock_guard<mutex> lk(*m_workerLocks[wId]);
+  assert(m_workerTasks.count(wId));
+
+  return m_workerTasks[wId];
+}
+void Executor::clearWorkerTasks(int wId)
+{
+  lock_guard<mutex> lk(*m_workerLocks[wId]);
+  assert(m_workerTasks.count(wId));
+
+  m_workerTasks[wId].clear();
 }
