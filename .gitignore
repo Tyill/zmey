@@ -8,3 +8,4 @@ npm-debug.log
 web/client/js/bundle.js
 web/debug.py
 docs/concept_
+load_tests/restask/

@@ -1,6 +1,5 @@
 import os
 from . import zm_client as zm
-from . import user
 from . import db
 
 zmConn : zm.Connection = None
@@ -23,8 +22,6 @@ def init(dbConnStr : str):
   
   zmConn.setErrorCBack(lambda err: print(err))  
   
-  zmConn.createTables()
-   
   global zmTaskWatch 
   zmTaskWatch = zm.Connection(dbConnStr) 
 
@@ -32,7 +29,7 @@ def init(dbConnStr : str):
       
   zmTaskWatch.setChangeTaskStateCBack(taskChangeCBack)
 
-def taskChangeCBack(tId : int, uId : int, progress : int, prevState: int, newState: int):
+def taskChangeCBack(tId : int, progress : int, prevState: int, newState: int):
   dbo = None
   try:
     zmt = zm.Task(tId)
@@ -45,9 +42,7 @@ def taskChangeCBack(tId : int, uId : int, progress : int, prevState: int, newSta
        (tstate == zm.StateType.ERROR) or \
        (tstate == zm.StateType.STOP):
       zmTaskWatch.taskResult(zmt)
-    
-    usr = user.getById(uId)
-    
+        
     dbo = db.createDb(usr.name)
 
     from . import task
@@ -61,24 +56,15 @@ def taskChangeCBack(tId : int, uId : int, progress : int, prevState: int, newSta
     if tstate == zm.StateType.COMPLETED: 
 
       nextTasks = pt.getNextTasks(dbo, t.pplTaskId)      
-      for nextTaskId, isStartNext, isSendResultToNext, conditionStartNext in nextTasks:
+      for nextTaskId, isStartNext in nextTasks:
         if not isStartNext:
           continue
 
         nextTask = pt.get(dbo, nextTaskId)
         if nextTask.isEnabled:
-         
-          isCondition = True
-          if len(conditionStartNext):
-            safe_dict = {'t' : zmt, 'len' : len}         
-            isCondition = eval(conditionStartNext, {"__builtins__" : None }, safe_dict)
-          
-          if isCondition:
-            newTask = task.Task(nextTaskId, starterPplTaskId=t.pplTaskId, ttlId=nextTask.ttId)
-            newTask.params = nextTask.params
-            if isSendResultToNext:
-              newTask.params += ' ' + zmt.result             
-            task.start(dbo, uId, newTask)    
+          newTask = task.Task(nextTaskId, starterPplTaskId=t.pplTaskId, ttlId=nextTask.ttId)
+          newTask.params = nextTask.params
+          task.start(dbo, newTask)    
     
   except Exception as err:
     print("taskChangeCBack failed: {0}".format(str(err)))

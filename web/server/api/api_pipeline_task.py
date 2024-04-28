@@ -22,9 +22,7 @@ def addPipelineTask():
     plt.setts = jnReq['setts']
     plt.nextTasksId = jnReq['nextTasksId']
     plt.prevTasksId = jnReq['prevTasksId']
-    plt.isSendResultToNext = jnReq['isSendResultToNext']
     plt.isStartNext = jnReq['isStartNext']
-    plt.conditionStartNext = jnReq['conditionStartNext']
     plt.params = jnReq['params'] 
     plt.description = jnReq['description']  
     return json.dumps(plt.__dict__) if pt.add(plt) else ('internal error', 500)
@@ -47,9 +45,7 @@ def changePipelineTask(id : int):
     plt.setts = jnReq['setts']
     plt.nextTasksId = jnReq['nextTasksId']
     plt.prevTasksId = jnReq['prevTasksId']
-    plt.isSendResultToNext = jnReq['isSendResultToNext']
     plt.isStartNext = jnReq['isStartNext']
-    plt.conditionStartNext = jnReq['conditionStartNext']
     plt.params = jnReq['params']
     plt.description = jnReq['description']  
     return json.dumps(plt.__dict__) if pt.change(plt) else ('internal error', 500)

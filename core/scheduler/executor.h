@@ -22,55 +22,64 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+
 #pragma once
 
 #include "common/queue.h"
-#include "common/aux_func.h"
+#include "common/misc.h"
 #include "base/base.h"
 #include "db_provider/db_provider.h"
-#include "scheduler/application.h"
+#include "application.h"
+
+class Loop;
 
 class Executor{
 public:  
-  Executor(Application&, ZM_DB::DbProvider& db);
+  Executor(Application&, db::DbProvider& db);
 
-public:
-  void addMessToDB(ZM_DB::MessSchedr);
+  void setLoop(Loop* l);
+  void loopNotify();
+  void loopStop();
+
+  void addMessToDB(db::MessSchedr);
   bool appendNewTaskAvailable();
   bool isTasksEmpty();
   bool isMessToDBEmpty();
-  bool getSchedrFromDB(const std::string& connPnt, ZM_DB::DbProvider& db); 
-  bool listenNewTask(ZM_DB::DbProvider& db, bool on);
+  bool getSchedrFromDB(const std::string& connPnt, db::DbProvider& db); 
+  bool listenNewTask(db::DbProvider& db, bool on);
   
   void receiveHandler(const std::string& cp, const std::string& data);
-  void sendNotifyHandler(const std::string& cp, const std::string& data, const std::error_code& ec);
-  void getNewTaskFromDB(ZM_DB::DbProvider& db);
-  void sendAllMessToDB(ZM_DB::DbProvider& db);
+  void errorNotifyHandler(const std::string& cp, const std::error_code& ec);
+  void getNewTaskFromDB(db::DbProvider& db);
+  void sendAllMessToDB(db::DbProvider& db);
   bool sendTaskToWorker();
-  void checkStatusWorkers(ZM_DB::DbProvider& db);
-  void getPrevTaskFromDB(ZM_DB::DbProvider& db);
-  void getPrevWorkersFromDB(ZM_DB::DbProvider& db);
+  void checkStatusWorkers(db::DbProvider& db);
+  void getPrevTaskFromDB(db::DbProvider& db);
+  void getPrevWorkersFromDB(db::DbProvider& db);
   void pingToDB();
-  void stopSchedr(ZM_DB::DbProvider& db);  
+  void stopSchedr(db::DbProvider& db);  
+
+  void addTaskForWorker(int wId, const base::Task&);
+  void removeTaskForWorker(int wId, const base::Task&);
+  std::vector<base::Task> getWorkerTasks(int wId);
+  void clearWorkerTasks(int wId);
   
-private:
-  struct SWorker{
-    ZM_Base::Worker base;
-    ZM_Base::StateType stateMem;
-    std::vector<uint64_t> taskList;
-    bool isActive;
-  };
+private: 
+  void workerNotResponding(db::DbProvider& db, base::Worker*);
+  void errorMessage(const std::string& mess, int wId);
 
   Application& m_app;
-  ZM_DB::DbProvider& m_db;
+  db::DbProvider& m_db;
 
-  std::map<std::string, SWorker> m_workers;   // key - connectPnt  
-  std::vector<ZM_Base::Worker> m_workersCpy;
-  std::vector<ZM_Base::Worker*> m_refWorkers;
-  ZM_Aux::Queue<ZM_Base::Task> m_tasks;
-  ZM_Aux::Queue<ZM_DB::MessSchedr> m_messToDB;
-  ZM_Base::Scheduler m_schedr;
+  std::map<std::string, base::Worker*> m_workers;       // key - worker connectPnt  
+  std::map<int, std::vector<base::Task>> m_workerTasks; // key - worker id
+  std::map<int, std::mutex*> m_workerLocks;
+  misc::Queue<base::Task> m_tasks;
+  misc::Queue<db::MessSchedr> m_messToDB;
+  base::Scheduler m_schedr;
 
-  ZM_Aux::CounterTick m_ctickNewTask;
-  ZM_Aux::CounterTick m_ctickMessToDB;
+  misc::CounterTick m_ctickNewTask;
+  misc::CounterTick m_ctickMessToDB;
+
+  Loop* m_loop{};
 };

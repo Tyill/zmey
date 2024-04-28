@@ -22,22 +22,38 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+
 #include "executor.h"
 #include "application.h"
+#include "loop.h"
   
-Executor::Executor(Application& app, ZM_DB::DbProvider& db):
-  m_app(app), m_db(db)
+Executor::Executor(Application& app, db::DbProvider& db):
+  m_app(app),
+  m_db(db)
 {
 }
 
-void Executor::addMessToDB(ZM_DB::MessSchedr mess)
+void Executor::setLoop(Loop* l)
+{
+  m_loop = l;
+}
+void Executor::loopNotify()
+{
+  if (m_loop) m_loop->standUpNotify();
+}
+void Executor::loopStop()
+{
+  if (m_loop) m_loop->stop();
+}
+
+void Executor::addMessToDB(db::MessSchedr mess)
 {
   m_messToDB.push(std::move(mess));
 }
 
 bool Executor::appendNewTaskAvailable()
 {
-  return (m_schedr.state != ZM_Base::StateType::PAUSE);
+  return (m_schedr.sState != int(base::StateType::PAUSE));
 }
 
 bool Executor::isTasksEmpty()
@@ -50,12 +66,18 @@ bool Executor::isMessToDBEmpty()
   return m_messToDB.empty();
 }
 
-bool Executor::getSchedrFromDB(const std::string& connPnt, ZM_DB::DbProvider& db)
+bool Executor::getSchedrFromDB(const std::string& connPnt, db::DbProvider& db)
 {
   return db.getSchedr(connPnt, m_schedr);
 }
 
-bool Executor::listenNewTask(ZM_DB::DbProvider& db, bool on)
+bool Executor::listenNewTask(db::DbProvider& db, bool on)
 {
   return db.setListenNewTaskNotify(on);
+}
+
+void Executor::errorMessage(const std::string& mess, int wId)
+{
+  m_messToDB.push(db::MessSchedr::errorMess(wId, mess));
+  m_app.statusMess(mess);
 }

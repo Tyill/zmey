@@ -40,16 +40,18 @@ Loop::Loop(const Application::Config& cng, Executor& exr):
 
 void Loop::run()
 {      
-  ZM_Aux::TimerDelay timer;
+  misc::TimerDelay timer;
   const int minCycleTimeMS = 10;
    
-  ZM_Aux::CPUData cpu;
+  misc::CPUData cpu;
 
   while (!m_fClose){
     timer.updateCycTime();   
 
     m_executor.waitProcess();
         
+    m_executor.updateListTasks();
+    
     m_executor.updateListTasks();
     
     if (!m_executor.isMessForSchedrEmpty()){ 
@@ -72,7 +74,7 @@ void Loop::run()
       m_executor.errorToSchedr(m_cng.schedrConnPnt);
     }    
     
-    if (m_executor.isNewTasksEmpty() && m_executor.isMessForSchedrEmpty() && !m_fClose){
+    if (m_executor.isMessForSchedrEmpty() && m_executor.isNewTasksEmpty() && !m_fClose){
       mainCycleSleep(minCycleTimeMS);     
     }
   }

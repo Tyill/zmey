@@ -25,134 +25,114 @@
 
 #include "pg_impl.h"
 
+
 using namespace std;
 
-namespace ZM_DB{
+namespace db{
 
-bool DbProvider::addSchedr(const ZM_Base::Scheduler& schedl, uint64_t& outSchId){    
+bool DbProvider::addSchedr(const base::Scheduler& schedl, int& outSchId){    
   lock_guard<mutex> lk(m_impl->m_mtx);
-  auto connPnt = ZM_Aux::split(schedl.connectPnt, ':');
-  if (connPnt.size() != 2){
-    errorMess("addSchedr error: connectPnt not correct");
-    return false;
-  }
+  
   stringstream ss;
-  ss << "WITH ncp AS (INSERT INTO tblConnectPnt (ipAddr, port) VALUES("
-        " '" << connPnt[0] << "',"
-        " '" << connPnt[1] << "') RETURNING id)"
-        "INSERT INTO tblScheduler (connPnt, state, capacityTask, name, description) VALUES("
-        "(SELECT id FROM ncp),"
-        "'" << (int)schedl.state << "',"
-        "'" << schedl.capacityTask << "',"
-        "'" << schedl.name << "',"
-        "'" << schedl.description << "') RETURNING id;";
+  ss << "INSERT INTO tblScheduler (connPnt, state, capacityTask) VALUES("
+        "'" << schedl.sConnectPnt << "',"
+        "'" << (int)schedl.sState << "',"
+        "'" << schedl.sCapacityTaskCount << "') RETURNING id;";
 
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("addSchedr: ") + PQerrorMessage(_pg));
+    errorMess(string("addSchedr: ") + PQerrorMessage(pg_));
     return false;
   }
-  outSchId = stoull(PQgetvalue(pgr.res, 0, 0));
+  outSchId = stoi(PQgetvalue(pgr.res, 0, 0));
   return true;
 }
-bool DbProvider::getSchedr(uint64_t sId, ZM_Base::Scheduler& cng){
+bool DbProvider::getSchedr(int sId, base::Scheduler& cng){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
-  ss << "SELECT cp.ipAddr, cp.port, s.state, s.capacityTask, s.name, s.description FROM tblScheduler s "
-        "JOIN tblConnectPnt cp ON cp.id = s.connPnt "
-        "WHERE s.id = " << sId << " AND s.isDelete = 0;";
+  ss << "SELECT connPnt, state, capacityTask "
+        "FROM tblScheduler "
+        "WHERE id = " << sId << " AND isDeleted = FALSE;";
 
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("getSchedr: ") + PQerrorMessage(_pg));
+    errorMess(string("getSchedr: ") + PQerrorMessage(pg_));
     return false;
   }
   if (PQntuples(pgr.res) != 1){
     errorMess(string("getSchedr error: such schedr does not exist"));
     return false;
   }
-  cng.connectPnt = PQgetvalue(pgr.res, 0, 0) + string(":") + PQgetvalue(pgr.res, 0, 1);
-  cng.state = (ZM_Base::StateType)atoi(PQgetvalue(pgr.res, 0, 2));
-  cng.capacityTask = atoi(PQgetvalue(pgr.res, 0, 3));
-  cng.name = PQgetvalue(pgr.res, 0, 4);
-  cng.description = PQgetvalue(pgr.res, 0, 5);
+  cng.sConnectPnt = PQgetvalue(pgr.res, 0, 0);
+  cng.sState = atoi(PQgetvalue(pgr.res, 0, 1));
+  cng.sCapacityTaskCount = atoi(PQgetvalue(pgr.res, 0, 2));
   return true;
 }
-bool DbProvider::changeSchedr(uint64_t sId, const ZM_Base::Scheduler& newCng){  
+bool DbProvider::changeSchedr(int sId, const base::Scheduler& newCng){  
   lock_guard<mutex> lk(m_impl->m_mtx);
-  auto connPnt = ZM_Aux::split(newCng.connectPnt, ':');
-  if (connPnt.size() != 2){
-    errorMess("changeSchedr error: connectPnt not correct");
-    return false;
-  }
+ 
   stringstream ss;
   ss << "UPDATE tblScheduler SET "
-        "capacityTask = '" << newCng.capacityTask << "', "
-        "name = '" << newCng.name << "', "
-        "description = '" << newCng.description << "' "
-        "WHERE id = " << sId << " AND isDelete = 0; "
-
-        "UPDATE tblConnectPnt SET "
-        "ipAddr = '" << connPnt[0] << "',"
-        "port = '" << connPnt[1] << "' "
-        "WHERE id = (SELECT connPnt FROM tblScheduler WHERE id = " << sId << " AND isDelete = 0);";
-
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
+        "capacityTask = '" << newCng.sCapacityTaskCount << "', "
+        "connPnt = '" << newCng.sConnectPnt << "' "
+        "WHERE id = " << sId << " AND isDeleted = FALSE;";
+      
+  PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
-    errorMess(string("changeSchedr: ") + PQerrorMessage(_pg));
+    errorMess(string("changeSchedr: ") + PQerrorMessage(pg_));
     return false;
   }  
   return true;
 }
-bool DbProvider::delSchedr(uint64_t sId){  
+bool DbProvider::delSchedr(int sId){  
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
   ss << "UPDATE tblScheduler SET "
-        "isDelete = 1 "
+        "isDeleted = TRUE "
         "WHERE id = " << sId << ";";
 
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
-    errorMess(string("delSchedr: ") + PQerrorMessage(_pg));
+    errorMess(string("delSchedr: ") + PQerrorMessage(pg_));
     return false;
   }  
   return true;
 }
 
-bool DbProvider::schedrState(uint64_t sId, SchedulerState& out){
+bool DbProvider::schedrState(int sId, SchedulerState& out){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
   ss << "SELECT state, activeTask, startTime, stopTime, pingTime "
         "FROM tblScheduler "
-        "WHERE id = " << sId << " AND isDelete = 0;";
+        "WHERE id = " << sId << " AND isDeleted = FALSE;";
 
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  PGres pgr(PQexec(pg_, ss.str().c_str()));
   if ((PQresultStatus(pgr.res) != PGRES_TUPLES_OK) || (PQntuples(pgr.res) != 1)){
-    errorMess(string("schedrState: ") + PQerrorMessage(_pg));
+    errorMess(string("schedrState: ") + PQerrorMessage(pg_));
     return false;
   }
-  out.state = (ZM_Base::StateType)atoi(PQgetvalue(pgr.res, 0, 0));
-  out.activeTask = atoi(PQgetvalue(pgr.res, 0, 1));
+  out.state = (base::StateType)atoi(PQgetvalue(pgr.res, 0, 0));
+  out.activeTaskCount = atoi(PQgetvalue(pgr.res, 0, 1));
   out.startTime = PQgetvalue(pgr.res, 0, 2);
   out.stopTime = PQgetvalue(pgr.res, 0, 3);
   out.pingTime = PQgetvalue(pgr.res, 0, 4);
   return true;
 }
-std::vector<uint64_t> DbProvider::getAllSchedrs(ZM_Base::StateType state){  
+std::vector<int> DbProvider::getAllSchedrs(base::StateType state){  
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
   ss << "SELECT id FROM tblScheduler "
-        "WHERE (state = " << (int)state << " OR " << (int)state << " = -1) AND isDelete = 0;";
+        "WHERE (state = " << (int)state << " OR " << (int)state << " = 0) AND isDeleted = FALSE;";
 
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("getAllSchedrs: ") + PQerrorMessage(_pg));
-    return std::vector<uint64_t>();
+    errorMess(string("getAllSchedrs: ") + PQerrorMessage(pg_));
+    return std::vector<int>();
   }  
   int rows = PQntuples(pgr.res);
-  std::vector<uint64_t> ret(rows);
+  std::vector<int> ret(rows);
   for (int i = 0; i < rows; ++i){
-    ret[i] = stoull(PQgetvalue(pgr.res, i, 0));
+    ret[i] = stoi(PQgetvalue(pgr.res, i, 0));
   }
   return ret;
 }

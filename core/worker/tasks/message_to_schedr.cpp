@@ -22,28 +22,23 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+
 #include "worker/executor.h"
 #include "common/tcp.h"
-#include "common/serial.h"
-#include "base/link.h"
+#include "base/messages.h"
 
 using namespace std;
 
 void Executor::messageToSchedr(const std::string& schedrConnPnt)
 {  
-  m_worker.activeTask = (int)m_newTasks.size() + (int)m_procs.size();
-  MessForSchedr mess; 
+  m_worker.wActiveTaskCount = (int)m_newTasks.size() + (int)m_procs.size();
+  mess::TaskStatus m; 
   bool isSendOk = true;
-  while(isSendOk && m_listMessForSchedr.tryPop(mess)){
-    map<string, string> data{
-          {ZM_Link::command,    to_string((int)mess.MessType)},
-          {ZM_Link::connectPnt, m_worker.connectPnt},
-          {ZM_Link::taskId,     to_string(mess.taskId)},  
-          {ZM_Link::activeTask, to_string(m_worker.activeTask)},
-          {ZM_Link::load,       to_string(m_worker.load)},        
-          {ZM_Link::taskResult, mess.taskResult}
-    };
-    isSendOk = ZM_Tcp::asyncSendData(schedrConnPnt, ZM_Aux::serialn(data));
+  while(isSendOk && m_messForSchedr.tryPop(m)){
+    m.activeTaskCount = m_worker.wActiveTaskCount;
+    m.loadCPU = m_worker.wLoadCPU;
+    m.connectPnt = m_worker.wConnectPnt;
+    isSendOk = misc::asyncSendData(schedrConnPnt, m.serialn());
   }
 }
 

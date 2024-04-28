@@ -24,25 +24,24 @@
 //
 #pragma once
 
-#include <ctime>
 #include <vector>
-#include <cstdint>
+#include <stdint.h>
 
-namespace ZM_Aux{
+namespace misc{
 
 class TimerDelay {
-  struct tmBase{
-    int cDelay;            
-    bool isActive;            
+  struct TmBase{
+    int cDelay{};            
+    bool isActive{};            
   };
-  std::vector<tmBase> _tmrs;
-  int _tmCnt;  
-  uint64_t _prevTm;
-  uint64_t _deltaTm;  
+  std::vector<TmBase> tmrs_;
+  int tmCnt_{};  
+  int64_t prevTm_{};
+  int64_t deltaTm_{};  
 public:
   TimerDelay();
   void updateCycTime();
-  uint64_t getDeltaTimeMS();
+  int64_t getDeltaTimeMS();
   bool onDelaySec(bool start, int delay, int id);  
   bool offDelaySec(bool start, int delay, int id);
   bool onDelayMS(bool start, int delay, int id);

@@ -22,130 +22,130 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#include "../aux_func.h"
+#include "../misc.h"
 #include "../timer_delay.h"
 
-namespace ZM_Aux{
+namespace misc{
 
 TimerDelay::TimerDelay(){
-  _prevTm = currDateTimeSinceEpochMs();
-  _deltaTm = 0;
-  _tmCnt = 0;
+  prevTm_ = currDateTimeSinceEpochMs();
+  deltaTm_ = 0;
+  tmCnt_ = 0;
 }
 void TimerDelay::updateCycTime(){
-  uint64_t ct = currDateTimeSinceEpochMs();
-  _deltaTm = ct - _prevTm;
-  _prevTm = ct;
-  for (int i = 0; i < _tmCnt; ++i) {
-    if (!_tmrs[i].isActive){
-      _tmrs[i].cDelay = 0;
+  int64_t ct = currDateTimeSinceEpochMs();
+  deltaTm_ = ct - prevTm_;
+  prevTm_ = ct;
+  for (int i = 0; i < tmCnt_; ++i) {
+    if (!tmrs_[i].isActive){
+      tmrs_[i].cDelay = 0;
     }
-    _tmrs[i].isActive = false;
+    tmrs_[i].isActive = false;
   }  
 }
-uint64_t TimerDelay::getDeltaTimeMS(){
-  return currDateTimeSinceEpochMs() - _prevTm;
+int64_t TimerDelay::getDeltaTimeMS(){
+  return currDateTimeSinceEpochMs() - prevTm_;
 }
 bool TimerDelay::onDelaySec(bool start, int delay, int id){
-  if (id >= _tmCnt){
-    _tmrs.resize(id + 1, tmBase{0, false});
-    _tmCnt = id + 1;
+  if (id >= tmCnt_){
+    tmrs_.resize(id + 1, TmBase{0, false});
+    tmCnt_ = id + 1;
   }
   bool res = false;
   if (start) {
-    _tmrs[id].cDelay += (int)_deltaTm;
-    if (_tmrs[id].cDelay >= delay * 1000){
+    tmrs_[id].cDelay += (int)deltaTm_;
+    if (tmrs_[id].cDelay >= delay * 1000){
       res = true;
     } 
   } else{
-    _tmrs[id].cDelay = 0;
+    tmrs_[id].cDelay = 0;
   }
-  _tmrs[id].isActive = true;
+  tmrs_[id].isActive = true;
   return res;
 }
 bool TimerDelay::offDelaySec(bool start, int delay, int id){
-  if (id >= _tmCnt){
-    _tmrs.resize(id + 1, tmBase{0, false});
-    _tmCnt = id + 1;
+  if (id >= tmCnt_){
+    tmrs_.resize(id + 1, TmBase{0, false});
+    tmCnt_ = id + 1;
   }
   bool res = false;
   if (start){ 
-    _tmrs[id].cDelay = delay * 1000;
+    tmrs_[id].cDelay = delay * 1000;
   }
-  else if (_tmrs[id].cDelay > 0){
+  else if (tmrs_[id].cDelay > 0){
     res = true;
-    _tmrs[id].cDelay -= (int)_deltaTm;
+    tmrs_[id].cDelay -= (int)deltaTm_;
   }
-  _tmrs[id].isActive = true;
+  tmrs_[id].isActive = true;
   return (start || res);
 }
 bool TimerDelay::onDelayMS(bool start, int delay, int id){
-  if (id >= _tmCnt){
-    _tmrs.resize(id + 1, tmBase{0, false});
-    _tmCnt = id + 1;
+  if (id >= tmCnt_){
+    tmrs_.resize(id + 1, TmBase{0, false});
+    tmCnt_ = id + 1;
   }
   bool res = false;
   if (start) {
-    _tmrs[id].cDelay += (int)_deltaTm;
-    if (_tmrs[id].cDelay >= delay){
+    tmrs_[id].cDelay += (int)deltaTm_;
+    if (tmrs_[id].cDelay >= delay){
       res = true;
     }
   } else{
-    _tmrs[id].cDelay = 0;
+    tmrs_[id].cDelay = 0;
   }
-  _tmrs[id].isActive = true;
+  tmrs_[id].isActive = true;
   return res;
 }
 bool TimerDelay::offDelayMS(bool start, int delay, int id){    
-  if (id >= _tmCnt){
-    _tmrs.resize(id + 1, tmBase{0, false});
-    _tmCnt = id + 1;
+  if (id >= tmCnt_){
+    tmrs_.resize(id + 1, TmBase{0, false});
+    tmCnt_ = id + 1;
   }
   bool res = false;
   if (start){
-    _tmrs[id].cDelay = delay;
+    tmrs_[id].cDelay = delay;
   }
-  else if (_tmrs[id].cDelay > 0){      
+  else if (tmrs_[id].cDelay > 0){      
     res = true;
-    _tmrs[id].cDelay -= (int)_deltaTm;
+    tmrs_[id].cDelay -= (int)deltaTm_;
   }
-  _tmrs[id].isActive = true;
+  tmrs_[id].isActive = true;
   return (start || res);
 }
 bool TimerDelay::onDelayOncSec(bool start, int delay, int id){
-  if (id >= _tmCnt){
-    _tmrs.resize(id + 1, tmBase{0, false});
-    _tmCnt = id + 1;
+  if (id >= tmCnt_){
+    tmrs_.resize(id + 1, TmBase{0, false});
+    tmCnt_ = id + 1;
   }
   bool res = false;
   if (start) {
-    _tmrs[id].cDelay += (int)_deltaTm;
-    if (_tmrs[id].cDelay >= delay * 1000){
-      _tmrs[id].cDelay = 0;
+    tmrs_[id].cDelay += (int)deltaTm_;
+    if (tmrs_[id].cDelay >= delay * 1000){
+      tmrs_[id].cDelay = 0;
       res = true;
     } 
   } else{
-    _tmrs[id].cDelay = 0;
+    tmrs_[id].cDelay = 0;
   }
-  _tmrs[id].isActive = true;
+  tmrs_[id].isActive = true;
   return res;
 }
 bool TimerDelay::onDelayOncMS(bool start, int delay, int id){
-  if (id >= _tmCnt){
-    _tmrs.resize(id + 1, tmBase{0, false});
-    _tmCnt = id + 1;
+  if (id >= tmCnt_){
+    tmrs_.resize(id + 1, TmBase{0, false});
+    tmCnt_ = id + 1;
   }
   bool res = false;
   if (start) {
-    _tmrs[id].cDelay += (int)_deltaTm;
-    if (_tmrs[id].cDelay >= delay){
-      _tmrs[id].cDelay = 0;
+    tmrs_[id].cDelay += (int)deltaTm_;
+    if (tmrs_[id].cDelay >= delay){
+      tmrs_[id].cDelay = 0;
       res = true;
     }
   } else{
-    _tmrs[id].cDelay = 0;
+    tmrs_[id].cDelay = 0;
   }
-  _tmrs[id].isActive = true;
+  tmrs_[id].isActive = true;
   return res;
 }
 }

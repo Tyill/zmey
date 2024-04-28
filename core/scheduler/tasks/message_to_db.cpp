@@ -27,14 +27,14 @@
 
 using namespace std;
 
-void Executor::sendAllMessToDB(ZM_DB::DbProvider& db)
+void Executor::sendAllMessToDB(db::DbProvider& db)
 {
-  vector<ZM_DB::MessSchedr> mess;
-  ZM_DB::MessSchedr m;
+  vector<db::MessSchedr> mess;
+  db::MessSchedr m;
   while(m_messToDB.tryPop(m)){
     mess.push_back(m);
   }
-  if (!db.sendAllMessFromSchedr(m_schedr.id, mess)){
+  if (!db.sendAllMessFromSchedr(m_schedr.sId, mess)){
     for (auto& m : mess){
       m_messToDB.push(move(m));
     }

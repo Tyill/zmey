@@ -10,4 +10,4 @@ endif(UNIX)
 
 add_executable(zmscheduler ${SRC_zmSch})
 
-target_link_libraries(zmscheduler PRIVATE common db_provider)
+target_link_libraries(zmscheduler PRIVATE common base db_provider)

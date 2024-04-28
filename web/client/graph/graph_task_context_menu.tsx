@@ -60,8 +60,6 @@ class TaskContextMenu extends React.Component<IProps, IState>{
     
     ppt.nextTasksId.splice(inxNext, 1);
     ppt.isStartNext.splice(inxNext, 1);
-    ppt.isSendResultToNext.splice(inxNext, 1);
-    ppt.conditionStartNext.splice(inxNext, 1);
     PipelineTasks.upd(ppt);
     ServerAPI.changePipelineTask(ppt);
     
@@ -102,8 +100,6 @@ class TaskContextMenu extends React.Component<IProps, IState>{
       })
       prevTask.nextTasksId.splice(inxNext, 1);
       prevTask.isStartNext.splice(inxNext, 1);
-      prevTask.isSendResultToNext.splice(inxNext, 1);
-      prevTask.conditionStartNext.splice(inxNext, 1);
       PipelineTasks.upd(prevTask);
       ServerAPI.changePipelineTask(prevTask);
     }
@@ -113,8 +109,6 @@ class TaskContextMenu extends React.Component<IProps, IState>{
       })
       ppt.nextTasksId.splice(inxNext, 1);
       ppt.isStartNext.splice(inxNext, 1);
-      ppt.isSendResultToNext.splice(inxNext, 1);
-      ppt.conditionStartNext.splice(inxNext, 1);
       PipelineTasks.upd(ppt);
       ServerAPI.changePipelineTask(ppt);
     }

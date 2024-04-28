@@ -26,33 +26,32 @@
 
 using namespace std;
 
-namespace ZM_DB{
+namespace db{
   
-bool DbProvider::getWorkerByTask(uint64_t tId, ZM_Base::Worker& wcng){
+bool DbProvider::getWorkerByTask(int tId, base::Worker& wcng){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
-  ss << "SELECT wkr.id, tcp.ipAddr, tcp.port "
+  ss << "SELECT wkr.id, wkr.connPnt "
         "FROM tblTaskQueue tq "
-        "JOIN tblWorker wkr ON wkr.id = tq.worker "
-        "JOIN tblConnectPnt tcp ON tcp.id = wkr.connPnt "
+        "JOIN tblWorker wkr ON wkr.id = tq.worker "      
         "WHERE tq.id = " << tId << ";";
 
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("getWorkerByTask: ") + PQerrorMessage(_pg));
+    errorMess(string("getWorkerByTask: ") + PQerrorMessage(pg_));
     return false;
   }
   if (PQntuples(pgr.res) != 1){
     errorMess(string("getWorkerByTask error: task delete OR not taken to work"));
     return false;
   }
-  wcng.id = stoull(PQgetvalue(pgr.res, 0, 0));
-  wcng.connectPnt = PQgetvalue(pgr.res, 0, 1) + string(":") + PQgetvalue(pgr.res, 0, 2);
+  wcng.wId = stoi(PQgetvalue(pgr.res, 0, 0));
+  wcng.wConnectPnt = PQgetvalue(pgr.res, 0, 1);
 
   return true;
 }
 
-vector<ZM_DB::MessError> DbProvider::getInternErrors(uint64_t sId, uint64_t wId, uint32_t mCnt){
+vector<db::MessError> DbProvider::getInternErrors(int sId, int wId, int mCnt){
   lock_guard<mutex> lk(m_impl->m_mtx);
   if (mCnt == 0){
     mCnt = INT32_MAX;
@@ -63,45 +62,20 @@ vector<ZM_DB::MessError> DbProvider::getInternErrors(uint64_t sId, uint64_t wId,
         "WHERE (schedr = " << sId << " OR " << sId << " = 0)" << " AND "
         "      (worker = " << wId << " OR " << wId << " = 0) ORDER BY createTime LIMIT " << mCnt << ";";
 
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("getInternErrors: ") + PQerrorMessage(_pg));
-    return vector<ZM_DB::MessError>();
+    errorMess(string("getInternErrors: ") + PQerrorMessage(pg_));
+    return vector<db::MessError>();
   }  
   int rows = PQntuples(pgr.res);
-  std::vector<ZM_DB::MessError> ret(rows);
+  std::vector<db::MessError> ret(rows);
   for (int i = 0; i < rows; ++i){
-    ret[i].schedrId = stoull(PQgetvalue(pgr.res, i, 0));
-    ret[i].workerId = stoull(PQgetvalue(pgr.res, i, 1));
+    ret[i].schedrId = stoi(PQgetvalue(pgr.res, i, 0));
+    ret[i].workerId = stoi(PQgetvalue(pgr.res, i, 1));
     ret[i].message = PQgetvalue(pgr.res, i, 2);
     ret[i].createTime = PQgetvalue(pgr.res, i, 3);
   }
   return ret;
 }
 
-// for test
-bool DbProvider::delAllTables(){
-  lock_guard<mutex> lk(m_impl->m_mtx);
-  stringstream ss;
-  ss << "DROP TABLE IF EXISTS tblTaskState CASCADE; "
-        "DROP TABLE IF EXISTS tblTaskTime CASCADE; "
-        "DROP TABLE IF EXISTS tblTaskResult CASCADE; "
-        "DROP TABLE IF EXISTS tblTaskParam CASCADE; "
-        "DROP TABLE IF EXISTS tblTaskQueue CASCADE; "
-        "DROP TABLE IF EXISTS tblScheduler CASCADE; "
-        "DROP TABLE IF EXISTS tblWorker CASCADE; "
-        "DROP TABLE IF EXISTS tblState CASCADE; "
-        "DROP TABLE IF EXISTS tblTaskTemplate CASCADE; "
-        "DROP TABLE IF EXISTS tblInternError CASCADE; "
-        "DROP TABLE IF EXISTS tblConnectPnt CASCADE; "
-        "DROP FUNCTION IF EXISTS funcstarttask(integer,text);"
-        "DROP FUNCTION IF EXISTS funcnewtasksforschedr(integer,integer);";
-  
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
-  if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
-      errorMess(PQerrorMessage(_pg));
-      return false;
-  }
-  return true;
-}
 }

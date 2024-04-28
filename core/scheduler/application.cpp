@@ -22,30 +22,30 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+
 #include "application.h"
-#include "common/aux_func.h"
+#include "common/misc.h"
 
 #include <iostream>
+#include <mutex>
 
 using namespace std;
 
-ZM_Aux::SignalConnector Application::SignalConnector;
-
 void Application::statusMess(const string& mess){
-  lock_guard<mutex> lock(m_mtxStatusMess);
-  cout << ZM_Aux::currDateTimeMs() << " " << mess << std::endl;
+  std::lock_guard<mutex> lock(m_mtxStatusMess);
+  cout << misc::currDateTimeMs() << " " << mess << std::endl;
 }
 
 bool Application::parseArgs(int argc, char* argv[], Config& outCng){ 
   
-  map<string, string> sprms = ZM_Aux::parseCMDArgs(argc, argv);
+  map<string, string> sprms = misc::parseCMDArgs(argc, argv);
 
   if (sprms.empty() || (sprms.cbegin()->first == "help")){
     cout << "Usage: --localAddr[-la] schedr local connection point: IP or DNS:port. Required\n"
          << "       --remoteAddr[-ra] schedr remote connection point (if from NAT): IP or DNS:port. Optional\n"
          << "       --dbConnStr[-db] database connection string\n"
          << "       --checkWorkerTOutSec[-cw] check ping from workers, sec. Default 60 sec\n"
-         << "       --pingToDBSec[-pb] ping to DB, sec. Default 20 sec\n";
+         << "       --pingToDBSec[-pb] ping to db, sec. Default 20 sec\n";
     return false; 
   }
   
@@ -62,10 +62,10 @@ bool Application::parseArgs(int argc, char* argv[], Config& outCng){
   SET_PARAM(db, dbConnStr, dbConnCng.connectStr);
  
 #define SET_PARAM_NUM(shortName, longName, prm)                                           \
-  if (sprms.find(#longName) != sprms.end() && ZM_Aux::isNumber(sprms[#longName])){        \
+  if (sprms.find(#longName) != sprms.end() && misc::isNumber(sprms[#longName])){        \
     outCng.prm = stoi(sprms[#longName]);                                                  \
   }                                                                                       \
-  else if (sprms.find(#shortName) != sprms.end() && ZM_Aux::isNumber(sprms[#shortName])){ \
+  else if (sprms.find(#shortName) != sprms.end() && misc::isNumber(sprms[#shortName])){ \
     outCng.prm = stoi(sprms[#shortName]);                                                 \
   }
 
@@ -73,14 +73,4 @@ bool Application::parseArgs(int argc, char* argv[], Config& outCng){
   SET_PARAM_NUM(pb, pingToDBSec, pingToDBSec);
 
   return true;
-}
-
-void Application::loopNotify()
-{
-  Application::SignalConnector.emitSignal(Signals::SIGNAL_LOOP_NOTIFY);
-}
-
-void Application::loopStop()
-{
-  Application::SignalConnector.emitSignalWithoutBlocking(Signals::SIGNAL_LOOP_STOP);
 }

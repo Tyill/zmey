@@ -22,32 +22,28 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+
 #include "worker/executor.h"
 #include "common/tcp.h"
-#include "common/serial.h"
-#include "common/json.h"
-#include "base/link.h"
+#include "base/messages.h"
+#include "base/base.h"
 
 using namespace std;
 
 void Executor::progressToSchedr(const std::string& schedrConnPnt)
 {   
-  Json::Value rootJs;
-  rootJs[ZM_Link::tasks];
+  std::vector<int> taskIds;
+  std::vector<int> taskProgress;
   for(auto& p : m_procs){
-    Json::Value tJs;
-    tJs[ZM_Link::taskId] = p.getTask().id;
-    tJs[ZM_Link::progress] = to_string(p.getProgress());    
-    rootJs[ZM_Link::tasks].append(tJs);    
-  }
- 
-  Json::FastWriter writerJs;
-   
-  map<string, string> data{
-    {ZM_Link::command, to_string((int)ZM_Base::MessType::TASK_PROGRESS)},
-    {ZM_Link::connectPnt, m_worker.connectPnt},
-    {ZM_Link::tasks, writerJs.write(rootJs)},
-  };  
+    auto t = p.getTask();
+    taskIds.push_back(t.tId);
+    taskProgress.push_back(p.getProgress());
+  } 
+  m_worker.wActiveTaskCount = m_newTasks.size() + (int)m_procs.size();
+  mess::TaskProgress m(taskIds, taskProgress);
+  m.activeTaskCount = m_worker.wActiveTaskCount;
+  m.loadCPU = m_worker.wLoadCPU;
+  m.connectPnt = m_worker.wConnectPnt;    
   
-  ZM_Tcp::asyncSendData(schedrConnPnt, ZM_Aux::serialn(data));
+  misc::asyncSendData(schedrConnPnt, m.serialn());
 }

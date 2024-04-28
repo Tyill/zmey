@@ -22,18 +22,21 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+
 #pragma once
 
 #include "worker/application.h"
 
 #include <mutex>
 #include <condition_variable>
+#include <atomic>
 
 class Executor;
 
 class Loop{
 public:
   Loop(const Application::Config& cng, Executor&);
+    
   void run();
   void stop();
 
@@ -48,5 +51,5 @@ private:
 
   std::mutex m_mtxNotify;
   std::condition_variable m_cvStandUp;
-  bool m_fClose = false;
+  std::atomic_bool m_fClose = false;
 };

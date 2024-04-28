@@ -30,7 +30,7 @@
 #include <fstream>
 #include <algorithm>
 
-#include "common/aux_func.h"
+#include "common/misc.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -41,7 +41,7 @@
 
 using namespace std;
 
-namespace ZM_Aux {
+namespace misc {
     
  // %Y-%m-%d %H:%M:%S
 string currDateTime() {
@@ -55,19 +55,16 @@ string currDateTime() {
 }
 // %Y-%m-%d %H:%M:%S:%MS
 string currDateTimeMs() {
-
   time_t ct;
   time (&ct);
   tm* lct = localtime (&ct);
 
-  uint64_t ms = chrono::time_point_cast<chrono::milliseconds>(chrono::system_clock::now()).time_since_epoch().count() % 1000;
+  int64_t ms = chrono::time_point_cast<chrono::milliseconds>(chrono::system_clock::now()).time_since_epoch().count() % 1000;
 
   char curDate[24];
   strftime(curDate, 24, "%Y-%m-%d %H:%M:%S:", lct);
-
-  (sprintf)(curDate, "%s%03d", curDate, int(ms));
-
-  return curDate;
+   
+  return string(curDate) + to_string(ms);
 } 
 vector<string> split(const string& str, char sep) {  
   vector<string> res;
@@ -104,20 +101,20 @@ std::string replace(std::string& ioStr, const std::string& targ, const std::stri
 }
 std::string trim(std::string str){
   auto itB = std::find_if(str.cbegin(), str.cend(), 
-                          [](int32_t ch) -> bool {
+                          [](int ch) -> bool {
                             return !std::isspace(ch);
                           });
   str.erase(str.cbegin(), itB);
 
   auto itE = std::find_if(str.crbegin(), str.crend(),
-                          [](int32_t ch) -> bool {
+                          [](int ch) -> bool {
                             return !std::isspace(ch);
                           });
   str.erase(itE.base(), str.cend());
 
   return str;
 }
-uint64_t currDateTimeSinceEpochMs(){
+int64_t currDateTimeSinceEpochMs(){
   auto now = std::chrono::system_clock::now();
   auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
   return now_ms.time_since_epoch().count();
@@ -138,13 +135,13 @@ parseCMDArgs(int argc, char* argv[]){
     sargs += argv[i];
   }
   map<string, string> sprms;
-  auto argPair = ZM_Aux::split(sargs, '-');
+  auto argPair = misc::split(sargs, '-');
   for (auto& arg : argPair){    
-    arg = ZM_Aux::trim(arg);
+    arg = misc::trim(arg);
     if (arg.empty()) continue;
     size_t sp = min(arg.find_first_of("="), arg.find_first_of(" "));
     if (sp != std::string::npos){
-      sprms[ZM_Aux::trim(arg.substr(0, sp))] = ZM_Aux::trim(arg.substr(sp + 1));
+      sprms[misc::trim(arg.substr(0, sp))] = misc::trim(arg.substr(sp + 1));
     }else{
       sprms[arg] = "";
     }
@@ -178,7 +175,7 @@ bool createSubDirectory(const string& strDirs) {
     return ret == 0;
   }
 
-void sleepMs(uint64_t ms){
+void sleepMs(int ms){
   std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 }    
 
@@ -211,14 +208,14 @@ int CPUData::load(){
         int idleTime = stoi(times[(int)States::S_IDLE]) +
                        stoi(times[(int)States::S_IOWAIT]);   
 
-        int activeTimeTotal = activeTime - _prevActiveTime,
-            idleTimeTotal = idleTime - _prevIdleTime,
+        int activeTimeTotal = activeTime - prevActiveTime_,
+            idleTimeTotal = idleTime - prevIdleTime_,
             totalTime = activeTimeTotal + idleTimeTotal;
   
         if (totalTime == 0) totalTime = 1;  
 
-        _prevActiveTime = activeTime;
-        _prevIdleTime = idleTime;
+        prevActiveTime_ = activeTime;
+        prevIdleTime_ = idleTime;
 
         return bound(0, (100 * activeTimeTotal) / totalTime, 100);
       }

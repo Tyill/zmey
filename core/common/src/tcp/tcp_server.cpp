@@ -24,7 +24,7 @@
 //
 #include "tcp_server.h"
 #include "tcp_session.h"
-#include "../aux_func.h"
+#include "common/misc.h"
 
 #include <numeric>
 
@@ -52,8 +52,9 @@ void TcpServer::accept(){
     [this](std::error_code ec, tcp::socket socket){
       if (!ec){
         auto session = std::make_shared<TcpSession>(*this, std::move(socket));
-        if (session->isConnect()) 
+        if (session->isConnect()){
           session->read();
+        }
       }
       accept();
     });
@@ -83,26 +84,28 @@ void TcpServer::stop()
     else break;
   }
   for (auto& t : m_threads){
-    if (t.joinable())
+    if (t.joinable()){
       t.join();
+    }
   }
 }
 
-bool TcpServer::asyncSendData(const std::string& connPnt, const std::string& data, bool isCBackIfError)
+bool TcpServer::asyncSendData(const std::string& connPnt, std::string&& data)
 {
   if (!m_sessions.count(connPnt) || !m_sessions[connPnt]->isConnect()){    
     tcp::socket socket(m_ioc);
     asio::error_code ec;
-    auto cp = ZM_Aux::split(connPnt, ':');
+    auto cp = misc::split(connPnt, ':');
     asio::connect(socket, tcp::resolver(m_ioc).resolve(cp[0], cp[1]), ec);
     if (!ec){ 
       m_sessions[connPnt] = std::make_shared<TcpSession>(*this, connPnt, std::move(socket)); 
     }else{
-      if (SendStatusCB)
-        SendStatusCB(connPnt, data, ec);
+      if (ErrorStatusCB){
+        ErrorStatusCB(connPnt, data, ec);
+      }
       return false;
     }
   }
-  m_sessions[connPnt]->write(data, isCBackIfError);  
+  m_sessions[connPnt]->write(std::move(data));  
   return true;
 };

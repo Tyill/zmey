@@ -27,19 +27,19 @@
 
 using namespace std;
 
-void Executor::getNewTaskFromDB(ZM_DB::DbProvider& db)
+void Executor::getNewTaskFromDB(db::DbProvider& db)
 {  
   int actSz = 0,
-      capSz = m_schedr.capacityTask,
+      capSz = m_schedr.sCapacityTaskCount,
       newSz = 0;
   for (auto& w : m_workers){
-    actSz += w.second.base.activeTask;
+    actSz += w.second->wActiveTaskCount;
   }
   actSz += m_tasks.size();
   
   if ((capSz - actSz) > 0){ 
-    vector<ZM_Base::Task> newTasks;
-    if (db.getNewTasksForSchedr(m_schedr.id, capSz - actSz, newTasks)){
+    vector<base::Task> newTasks;
+    if (db.getNewTasksForSchedr(m_schedr.sId, capSz - actSz, newTasks)){
       newSz = (int)newTasks.size();
       for(auto& t : newTasks){
         m_tasks.push(move(t));
@@ -50,5 +50,5 @@ void Executor::getNewTaskFromDB(ZM_DB::DbProvider& db)
       m_app.statusMess("getNewTaskFromDB db error: " + db.getLastError());
     }
   }
-  m_schedr.activeTask = actSz + newSz; 
+  m_schedr.sActiveTaskCount = actSz + newSz; 
 };

@@ -1,7 +1,7 @@
 
 export
 enum StateType{
-  UNDEFINED = -1,
+  UNDEFINED = 0,
   READY,
   START,
   RUNNING,
@@ -86,8 +86,6 @@ interface IPipelineTask{
   nextTasksId : Array<number>;        ///< pipeline task id of next tasks  
   prevTasksId : Array<number>;        ///< pipeline task id of prev tasks 
   isStartNext : Array<number>;        ///< is start next task?
-  isSendResultToNext : Array<number>; ///< is send result to next task?
-  conditionStartNext : Array<string>;
   params : string;
   name : string;
   description : string;

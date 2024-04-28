@@ -34,7 +34,7 @@
 
 using namespace std;
  
-Loop::Loop(const Application::Config& cng, Executor& exr, ZM_DB::DbProvider& dbNewTask, ZM_DB::DbProvider& dbSendMess):
+Loop::Loop(const Application::Config& cng, Executor& exr, db::DbProvider& dbNewTask, db::DbProvider& dbSendMess):
   m_cng(cng),
   m_executor(exr),
   m_dbNewTask(dbNewTask),
@@ -46,7 +46,7 @@ void Loop::run()
 {
   future<void> frGetNewTask,
                frSendAllMessToDB; 
-  ZM_Aux::TimerDelay timer;
+  misc::TimerDelay timer;
   const int minCycleTimeMS = 10;
     
   while (!m_fClose){
@@ -56,8 +56,9 @@ void Loop::run()
       if(!frGetNewTask.valid() || (frGetNewTask.wait_for(chrono::seconds(0)) == future_status::ready))
         frGetNewTask = async(launch::async, [this]{
           m_executor.getNewTaskFromDB(m_dbNewTask);
-          if (!m_executor.isTasksEmpty())
-            m_executor.sendTaskToWorker();  
+          if (!m_executor.isTasksEmpty()){
+            m_executor.sendTaskToWorker();
+          }  
         }); 
     }
 
@@ -65,7 +66,7 @@ void Loop::run()
       if(!frSendAllMessToDB.valid() || (frSendAllMessToDB.wait_for(chrono::seconds(0)) == future_status::ready))
         frSendAllMessToDB = async(launch::async, [this]{
           m_executor.sendAllMessToDB(m_dbSendMess);
-        });      
+        });     
     }
 
     if(timer.onDelayOncSec(true, m_cng.checkWorkerTOutSec, 0)){

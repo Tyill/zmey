@@ -22,10 +22,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+
 #pragma once
 
 #include "db_provider/db_provider.h"
-#include "common/signal_connector.h"
+
+#include <mutex>
 
 class Application{
 public:
@@ -35,18 +37,9 @@ public:
     int pingToDBSec = 20;
     std::string localConnPnt;
     std::string remoteConnPnt;
-    ZM_DB::ConnectCng dbConnCng;
+    db::ConnectCng dbConnCng;
   };
-
-  enum Signals{
-    SIGNAL_LOOP_NOTIFY = 0,
-    SIGNAL_LOOP_STOP,
-  };
-  static ZM_Aux::SignalConnector SignalConnector;
-
-  static void loopNotify();
-  static void loopStop();
- 
+   
   void statusMess(const std::string& mess);
 
   bool parseArgs(int argc, char* argv[], Config& outCng); 

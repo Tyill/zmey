@@ -22,33 +22,62 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#include "../tcp.h"
+#include "tcp_server.h"
+#include "common/tcp.h"
+#include "common/misc.h"
 
-#include <map>
 #include <asio.hpp>
 
-class TcpSession;
+namespace misc{
 
-class TcpServer{
-public:
-  TcpServer(const std::string& addr, int port);
+static TcpServer* pSrv = nullptr;
 
-  void start(int innerThreadCnt);
-  void stop();
-  bool asyncSendData(const std::string& connPnt, const std::string& data, bool isCBackIfError);
+bool startServer(const std::string& connPnt, ReceiveDataCBack receiveDataCB, ErrorStatusCBack errorStatusCB,
+ int innerThreadCnt, std::string& err)
+{
+  if (pSrv) return true;
+
+  try{
+    auto cp = misc::split(connPnt, ':');
+    pSrv = new TcpServer(cp[0], stoi(cp[1]));
+
+    pSrv->ReceiveDataCB = receiveDataCB;
+    pSrv->ErrorStatusCB = errorStatusCB;
+
+    pSrv->start(innerThreadCnt);
+  }catch (std::exception& e){
+    err = e.what();
+    return false;  
+  }   
+  return true;  
+};
+
+void stopServer(){
+  if (pSrv){
+    pSrv->stop();
+  }
+};
+
+bool asyncSendData(const std::string& connPnt, std::string&& data)
+{
+  return pSrv ? pSrv->asyncSendData(connPnt, std::move(data)) : false;
+};
+
+bool syncSendData(const std::string& connPnt, std::string&& data)
+{  
+  using namespace asio::ip;
   
-  ZM_Tcp::ReceiveDataCBack ReceiveDataCB = nullptr;
-  ZM_Tcp::SendStatusCBack SendStatusCB = nullptr;   
+  asio::io_context io;
+  tcp::socket s(io);
+  tcp::resolver resolver(io);
 
-private:
-  void accept();
- 
-private:
-  std::map<std::string, std::shared_ptr<TcpSession>> m_sessions;
-  
-  asio::io_context m_ioc;
-  asio::ip::tcp::acceptor m_acceptor;
+  auto cp = misc::split(connPnt, ':');
+  asio::error_code ec;
+  asio::connect(s, resolver.resolve(cp[0], cp[1]), ec);
+  if (!ec){
+    asio::write(s, asio::buffer(data.data(), data.size() + 1), ec);
+  }
+  return !ec;
+};
 
-  std::vector<bool> m_isThrRun;
-  std::vector<std::thread> m_threads;
 };

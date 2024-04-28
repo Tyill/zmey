@@ -25,35 +25,35 @@
 
 #include "../front.h"
 
-namespace ZM_Aux {
+namespace misc {
 
-Front::Front() : _oncSz(0) {
+Front::Front() : oncSz_(0) {
 }
 bool Front::posFront(bool en, int id){
-  if (_oncSz <= id) {
-    _onc.resize(id + 1, true);
-    _oncSz = id + 1;
+  if (oncSz_ <= id) {
+    onc_.resize(id + 1, true);
+    oncSz_ = id + 1;
   }
-  if (!_onc[id] && en) {
-    _onc[id] = true;
+  if (!onc_[id] && en) {
+    onc_[id] = true;
     return true;
   } 
   else if (!en){
-    _onc[id] = false;
+    onc_[id] = false;
   }
   return false;
 }
 bool Front::negFront(bool en, int id){
-  if (_oncSz <= id){
-    _onc.resize(id + 1, true);
-    _oncSz = id + 1;
+  if (oncSz_ <= id){
+    onc_.resize(id + 1, true);
+    oncSz_ = id + 1;
   }
-  if (!_onc[id] && !en) {
-    _onc[id] = true;
+  if (!onc_[id] && !en) {
+    onc_[id] = true;
     return true;
   } 
   else if (en){
-    _onc[id] = false;      
+    onc_[id] = false;      
   }
   return false;
 }

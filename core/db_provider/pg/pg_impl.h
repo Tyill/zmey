@@ -23,7 +23,8 @@
 // THE SOFTWARE.
 //
 
-#include "common/aux_func.h"
+
+#include "common/misc.h"
 #include "common/timer_delay.h"
 #include "db_provider/db_provider.h"
 
@@ -36,7 +37,7 @@
 #include <thread>
 #include <condition_variable>
 
-namespace ZM_DB{
+namespace db{
 
 class DbProvider::Impl{
 public:
@@ -45,14 +46,12 @@ public:
   std::thread m_thrEndTask;
 
   struct NotifyTaskStateCBack{
-    ZM_Base::StateType state;
-    int progress;
-    ChangeTaskStateCBack cback;
-    uint64_t userId;
-    UData ud;
+    base::StateType state{};
+    ChangeTaskStateCBack cback{};
+    UData ud{};
   };
 
-  std::map<uint64_t, NotifyTaskStateCBack> m_notifyTaskStateCBack;
+  std::map<int, NotifyTaskStateCBack> m_notifyTaskStateCBack;
   bool m_fClose = false;
   bool m_firstReqNewTasks = false;
   bool m_firstReqChangeTaskState = false;
@@ -60,7 +59,7 @@ public:
   const std::string NOTIFY_NAME_CHANGE_TASK = "changetaskstate";
   const std::string NOTIFY_NAME_NEW_TASK = "newtasknotify";
 
-  ZM_Aux::TimerDelay m_notifyAuxCheckTOut;
+  misc::TimerDelay m_notifyAuxCheckTOut;
 };
 
 class PGres{
@@ -90,4 +89,4 @@ public:
   }
 };
 }
-#define _pg m_impl->m_db
+#define pg_ m_impl->m_db

@@ -22,26 +22,23 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+
 #include "worker/executor.h"
-#include "common/serial.h"
-#include "base/link.h"
+#include "base/messages.h"
 
 using namespace std;
 
 void Executor::sendNotifyHandler(const string& cp, const string& data, const std::error_code& ec)
 {  
-  auto smess = ZM_Aux::deserialn(data);  
-  ZM_Base::MessType messType = (ZM_Base::MessType)stoi(smess[ZM_Link::command]);
-  if (ec && (messType != ZM_Base::MessType::TASK_PROGRESS) &&
-            (messType != ZM_Base::MessType::INTERN_ERROR) &&
-            (messType != ZM_Base::MessType::PING_WORKER)){
-    MessForSchedr mess;
-    mess.MessType = messType;
-    mess.taskId = stoull(smess[ZM_Link::taskId]);
-    mess.taskResult = smess[ZM_Link::taskResult];
-    m_listMessForSchedr.push(move(mess));
+  mess::MessType messType = mess::getMessType(data);
+  if (ec && (messType != mess::MessType::TASK_PROGRESS) &&
+            (messType != mess::MessType::INTERN_ERROR) &&
+            (messType != mess::MessType::PING_WORKER)){
+    mess::TaskStatus mess;
+    mess.deserialn(data);
+    m_messForSchedr.push(move(mess));
     if (m_ctickSendNotify(1000)){
-      m_app.statusMess("worker::sendNotifyHandler error send to schedr: " + ec.message());
+      m_app.statusMess("sendNotifyHandler error send to schedr: " + ec.message());
     }
   }
 }

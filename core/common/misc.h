@@ -30,7 +30,7 @@
 #include <map>
 #include <cstdint>
 
-namespace ZM_Aux {
+namespace misc {
 
 //%Y-%m-%d %H:%M:%S
 std::string currDateTime();
@@ -46,13 +46,13 @@ bool startWith(const std::string& fullString, const std::string& starting);
 
 std::string replace(std::string& ioStr, const std::string& targ, const std::string& repl);
 
-uint64_t currDateTimeSinceEpochMs();
+int64_t currDateTimeSinceEpochMs();
 
 bool isNumber(const std::string& s);
 
 bool createSubDirectory(const std::string& strDirs);
 
-void sleepMs(uint64_t ms);      
+void sleepMs(int ms);      
 
 std::string trim(std::string str);
 
@@ -77,26 +77,26 @@ class CPUData{
     S_GUEST_NICE,
     NUM_STATES
   };
-  int _prevActiveTime = 0,
-      _prevIdleTime = 0;
+  int prevActiveTime_ = 0,
+      prevIdleTime_ = 0;
 public:
   CPUData();
   int load();
 };
 
 class CounterTick{
-  int _valmem = -1;
+  int tick_ = -1;
 public:
-  bool operator()(int val){
-    if (_valmem >= val){
-      _valmem = 0;
+  bool operator()(int setTick){
+    if (tick_ >= setTick){
+      tick_ = 0;
       return true;
     }
-    ++_valmem;
-    return _valmem == 0;
+    ++tick_;
+    return tick_ == 0;
   };
   void reset(){
-    _valmem = -1;
+    tick_ = -1;
   };
 };
 }

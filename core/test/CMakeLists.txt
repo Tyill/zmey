@@ -12,4 +12,4 @@ endif(UNIX)
 
 add_executable(zmtest ${SRC_zmTest})
  
-target_link_libraries(zmtest PRIVATE common zmclient db_provider ${GTEST_LIBRARIES})
+target_link_libraries(zmtest PRIVATE zmclient db_provider ${GTEST_LIBRARIES})

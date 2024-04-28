@@ -22,8 +22,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+
 #include "worker/executor.h"
-#include "common/serial.h"
+#include "base/messages.h"
 
 using namespace std;
 
@@ -31,14 +32,12 @@ void Executor::updateListTasks()
 {
   lock_guard<std::mutex> lock(m_mtxProcess);
 
-  ZM_Base::Task tsk;
+  base::Task tsk;
   while(m_newTasks.tryPop(tsk)){
-    m_listMessForSchedr.push(MessForSchedr{tsk.id, ZM_Base::MessType::TASK_RUNNING, ""});
+    m_messForSchedr.push(mess::TaskStatus{tsk.tId, mess::MessType::TASK_RUNNING});
     Process prc(m_app, *this, tsk);
     if (prc.getPid() == -1){
-      m_listMessForSchedr.push(MessForSchedr{ tsk.id,
-                                              ZM_Base::MessType::TASK_ERROR,
-                                              prc.getErrorStr() });
+      m_messForSchedr.push(mess::TaskStatus{tsk.tId, mess::MessType::TASK_ERROR });
       continue;
     }
     m_procs.push_back(move(prc));

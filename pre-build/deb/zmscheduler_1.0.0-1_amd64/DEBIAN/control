@@ -1,7 +1,0 @@
-Package: zmscheduler
-Version: 1.0.0
-Maintainer: https://github.com/Tyill
-Depends: libc6, libpq5
-Architecture: amd64
-Homepage: https://github.com/Tyill/zmey
-Description:  Application for starting workflows

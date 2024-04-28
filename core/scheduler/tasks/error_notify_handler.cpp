@@ -23,14 +23,17 @@
 // THE SOFTWARE.
 //
 
-#pragma once
-        
-#include <string>
-#include <map>
+#include "scheduler/executor.h"
+#include "base/messages.h"
 
-namespace ZM_Aux{
+using namespace std;
 
-  std::string serialn(const std::map<std::string, std::string>& data);
-
-  std::map<std::string, std::string> deserialn(const std::string& data);
+void Executor::errorNotifyHandler(const string& cp, const std::error_code& ec)
+{      
+  if (ec && m_workers.count(cp)){
+    workerNotResponding(m_db, m_workers[cp]);
+    errorMessage("errorNotifyHandler worker not response, cp: " + cp, m_workers[cp]->wId);
+  } else {
+    errorMessage("errorNotifyHandler wrong receiver: " + cp, 0);
+  }  
 }

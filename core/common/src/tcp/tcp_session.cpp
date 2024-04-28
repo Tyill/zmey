@@ -62,27 +62,28 @@ void TcpSession::read()
               break;
             }
           }
-          if (offs > 0) m_buff = std::string(pBuff + offs, buffSz - offs);
+          if (offs > 0) m_buff.setOffset(offs);
         }
         if (!ec) read();                                
       });
 } 
  
-void TcpSession::write(const std::string& msg, bool isCBackIfError)
+void TcpSession::write(std::string&& msg)
 {  
   auto self(shared_from_this());
   if (m_ec){
-    if (m_server.SendStatusCB)
-      m_server.SendStatusCB(m_connPnt, msg, m_ec);
+    if (m_server.ErrorStatusCB){
+      m_server.ErrorStatusCB(m_connPnt, msg, m_ec);
+    }
     return;
   }    
-  std::shared_ptr<std::string> pms = std::make_shared<std::string>(msg);
+  std::shared_ptr<std::string> pms = std::make_shared<std::string>(std::move(msg));
   
-  asio::async_write(m_socket, asio::buffer(pms.get()->data(), msg.size()),
-      [this, self, pms, isCBackIfError](std::error_code ec, std::size_t /*length*/) {
+  asio::async_write(m_socket, asio::buffer(pms->data(), pms->size()),
+      [this, self, pms](std::error_code ec, std::size_t /*length*/) {
       m_ec = ec;
-      if (m_server.SendStatusCB && (ec || !isCBackIfError)) {
-          m_server.SendStatusCB(m_connPnt, *pms, ec);
+      if (ec && m_server.ErrorStatusCB) {
+          m_server.ErrorStatusCB(m_connPnt, *pms, ec);
       }
   });
 }

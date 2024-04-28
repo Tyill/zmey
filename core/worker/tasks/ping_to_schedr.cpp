@@ -22,21 +22,20 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+
 #include "worker/executor.h"
 #include "common/tcp.h"
-#include "common/serial.h"
-#include "base/link.h"
+#include "base/messages.h"
 
 using namespace std;
 
 void Executor::pingToSchedr(const std::string& schedrConnPnt){
-  m_worker.activeTask = (int)m_newTasks.size() + (int)m_procs.size();
-  map<string, string> data{
-    {ZM_Link::command, to_string((int)ZM_Base::MessType::PING_WORKER)},
-    {ZM_Link::connectPnt, m_worker.connectPnt},
-    {ZM_Link::activeTask, to_string(m_worker.activeTask)},
-    {ZM_Link::load, to_string(m_worker.load)}
-  };      
-  ZM_Tcp::asyncSendData(schedrConnPnt, ZM_Aux::serialn(data));
+  m_worker.wActiveTaskCount = (int)m_newTasks.size() + (int)m_procs.size();
+  mess::TaskStatus m(0, mess::MessType::PING_WORKER);
+  m.activeTaskCount = m_worker.wActiveTaskCount;
+  m.loadCPU = m_worker.wLoadCPU;
+  m.connectPnt = m_worker.wConnectPnt;    
+  
+  misc::asyncSendData(schedrConnPnt, m.serialn());
 }
 

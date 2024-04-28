@@ -25,25 +25,26 @@
 #pragma once
 
 #include "common/queue.h"
-#include "common/aux_func.h"
+#include "common/misc.h"
 #include "base/base.h"
+#include "base/messages.h"
 #include "worker/application.h"
 #include "worker/process.h" 
 
 #include <list>
 
+class Loop;
+
 class Executor{
 public:  
   Executor(Application&, const std::string& connPnt);
 
-public:
-  struct MessForSchedr{
-    uint64_t taskId;
-    ZM_Base::MessType MessType;
-    std::string taskResult;
-  };
+public:  
+  void setLoop(Loop*);
+  void loopNotify();
+  void loopStop();
 
-  void addMessForSchedr(MessForSchedr);
+  void addMessForSchedr(mess::TaskStatus);
   void addErrMess(std::string);
   void setLoadCPU(int);
   bool isErrMessEmpty();
@@ -59,18 +60,22 @@ public:
   void errorToSchedr(const std::string& schedrConnPnt);
   void updateListTasks();
   void waitProcess();
-  
+
+private:  
+  void errorMessage(std::string mess);
+
 private:
   
   Application& m_app;  
   
-  ZM_Base::Worker m_worker;
-  ZM_Aux::Queue<MessForSchedr> m_listMessForSchedr;
-  ZM_Aux::Queue<ZM_Base::Task> m_newTasks;
-  ZM_Aux::Queue<std::string> m_errMess;
+  base::Worker m_worker;
+  misc::Queue<mess::TaskStatus> m_messForSchedr;
+  misc::Queue<base::Task> m_newTasks;
+  misc::Queue<std::string> m_errMess;
   std::list<Process> m_procs;
   std::mutex m_mtxProcess;  
-  std::vector<std::string> m_tmpFiles; // on win32 is not deleted immediately
   
-  ZM_Aux::CounterTick m_ctickSendNotify;
+  misc::CounterTick m_ctickSendNotify;
+
+  Loop* m_loop{};
 };

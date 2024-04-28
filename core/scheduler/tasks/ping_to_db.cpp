@@ -29,9 +29,9 @@ using namespace std;
 
 void Executor::pingToDB()
 {
-  ZM_DB::MessSchedr mess;{
-    mess.type = ZM_Base::MessType::PING_SCHEDR;
-    mess.data = to_string(m_schedr.activeTask);
+  db::MessSchedr mess;{
+    mess.type = mess::MessType::PING_SCHEDR;
+    mess.activeTaskCount = m_schedr.sActiveTaskCount;
   }
   m_messToDB.push(move(mess));
 }

@@ -33,14 +33,16 @@
 
 using namespace std;
 
-void closeHandler(int sig);
-void loopNotify(int sig);
+static Loop* pLoop;
+static void closeHandler(int sig)
+{
+  if (pLoop) pLoop->stop();
+}
 
-#define CHECK_RETURN(fun, mess) \
-  if (fun){                     \
-    app.statusMess(mess);       \
-    return -1;                  \
-  }
+static void loopNotify(int sig)
+{
+  if (pLoop) pLoop->standUpNotify();
+}
 
 int main(int argc, char* argv[]){
 
@@ -48,16 +50,21 @@ int main(int argc, char* argv[]){
 
   Application::Config cng;
   if (!app.parseArgs(argc, argv, cng)){
-    return 0;
+    return 1;
   }
 
   if (cng.remoteConnPnt.empty()){  // when without NAT
     cng.remoteConnPnt = cng.localConnPnt;
   } 
 
-  CHECK_RETURN(cng.localConnPnt.empty() || (ZM_Aux::split(cng.localConnPnt, ':').size() != 2), "Not set param '--localAddr[-la]' - worker local connection point: IP or DNS:port");
-  CHECK_RETURN(cng.remoteConnPnt.empty() || (ZM_Aux::split(cng.remoteConnPnt, ':').size() != 2), "Not set param '--remoteAddr[-ra]' - worker remote connection point: IP or DNS:port");
-  CHECK_RETURN(cng.schedrConnPnt.empty() || (ZM_Aux::split(cng.schedrConnPnt, ':').size() != 2), "Not set param '--schedrAddr[-sa]' - scheduler connection point: IP or DNS:port");
+#define CHECK_RETURN(fun, mess) \
+  if (fun){                     \
+    app.statusMess(mess);       \
+    return 2;                   \
+  }
+  CHECK_RETURN(cng.localConnPnt.empty() || (misc::split(cng.localConnPnt, ':').size() != 2), "Not set param '--localAddr[-la]' - worker local connection point: IP or DNS:port");
+  CHECK_RETURN(cng.remoteConnPnt.empty() || (misc::split(cng.remoteConnPnt, ':').size() != 2), "Not set param '--remoteAddr[-ra]' - worker remote connection point: IP or DNS:port");
+  CHECK_RETURN(cng.schedrConnPnt.empty() || (misc::split(cng.schedrConnPnt, ':').size() != 2), "Not set param '--schedrAddr[-sa]' - scheduler connection point: IP or DNS:port");
   
   signal(SIGTERM, closeHandler);
 #ifdef __linux__
@@ -66,61 +73,34 @@ int main(int argc, char* argv[]){
   signal(SIGHUP, closeHandler);
   signal(SIGQUIT, closeHandler);
 #endif
-  
-  if (!cng.dirForTempFiles.empty())
-    CHECK_RETURN(!ZM_Aux::createSubDirectory(cng.dirForTempFiles), "Not create dir " + cng.dirForTempFiles + " for temp files");
-
+ 
   Executor executor(app, cng.remoteConnPnt);
  
   // on start
-  executor.addMessForSchedr(Executor::MessForSchedr{0, ZM_Base::MessType::JUST_START_WORKER});
+  executor.addMessForSchedr(mess::TaskStatus{0, mess::MessType::JUST_START_WORKER});
 
   // TCP server
-  ZM_Tcp::ReceiveDataCBack receiveDataCB = [&executor](const string& cp, const string& data){
+  misc::ReceiveDataCBack receiveDataCB = [&executor](const string& cp, const string& data){
     executor.receiveHandler(cp, data);
   };
-  ZM_Tcp::SendStatusCBack sendStatusCB = [&executor](const string& cp, const string& data, const error_code& ec){
+  misc::ErrorStatusCBack sendStatusCB = [&executor](const string& cp, const string& data, const error_code& ec){
     executor.sendNotifyHandler(cp, data, ec);
   };
   string err;
-  CHECK_RETURN(!ZM_Tcp::startServer(cng.localConnPnt, receiveDataCB, sendStatusCB, 1, err),
+  CHECK_RETURN(!misc::startServer(cng.localConnPnt, receiveDataCB, sendStatusCB, 1, err),
     "Worker error: " + cng.localConnPnt + " " + err);
   app.statusMess("Worker running: " + cng.localConnPnt);
   
   // loop ///////////////////////////////////////////////////////////////////////
   Loop loop(cng, executor);
-
-  Application::SignalConnector.connectSlot(Application::SIGNAL_LOOP_NOTIFY, 
-    std::function<void()>([&loop]() {
-      loop.standUpNotify();
-  }));
-
-  Application::SignalConnector.connectSlot(Application::SIGNAL_LOOP_STOP, 
-    std::function<void()>([&loop]() {
-      loop.stop();
-  }));
-
-  try{
-    loop.run();
-  }
-  catch(exception& e){
-    string mess = "worker::loop exeption: " + string(e.what());
-    app.statusMess(mess);  
-  }
-
+  pLoop = &loop;
+  executor.setLoop(pLoop);
+  
+  loop.run();
+  
   /////////////////////////////////////////////////////////////////////////
   
   executor.stopToSchedr(cng.schedrConnPnt);
 
-  ZM_Tcp::stopServer();
-}
-
-void closeHandler(int sig)
-{
-  Application::loopStop();
-}
-
-void loopNotify(int sig)
-{
-  Application::loopNotify();
+  misc::stopServer();
 }

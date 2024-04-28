@@ -34,8 +34,6 @@ class PipelineTasksStoreClass {
     ret.nextTasksId = [...pt.nextTasksId];
     ret.prevTasksId = [...pt.prevTasksId];
     ret.isStartNext = [...pt.isStartNext];
-    ret.isSendResultToNext = [...pt.isSendResultToNext];
-    ret.conditionStartNext = [...pt.conditionStartNext];
     return ret;   
   }
   getAll() : Map<number, IPipelineTask>{
@@ -157,9 +155,7 @@ class PipelineTasksStoreClass {
         let prevTask = this.m_pipelineTasks.get(pid);
         const inx = prevTask.nextTasksId.findIndex(v=>v==id);
         prevTask.nextTasksId.splice(inx, 1);
-        prevTask.isSendResultToNext.splice(inx, 1);
         prevTask.isStartNext.splice(inx, 1);
-        prevTask.conditionStartNext.splice(inx, 1);
         
         this.m_pipelineTasks.set(pid, prevTask);
         ServerAPI.changePipelineTask(prevTask);

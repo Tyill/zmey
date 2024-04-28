@@ -22,7 +22,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#include "prepare.h"
+
+//#include "prepare.h"
+#include <gtest/gtest.h>
 
 
 int main(int argc, char* argv[]){

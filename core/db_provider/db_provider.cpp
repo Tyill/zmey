@@ -22,28 +22,50 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#pragma once 
 
-#include <iostream>
-#include <gtest/gtest.h>
+#include "pg/pg_impl.h"
 
-namespace testing{
- namespace internal{
-  enum GTestColor{
-      COLOR_DEFAULT,
-      COLOR_RED,
-      COLOR_GREEN,
-      COLOR_YELLOW
-  };
-  extern void ColoredPrintf(GTestColor color, const char* fmt, ...);
- }
+using namespace std;
+
+namespace db{
+
+DbProvider::DbProvider(const db::ConnectCng& cng) :
+  m_impl(new DbProvider::Impl),
+  m_connCng(cng){ 
+
+  m_impl->m_db = (PGconn*)PQconnectdb(cng.connectStr.c_str());
+  if (PQstatus(pg_) != CONNECTION_OK){
+    errorMess(PQerrorMessage(pg_));
+    return;
+  }
 }
-#define PRINTF(...)  do { testing::internal::ColoredPrintf(testing::internal::COLOR_GREEN, "[          ] "); testing::internal::ColoredPrintf(testing::internal::COLOR_YELLOW, __VA_ARGS__); } while(0)
-class TestCout : public std::stringstream{
-public:
-    ~TestCout(){
-        PRINTF("%s",str().c_str());
-    }
-};
-#define TEST_COUT  TestCout()
+DbProvider::~DbProvider(){  
+  if (m_impl->m_thrEndTask.joinable()){
+    m_impl->m_fClose = true; 
+    m_impl->m_thrEndTask.join();
+  }
+  if (pg_){
+    PQfinish(pg_);
+  }
+  delete m_impl;
+}
 
+void DbProvider::setErrorCBack(ErrCBack ecb, UData ud){
+  lock_guard<mutex> lk(m_mtx);
+  m_errCBack = ecb;
+  m_errUData = ud;
+}
+std::string DbProvider::getLastError(){
+  lock_guard<mutex> lk(m_mtx);
+  return m_err;
+}
+
+void DbProvider::errorMess(const std::string& mess){
+  lock_guard<mutex> lk(m_mtx);
+  m_err = mess;
+  if (m_errCBack){
+    m_errCBack(mess.c_str(), m_errUData);
+  } 
+}
+
+}

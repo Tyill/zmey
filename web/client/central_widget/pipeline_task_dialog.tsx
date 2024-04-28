@@ -73,8 +73,6 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
     if (!this.m_isNewPipelineTask && selTask.nextTasksId && selTask.nextTasksId.length){
       selTask.nextTasksId.forEach((id, ix)=>{
         selTask.isStartNext[ix] = this.m_refObj["isStartNext" + id].checked ? 1 : 0;
-        selTask.isSendResultToNext[ix] = this.m_refObj["isSendResultToNext" + id].checked ? 1 : 0;
-        selTask.conditionStartNext[ix] = this.m_refObj["conditionStartNext" + id].value;
       });
     }
 
@@ -95,8 +93,6 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
       nextTasksId: !this.m_isNewPipelineTask ? selTask.nextTasksId : [],
       prevTasksId: !this.m_isNewPipelineTask ? selTask.prevTasksId : [],
       isStartNext: !this.m_isNewPipelineTask ? selTask.isStartNext : [],
-      isSendResultToNext: !this.m_isNewPipelineTask ? selTask.isSendResultToNext : [],
-      conditionStartNext: !this.m_isNewPipelineTask ? selTask.conditionStartNext : [],
       params : this.m_refObj["params"].value,
       name : this.m_refObj["name"].value,           
       description : this.m_refObj["description"].value,
@@ -173,22 +169,11 @@ class PipelineTaskDialogModal extends React.Component<IProps, IState>{
         nextTask.push(   
           <div className={classStyle} key={id}  >
             <p className="m-2 mr-auto p-0 align-self-center " style={{minWidth:"100px"}}>{nt.name}</p>
-            <input className="m-2 p-2  form-control" style={{maxHeight:"30px"}} 
-                    ref={(input) => {this.m_refObj["conditionStartNext" + id] = input }} 
-                    type="text"                     
-                    title="Сondition for starting"
-                    placeholder="t.result == 'ok'" 
-                    defaultValue={task.conditionStartNext[ix]} />
             <input className="m-2 p-0 align-self-center" 
                     ref={(input) => {this.m_refObj["isStartNext" + id] = input }}
                     type="checkbox"
                     title="Start of next task"
                     defaultChecked={task.isStartNext[ix] == 1} />
-            <input className="m-2 p-0 align-self-center" 
-                    ref={(input) => {this.m_refObj["isSendResultToNext" + id] = input }} 
-                    type="checkbox"                     
-                    title="Send result to next task"
-                    defaultChecked={task.isSendResultToNext[ix] == 1} />            
           </div>
         )
       })

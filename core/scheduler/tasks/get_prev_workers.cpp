@@ -22,27 +22,74 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+
 #include "scheduler/executor.h"
 #include "common/tcp.h"
 
+#include <cassert>
+
 using namespace std;
 
-void Executor::getPrevWorkersFromDB(ZM_DB::DbProvider& db)
+void Executor::getPrevWorkersFromDB(db::DbProvider& db)
 {   
-  vector<ZM_Base::Worker> workers; 
-  if (db.getWorkersOfSchedr(m_schedr.id, workers)){
+  vector<base::Worker> workers; 
+  if (db.getWorkersOfSchedr(m_schedr.sId, workers)){
     for(auto& w : workers){
-      m_workers[w.connectPnt] = SWorker{w, w.state, vector<uint64_t>(), 
-                                        w.state != ZM_Base::StateType::NOT_RESPONDING};
-
-      if (db.getTasksOfWorker(m_schedr.id, w.id, m_workers[w.connectPnt].taskList)){
-        m_workers[w.connectPnt].taskList.resize(size_t(w.capacityTask * 1.5));
+      base::Worker* pw = new base::Worker();{
+        pw->wActiveTaskCount = +w.wActiveTaskCount;
+        pw->wLoadCPU = +w.wLoadCPU;
+        pw->wCapacityTaskCount = w.wCapacityTaskCount;
+        pw->wConnectPnt = w.wConnectPnt;
+        pw->wId = w.wId;
+        pw->sId = w.sId;
+        pw->wState = +w.wState;
+        pw->wStateMem = +w.wState;
+        pw->wIsActive = w.wState != int(base::StateType::NOT_RESPONDING);
       }
-      else
+      vector<base::Task> tasks;
+      if (db.getTasksOfWorker(m_schedr.sId, w.wId, tasks)){
+        m_workers[w.wConnectPnt] = pw;
+        m_workerTasks[w.wId] = tasks;
+        m_workerLocks[w.wId] = new std::mutex;
+      }else{
         m_app.statusMess("getTasksOfWorker db error: " + db.getLastError());
+      }      
     }
   }
   else{
     m_app.statusMess("getPrevWorkersFromDB db error: " + db.getLastError());
   }  
+}
+
+void Executor::addTaskForWorker(int wId, const base::Task& t)
+{
+  lock_guard<mutex> lk(*m_workerLocks[wId]);
+  assert(m_workerTasks.count(wId));
+
+  m_workerTasks[wId].push_back(t);
+}
+void Executor::removeTaskForWorker(int wId, const base::Task& t)
+{
+  lock_guard<mutex> lk(*m_workerLocks[wId]);
+  assert(m_workerTasks.count(wId));
+
+  if (auto it = std::find_if(m_workerTasks[wId].begin(), m_workerTasks[wId].end(), [tid = t.tId](const auto& t){
+    return t.tId == tid;
+  }); it != m_workerTasks[wId].end()){
+    m_workerTasks[wId].erase(it);
+  }
+}
+std::vector<base::Task> Executor::getWorkerTasks(int wId)
+{
+  lock_guard<mutex> lk(*m_workerLocks[wId]);
+  assert(m_workerTasks.count(wId));
+
+  return m_workerTasks[wId];
+}
+void Executor::clearWorkerTasks(int wId)
+{
+  lock_guard<mutex> lk(*m_workerLocks[wId]);
+  assert(m_workerTasks.count(wId));
+
+  m_workerTasks[wId].clear();
 }

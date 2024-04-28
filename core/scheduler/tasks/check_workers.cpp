@@ -24,44 +24,43 @@
 //
 
 #include "scheduler/executor.h"
+#include "base/messages.h"
 
 #include <cmath>
 
 using namespace std;
 
-void Executor::checkStatusWorkers(ZM_DB::DbProvider& db)
+void Executor::checkStatusWorkers(db::DbProvider& db)
 {
-  vector<SWorker*> wkrNotResp;
+  vector<base::Worker*> wkrNotResp;
   for(auto& w : m_workers){
-    if (!w.second.isActive && (w.second.base.state != ZM_Base::StateType::STOP)){            
-      wkrNotResp.push_back(&w.second);
+    if (!w.second->wIsActive && (w.second->wState != int(base::StateType::STOP))){            
+      wkrNotResp.push_back(w.second);
     }else{
-      w.second.isActive = false;
+      w.second->wIsActive = false;
     }
   }
   if (wkrNotResp.size() <= round(m_workers.size() * 0.75)){ 
     for(auto w : wkrNotResp){
-      if (w->base.state != ZM_Base::StateType::NOT_RESPONDING){
-        m_messToDB.push(ZM_DB::MessSchedr(ZM_Base::MessType::WORKER_NOT_RESPONDING, w->base.id));
-        m_messToDB.push(ZM_DB::MessSchedr::errorMess(w->base.id, "schedr::checkStatusWorkers worker not responding"));          
-        w->stateMem = w->base.state;
-        w->base.state = ZM_Base::StateType::NOT_RESPONDING;
-        
-        vector<ZM_Base::Task> tasks;
-        if (m_db.getTasksById(m_schedr.id, w->taskList, tasks)){
-          for(auto& t : tasks){
-            m_tasks.push(move(t));
-          }
-        }else{
-          m_app.statusMess("getTasksById db error: " + m_db.getLastError());
-        }        
-        for(auto& t : w->taskList)
-          t = 0;
-      } 
+      workerNotResponding(db, w);
     }
   }else{
-    string mess = "schedr::checkStatusWorkers error all workers are not available";
-    m_messToDB.push(ZM_DB::MessSchedr::errorMess(0, mess));                                     
-    m_app.statusMess(mess);
+    string mess = "checkStatusWorkers error all workers are not available";
+    errorMessage(mess, 0);
   }
+}
+
+void Executor::workerNotResponding(db::DbProvider& db, base::Worker* w)
+{
+  if (w->wState != int(base::StateType::NOT_RESPONDING)){
+    m_messToDB.push(db::MessSchedr(mess::MessType::WORKER_NOT_RESPONDING, w->wId));
+    m_messToDB.push(db::MessSchedr::errorMess(w->wId, "worker not responding"));          
+    w->wStateMem = +w->wState;
+    w->wState = int(base::StateType::NOT_RESPONDING);
+  }
+  const auto wTasks = getWorkerTasks(w->wId);
+  for(auto t : wTasks){
+    m_tasks.push(move(t));
+  }
+  clearWorkerTasks(w->wId);
 }

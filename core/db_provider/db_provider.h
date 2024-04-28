@@ -28,44 +28,73 @@
 #include <vector>
 #include <map>
 #include <functional>
+#include <mutex>
 
 #include "base/base.h"
+#include "base/messages.h"
 
-namespace ZM_DB{
+namespace db{
 
 struct ConnectCng{
   std::string connectStr;
 };
 struct MessSchedr{
-  ZM_Base::MessType type = ZM_Base::MessType::INTERN_ERROR;
-  uint64_t workerId = 0;
-  uint64_t taskId = 0;
-  std::string data;
+  mess::MessType type = mess::MessType::INTERN_ERROR;
+  int workerId = 0;
+  int taskId = 0;
+  int taskProgress = 0;
+  int activeTaskCount = 0;
+  int workerLoad = 0;
+  std::string message;
   
-  MessSchedr(ZM_Base::MessType _type = ZM_Base::MessType::INTERN_ERROR, uint64_t _workerId = 0, uint64_t _taskId = 0, const std::string& _data = "") :
+  MessSchedr(mess::MessType _type = mess::MessType::INTERN_ERROR, int _workerId = 0, int _taskId = 0) :
     type(_type),
     workerId(_workerId),
-    taskId(_taskId),
-    data(_data){}
+    taskId(_taskId){}
 
-  static MessSchedr errorMess(uint64_t _workerId, const std::string& _err){
+  static MessSchedr errorMess(int _workerId, const std::string& _err){
     MessSchedr mess;{
-      mess.type = ZM_Base::MessType::INTERN_ERROR;
+      mess.type = mess::MessType::INTERN_ERROR;
       mess.workerId = _workerId;
-      mess.data = _err;
+      mess.message = _err;
+    }
+    return mess;
+  };
+  static MessSchedr taskProgressMess(int _workerId, int _taskId, int _progress){
+    MessSchedr mess;{
+      mess.type = mess::MessType::TASK_PROGRESS;
+      mess.workerId = _workerId;
+      mess.taskId = _taskId;
+      mess.taskProgress = _progress;
+    }
+    return mess;
+  };
+  static MessSchedr pingWorkerMess(int _workerId, int _activeTaskCount, int _workerload){
+    MessSchedr mess;{
+      mess.type = mess::MessType::PING_WORKER;
+      mess.workerId = _workerId;
+      mess.activeTaskCount = _activeTaskCount;
+      mess.workerLoad = _workerload;
+    }
+    return mess;
+  };
+  static MessSchedr pingSchedrMess(int _workerId, int _activeTaskCount){
+    MessSchedr mess;{
+      mess.type = mess::MessType::PING_SCHEDR;
+      mess.activeTaskCount = _activeTaskCount;
     }
     return mess;
   };
 };
 struct MessError{
-  uint64_t schedrId;
-  uint64_t workerId;
+  int schedrId{};
+  int workerId{};
   std::string createTime;
   std::string message;
 };
 struct TaskState{
-  uint32_t progress;
-  ZM_Base::StateType state;
+  base::StateType state{};
+  int progress{};
 };
 struct TaskTime{
   std::string createTime;
@@ -75,17 +104,17 @@ struct TaskTime{
 };
 
 struct SchedulerState{
-  ZM_Base::StateType state;
-  uint32_t activeTask;
+  base::StateType state{};
+  int activeTaskCount{};
   std::string startTime;
   std::string stopTime;
   std::string pingTime;
 };
 
 struct WorkerState{
-  ZM_Base::StateType state;
-  uint32_t activeTask;
-  uint32_t load;
+  base::StateType state{};
+  int activeTaskCount{};
+  int load{};
   std::string startTime;
   std::string stopTime;
   std::string pingTime;
@@ -93,7 +122,7 @@ struct WorkerState{
 
 typedef void* UData;
 typedef std::function<void(const char* mess, UData)> ErrCBack;
-typedef void(*ChangeTaskStateCBack)(uint64_t qtId, uint64_t userId, int progress, ZM_Base::StateType prevState, ZM_Base::StateType newState, UData);
+typedef void(*ChangeTaskStateCBack)(int qtId, int progress, base::StateType prevState, base::StateType newState, UData);
 
 class DbProvider{  
 public: 
@@ -101,76 +130,56 @@ public:
   ~DbProvider(); 
   DbProvider(const DbProvider& other) = delete;
   DbProvider& operator=(const DbProvider& other) = delete;
-  std::string getLastError() const{
-    return m_err;
-  }  
-  void setErrorCBack(ErrCBack ecb, UData ud){
-    m_errCBack = ecb;
-    m_errUData = ud;
-  }
-  void errorMess(const std::string& mess){
-    m_err = mess;
-    if (m_errCBack){
-      m_errCBack(mess.c_str(), m_errUData);
-    } 
-  }
+  
+  std::string getLastError();
+  void setErrorCBack(ErrCBack ecb, UData ud);
   ConnectCng getConnectCng(){
     return m_connCng;
-  }
+  }    
+  bool addSchedr(const base::Scheduler& schedl, int& outSchId);
+  bool getSchedr(int sId, base::Scheduler& outCng);
+  bool changeSchedr(int sId, const base::Scheduler& newCng);
+  bool delSchedr(int sId);
+  bool schedrState(int sId, SchedulerState& );
+  std::vector<int> getAllSchedrs(base::StateType);
+
+  bool addWorker(const base::Worker& worker, int& outWkrId);
+  bool getWorker(int wId, base::Worker& outCng);
+  bool changeWorker(int wId, const base::Worker& newCng);
+  bool delWorker(int wId);
+  bool workerState(const std::vector<int>& wId, std::vector<WorkerState>&);
+  std::vector<int> getAllWorkers(int sId, base::StateType);
   
-  bool createTables();
+  bool startTask(int schedPresetId, base::Task& cng, int& tId);
+  bool cancelTask(int tId);
+  bool taskState(const std::vector<int>& tId, std::vector<TaskState>&);
+  bool taskTime(int tId, TaskTime&);
   
-  bool addSchedr(const ZM_Base::Scheduler& schedl, uint64_t& outSchId);
-  bool getSchedr(uint64_t sId, ZM_Base::Scheduler& outCng);
-  bool changeSchedr(uint64_t sId, const ZM_Base::Scheduler& newCng);
-  bool delSchedr(uint64_t sId);
-  bool schedrState(uint64_t sId, SchedulerState& );
-  std::vector<uint64_t> getAllSchedrs(ZM_Base::StateType);
+  bool getWorkerByTask(int tId, base::Worker& wcng);
+  bool setChangeTaskStateCBack(int tId, ChangeTaskStateCBack, UData);
 
-  bool addWorker(const ZM_Base::Worker& worker, uint64_t& outWkrId);
-  bool getWorker(uint64_t wId, ZM_Base::Worker& outCng);
-  bool changeWorker(uint64_t wId, const ZM_Base::Worker& newCng);
-  bool delWorker(uint64_t wId);
-  bool workerState(const std::vector<uint64_t>& wId, std::vector<WorkerState>&);
-  std::vector<uint64_t> getAllWorkers(uint64_t sId, ZM_Base::StateType);
- 
-  bool addTaskTemplate(const ZM_Base::TaskTemplate& cng, uint64_t& outTId);
-  bool getTaskTemplate(uint64_t ttId, ZM_Base::TaskTemplate& outTCng);
-  bool changeTaskTemplate(uint64_t ttId, const ZM_Base::TaskTemplate& newTCng);
-  bool delTaskTemplate(uint64_t ttId);
-  std::vector<uint64_t> getAllTaskTemplates(uint64_t parent);
+  std::vector<MessError> getInternErrors(int sId, int wId, int mCnt);
 
-  bool startTask(uint64_t ttlId, const std::string& params, uint64_t& tId);
-  bool cancelTask(uint64_t tId);
-  bool taskState(const std::vector<uint64_t>& tId, std::vector<TaskState>&);
-  bool taskResult(uint64_t tId, std::string&);
-  bool taskTime(uint64_t tId, TaskTime&);
-  
-  bool getWorkerByTask(uint64_t tId, ZM_Base::Worker& wcng);
-  bool setChangeTaskStateCBack(uint64_t tId, uint64_t userId, ChangeTaskStateCBack, UData);
-
-  std::vector<MessError> getInternErrors(uint64_t sId, uint64_t wId, uint32_t mCnt);
-
-  // for zmSchedr
+  // for schedr
   bool setListenNewTaskNotify(bool on);
-  bool getSchedr(const std::string& connPnt, ZM_Base::Scheduler& outSchedl);
-  bool getTasksById(uint64_t sId, const std::vector<uint64_t>& tasksId, std::vector<ZM_Base::Task>& out);
-  bool getTasksOfSchedr(uint64_t sId, std::vector<ZM_Base::Task>& out);
-  bool getTasksOfWorker(uint64_t sId, uint64_t workerId, std::vector<uint64_t>& outTasksId);
-  bool getWorkersOfSchedr(uint64_t sId, std::vector<ZM_Base::Worker>& out);
-  bool getNewTasksForSchedr(uint64_t sId, int maxTaskCnt, std::vector<ZM_Base::Task>& out);
-  bool sendAllMessFromSchedr(uint64_t sId, std::vector<MessSchedr>& out);
-
-  // for test
-  bool delAllTables();  
-
+  bool getSchedr(const std::string& connPnt, base::Scheduler& outSchedl);
+  bool getTasksOfSchedr(int sId, std::vector<base::Task>& out);
+  bool getTasksOfWorker(int sId, int workerId, std::vector<base::Task>& out);
+  bool getWorkersOfSchedr(int sId, std::vector<base::Worker>& out);
+  bool getNewTasksForSchedr(int sId, int maxTaskCnt, std::vector<base::Task>& out);
+  bool sendAllMessFromSchedr(int sId, std::vector<MessSchedr>& out);
+  
 private:
+  void errorMess(const std::string& mess);
+
   std::string m_err;
   ErrCBack m_errCBack = nullptr;
   UData m_errUData = nullptr;
-  ZM_DB::ConnectCng m_connCng;
+  db::ConnectCng m_connCng;
   
   class Impl;
   Impl* m_impl = nullptr;
+
+  std::mutex m_mtx;
 };
 }

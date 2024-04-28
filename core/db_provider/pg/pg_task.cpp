@@ -26,53 +26,59 @@
 
 using namespace std;
 
-namespace ZM_DB{
+namespace db{
 
-bool DbProvider::startTask(uint64_t ttlId, const std::string& inparams, uint64_t& tId){
+bool DbProvider::startTask(int schedPresetId, base::Task& cng, int& tId){
   lock_guard<mutex> lk(m_impl->m_mtx);  
   
   stringstream ss;
-  ss << "SELECT * FROM funcStartTask(" << ttlId << ",'" << inparams << "');";
+  ss << "SELECT * FROM funcStartTask(" << schedPresetId <<  ","
+                                       << cng.tWId <<  ","
+                                       << cng.tAverDurationSec <<  ","
+                                       << cng.tMaxDurationSec <<  ","
+                                       << "'" << cng.tParams << "',"
+                                       << "'" << cng.tScriptPath << "',"
+                                       << "'" << cng.tResultPath << "');";
 
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("startTask: ") + PQerrorMessage(_pg));
+    errorMess(string("startTask: ") + PQerrorMessage(pg_));
     return false;
   }
-  tId = stoull(PQgetvalue(pgr.res, 0, 0));
+  tId = stoi(PQgetvalue(pgr.res, 0, 0));
   if (tId == 0){
     errorMess("startTask error: such task does not exist");
     return false;
   }  
   return true;
 }
-bool DbProvider::cancelTask(uint64_t tId){
+bool DbProvider::cancelTask(int tId){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
   ss << "UPDATE tblTaskState ts SET "
-        "state = " << int(ZM_Base::StateType::CANCEL) << " "
+        "state = " << int(base::StateType::CANCEL) << " "
         "FROM tblTaskQueue tq "
         "WHERE tq.id = " << tId << " AND "
         "      ts.qtask = tq.id AND "
-        "      ts.state = " << int(ZM_Base::StateType::READY) << " "
+        "      ts.state = " << int(base::StateType::READY) << " "
         "RETURNING ts.qtask;";
         
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("cancelTask: ") + PQerrorMessage(_pg));
+    errorMess(string("cancelTask: ") + PQerrorMessage(pg_));
     return false;
   }  
   if (PQntuples(pgr.res) != 1){
-    errorMess(string("cancelTask error: task already take in work") + PQerrorMessage(_pg));
+    errorMess(string("cancelTask error: task already take in work") + PQerrorMessage(pg_));
     return false;
   }
   return true;
 }
-bool DbProvider::taskState(const std::vector<uint64_t>& tId, std::vector<ZM_DB::TaskState>& outState){
+bool DbProvider::taskState(const std::vector<int>& tId, std::vector<db::TaskState>& outState){
   lock_guard<mutex> lk(m_impl->m_mtx);
   string stId;
   stId = accumulate(tId.begin(), tId.end(), stId,
-                [](string& s, uint64_t v){
+                [](string& s, int v){
                   return s.empty() ? to_string(v) : s + "," + to_string(v);
                 }); 
   stringstream ss;
@@ -80,9 +86,9 @@ bool DbProvider::taskState(const std::vector<uint64_t>& tId, std::vector<ZM_DB::
         "FROM tblTaskState ts "
         "WHERE ts.qtask IN (" << stId << ") ORDER BY ts.qtask;";
 
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){
-    errorMess(string("taskState: ") + PQerrorMessage(_pg));
+    errorMess(string("taskState: ") + PQerrorMessage(pg_));
     return false;
   }
   size_t tsz = tId.size();
@@ -92,39 +98,21 @@ bool DbProvider::taskState(const std::vector<uint64_t>& tId, std::vector<ZM_DB::
   }
   outState.resize(tsz);
   for (size_t i = 0; i < tsz; ++i){
-    outState[i].state = (ZM_Base::StateType)atoi(PQgetvalue(pgr.res, (int)i, 0));
+    outState[i].state = (base::StateType)atoi(PQgetvalue(pgr.res, (int)i, 0));
     outState[i].progress = atoi(PQgetvalue(pgr.res, (int)i, 1));
   }
   return true;
 }
-bool DbProvider::taskResult(uint64_t tId, std::string& out){
-  lock_guard<mutex> lk(m_impl->m_mtx);
-  stringstream ss;
-  ss << "SELECT result FROM tblTaskResult "
-        "WHERE qtask = " << tId << ";";
-
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
-  if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){      
-    errorMess(string("taskResult: ") + PQerrorMessage(_pg));
-    return false;
-  } 
-  if (PQntuples(pgr.res) != 1){
-    errorMess("taskResult error: task delete OR not taken to work");
-    return false;
-  } 
-  out = PQgetvalue(pgr.res, 0, 0);
-  return true;
-}
-bool DbProvider::taskTime(uint64_t tId, ZM_DB::TaskTime& out){
+bool DbProvider::taskTime(int tId, db::TaskTime& out){
   lock_guard<mutex> lk(m_impl->m_mtx);
   stringstream ss;
   ss << "SELECT createTime, takeInWorkTime, startTime, stopTime "
         "FROM tblTaskTime "
         "WHERE qtask = " << tId << ";";
 
-  PGres pgr(PQexec(_pg, ss.str().c_str()));
+  PGres pgr(PQexec(pg_, ss.str().c_str()));
   if (PQresultStatus(pgr.res) != PGRES_TUPLES_OK){      
-    errorMess(string("taskTime: ") + PQerrorMessage(_pg));
+    errorMess(string("taskTime: ") + PQerrorMessage(pg_));
     return false;
   } 
   if (PQntuples(pgr.res) != 1){

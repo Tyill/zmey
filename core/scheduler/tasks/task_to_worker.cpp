@@ -22,94 +22,51 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+
 #include "scheduler/executor.h"
-#include "common/serial.h"
+#include "base/messages.h"
 #include "common/tcp.h"
-#include "base/link.h"
 
 using namespace std;
 
-#define ERROR_MESS(mess, wId)                               \
-  m_messToDB.push(ZM_DB::MessSchedr::errorMess(wId, mess)); \
-  m_app.statusMess(mess);
 
 bool Executor::sendTaskToWorker()
-{    
-  if (m_workersCpy.empty()){
-    for (auto& w : m_workers){
-      m_workersCpy.push_back(w.second.base);
-    }
-    for (auto& w : m_workersCpy){
-      m_refWorkers.push_back(&w);
-    }
-  } 
-  auto iw = m_workers.cbegin();
-  auto iwcp = m_workersCpy.begin();
-  for (; iw != m_workers.cend(); ++iw, ++iwcp){
-    iwcp->activeTask = iw->second.base.activeTask;
-    iwcp->rating = iw->second.base.rating;
-    iwcp->load = iw->second.base.load;
-    iwcp->state = iw->second.base.state;
+{   
+  std::vector<base::Worker*> refWorkers;
+  for (auto w : m_workers){
+     refWorkers.push_back(w.second);
   }
   int cycleCount = 0;
   while (!m_tasks.empty()){
-    ZM_Base::Task task;
+    base::Task task;
     m_tasks.front(task);
-    sort(m_refWorkers.begin(), m_refWorkers.end(), [](const ZM_Base::Worker* l, const ZM_Base::Worker* r){
-      return float(l->activeTask + l->load / 10.f) / l->rating < float(r->activeTask + r->load / 10.f) / r->rating;
+    sort(refWorkers.begin(), refWorkers.end(), [](const base::Worker* l, const base::Worker* r){
+      return l->wActiveTaskCount + l->wLoadCPU / 10.f < r->wActiveTaskCount + r->wLoadCPU / 10.f;
     });
-    auto iWr = find_if(m_refWorkers.begin(), m_refWorkers.end(),
-      [this, &task](const ZM_Base::Worker* w){                
-        bool isSpare = false;
-        if (((task.wId == 0) || (task.wId == w->id)) && (w->state == ZM_Base::StateType::RUNNING) && 
-            (w->activeTask < w->capacityTask) && (w->rating > 1)){ 
-          for(auto& wt : m_workers[w->connectPnt].taskList){
-            if (wt == 0){
-              isSpare = true;
-              break;
-            }
-          } 
-        }
-        return isSpare;
-      }); 
-    
-    if(iWr != m_refWorkers.end()){
-      m_tasks.tryPop(task);
-      map<string, string> data{
-        {ZM_Link::command,         to_string((int)ZM_Base::MessType::NEW_TASK)},
-        {ZM_Link::connectPnt,      m_schedr.connectPnt},
-        {ZM_Link::taskId,          to_string(task.id)},
-        {ZM_Link::params,          task.params}, 
-        {ZM_Link::script,          task.script},
-        {ZM_Link::averDurationSec, to_string(task.averDurationSec)}, 
-        {ZM_Link::maxDurationSec,  to_string(task.maxDurationSec)}        
-      };
-      const string& wConnPnt = (*iWr)->connectPnt;
-      if (ZM_Tcp::asyncSendData(wConnPnt, ZM_Aux::serialn(data))){
-        ++(*iWr)->activeTask;
-        m_workers[wConnPnt].base.activeTask = (*iWr)->activeTask; 
-       
-        for(auto& wt : m_workers[wConnPnt].taskList){
-          if (wt == 0){
-            wt = task.id;
-            break;
-          }
-        } 
-      }else{
-        (*iWr)->rating = std::max(1, (*iWr)->rating - 1);
-      }      
-    }
-    else{
-      if (task.wId != 0){ 
-        m_tasks.tryPop(task);     // transfer task to end 
-        m_tasks.push(move(task)); 
-      }
-      else{
-        return false;
-      }
+    auto iWr = find_if(refWorkers.begin(), refWorkers.end(), [this, task](const base::Worker* w){                
+      return (((task.tWId == 0) || (task.tWId == w->wId)) && (w->wState == int(base::StateType::RUNNING)) && 
+                (w->wActiveTaskCount < w->wCapacityTaskCount));         
+    });
+    if(iWr != refWorkers.end()){
+      mess::NewTask messNewTask(m_schedr.sConnectPnt);{
+        messNewTask.taskId = task.tId;
+        messNewTask.params = task.tParams;
+        messNewTask.scriptPath = task.tScriptPath;
+        messNewTask.resultPath = task.tResultPath;
+        messNewTask.averDurationSec = task.tAverDurationSec;
+        messNewTask.maxDurationSec = task.tMaxDurationSec;        
+      } 
+      const string& wConnPnt = (*iWr)->wConnectPnt;
+      if (misc::asyncSendData(wConnPnt, messNewTask.serialn())){
+        m_tasks.tryPop(task);
+        addTaskForWorker((*iWr)->wId, task);
+        ++(*iWr)->wActiveTaskCount; 
+      }     
+    }else{
       ++cycleCount;
-      if (cycleCount >= m_tasks.size()) 
+      if (task.tWId == 0 || cycleCount >= m_tasks.size()){
         return false;
+      }
     }
   }
   return true;
