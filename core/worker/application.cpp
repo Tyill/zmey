@@ -72,6 +72,5 @@ bool Application::parseArgs(int argc, char* argv[], Config& outCng){
   SET_PARAM_NUM(st, pingSchedrTOutSec, pingSchedrTOutSec);
 
   m_cng = outCng;
-
   return true;
 }

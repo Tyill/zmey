@@ -57,6 +57,7 @@ void Executor::receiveHandler(const string& remcp, const string& data)
     t.tAverDurationSec = tm.averDurationSec;
     t.tMaxDurationSec = tm.maxDurationSec;
     m_newTasks.push(move(t)); 
+
     loopNotify();
   }
   else if (mtype == mess::MessType::PING_WORKER){  // only check

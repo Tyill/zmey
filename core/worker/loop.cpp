@@ -49,6 +49,8 @@ void Loop::run()
     timer.updateCycTime();   
 
     m_executor.waitProcess();
+        
+    m_executor.updateListTasks();
     
     m_executor.updateListTasks();
     
