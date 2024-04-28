@@ -67,15 +67,20 @@ void Executor::receiveHandler(const string& remcp, const string& data)
     }
   }
   else{
-    auto w = m_workers[cp];     
+    auto w = m_workers[cp];
+    if (w->wState == int(base::StateType::STOP) || w->wState == int(base::StateType::NOT_RESPONDING)){
+      if (mtype != mess::MessType::JUST_START_WORKER){
+        errorMessage("receiveHandler error: mess from not running worker: " + cp, w->wId);    
+        return;
+      }
+    }
     switch (mtype){
-      case mess::MessType::TASK_ERROR:
       case mess::MessType::TASK_COMPLETED: 
       case mess::MessType::TASK_RUNNING:        
+      case mess::MessType::TASK_ERROR:
       case mess::MessType::TASK_PAUSE:
       case mess::MessType::TASK_CONTINUE:
-      case mess::MessType::TASK_STOP:
-      case mess::MessType::PING_WORKER:{
+      case mess::MessType::TASK_STOP:{
           mess::TaskStatus tm(mtype, cp);
           if (!tm.deserialn(data)){
             errorMessage("receiveHandler error deserialn from: " + cp, w->wId);    
@@ -84,25 +89,25 @@ void Executor::receiveHandler(const string& remcp, const string& data)
           w->wActiveTaskCount = tm.activeTaskCount;
           w->wLoadCPU = tm.loadCPU;
           int tid = tm.taskId;
-          if (w->wState == int(base::StateType::RUNNING)){
-            if (mtype != mess::MessType::PING_WORKER){
-              const auto wtasks = getWorkerTasks(w->wId);
-              if (auto it = std::find_if(wtasks.begin(), wtasks.end(), [tid](const auto& t){
-                return t.tId == tid;
-              }); it != wtasks.end()){
-                m_messToDB.push(db::MessSchedr(mtype, w->wId, tid));
+          const auto wtasks = getWorkerTasks(w->wId);
+          if (auto it = std::find_if(wtasks.begin(), wtasks.end(), [tid](const auto& t){
+            return t.tId == tid;
+          }); it != wtasks.end()){
+            m_messToDB.push(db::MessSchedr(mtype, w->wId, tid));
 
-                if (mtype == mess::MessType::TASK_COMPLETED || mtype == mess::MessType::TASK_ERROR){
-                  removeTaskForWorker(w->wId, *it);
-                }
-              }              
-            }else{
-              m_messToDB.push(db::MessSchedr::pingWorkerMess(w->wId, tm.activeTaskCount, tm.loadCPU));
-            }            
-          }else{
-            errorMessage("receiveHandler error not running worker from: " + cp, w->wId);    
+            if (mtype == mess::MessType::TASK_COMPLETED || mtype == mess::MessType::TASK_ERROR){
+              removeTaskForWorker(w->wId, *it);
+            }
+          }
+        }
+        break;      
+      case mess::MessType::PING_WORKER:{
+          mess::TaskStatus tm(mtype, cp);
+          if (!tm.deserialn(data)){
+            errorMessage("receiveHandler error deserialn from: " + cp, w->wId);    
             return;
           }
+          m_messToDB.push(db::MessSchedr::pingWorkerMess(w->wId, tm.activeTaskCount, tm.loadCPU));
         }
         break;
       case mess::MessType::TASK_PROGRESS:{
