@@ -118,15 +118,13 @@ void Executor::receiveHandler(const string& remcp, const string& data)
           }
           w->wActiveTaskCount = tm.activeTaskCount;
           w->wLoadCPU = tm.loadCPU;
-          if (w->wState == int(base::StateType::RUNNING)){
-            const auto wtasks = getWorkerTasks(w->wId);
-            for (int i = 0; i < tm.taskProgress.size() && i < tm.taskIds.size(); ++i){
-              int tid = tm.taskIds[i];
-              if (auto it = std::find_if(wtasks.begin(), wtasks.end(), [tid](const auto& t){
-                return t.tId == tid;
-              }); it != wtasks.end()){
-                m_messToDB.push(db::MessSchedr::taskProgressMess(w->wId, tid, tm.taskProgress[i]));
-              }
+          const auto wtasks = getWorkerTasks(w->wId);
+          for (int i = 0; i < tm.taskProgress.size() && i < tm.taskIds.size(); ++i){
+            int tid = tm.taskIds[i];
+            if (auto it = std::find_if(wtasks.begin(), wtasks.end(), [tid](const auto& t){
+              return t.tId == tid;
+            }); it != wtasks.end()){
+              m_messToDB.push(db::MessSchedr::taskProgressMess(w->wId, tid, tm.taskProgress[i]));
             }
           }
         }
