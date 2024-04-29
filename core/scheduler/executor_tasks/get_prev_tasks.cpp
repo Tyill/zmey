@@ -24,6 +24,7 @@
 //
 
 #include "scheduler/executor.h"
+#include <cassert>
 
 using namespace std;
 
@@ -38,3 +39,36 @@ void Executor::getPrevTaskFromDB(db::DbProvider& db)
     m_app.statusMess("getPrevTaskFromDB db error: " + db.getLastError());
   }
 };
+
+void Executor::addTaskForWorker(int wId, const base::Task& t)
+{
+  lock_guard<mutex> lk(*m_workerLocks[wId]);
+  assert(m_workerTasks.count(wId));
+
+  m_workerTasks[wId].push_back(t);
+}
+void Executor::removeTaskForWorker(int wId, const base::Task& t)
+{
+  lock_guard<mutex> lk(*m_workerLocks[wId]);
+  assert(m_workerTasks.count(wId));
+
+  if (auto it = std::find_if(m_workerTasks[wId].begin(), m_workerTasks[wId].end(), [tid = t.tId](const auto& t){
+    return t.tId == tid;
+  }); it != m_workerTasks[wId].end()){
+    m_workerTasks[wId].erase(it);
+  }
+}
+std::vector<base::Task> Executor::getWorkerTasks(int wId)
+{
+  lock_guard<mutex> lk(*m_workerLocks[wId]);
+  assert(m_workerTasks.count(wId));
+
+  return m_workerTasks[wId];
+}
+void Executor::clearWorkerTasks(int wId)
+{
+  lock_guard<mutex> lk(*m_workerLocks[wId]);
+  assert(m_workerTasks.count(wId));
+
+  m_workerTasks[wId].clear();
+}

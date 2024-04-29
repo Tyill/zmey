@@ -72,6 +72,19 @@ bool Executor::getSchedrFromDB(const std::string& connPnt, db::DbProvider& db)
   return db.getSchedr(connPnt, m_schedr);
 }
 
+base::Scheduler Executor::getScheduler()
+{
+  std::lock_guard<std::mutex> lk(m_mtxSchedl);
+  const auto schedr = m_schedr;
+  return schedr;
+}
+
+void Executor::updateScheduler(const base::Scheduler& schedr)
+{
+  std::lock_guard<std::mutex> lk(m_mtxSchedl);
+  m_schedr = schedr;
+}
+
 bool Executor::listenNewTask(db::DbProvider& db, bool on)
 {
   return db.setListenNewTaskNotify(on);
