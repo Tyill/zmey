@@ -65,10 +65,10 @@ void Executor::receiveHandler(const string& remcp, const string& data)
   }
   else if (mtype == mess::MessType::REQUEST_START_WORKER){
     { std::lock_guard<std::mutex> lock(m_mtxProcess);
+      m_restartRequest = true;
       for(auto& p : m_procs){
         p.stopBySchedr();
       }
-      m_restartRequest = true;
     }
   }else{
     mess::TaskStatus tm(mtype, cp);
