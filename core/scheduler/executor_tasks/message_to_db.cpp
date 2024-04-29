@@ -27,6 +27,8 @@
 
 using namespace std;
 
+static misc::CounterTick ctickMessToDB;
+
 void Executor::sendAllMessToDB(db::DbProvider& db)
 {
   vector<db::MessSchedr> mess;
@@ -39,10 +41,10 @@ void Executor::sendAllMessToDB(db::DbProvider& db)
     for (auto& m : mess){
       m_messToDB.push(move(m));
     }
-    if (m_ctickMessToDB(1000)){ // every 100 cycle
+    if (ctickMessToDB(1000)){ // every 100 cycle
       m_app.statusMess("sendAllMessToDB db error: " + db.getLastError());
     }
   }else{
-    m_ctickMessToDB.reset();
+    ctickMessToDB.reset();
   }
 }

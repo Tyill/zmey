@@ -76,7 +76,6 @@ private:
   std::list<Process> m_procs;
   std::mutex m_mtxProcess;
   
-  misc::CounterTick m_ctickSendNotify;
   std::atomic_bool m_restartRequest{};
 
   Loop* m_loop{};

@@ -27,6 +27,8 @@
 
 using namespace std;
 
+static misc::CounterTick ctickNewTask;
+
 void Executor::getNewTaskFromDB(db::DbProvider& db)
 {  
   auto schedr = getScheduler();
@@ -45,9 +47,9 @@ void Executor::getNewTaskFromDB(db::DbProvider& db)
       for(auto& t : newTasks){
         m_tasks.push(move(t));
       }      
-      m_ctickNewTask.reset();
+      ctickNewTask.reset();
     }
-    else if (m_ctickNewTask(1000)){ // every 1000 cycle
+    else if (ctickNewTask(1000)){ // every 1000 cycle
       m_app.statusMess("getNewTaskFromDB db error: " + db.getLastError());
     }
   }

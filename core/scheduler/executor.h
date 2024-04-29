@@ -91,8 +91,5 @@ private:
   base::Scheduler m_schedr;
   std::mutex m_mtxWorker, m_mtxSchedl;
 
-  misc::CounterTick m_ctickNewTask;
-  misc::CounterTick m_ctickMessToDB;
-
   Loop* m_loop{};
 };

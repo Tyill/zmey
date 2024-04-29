@@ -28,6 +28,8 @@
 
 using namespace std;
 
+static misc::CounterTick ctickSendNotify;
+
 void Executor::sendNotifyHandler(const string& cp, const string& data, const std::error_code& ec)
 {  
   mess::MessType messType = mess::getMessType(data);
@@ -37,7 +39,7 @@ void Executor::sendNotifyHandler(const string& cp, const string& data, const std
     mess::TaskStatus mess;
     mess.deserialn(data);
     m_messForSchedr.push(move(mess));
-    if (m_ctickSendNotify(1000)){
+    if (ctickSendNotify(1000)){
       m_app.statusMess("sendNotifyHandler error send to schedr: " + ec.message());
     }
   }
