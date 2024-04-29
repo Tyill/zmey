@@ -34,7 +34,8 @@ void Executor::sendAllMessToDB(db::DbProvider& db)
   while(m_messToDB.tryPop(m)){
     mess.push_back(m);
   }
-  if (!db.sendAllMessFromSchedr(m_schedr.sId, mess)){
+  const auto schedr = getScheduler();
+  if (!db.sendAllMessFromSchedr(schedr.sId, mess)){
     for (auto& m : mess){
       m_messToDB.push(move(m));
     }

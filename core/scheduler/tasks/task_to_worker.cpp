@@ -32,23 +32,22 @@ using namespace std;
 
 bool Executor::sendTaskToWorker()
 {   
-  std::vector<base::Worker*> refWorkers;
-  for (auto w : m_workers){
-     refWorkers.push_back(w.second);
-  }
+  const auto schedr = getScheduler();
+  auto workers = getWorkers();
   int cycleCount = 0;
   while (!m_tasks.empty()){
     base::Task task;
     m_tasks.front(task);
-    sort(refWorkers.begin(), refWorkers.end(), [](const base::Worker* l, const base::Worker* r){
-      return l->wActiveTaskCount + l->wLoadCPU / 10.f < r->wActiveTaskCount + r->wLoadCPU / 10.f;
+    sort(workers.begin(), workers.end(), [](const base::Worker& l, const base::Worker& r){
+      return l.wActiveTaskCount + l.wLoadCPU / 10.f < r.wActiveTaskCount + r.wLoadCPU / 10.f;
     });
-    auto iWr = find_if(refWorkers.begin(), refWorkers.end(), [this, task](const base::Worker* w){                
-      return (((task.tWId == 0) || (task.tWId == w->wId)) && (w->wState == int(base::StateType::RUNNING)) && 
-                (w->wActiveTaskCount < w->wCapacityTaskCount));         
+    auto iWr = find_if(workers.begin(), workers.end(), [this, task](const base::Worker& w){                
+      return ((task.tWId == 0 || task.tWId == w.wId) && 
+              (w.wState == base::StateType::RUNNING) && 
+              (w.wActiveTaskCount < w.wCapacityTaskCount));         
     });
-    if(iWr != refWorkers.end()){
-      mess::NewTask messNewTask(m_schedr.sConnectPnt);{
+    if(iWr != workers.end()){
+      mess::NewTask messNewTask(schedr.sConnectPnt);{
         messNewTask.taskId = task.tId;
         messNewTask.params = task.tParams;
         messNewTask.scriptPath = task.tScriptPath;
@@ -56,11 +55,12 @@ bool Executor::sendTaskToWorker()
         messNewTask.averDurationSec = task.tAverDurationSec;
         messNewTask.maxDurationSec = task.tMaxDurationSec;        
       } 
-      const string& wConnPnt = (*iWr)->wConnectPnt;
+      const string& wConnPnt = (*iWr).wConnectPnt;
       if (misc::asyncSendData(wConnPnt, messNewTask.serialn())){
         m_tasks.tryPop(task);
-        addTaskForWorker((*iWr)->wId, task);
-        ++(*iWr)->wActiveTaskCount; 
+        addTaskForWorker((*iWr).wId, task);
+        ++(*iWr).wActiveTaskCount; 
+        updateWorker(*iWr);
       }     
     }else{
       ++cycleCount;

@@ -30,9 +30,10 @@ using namespace std;
 
 void Executor::errorNotifyHandler(const string& cp, const std::error_code& ec)
 {      
-  if (ec && m_workers.count(cp)){
-    workerNotResponding(m_db, m_workers[cp]);
-    errorMessage("errorNotifyHandler worker not response, cp: " + cp, m_workers[cp]->wId);
+  const auto w = getWorkerByConnPnt(cp);
+  if (ec && w){
+    workerNotResponding(m_db, w.value());
+    errorMessage("errorNotifyHandler worker not response, cp: " + cp, w->wId);
   } else {
     errorMessage("errorNotifyHandler wrong receiver: " + cp, 0);
   }  

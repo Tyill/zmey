@@ -68,7 +68,7 @@ bool DbProvider::getWorker(int wId, base::Worker& cng){
   }
   cng.wConnectPnt = PQgetvalue(pgr.res, 0, 0);
   cng.sId = stoi(PQgetvalue(pgr.res, 0, 1));
-  cng.wState = atoi(PQgetvalue(pgr.res, 0, 2));
+  cng.wState = base::StateType(atoi(PQgetvalue(pgr.res, 0, 2)));
   cng.wCapacityTaskCount = atoi(PQgetvalue(pgr.res, 0, 3));
   return true;
 }

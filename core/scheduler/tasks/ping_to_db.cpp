@@ -29,9 +29,10 @@ using namespace std;
 
 void Executor::pingToDB()
 {
+  const auto schedr = getScheduler();
   db::MessSchedr mess;{
     mess.type = mess::MessType::PING_SCHEDR;
-    mess.activeTaskCount = m_schedr.sActiveTaskCount;
+    mess.activeTaskCount = schedr.sActiveTaskCount;
   }
   m_messToDB.push(move(mess));
 }

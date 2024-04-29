@@ -59,24 +59,34 @@ public:
   void pingToDB();
   void stopSchedr(db::DbProvider& db);  
 
+  base::Scheduler getScheduler();
+  void updateScheduler(const base::Scheduler&);
+
+  std::vector<base::Worker> getWorkers();
+  std::optional<base::Worker> getWorkerByConnPnt(const std::string& cp);
+  void updateWorkerState(const std::string& cp, base::StateType);
+  void updateWorker(const base::Worker&);
+  void updateWorkers(const std::vector<base::Worker>&);
+
   void addTaskForWorker(int wId, const base::Task&);
   void removeTaskForWorker(int wId, const base::Task&);
   std::vector<base::Task> getWorkerTasks(int wId);
   void clearWorkerTasks(int wId);
   
 private: 
-  void workerNotResponding(db::DbProvider& db, base::Worker*);
+  void workerNotResponding(db::DbProvider& db, const base::Worker&);
   void errorMessage(const std::string& mess, int wId);
 
   Application& m_app;
   db::DbProvider& m_db;
 
-  std::map<std::string, base::Worker*> m_workers;       // key - worker connectPnt  
+  std::map<std::string, base::Worker> m_workers;        // key - worker connectPnt  
   std::map<int, std::vector<base::Task>> m_workerTasks; // key - worker id
   std::map<int, std::mutex*> m_workerLocks;
   misc::Queue<base::Task> m_tasks;
   misc::Queue<db::MessSchedr> m_messToDB;
   base::Scheduler m_schedr;
+  std::mutex m_mtxWorker, m_mtxSchedl;
 
   misc::CounterTick m_ctickNewTask;
   misc::CounterTick m_ctickMessToDB;

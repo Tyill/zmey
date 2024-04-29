@@ -62,7 +62,7 @@ bool DbProvider::getSchedr(const std::string& connPnt, base::Scheduler& outCng){
   }
   outCng.sId = stoi(PQgetvalue(pgr.res, 0, 0));
   outCng.sConnectPnt = connPnt;
-  outCng.sState = atoi(PQgetvalue(pgr.res, 0, 1));
+  outCng.sState = base::StateType(atoi(PQgetvalue(pgr.res, 0, 1)));
   outCng.sCapacityTaskCount = atoi(PQgetvalue(pgr.res, 0, 2));
   outCng.sActiveTaskCount = atoi(PQgetvalue(pgr.res, 0, 3));
   return true;
@@ -143,11 +143,11 @@ bool DbProvider::getWorkersOfSchedr(int sId, std::vector<base::Worker>& out){
     base::Worker w;{ 
       w.wId = atoi(PQgetvalue(pgr.res, i, 0));
       w.sId = sId;
-      w.wState = w.wStateMem = atoi(PQgetvalue(pgr.res, i, 1)),
-      w.wCapacityTaskCount = atoi(PQgetvalue(pgr.res, i, 2)),
-      w.wActiveTaskCount = atoi(PQgetvalue(pgr.res, i, 3)),
+      w.wState = w.wStateMem = base::StateType(atoi(PQgetvalue(pgr.res, i, 1)));
+      w.wCapacityTaskCount = atoi(PQgetvalue(pgr.res, i, 2));
+      w.wActiveTaskCount = atoi(PQgetvalue(pgr.res, i, 3));
       w.wConnectPnt = PQgetvalue(pgr.res, i, 4);
-      w.wIsActive = w.wState != int(base::StateType::NOT_RESPONDING);
+      w.wIsActive = w.wState != base::StateType::NOT_RESPONDING;
     }
     out.push_back(w);
   }

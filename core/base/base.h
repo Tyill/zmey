@@ -60,76 +60,20 @@ struct Task{
 struct Scheduler{
   int sId{};                          // id tblScheduler
   int sCapacityTaskCount{};           // the number of tasks that can be performed simultaneously  
-  std::atomic_int sState{0};
-  std::atomic_int sActiveTaskCount{0}; // number of running tasks (approximate quantity)
-  std::string sConnectPnt{0};          // connection point: IP or DNS ':' port
-
-  Scheduler(){}
-
-  Scheduler(const Scheduler& other){
-    init(other);
-  }
-  Scheduler(Scheduler&& other){
-    init(other);
-  }
-
-  Scheduler& operator=(const Scheduler& other){
-    init(other);
-    return *this;
-  }
-  Scheduler& operator=(Scheduler&& other){
-    init(other);
-    return *this;
-  }
-private:
-  void init(const Scheduler& other){
-    sId = other.sId;                          
-    sCapacityTaskCount = other.sCapacityTaskCount;           
-    sState = +other.sState;
-    sActiveTaskCount = +other.sActiveTaskCount;
-    sConnectPnt = other.sConnectPnt;         
-  }
+  StateType sState{};
+  int sActiveTaskCount{};             // number of running tasks (approximate quantity)
+  std::string sConnectPnt{};          // connection point: IP or DNS ':' port
 };
 // tblWorker
 struct Worker{
   int wId{};                          // id tblWorker
   int sId{};                          // id tblScheduler
   int wCapacityTaskCount{};           // the number of tasks that can be performed simultaneously  
-  std::atomic_int wState{0};  
-  std::atomic_int wStateMem{0};
-  std::atomic_int wActiveTaskCount{0}; // number of running tasks (approximate quantity)
-  std::atomic_int wLoadCPU{0};
-  std::atomic_bool wIsActive{0};  
-  std::string wConnectPnt;            // connection point: IP or DNS ':' port
-
-  Worker(){}
-
-  Worker(const Worker& other){
-    init(other);
-  }
-  Worker(Worker&& other){
-    init(other);
-  }
-
-  Worker& operator=(const Worker& other){
-    init(other);
-    return *this;
-  }
-  Worker& operator=(Worker&& other){
-    init(other);
-    return *this;
-  }
-private:
-  void init(const Worker& other){
-    wId = other.wId;                          
-    sId = other.sId;                          
-    wCapacityTaskCount = other.wCapacityTaskCount; 
-    wState = +other.wState;  
-    wStateMem = +other.wStateMem;
-    wActiveTaskCount = +other.wActiveTaskCount; 
-    wLoadCPU = +other.wLoadCPU;
-    wIsActive = +other.wIsActive; 
-    wConnectPnt = other.wConnectPnt;
-  }
+  StateType wState{};  
+  StateType wStateMem{};
+  int wActiveTaskCount{};            // number of running tasks (approximate quantity)
+  int wLoadCPU{};
+  bool wIsActive{};  
+  std::string wConnectPnt;           // connection point: IP or DNS ':' port
 };
 }

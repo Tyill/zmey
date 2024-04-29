@@ -35,20 +35,10 @@ void Executor::getPrevWorkersFromDB(db::DbProvider& db)
   vector<base::Worker> workers; 
   if (db.getWorkersOfSchedr(m_schedr.sId, workers)){
     for(auto& w : workers){
-      base::Worker* pw = new base::Worker();{
-        pw->wActiveTaskCount = +w.wActiveTaskCount;
-        pw->wLoadCPU = +w.wLoadCPU;
-        pw->wCapacityTaskCount = w.wCapacityTaskCount;
-        pw->wConnectPnt = w.wConnectPnt;
-        pw->wId = w.wId;
-        pw->sId = w.sId;
-        pw->wState = +w.wState;
-        pw->wStateMem = +w.wState;
-        pw->wIsActive = w.wState != int(base::StateType::NOT_RESPONDING);
-      }
+      w.wIsActive = w.wState != base::StateType::NOT_RESPONDING;
       vector<base::Task> tasks;
       if (db.getTasksOfWorker(m_schedr.sId, w.wId, tasks)){
-        m_workers[w.wConnectPnt] = pw;
+        m_workers[w.wConnectPnt] = w;
         m_workerTasks[w.wId] = tasks;
         m_workerLocks[w.wId] = new std::mutex;
       }else{
@@ -59,6 +49,64 @@ void Executor::getPrevWorkersFromDB(db::DbProvider& db)
   else{
     m_app.statusMess("getPrevWorkersFromDB db error: " + db.getLastError());
   }  
+}
+
+base::Scheduler Executor::getScheduler()
+{
+  lock_guard<mutex> lk(m_mtxSchedl);
+  const auto schedr = m_schedr;
+  return schedr;
+}
+
+void Executor::updateScheduler(const base::Scheduler& schedr)
+{
+  lock_guard<mutex> lk(m_mtxSchedl);
+  m_schedr = schedr;
+}
+
+std::optional<base::Worker> Executor::getWorkerByConnPnt(const std::string& cp)
+{
+  lock_guard<mutex> lk(m_mtxWorker);
+  if (m_workers.count(cp)){
+    return m_workers[cp];
+  }
+  return {};
+}
+
+std::vector<base::Worker> Executor::getWorkers()
+{
+  lock_guard<mutex> lk(m_mtxWorker);
+  
+  std::vector<base::Worker> out;
+  for(auto& w : m_workers){
+    out.push_back(w.second);
+  }
+  return out;
+}
+
+void Executor::updateWorkerState(const std::string& cp, base::StateType state)
+{
+  lock_guard<mutex> lk(m_mtxWorker);
+  assert(m_workers.count(cp));
+
+  m_workers[cp].wStateMem = m_workers[cp].wState;
+  m_workers[cp].wState = state;
+}
+
+void Executor::updateWorker(const base::Worker& w)
+{
+  lock_guard<mutex> lk(m_mtxWorker);
+  assert(m_workers.count(w.wConnectPnt));
+
+  m_workers[w.wConnectPnt] = w;
+}
+
+void Executor::updateWorkers(const std::vector<base::Worker>& workers)
+{
+  lock_guard<mutex> lk(m_mtxWorker);
+  for(const auto& w : workers){
+    m_workers[w.wConnectPnt] = w;
+  }
 }
 
 void Executor::addTaskForWorker(int wId, const base::Task& t)

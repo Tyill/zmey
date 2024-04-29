@@ -32,16 +32,18 @@ using namespace std;
 
 void Executor::checkStatusWorkers(db::DbProvider& db)
 {
-  vector<base::Worker*> wkrNotResp;
-  for(auto& w : m_workers){
-    if (!w.second->wIsActive && (w.second->wState != int(base::StateType::STOP))){            
-      wkrNotResp.push_back(w.second);
+  auto workers = getWorkers();
+  vector<base::Worker> wkrNotResp;
+  for(auto& w : workers){
+    if (!w.wIsActive && (w.wState != base::StateType::STOP)){            
+      wkrNotResp.push_back(w);
     }else{
-      w.second->wIsActive = false;
+      w.wIsActive = false;
     }
   }
-  if (wkrNotResp.size() <= round(m_workers.size() * 0.75)){ 
-    for(auto w : wkrNotResp){
+  updateWorkers(workers);
+  if (wkrNotResp.size() <= round(workers.size() * 0.75)){ 
+    for(const auto& w : wkrNotResp){
       workerNotResponding(db, w);
     }
   }else{
@@ -50,17 +52,16 @@ void Executor::checkStatusWorkers(db::DbProvider& db)
   }
 }
 
-void Executor::workerNotResponding(db::DbProvider& db, base::Worker* w)
+void Executor::workerNotResponding(db::DbProvider& db, const base::Worker& w)
 {
-  if (w->wState != int(base::StateType::NOT_RESPONDING)){
-    m_messToDB.push(db::MessSchedr(mess::MessType::WORKER_NOT_RESPONDING, w->wId));
-    m_messToDB.push(db::MessSchedr::errorMess(w->wId, "worker not responding"));          
-    w->wStateMem = +w->wState;
-    w->wState = int(base::StateType::NOT_RESPONDING);
+  if (w.wState != base::StateType::NOT_RESPONDING){
+    m_messToDB.push(db::MessSchedr(mess::MessType::WORKER_NOT_RESPONDING, w.wId));
+    m_messToDB.push(db::MessSchedr::errorMess(w.wId, "worker not responding"));          
+    updateWorkerState(w.wConnectPnt, base::StateType::NOT_RESPONDING);
   }
-  const auto wTasks = getWorkerTasks(w->wId);
+  const auto wTasks = getWorkerTasks(w.wId);
   for(auto t : wTasks){
     m_tasks.push(move(t));
   }
-  clearWorkerTasks(w->wId);
+  clearWorkerTasks(w.wId);
 }

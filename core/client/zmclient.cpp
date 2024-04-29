@@ -101,7 +101,7 @@ bool zmAddScheduler(zmConn zo, zmSchedr cng, int* outSchId){
   scng.sActiveTaskCount= 0;
   scng.sCapacityTaskCount = cng.capacityTask;
   scng.sConnectPnt = cng.connectPnt;
-  scng.sState = int(base::StateType::STOP);
+  scng.sState = base::StateType::STOP;
 
   return static_cast<db::DbProvider*>(zo)->addSchedr(scng, *outSchId);
 }
@@ -203,7 +203,7 @@ bool zmAddWorker(zmConn zo, zmWorker cng, int* outWId){
   base::Worker wcng;
   wcng.wCapacityTaskCount = cng.capacityTask;
   wcng.wConnectPnt = cng.connectPnt;
-  wcng.wState = int(base::StateType::STOP);
+  wcng.wState = base::StateType::STOP;
   wcng.sId = cng.schedrId;
 
   return static_cast<db::DbProvider*>(zo)->addWorker(wcng, *outWId);

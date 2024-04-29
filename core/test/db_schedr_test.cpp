@@ -54,7 +54,7 @@ protected:
 
 base::Scheduler newSchedr(){
   base::Scheduler schedr;
-  schedr.sState = int(base::StateType::READY);
+  schedr.sState = base::StateType::READY;
   schedr.sConnectPnt = "localhost:4444"; 
   schedr.sCapacityTaskCount = 105;
   return schedr;
@@ -64,7 +64,7 @@ base::Worker newWorker(int sId){
   base::Worker worker;
   worker.wCapacityTaskCount= 10;
   worker.sId = sId;
-  worker.wState = int(base::StateType::READY);
+  worker.wState = base::StateType::READY;
   worker.wConnectPnt = "localhost:4445";
   return worker;
 }
@@ -86,19 +86,19 @@ TEST_F(DBSchedrTest, getSchedrByCP){
   int sId = 0;  
   EXPECT_TRUE(pDb_->addSchedr(schedr, sId) && (sId > 0)) << pDb_->getLastError(); 
 
-  schedr.sState = int(base::StateType::ERRORT);
+  schedr.sState = base::StateType::ERRORT;
   schedr.sCapacityTaskCount = 1;   
   schedr.sId = 0;
   EXPECT_TRUE(pDb_->getSchedr(schedr.sConnectPnt, schedr) && (schedr.sId == sId) &&
-                             (schedr.sState == int(base::StateType::READY)) &&
+                             (schedr.sState == base::StateType::READY) &&
                              (schedr.sConnectPnt == "localhost:4444") &&
                              (schedr.sCapacityTaskCount== 105)) << pDb_->getLastError(); 
 
-  schedr.sState = int(base::StateType::ERRORT);
+  schedr.sState = base::StateType::ERRORT;
   schedr.sConnectPnt = ""; 
   schedr.sCapacityTaskCount = 1;
   EXPECT_TRUE(!pDb_->getSchedr(schedr.sConnectPnt, schedr));
-  EXPECT_TRUE(schedr.sState == int(base::StateType::ERRORT));
+  EXPECT_TRUE(schedr.sState == base::StateType::ERRORT);
   EXPECT_TRUE(schedr.sConnectPnt == "");
   EXPECT_TRUE(schedr.sCapacityTaskCount == 1);                                                      
 }

@@ -64,7 +64,7 @@ bool DbProvider::getSchedr(int sId, base::Scheduler& cng){
     return false;
   }
   cng.sConnectPnt = PQgetvalue(pgr.res, 0, 0);
-  cng.sState = atoi(PQgetvalue(pgr.res, 0, 1));
+  cng.sState = base::StateType(atoi(PQgetvalue(pgr.res, 0, 1)));
   cng.sCapacityTaskCount = atoi(PQgetvalue(pgr.res, 0, 2));
   return true;
 }
