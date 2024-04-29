@@ -69,17 +69,23 @@ void Executor::waitProcess()
         st = base::StateType::ERRORT;
       }
       itPrc->setTaskState(st);      
-      m_messForSchedr.push(mess::TaskStatus{itPrc->getTask().tId, mt});
+      if (!m_restartRequest){
+        m_messForSchedr.push(mess::TaskStatus{itPrc->getTask().tId, mt});
+      }
     }    
     // stop
     else if (WIFSTOPPED(sts)){
       itPrc->setTaskState(base::StateType::PAUSE);
-      m_messForSchedr.push(mess::TaskStatus{itPrc->getTask().tId, mess::MessType::TASK_PAUSE});
+      if (!m_restartRequest){
+        m_messForSchedr.push(mess::TaskStatus{itPrc->getTask().tId, mess::MessType::TASK_PAUSE});
+      }    
     } 
     // continue
     else if (WIFCONTINUED(sts)){
       itPrc->setTaskState(base::StateType::RUNNING);
-      m_messForSchedr.push(mess::TaskStatus{itPrc->getTask().tId, mess::MessType::TASK_CONTINUE});    
+      if (!m_restartRequest){
+        m_messForSchedr.push(mess::TaskStatus{itPrc->getTask().tId, mess::MessType::TASK_CONTINUE});    
+      }
     } 
   }  
   // check max run time
@@ -99,6 +105,10 @@ void Executor::waitProcess()
         ++p;
       }
     }
+  }
+  if (m_procs.empty() && m_restartRequest){
+    m_restartRequest = false;
+    addMessForSchedr(mess::TaskStatus{0, mess::MessType::JUST_START_WORKER});
   }
 }
 

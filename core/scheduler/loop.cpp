@@ -69,6 +69,10 @@ void Loop::run()
         });     
     }
 
+    if(!m_executor.isMessToWorkerEmpty()){   
+      m_executor.sendMessToWorker();
+    }
+
     if(timer.onDelayOncSec(true, m_cng.checkWorkerTOutSec, 0)){
       m_executor.checkStatusWorkers(m_dbNewTask);
     }

@@ -63,7 +63,14 @@ void Executor::receiveHandler(const string& remcp, const string& data)
   else if (mtype == mess::MessType::PING_WORKER){  // only check
     return;
   }
-  else{
+  else if (mtype == mess::MessType::REQUEST_START_WORKER){
+    { std::lock_guard<std::mutex> lock(m_mtxProcess);
+      for(auto& p : m_procs){
+        p.stopBySchedr();
+      }
+      m_restartRequest = true;
+    }
+  }else{
     mess::TaskStatus tm(mtype, cp);
     if (!tm.deserialn(data)){
       errorMessage("receiveHandler error deserialn MessType::TASK_STATUS from: " + cp);    
@@ -79,7 +86,7 @@ void Executor::receiveHandler(const string& remcp, const string& data)
         switch (mtype){
           case mess::MessType::TASK_PAUSE:    iPrc->pause(); break;
           case mess::MessType::TASK_CONTINUE: iPrc->continueTask(); break;
-          case mess::MessType::TASK_STOP:     iPrc->stop(); break;
+          case mess::MessType::TASK_STOP:     iPrc->stopBySchedr(); break;
           default:{
             errorMessage("receiveHandler wrong task status");
           }

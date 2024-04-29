@@ -32,6 +32,7 @@
 #include "worker/process.h" 
 
 #include <list>
+#include <atomic>
 
 class Loop;
 
@@ -73,9 +74,10 @@ private:
   misc::Queue<base::Task> m_newTasks;
   misc::Queue<std::string> m_errMess;
   std::list<Process> m_procs;
-  std::mutex m_mtxProcess;  
+  std::mutex m_mtxProcess;
   
   misc::CounterTick m_ctickSendNotify;
+  std::atomic_bool m_restartRequest{};
 
   Loop* m_loop{};
 };

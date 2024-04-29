@@ -23,57 +23,27 @@
 // THE SOFTWARE.
 //
 
-#pragma once
+#include "scheduler/executor.h"
+#include "base/messages.h"
+#include "common/tcp.h"
 
-#include "common/timer_delay.h"
-#include "base/base.h"
+using namespace std;
 
-#ifdef _WIN32 
-typedef void* HANDLE; 
-typedef int pid_t;
-#endif 
 
-class Application;
-class Executor;
-
-class Process{
-public:
-  Process(Application&, Executor&, const base::Task&);
-
-  base::Task getTask() const;
-  pid_t getPid() const;
-  int getProgress();
-  bool checkMaxRunTime();
-  void setTaskState(base::StateType);
-  void pause();
-  void continueTask();
-  void stopByUser();
-  void stopByTimeout();
-  void stopBySchedr();
-  std::string getErrorStr() const {
-      return m_err;
+bool Executor::sendMessToWorker()
+{   
+  int cycleCount = 0;
+  while (!m_messToWorker.empty()){
+    mess::InfoMess m;
+    m_messToWorker.front(m);
+    if (misc::asyncSendData(m.connectPnt, m.serialn())){
+      m_messToWorker.tryPop(m);
+    }else{
+      ++cycleCount;
+      if (cycleCount >= m_tasks.size()){
+        return false;
+      }
+    }
   }
-
-#ifdef _WIN32 
-  HANDLE getHandle() const;
-  void closeHandle();
-#endif
-
-private:
-  Application& m_app;  
-  Executor& m_executor;
-  pid_t m_pid = 1; 
-  base::Task m_task;
-  misc::TimerDelay m_timerProgress,
-                    m_timerDuration;
-  int m_cdeltaTimeProgress = 0,
-      m_cdeltaTimeDuration  = 0;
-  bool m_isPause = false;
-  std::string m_err;
-
-#ifdef _WIN32 
-  HANDLE m_hProcess = nullptr;
-  HANDLE m_hThread = nullptr;
-  HANDLE m_hResFile = nullptr;
-#endif
-};
+  return true;
+}

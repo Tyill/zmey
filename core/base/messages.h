@@ -29,6 +29,7 @@ enum class MessType{
   START_AFTER_PAUSE_SCHEDR,  
   PING_WORKER,
   PING_SCHEDR,
+  REQUEST_START_WORKER,
   JUST_START_WORKER,
   WORKER_NOT_RESPONDING,
   INTERN_ERROR,      
@@ -85,7 +86,7 @@ public:
     
 class InfoMess{
 public:  
-  InfoMess(MessType _mtype, const std::string& connPnt);
+  InfoMess(MessType _mtype = MessType::UNDEFINED, const std::string& connPnt = "");
 
   MessType mtype = MessType::UNDEFINED;    
   std::string connectPnt;

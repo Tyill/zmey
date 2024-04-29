@@ -74,7 +74,8 @@ void Executor::receiveHandler(const string& remcp, const string& data)
   else{
     if (worker->wState == base::StateType::STOP || worker->wState == base::StateType::NOT_RESPONDING){
       if (mtype != mess::MessType::JUST_START_WORKER){
-        errorMessage("receiveHandler error: mess from not running worker: " + cp, worker->wId);    
+        errorMessage("receiveHandler error: mess from not running worker: " + cp, worker->wId);
+        m_messToWorker.push(mess::InfoMess(mess::MessType::REQUEST_START_WORKER, cp));
         return;
       }
     }

@@ -45,6 +45,7 @@ public:
   bool appendNewTaskAvailable();
   bool isTasksEmpty();
   bool isMessToDBEmpty();
+  bool isMessToWorkerEmpty();
   bool getSchedrFromDB(const std::string& connPnt, db::DbProvider& db); 
   bool listenNewTask(db::DbProvider& db, bool on);
   
@@ -53,6 +54,7 @@ public:
   void getNewTaskFromDB(db::DbProvider& db);
   void sendAllMessToDB(db::DbProvider& db);
   bool sendTaskToWorker();
+  bool sendMessToWorker();
   void checkStatusWorkers(db::DbProvider& db);
   void getPrevTaskFromDB(db::DbProvider& db);
   void getPrevWorkersFromDB(db::DbProvider& db);
@@ -85,6 +87,7 @@ private:
   std::map<int, std::mutex*> m_workerLocks;
   misc::Queue<base::Task> m_tasks;
   misc::Queue<db::MessSchedr> m_messToDB;
+  misc::Queue<mess::InfoMess> m_messToWorker;
   base::Scheduler m_schedr;
   std::mutex m_mtxWorker, m_mtxSchedl;
 

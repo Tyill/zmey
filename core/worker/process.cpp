@@ -135,8 +135,16 @@ void Process::continueTask(){
     m_executor.addErrMess(m_err);
   }
 }
-void Process::stop(){
+void Process::stopByUser(){
   m_err = "Stopping by command from user";
+  if (kill(m_pid, SIGTERM) == -1){
+    m_err = "Process error stop: " + string(strerror(errno));
+    m_app.statusMess(m_err);
+    m_executor.addErrMess(m_err);
+  }
+}
+void Process::stopBySchedr(){
+  m_err = "Stopping by command from schedr";
   if (kill(m_pid, SIGTERM) == -1){
     m_err = "Process error stop: " + string(strerror(errno));
     m_app.statusMess(m_err);

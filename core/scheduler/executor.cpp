@@ -67,6 +67,11 @@ bool Executor::isMessToDBEmpty()
   return m_messToDB.empty();
 }
 
+bool Executor::isMessToWorkerEmpty()
+{
+  return m_messToWorker.empty();
+}
+
 bool Executor::getSchedrFromDB(const std::string& connPnt, db::DbProvider& db)
 {
   return db.getSchedr(connPnt, m_schedr);
