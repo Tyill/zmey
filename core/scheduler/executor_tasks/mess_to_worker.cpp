@@ -40,7 +40,7 @@ bool Executor::sendMessToWorker()
       m_messToWorker.tryPop(m);
     }else{
       ++cycleCount;
-      if (cycleCount >= m_tasks.size()){
+      if (cycleCount >= m_messToWorker.size()){
         return false;
       }
     }
