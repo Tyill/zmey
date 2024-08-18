@@ -25,6 +25,8 @@
 #include "common/tcp.h"
 
 #include <map>
+#include <deque>
+#include <atomic>
 #include <asio.hpp>
 
 class TcpSession;
@@ -49,6 +51,6 @@ private:
   asio::io_context m_ioc;
   asio::ip::tcp::acceptor m_acceptor;
 
-  std::vector<bool> m_isThrRun;
+  std::deque<std::atomic_bool> m_isThrRun;
   std::vector<std::thread> m_threads;
 };

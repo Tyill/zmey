@@ -65,8 +65,9 @@ void TcpServer::start(int innerThreadCnt)
   int thrCount = (innerThreadCnt > 0) ?
                   innerThreadCnt : std::max<int>(1, std::thread::hardware_concurrency());
   
-  m_isThrRun.resize(thrCount, true);
+  
   for (int i = 0; i < thrCount; ++i){
+    m_isThrRun.emplace_back(true);
     m_threads.push_back(std::thread([&, i]{ m_ioc.run(); 
                                             m_ioc.reset();
                                             m_isThrRun[i] = false;
