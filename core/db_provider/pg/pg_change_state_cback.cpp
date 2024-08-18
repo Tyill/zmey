@@ -58,7 +58,7 @@ bool DbProvider::setChangeTaskStateCBack(int tId, ChangeTaskStateCBack cback, UD
           isChangeState |= std::string(notify->relname) == m_impl->NOTIFY_NAME_CHANGE_TASK;
           PQfreemem(notify);
         }
-        bool auxCheckTimeout = m_impl->m_notifyAuxCheckTOut.onDelayOncSec(true, 10, 1);
+        bool auxCheckTimeout = m_impl->m_notifyAuxCheckTOut.onDelayOncSec(true, 10, misc::TimerDelay::Timer1);
         if (!isChangeState && m_impl->m_firstReqChangeTaskState && !auxCheckTimeout){
           misc::sleepMs(maxElapseTimeMS);
           continue;

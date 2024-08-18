@@ -58,15 +58,15 @@ void Loop::run()
       m_executor.messageToSchedr(m_cng.schedrConnPnt);
     }
 
-    if(timer.onDelayOncSec(true, m_cng.progressTasksTOutSec, 0)){
+    if(timer.onDelayOncSec(true, m_cng.progressTasksTOutSec, misc::TimerDelay::Timer0)){
       m_executor.progressToSchedr(m_cng.schedrConnPnt);
     }
     
-    if(timer.onDelayOncSec(true, m_cng.checkLoadTOutSec, 1)){
+    if(timer.onDelayOncSec(true, m_cng.checkLoadTOutSec, misc::TimerDelay::Timer1)){
       m_executor.setLoadCPU(cpu.load());
     } 
     
-    if(timer.onDelayOncSec(true, m_cng.pingSchedrTOutSec, 2)){
+    if(timer.onDelayOncSec(true, m_cng.pingSchedrTOutSec, misc::TimerDelay::Timer2)){
       m_executor.pingToSchedr(m_cng.schedrConnPnt);
     } 
          

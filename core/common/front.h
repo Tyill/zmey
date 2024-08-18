@@ -34,7 +34,12 @@ class Front{
   int oncSz_ = 0;
 public:
   Front();
-  bool posFront(bool en, int id);
-  bool negFront(bool en, int id);
+  bool posFront(bool en, int id = Front0);
+  bool negFront(bool en, int id = Front0);
+
+  static const int Front0 = 0;
+  static const int Front1 = 1;
+  static const int Front2 = 2;
+  static const int Front3 = 3;
 };
 }

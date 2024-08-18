@@ -42,11 +42,16 @@ public:
   TimerDelay();
   void updateCycTime();
   int64_t getDeltaTimeMS();
-  bool onDelaySec(bool start, int delay, int id);  
-  bool offDelaySec(bool start, int delay, int id);
-  bool onDelayMS(bool start, int delay, int id);
-  bool offDelayMS(bool start, int delay, int id);
-  bool onDelayOncSec(bool start, int delay, int id);
-  bool onDelayOncMS(bool start, int delay, int id);
+  bool onDelaySec(bool start, int delay, int id = Timer0);  
+  bool offDelaySec(bool start, int delay, int id = Timer0);
+  bool onDelayMS(bool start, int delay, int id = Timer0);
+  bool offDelayMS(bool start, int delay, int id = Timer0);
+  bool onDelayOncSec(bool start, int delay, int id = Timer0);
+  bool onDelayOncMS(bool start, int delay, int id = Timer0);
+
+  static const int Timer0 = 0;
+  static const int Timer1 = 1;
+  static const int Timer2 = 2;
+  static const int Timer3 = 3;
 };
 }

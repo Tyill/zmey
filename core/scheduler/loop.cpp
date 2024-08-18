@@ -28,7 +28,6 @@
 #include "common/timer_delay.h"
 #include "common/tcp.h"
 
-#include <future>
 #include <condition_variable>
 #include <mutex>
 
@@ -44,8 +43,6 @@ Loop::Loop(const Application::Config& cng, Executor& exr, db::DbProvider& dbNewT
 
 void Loop::run()
 {
-  future<void> frGetNewTask,
-               frSendAllMessToDB; 
   misc::TimerDelay timer;
   const int minCycleTimeMS = 10;
     
@@ -53,31 +50,25 @@ void Loop::run()
     timer.updateCycTime();   
 
     if(m_executor.appendNewTaskAvailable()){      
-      if(!frGetNewTask.valid() || (frGetNewTask.wait_for(chrono::seconds(0)) == future_status::ready))
-        frGetNewTask = async(launch::async, [this]{
-          m_executor.getNewTaskFromDB(m_dbNewTask);
-          if (!m_executor.isTasksEmpty()){
-            m_executor.sendTaskToWorker();
-          }  
-        }); 
+      m_executor.getNewTaskFromDB(m_dbNewTask);
+      if (!m_executor.isTasksEmpty()){
+        m_executor.sendTaskToWorker();
+      }
     }
 
     if(!m_executor.isMessToDBEmpty()){   
-      if(!frSendAllMessToDB.valid() || (frSendAllMessToDB.wait_for(chrono::seconds(0)) == future_status::ready))
-        frSendAllMessToDB = async(launch::async, [this]{
-          m_executor.sendAllMessToDB(m_dbSendMess);
-        });     
+      m_executor.sendAllMessToDB(m_dbSendMess);
     }
 
     if(!m_executor.isMessToWorkerEmpty()){   
       m_executor.sendMessToWorker();
     }
 
-    if(timer.onDelayOncSec(true, m_cng.checkWorkerTOutSec, 0)){
+    if(timer.onDelayOncSec(true, m_cng.checkWorkerTOutSec, misc::TimerDelay::Timer0)){
       m_executor.checkStatusWorkers(m_dbNewTask);
     }
 
-    if(timer.onDelayOncSec(true, m_cng.pingToDBSec, 1)){
+    if(timer.onDelayOncSec(true, m_cng.pingToDBSec, misc::TimerDelay::Timer1)){
       m_executor.pingToDB();
     }
     
