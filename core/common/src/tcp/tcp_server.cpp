@@ -76,12 +76,9 @@ void TcpServer::start(int innerThreadCnt)
 
 void TcpServer::stop()
 {
-  while(true){        
-    if (std::accumulate(m_isThrRun.begin(), m_isThrRun.end(), 0)){
-      m_ioc.stop();
-      std::this_thread::yield();
-    }
-    else break;
+  while(std::accumulate(m_isThrRun.begin(), m_isThrRun.end(), 0)){        
+    m_ioc.stop();
+    std::this_thread::yield();
   }
   for (auto& t : m_threads){
     if (t.joinable()){

@@ -64,7 +64,7 @@ print('Time to complete all tasks: ', time.time() - tstart)
 
 # stop all schedr and workers
 for i in range(len(schPrc)):
-  schPrc[i].terminate()
+  schPrc[i].kill()
 
 for i in range(len(wkrPrc)):
-  wkrPrc[i].terminate()
+  wkrPrc[i].kill()
