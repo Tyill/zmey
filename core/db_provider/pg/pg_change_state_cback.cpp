@@ -45,12 +45,12 @@ bool DbProvider::setChangeTaskStateCBack(int tId, ChangeTaskStateCBack cback, UD
       if (PQresultStatus(pgr.res) != PGRES_COMMAND_OK){
         errorMess(string("endTaskCBack LISTEN: ") + PQerrorMessage(pg_));
       }
-
+      misc::TimerDelay timer;
       int maxElapseTimeMS = 10;
       while (!m_impl->m_fClose){
         
         PQconsumeInput(pg_);
-        m_impl->m_notifyAuxCheckTOut.updateCycTime();
+        timer.updateCycTime();
         
         bool isChangeState = false;
         PGnotify* notify = nullptr;
@@ -58,7 +58,7 @@ bool DbProvider::setChangeTaskStateCBack(int tId, ChangeTaskStateCBack cback, UD
           isChangeState |= std::string(notify->relname) == m_impl->NOTIFY_NAME_CHANGE_TASK;
           PQfreemem(notify);
         }
-        bool auxCheckTimeout = m_impl->m_notifyAuxCheckTOut.onDelayOncSec(true, 10, misc::TimerDelay::Timer1);
+        bool auxCheckTimeout = timer.onDelayOncSec(true, 10);
         if (!isChangeState && m_impl->m_firstReqChangeTaskState && !auxCheckTimeout){
           misc::sleepMs(maxElapseTimeMS);
           continue;

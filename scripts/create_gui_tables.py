@@ -61,7 +61,7 @@ def createTables():
       "isDeleted              BOOLEAN NOT NULL DEFAULT FALSE);"
 
       "CREATE TABLE IF NOT EXISTS tblTask(,"
-      "id               SERIAL PRIMARY KEY,"
+      "id               INT PRIMARY KEY REFERENCES tblTaskQueue,"
       "pplTaskId        INT NOT NULL REFERENCES tblPipelineTask,"
       "starterPplTaskId INT REFERENCES tblPipelineTask,"
       "starterEventId   INT REFERENCES tblEvent,"

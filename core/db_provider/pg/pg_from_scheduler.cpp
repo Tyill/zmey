@@ -165,7 +165,7 @@ bool DbProvider::getNewTasksForSchedr(int sId, int maxTaskCnt, std::vector<base:
     isNewTask = std::string(notify->relname) == m_impl->NOTIFY_NAME_NEW_TASK;
     PQfreemem(notify);
   }
-  bool auxCheckTimeout = m_impl->m_notifyAuxCheckTOut.onDelayOncSec(true, 10, misc::TimerDelay::Timer0);
+  bool auxCheckTimeout = m_impl->m_notifyAuxCheckTOut.onDelayOncSec(true, 10);
   if (!isNewTask && m_impl->m_firstReqNewTasks && !auxCheckTimeout){
     return true;
   }

@@ -83,7 +83,7 @@ int main(int argc, char* argv[])
   // prev tasks and workers
   executor.getPrevTaskFromDB(db);
   executor.getPrevWorkersFromDB(db);
-  executor.listenNewTask(db, true);
+  CHECK_RETURN(!executor.listenNewTask(db, true), "Schedr error listenNewTask");
    
   // TCP server
   misc::ReceiveDataCBack receiveDataCB = [&executor](const string& cp, const string& data){
