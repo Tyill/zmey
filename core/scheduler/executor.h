@@ -35,7 +35,7 @@ class Loop;
 
 class Executor{
 public:  
-  Executor(Application&, db::DbProvider& db);
+  Executor(Application&);
 
   void setLoop(Loop* l);
   void loopNotify();
@@ -55,7 +55,7 @@ public:
   void sendAllMessToDB(db::DbProvider& db);
   bool sendTaskToWorker();
   bool sendMessToWorker();
-  void checkStatusWorkers(db::DbProvider& db);
+  void checkStatusWorkers();
   void getPrevTaskFromDB(db::DbProvider& db);
   void getPrevWorkersFromDB(db::DbProvider& db);
   void pingToDB();
@@ -76,11 +76,10 @@ public:
   void clearWorkerTasks(int wId);
   
 private: 
-  void workerNotResponding(db::DbProvider& db, const base::Worker&);
+  void workerNotResponding(const base::Worker&);
   void errorMessage(const std::string& mess, int wId);
 
   Application& m_app;
-  db::DbProvider& m_db;
 
   std::map<std::string, base::Worker> m_workers;        // key - worker connectPnt  
   std::map<int, std::vector<base::Task>> m_workerTasks; // key - worker id

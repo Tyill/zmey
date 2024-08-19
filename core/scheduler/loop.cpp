@@ -33,11 +33,10 @@
 
 using namespace std;
  
-Loop::Loop(const Application::Config& cng, Executor& exr, db::DbProvider& dbNewTask, db::DbProvider& dbSendMess):
+Loop::Loop(const Application::Config& cng, Executor& exr, db::DbProvider& db):
   m_cng(cng),
   m_executor(exr),
-  m_dbNewTask(dbNewTask),
-  m_dbSendMess(dbSendMess)
+  m_db(db)
 {
 }
 
@@ -50,14 +49,14 @@ void Loop::run()
     timer.updateCycTime();   
 
     if(m_executor.appendNewTaskAvailable()){      
-      m_executor.getNewTaskFromDB(m_dbNewTask);
+      m_executor.getNewTaskFromDB(m_db);
       if (!m_executor.isTasksEmpty()){
         m_executor.sendTaskToWorker();
       }
     }
 
     if(!m_executor.isMessToDBEmpty()){   
-      m_executor.sendAllMessToDB(m_dbSendMess);
+      m_executor.sendAllMessToDB(m_db);
     }
 
     if(!m_executor.isMessToWorkerEmpty()){   
@@ -65,7 +64,7 @@ void Loop::run()
     }
 
     if(timer.onDelayOncSec(true, m_cng.checkWorkerTOutSec, misc::TimerDelay::Timer0)){
-      m_executor.checkStatusWorkers(m_dbNewTask);
+      m_executor.checkStatusWorkers();
     }
 
     if(timer.onDelayOncSec(true, m_cng.pingToDBSec, misc::TimerDelay::Timer1)){

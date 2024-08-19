@@ -32,9 +32,6 @@
 
 using namespace std;
 
-unique_ptr<db::DbProvider> 
-static createDbProvider(const Application::Config& cng, string& err);
-
 static Loop* pLoop;
 static void closeHandler(int sig)
 {
@@ -72,21 +69,21 @@ int main(int argc, char* argv[])
   signal(SIGPIPE, SIG_IGN);
 #endif
   
-  // db providers
+  // db provider
   string err;
-  auto dbNewTask = createDbProvider(cng, err);
-  auto dbSendMess = dbNewTask ? createDbProvider(cng, err) : nullptr;
-  CHECK_RETURN(!dbNewTask || !dbSendMess, "Schedr db connect error " + err + ": " + cng.dbConnCng.connectStr); 
+  db::DbProvider db(cng.dbConnCng);
+  err = db.getLastError();
+  CHECK_RETURN(!err.empty(), "Schedr db connect error " + err + ": " + cng.dbConnCng.connectStr); 
     
-  Executor executor(app, *dbNewTask);
+  Executor executor(app);
   
   // schedr from db
-  CHECK_RETURN(!executor.getSchedrFromDB(cng.remoteConnPnt, *dbNewTask), "Schedr not found in db for connectPnt " + cng.remoteConnPnt);
+  CHECK_RETURN(!executor.getSchedrFromDB(cng.remoteConnPnt, db), "Schedr not found in db for connectPnt " + cng.remoteConnPnt);
      
   // prev tasks and workers
-  executor.getPrevTaskFromDB(*dbNewTask);
-  executor.getPrevWorkersFromDB(*dbNewTask);
-  executor.listenNewTask(*dbNewTask, true);
+  executor.getPrevTaskFromDB(db);
+  executor.getPrevWorkersFromDB(db);
+  executor.listenNewTask(db, true);
    
   // TCP server
   misc::ReceiveDataCBack receiveDataCB = [&executor](const string& cp, const string& data){
@@ -103,7 +100,7 @@ int main(int argc, char* argv[])
   executor.addMessToDB(db::MessSchedr{ mess::MessType::START_SCHEDR });
 
   // loop ///////////////////////////////////////////////////////////////////////
-  Loop loop(cng, executor, *dbNewTask, *dbSendMess);
+  Loop loop(cng, executor, db);
   pLoop = &loop;  
   executor.setLoop(&loop);
 
@@ -112,19 +109,6 @@ int main(int argc, char* argv[])
   /////////////////////////////////////////////////////////////////////////
   
   misc::stopServer();
-  executor.listenNewTask(*dbNewTask, false);
-  executor.stopSchedr(*dbSendMess);
+  executor.listenNewTask(db, false);
+  executor.stopSchedr(db);
 }
-
-unique_ptr<db::DbProvider> 
-createDbProvider(const Application::Config& cng, string& err)
-{
-  unique_ptr<db::DbProvider> db(new db::DbProvider(cng.dbConnCng));
-  err = db->getLastError();
-  if (err.empty()){
-    return db;
-  } else{    
-    return nullptr;
-  }
-}
-

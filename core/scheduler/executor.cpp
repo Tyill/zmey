@@ -27,9 +27,8 @@
 #include "application.h"
 #include "loop.h"
   
-Executor::Executor(Application& app, db::DbProvider& db):
-  m_app(app),
-  m_db(db)
+Executor::Executor(Application& app):
+  m_app(app)
 {
 }
 

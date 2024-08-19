@@ -32,7 +32,7 @@ void Executor::errorNotifyHandler(const string& cp, const std::error_code& ec)
 {      
   const auto w = getWorkerByConnPnt(cp);
   if (ec && w){
-    workerNotResponding(m_db, w.value());
+    workerNotResponding(w.value());
     errorMessage("errorNotifyHandler worker not response, cp: " + cp, w->wId);
   } else {
     errorMessage("errorNotifyHandler wrong receiver: " + cp, 0);
