@@ -52,8 +52,6 @@ void Loop::run()
         
     m_executor.updateListTasks();
     
-    m_executor.updateListTasks();
-    
     if (!m_executor.isMessForSchedrEmpty()){ 
       m_executor.messageToSchedr(m_cng.schedrConnPnt);
     }
