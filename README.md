@@ -9,6 +9,8 @@ The Zmey software for schedule and monitor workflows.
 <img src="docs/demo.gif" width="600" height="350"/>
 </p>
 
+**WEB VERSION OF APPLICATION IS NOT YET COMPATIBLE WITH BACKEND**
+
 ## Features
 
 * Multi-user system, each user has his own independent task pool
