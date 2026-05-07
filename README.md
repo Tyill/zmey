@@ -9,30 +9,6 @@ The Zmey software for schedule and monitor workflows.
 <img src="docs/demo.gif" width="600" height="350"/>
 </p>
 
-# Zmey: High-Performance Workflow Engine for Automation
-
-**Zmey** is a lightweight, high-performance workflow engine written in C++. It is designed for task scheduling, process orchestration, and complex automation sequences in high-load environments.
-
-### 🛠 Why Zmey?
-In large-scale infrastructure projects (like **Data Centers** or **Smart Cities**), managing sequences of automated tasks is critical. Whether it's a power switching sequence or emergency cooling activation, Zmey provides a fast and reliable logic layer to handle these workflows with minimal latency.
-
-### 🚀 Key Features
-*   **Execution Speed:** Optimized C++ core for rapid task processing.
-*   **Flexible Logic:** Easily define complex sequences and dependencies between automated tasks.
-*   **Reliability:** Designed with a focus on stability for mission-critical industrial applications.
-*   **Scalable Architecture:** Can be integrated into larger monitoring systems (BMS/EPMS) or standalone automation controllers.
-
-### 💻 Tech Stack
-*   **Language:** C++11/17 (Focus on performance and memory management)
-*   **Pattern:** State Machine and Command patterns for robust workflow control.
-*   **Platform:** Linux / Windows compatible.
-
-### 📂 Potential Use Cases
-*   **Automated Infrastructure Management:** Handling redundancy switching in power grids.
-*   **Industrial IoT:** Coordinating data collection tasks across multiple sensors.
-*   **Smart Systems:** Execution of logical sequences in Building Management Systems (BMS).
-
-
 ## Features
 
 * Multi-user system, each user has his own independent task pool
